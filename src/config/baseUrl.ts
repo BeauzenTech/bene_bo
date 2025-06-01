@@ -1,3 +1,3 @@
 export const apiConfig = {
-    baseURL: "https://posme.pharmakilivreservice.com/api"
+    baseURL: "https://backend.vabenepizza.ch/api"
 }
