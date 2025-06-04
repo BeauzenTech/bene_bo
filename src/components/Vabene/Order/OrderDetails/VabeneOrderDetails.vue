@@ -320,7 +320,7 @@
             <li class="d-flex align-items-center justify-content-between" v-if="orderResponse.intructionOrder.cuisson">
               <span class="d-block text-paragraph fw-medium"> Type de cuisson </span>
               <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-                {{orderResponse.intructionOrder.cuisson || '-'}}
+                {{orderTypeSelected[0].libelle || '-'}}
               </span>
             </li>
 

@@ -5,7 +5,7 @@ import { apiConfig } from "@/config/baseUrl";
 import {
     ApiResponse, PaginatedCategorie,
     PaginatedFrachises, PaginatedIngredient, PaginatedMethodePaiement,
-    PaginatedOrder, PaginatedOrderType, PaginatedPayment,
+    PaginatedOrder, PaginatedOrderType, PaginatedPayment, PaginatedProduct,
     PaginatedRestaurant,
     PaginatedUsers
 } from "@/models/Apiresponse";
@@ -239,6 +239,17 @@ export const createRestaurant = async (restaurantData): Promise<ApiResponse<any>
         return response.data;
     } catch (error) {
         console.error("Erreur lors de la creation d'un restaurant", error);
+        throw error;
+    }
+};
+
+// Fonction pour créer d'une commande
+export const createNewOrder = async (orderData): Promise<ApiResponse<any>> =>{
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/initial/order', orderData);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la creation d'une commande", error);
         throw error;
     }
 };
@@ -495,6 +506,26 @@ export const toggleActivationIngredient = async (ingredientID: string, ingredien
         throw error;
     }
 };
+
+
+export const listeProducts = async (page = 1, filter: string, filterData): Promise<ApiResponse<PaginatedProduct>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+
+        const response = await apiClient.post(`/product/filter/${filter}?page=${page}`, filterData);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+
+
 
 
 

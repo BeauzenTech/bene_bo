@@ -176,7 +176,7 @@ import VaBeneCategorieListPage from "@/pages/Vabene/Categorie/VaBeneCategorieLis
 import VabeneAddCategoriePage from "@/pages/Vabene/Categorie/VabeneAddCategoriePage.vue";
 import VaBeneIngredientListPage from "@/pages/Vabene/Ingredient/VaBeneIngredientListPage.vue";
 import VabeneAddIngredientPage from "@/pages/Vabene/Ingredient/VabeneAddIngredientPage.vue";
-
+import VabeneOrderReportSellPage from "@/pages/Vabene/Order/VabeneOrderReportSellPage.vue";
 const routes = [
     // DASHBOARD HOME
   {
@@ -231,6 +231,11 @@ const routes = [
     path: "/ajout-commande",
     name: "VabeneAddOrderPage",
     component: VabeneAddOrderPage,
+  },
+  {
+    path: "/rapport-vente",
+    name: "VabeneOrderReportSellPage",
+    component: VabeneOrderReportSellPage,
   },
   {
     path: "/detail-commande/:commandeID",

@@ -1,19 +1,18 @@
 <template>
-  <BreadCrumb PageTitle="Ajouter un utilisateur" />
-  <VabeneAddUser />
+  <BreadCrumb PageTitle="Enregistrer une commande" />
+  <VabeneAddOrder />
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
 
 import BreadCrumb from "@/components/Common/BreadCrumb.vue";
-import VabeneAddUser from "@/components/Vabene/Users/AddUser/VabeneAddUser.vue";
-
+import VabeneAddOrder from "@/components/Vabene/Order/OrderNew/VabeneAddOrder.vue";
 export default defineComponent({
-  name: "VabeneAddUserPage",
+  name: "VabeneAddOrderPage",
   components: {
     BreadCrumb,
-    VabeneAddUser,
+    VabeneAddOrder,
   },
 });
 </script>

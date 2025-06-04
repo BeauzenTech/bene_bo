@@ -7,6 +7,7 @@ import {OrderTypeModel} from "@/models/orderType.model";
 import {PaymentModel} from "@/models/payment.model";
 import {CategorieModel} from "@/models/categorie.model";
 import {IngredientModel} from "@/models/ingredient.model";
+import {ProductModel} from "@/models/product.model";
 
 export class ApiResponse<T> {
     code?: number;
@@ -103,6 +104,16 @@ export interface PaginatedCategorie {
 
 export interface PaginatedIngredient {
     items: IngredientModel[];
+    pagination: {
+        current_page: number;
+        total_items: number;
+        total_pages: number;
+        items_per_page: number;
+    };
+}
+
+export interface PaginatedProduct {
+    items: ProductModel[];
     pagination: {
         current_page: number;
         total_items: number;
