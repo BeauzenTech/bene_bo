@@ -15,6 +15,8 @@ import {OrderModel} from "@/models/order.model";
 import {PaymentModel} from "@/models/payment.model";
 import {CategorieModel} from "@/models/categorie.model";
 import {IngredientModel} from "@/models/ingredient.model";
+import {SellModel} from "@/models/vente.model";
+import {PeriodiqueCardReport} from "@/models/periodiqueCardReport.model";
 
 const apiClient = axios.create({
     baseURL: apiConfig.baseURL,
@@ -523,6 +525,46 @@ export const listeProducts = async (page = 1, filter: string, filterData): Promi
     }
 };
 
+export const reportVenteAdmin = async (): Promise<ApiResponse<SellModel>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/initial/order/report`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const reportVenteRestaurant = async (restaurantID: string): Promise<ApiResponse<SellModel>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/initial/order/report/${restaurantID}`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const reportPeriodiqueCard = async (): Promise<ApiResponse<PeriodiqueCardReport>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/initial/order/periodique_report`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+export const reportPeriodiqueCardById = async (restaurantID: string): Promise<ApiResponse<PeriodiqueCardReport>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/initial/order/periodique_report/${restaurantID}`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
 
 
 
