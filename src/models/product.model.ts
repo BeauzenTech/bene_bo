@@ -6,6 +6,7 @@ export interface ProductModel {
     id: string;
     name: string;
     description: string;
+    type: string;
     image_urls: string[];
     categorieID: CategorieModel;
     isAvailable: boolean;

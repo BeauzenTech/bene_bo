@@ -1,5 +1,7 @@
 export interface ProductSizesModel {
-    id: string;
+    id?: string;
     size: string;
     price: string;
+    description: string;
+    generalDescription?: string;
 }

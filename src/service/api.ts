@@ -17,6 +17,7 @@ import {CategorieModel} from "@/models/categorie.model";
 import {IngredientModel} from "@/models/ingredient.model";
 import {SellModel} from "@/models/vente.model";
 import {PeriodiqueCardReport} from "@/models/periodiqueCardReport.model";
+import {ProductModel} from "@/models/product.model";
 
 const apiClient = axios.create({
     baseURL: apiConfig.baseURL,
@@ -398,6 +399,21 @@ export const listeCategorie = async (page = 1): Promise<ApiResponse<PaginatedCat
     }
 };
 
+export const listeCategorieActive = async (page = 1): Promise<ApiResponse<PaginatedCategorie>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+
+        const response = await apiClient.get(`/category/filter/active?page=${page}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
 export const detailCategorie = async (categorieID): Promise<ApiResponse<CategorieModel>> => {
     // eslint-disable-next-line no-useless-catch
     try {
@@ -509,6 +525,16 @@ export const toggleActivationIngredient = async (ingredientID: string, ingredien
     }
 };
 
+export const createProduct = async (productData): Promise<ApiResponse<any>> =>{
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/v1/product', productData);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la creation de produit", error);
+        throw error;
+    }
+};
+
 
 export const listeProducts = async (page = 1, filter: string, filterData): Promise<ApiResponse<PaginatedProduct>> => {
     // eslint-disable-next-line no-useless-catch
@@ -521,6 +547,79 @@ export const listeProducts = async (page = 1, filter: string, filterData): Promi
             response.data.data
         );
     } catch (error) {
+        throw error;
+    }
+};
+
+export const updateProduct = async (productID, productData): Promise<ApiResponse<any>> =>{
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/product/update/${productID}`, productData);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la mise a jour du produit", error);
+        throw error;
+    }
+};
+
+export const updateVariationProduct = async (productID, varationData): Promise<ApiResponse<any>> =>{
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/product/variation/update/${productID}`, varationData);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la mise a jour de la variation produit", error);
+        throw error;
+    }
+};
+
+export const removeVariationProduct = async (productID: string, variationID: string): Promise<ApiResponse<void>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<void>> = await apiClient.delete(`/v1/product/variation/remove/${productID}/${variationID}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la suppression de la variation du produit', error);
+        throw error;
+    }
+};
+
+
+
+
+export const toggleActivationProduct = async (productID: string, productData): Promise<ApiResponse<any>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/product/activate/${productID}`, productData);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors du toggle activation de ingredient.', error);
+        throw error;
+    }
+};
+
+export const toggleActivationFeatureProduct = async (productID: string, productData): Promise<ApiResponse<any>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/product/state/toggle/${productID}`, productData);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors du toggle activation de ingredient.', error);
+        throw error;
+    }
+};
+
+export const detailProduct = async (productID): Promise<ApiResponse<ProductModel>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/product/detail/${productID}`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const deleteProductTemporary = async (productID: string): Promise<ApiResponse<void>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<void>> = await apiClient.delete(`/v1/product/delete/temporary/${productID}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la suppression ingredient', error);
         throw error;
     }
 };

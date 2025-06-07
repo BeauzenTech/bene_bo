@@ -177,6 +177,10 @@ import VabeneAddCategoriePage from "@/pages/Vabene/Categorie/VabeneAddCategorieP
 import VaBeneIngredientListPage from "@/pages/Vabene/Ingredient/VaBeneIngredientListPage.vue";
 import VabeneAddIngredientPage from "@/pages/Vabene/Ingredient/VabeneAddIngredientPage.vue";
 import VabeneOrderReportSellPage from "@/pages/Vabene/Order/VabeneOrderReportSellPage.vue";
+import VaBeneProductListPage from "@/pages/Vabene/Produit/VaBeneProductListPage.vue";
+import VabeneAddProductPage from "@/pages/Vabene/Produit/VabeneAddProductPage.vue";
+
+
 const routes = [
     // DASHBOARD HOME
   {
@@ -290,6 +294,20 @@ const routes = [
     props: route => ({
       action: String(route.params.action),
       ingredientID: route.params.ingredientID ? String(route.params.ingredientID) : undefined
+    })
+  },
+  {
+    path: "/product-list",
+    name: "VaBeneProductListPage",
+    component: VaBeneProductListPage,
+  },
+  {
+    path: "/ajout-product/:action/:productID?",
+    name: "VabeneAddProductPage",
+    component: VabeneAddProductPage,
+    props: route => ({
+      action: String(route.params.action),
+      productID: route.params.productID ? String(route.params.productID) : undefined
     })
   },
 

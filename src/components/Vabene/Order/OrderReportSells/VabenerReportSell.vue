@@ -16,8 +16,8 @@
               <div class="d-flex align-items-center">
                 <div>
                   <p class="mb-0 text-secondary">Ventes cette semaine</p>
-                  <h4 class="my-1 text-info">{{periodiqueReportCard.currentMonth.value.toFixed(2)}} CHF</h4>
-                  <p v-if="periodiqueReportCard.currentMonth.ratio" class="mb-0 font-13">{{periodiqueReportCard.currentMonth.ratio.toFixed(2) ?? '0'}} cette semaine</p>
+                  <h4 class="my-1 text-info">{{periodiqueReportCard.currentMonth.value}} CHF</h4>
+                  <p v-if="periodiqueReportCard.currentMonth.ratio" class="mb-0 font-13">{{periodiqueReportCard.currentMonth.ratio ?? '0'}} cette semaine</p>
                   <p v-else  class="mb-0 font-13">0</p>
                 </div>
                 <div class="widgets-icons-2 rounded-circle bg-gradient-scooter text-white ms-auto"><i class="fa fa-shopping-cart"></i>
@@ -32,8 +32,8 @@
               <div class="d-flex align-items-center">
                 <div>
                   <p class="mb-0 text-secondary">Semaine passée</p>
-                  <h4 class="my-1 text-danger">{{periodiqueReportCard.lastWeek.value.toFixed(2)}} CHF</h4>
-                  <p v-if="periodiqueReportCard.lastWeek.ratio" class="mb-0 font-13">{{periodiqueReportCard.lastWeek.ratio.toFixed(2)}}%</p>
+                  <h4 class="my-1 text-danger">{{periodiqueReportCard.lastWeek.value}}</h4>
+                  <p v-if="periodiqueReportCard.lastWeek.ratio" class="mb-0 font-13">{{periodiqueReportCard.lastWeek.ratio}}%</p>
                   <p v-else class="mb-0 font-13">0%</p>
                 </div>
                 <div class="widgets-icons-2 rounded-circle bg-gradient-bloody text-white ms-auto"><i class="fa fa-dollar"></i>
@@ -47,9 +47,9 @@
             <div class="card-body">
               <div class="d-flex align-items-center">
                 <div>
-                  <p class="mb-0 text-secondary">Mois dernier</p>
-                  <h4 class="my-1 text-primary">{{periodiqueReportCard.lastMonth.value.toFixed(2)}} CHF</h4>
-                  <p v-if="periodiqueReportCard.lastMonth.ratio" class="mb-0 font-13">{{periodiqueReportCard.lastMonth.ratio.toFixed(2)}}%</p>
+                  <p class="mb-0 text-secondary">Mois passée</p>
+                  <h4 class="my-1 text-primary">{{periodiqueReportCard.lastMonth.value}}</h4>
+                  <p v-if="periodiqueReportCard.lastMonth.ratio" class="mb-0 font-13">{{periodiqueReportCard.lastMonth.ratio}}%</p>
                   <p v-else class="mb-0 font-13">0%</p>
 
                 </div>
@@ -65,8 +65,8 @@
               <div class="d-flex align-items-center">
                 <div>
                   <p class="mb-0 text-warning">Cette année</p>
-                  <h4 class="my-1 text-warning">{{periodiqueReportCard.year.value.toFixed(2)}} CHF</h4>
-                  <p v-if="periodiqueReportCard.year.ratio" class="mb-0 font-13">{{periodiqueReportCard.year.ratio.toFixed(2)}}%</p>
+                  <h4 class="my-1 text-warning">{{periodiqueReportCard.year.value}} CHF</h4>
+                  <p v-if="periodiqueReportCard.year.ratio" class="mb-0 font-13">{{periodiqueReportCard.year.ratio}}%</p>
                   <p v-else class="mb-0 font-13">0%</p>
                 </div>
                 <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto"><i class="fa fa-users"></i>

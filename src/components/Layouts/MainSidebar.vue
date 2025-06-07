@@ -125,7 +125,7 @@
                   </router-link>
                 </li>
                 <li class="sidebar-sub-menu-item">
-                  <router-link to="/produit-list" class="sidebar-sub-menu-link">
+                  <router-link to="/product-list" class="sidebar-sub-menu-link">
                     Produit
                   </router-link>
                 </li>
