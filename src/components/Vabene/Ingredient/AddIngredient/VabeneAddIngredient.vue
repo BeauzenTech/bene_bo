@@ -30,11 +30,11 @@
                       @change="(event) => handleInput(event, 'type')"
                       :class="{ 'is-valid': validTextField(ingredientData.type) }"
               >
-                <option value="Viandes" selected>Viandes</option>
-                <option value="Proteines" selected>Proteines</option>
-                <option value="Légumes" selected>Légumes</option>
-                <option value="Autre" selected>Autre</option>
-
+                <option value="Base offerte" selected>Base offerte</option>
+                <option value="Charcuterie/viande" selected>Charcuterie/viande</option>
+                <option value="Poisson" selected>Poisson</option>
+                <option value="Produit laitier" selected>Produit laitier</option>
+                <option value="Produit Huile" selected>Produit Huile</option>
               </select>
             </div>
           </div>
