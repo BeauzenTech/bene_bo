@@ -163,9 +163,9 @@
             <td class="shadow-none lh-1 fw-medium text-black-emphasis">
               <img
                   :src=" product.image_urls[0] || require('@/assets/images/icon/jpg.png')"
-                  class="rounded-circle me-8"
-                  width="24"
-                  height="24"
+                  class="rounded-circle me-8 w-50 h-auto"
+                  width="24px"
+                  height="24px"
                   alt="product"
               />
               {{ product.name }}

@@ -154,7 +154,7 @@
           <div class="modal-body">
             <div class="flex-column">
               <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-12">
                   <div class="form-group mb-15 mb-sm-20 mb-md-25">
                     <label class="d-block text-black fw-semibold mb-10">
                       Taille*
@@ -172,7 +172,7 @@
                 <div class="col-md-6">
                   <div class="form-group mb-15 mb-sm-20 mb-md-25">
                     <label class="d-block text-black fw-semibold mb-10">
-                      Prix*
+                      Prix Emporter*
                     </label>
                     <input
                         type="text"
@@ -180,6 +180,21 @@
                         placeholder="12.90"
                         v-model="productSizeDefine.price"
                         @change="(event) => handleInput(event, 'price')"
+                        :required="actionDetected === 'add'"
+                    />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group mb-15 mb-sm-20 mb-md-25">
+                    <label class="d-block text-black fw-semibold mb-10">
+                      Prix de Livraison*
+                    </label>
+                    <input
+                        type="text"
+                        class="form-control shadow-none rounded-0 text-black"
+                        placeholder="12.90"
+                        v-model="productSizeDefine.priceLivraison"
+                        @change="(event) => handleInput(event, 'priceLivraison')"
                         :required="actionDetected === 'add'"
                     />
                   </div>
@@ -225,7 +240,14 @@
                         scope="col"
                         class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
                     >
-                      PRIX
+                      PRIX EMPORTER
+                    </th>
+
+                    <th
+                        scope="col"
+                        class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
+                    >
+                      PRIX DE LIVRAISON
                     </th>
 
                     <th
@@ -254,6 +276,10 @@
                     <td  class="shadow-none lh-1 fw-medium">
                       <span class="badge text-outline-danger">{{variation.price}} CHF</span>
                     </td>
+                    <td  class="shadow-none lh-1 fw-medium">
+                      <span class="badge text-outline-danger">{{variation.priceLivraison}} CHF</span>
+                    </td>
+
 
                     <td v-if="variation.description"  class="shadow-none lh-1 fw-medium">
                       <span v-if="variation.description" class="text-decoration-none text-black-emphasis">{{cleanAndTruncateHtmlText(variation.description)}}</span>
@@ -362,13 +388,14 @@ export default defineComponent({
       logoUpload: null,
       productResponse: null as ProductModel | null,
       actionDetected: null as string | null,
-      allTypeProduct: [ "Pizza", "Dessert", "Boisson", "Autre"] as string[],
+      allTypeProduct: ["Pizza", "Boisson", "Autre"] as string[],
       originalCategories: [] as CategorieModel[],
       allVariationsProduct: [] as ProductSizesModel[],
       productSizeDefine: {
         taille: '',
         generalDescription: '',
-        price: ""
+        price: "",
+        priceLivraison: ""
       }
     }
   },
@@ -387,17 +414,20 @@ export default defineComponent({
           const size = {
             taille: this.productSizeDefine.taille,
             description: this.productSizeDefine.generalDescription,
-            price: this.productSizeDefine.price
+            price: this.productSizeDefine.price,
+            priceLivraison: this.productSizeDefine.priceLivraison
           };
           (this.productData.variationsProduct as any[]).push(size);
           this.allVariationsProduct.push({
             size: size.taille,
             price: size.price,
+            priceLivraison: size.priceLivraison,
             description: size.description
           });
           this.productSizeDefine = {
             taille: '',
             price: '',
+            priceLivraison: '',
             generalDescription: ''
           }
         }
@@ -405,18 +435,21 @@ export default defineComponent({
           const size = {
             taille: this.productSizeDefine.taille,
             generalDescription: this.productSizeDefine.generalDescription,
-            price: this.productSizeDefine.price
+            price: this.productSizeDefine.price,
+            priceLivraison: this.productSizeDefine.priceLivraison
           };
           (this.productData.variationsProduct as any[]).push(size);
           this.allVariationsProduct.push({
             id: '',
             size: size.taille,
             price: size.price,
+            priceLivraison: size.priceLivraison,
             description: size.generalDescription
           });
           this.productSizeDefine = {
             taille: '',
             price: '',
+            priceLivraison: '',
             generalDescription: ''
           }
         }
@@ -694,6 +727,11 @@ export default defineComponent({
 
         case 'price':
           this.productSizeDefine.price = valueText
+          this.validTextField(valueText)
+          break
+
+        case 'priceLivraison':
+          this.productSizeDefine.priceLivraison = valueText
           this.validTextField(valueText)
           break
 
