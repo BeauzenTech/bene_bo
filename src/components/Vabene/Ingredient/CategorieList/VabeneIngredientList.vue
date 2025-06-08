@@ -76,6 +76,13 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
+              TYPE
+            </th>
+
+            <th
+                scope="col"
+                class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
+            >
               DISPONIBILITÉ
             </th>
 
@@ -137,6 +144,10 @@
                 </div>
               </div>
             </th>
+
+            <td v-if="ingredient.type">
+              {{ ingredient.type  }}
+            </td>
 
             <td class="shadow-none lh-1 fw-medium text-muted">
               <!-- Toggle switch -->

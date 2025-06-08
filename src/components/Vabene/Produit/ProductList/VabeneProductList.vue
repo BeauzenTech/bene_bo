@@ -588,7 +588,8 @@ export default defineComponent({
         if (response.code === 200) {
           if (response.data?.items) {
             this.originalCategories = response.data.items;
-            this.categorieSelected = this.getCategorieByName(this.originalCategories, 'Pizza') as CategorieModel
+            this.categorieSelected = this.originalCategories[0];
+            console.log("categorie default: ", this.categorieSelected)
             await  this.fetchProduct(1, "existing", this.categorieSelected.id);
           }
         } else {

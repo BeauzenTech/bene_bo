@@ -3,6 +3,7 @@ import {ZoneModel} from "@/models/zone.model";
 export interface CategorieModel {
     id: string;
     name: string;
+    type: string;
     description: string;
     icone: string;
     isActive: boolean;

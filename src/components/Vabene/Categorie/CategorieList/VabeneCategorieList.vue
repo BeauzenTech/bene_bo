@@ -72,6 +72,8 @@
               Icone
             </th>
 
+
+
             <th
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
@@ -142,6 +144,8 @@
                 </div>
               </div>
             </th>
+
+
 
             <td class="shadow-none lh-1 fw-medium text-muted">
               {{ convertDateCreate(categorie.created_at)  }}
@@ -323,14 +327,23 @@ export default defineComponent({
   computed: {
     allCategorie(): CategorieModel[] {
       const categories = this.categorieResponse?.data?.items || this.originalCategories;
-      if (!this.searchQuery) return categories;
 
-      const query = this.searchQuery.toLowerCase();
-      return categories.filter(categorie => {
-        return (
-            (categorie.name?.toLowerCase().includes(query)) ||
-            (categorie.description?.toLowerCase().includes(query))
+      // Filtrage par searchQuery
+      const filtered = this.searchQuery
+          ? categories.filter(categorie => {
+            const query = this.searchQuery.toLowerCase();
+            return (
+                categorie.name?.toLowerCase().includes(query) ||
+                categorie.description?.toLowerCase().includes(query)
             );
+          })
+          : categories;
+
+      // Tri alphabétique par name
+      return filtered.sort((a, b) => {
+        const nameA = a.name?.toLowerCase() || '';
+        const nameB = b.name?.toLowerCase() || '';
+        return nameA.localeCompare(nameB);
       });
     },
 

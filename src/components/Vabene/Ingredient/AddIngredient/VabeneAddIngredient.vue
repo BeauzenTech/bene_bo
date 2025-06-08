@@ -34,7 +34,8 @@
                 <option value="Charcuterie/viande" selected>Charcuterie/viande</option>
                 <option value="Poisson" selected>Poisson</option>
                 <option value="Produit laitier" selected>Produit laitier</option>
-                <option value="Produit Huile" selected>Produit Huile</option>
+                <option value="Légumes" selected>Légumes</option>
+                <option value="Huile" selected>Huile</option>
               </select>
             </div>
           </div>
@@ -50,7 +51,7 @@
                   placeholder="e.g. 0"
                   v-model="ingredientData.extra_cost_price"
                   @change="(event) => handleInput(event, 'prix')"
-                  :class="{ 'is-valid': validTextField(ingredientData.extra_cost_price) }"
+                  :class="{ 'is-valid': validAmountField(ingredientData.extra_cost_price) }"
                   required
               />
             </div>
@@ -183,7 +184,7 @@ export default defineComponent({
         const payload = {
           "name": this.ingredientData.name,
           "type": this.ingredientData.type,
-          "extra_cost_price": this.ingredientData.extra_cost_price,
+          "extra_cost_price": parseFloat(String(this.ingredientData.extra_cost_price)),
           "imageUrl": this.ingredientData.imageUrl
         }
         try {
@@ -314,7 +315,7 @@ export default defineComponent({
 
         case 'prix':
           this.ingredientData.extra_cost_price = valueText
-          this.validTextField(valueText)
+          this.validAmountField(valueText)
           break
 
         case 'file':
@@ -328,6 +329,12 @@ export default defineComponent({
       }
     },
 
+    validAmountField(amount) {
+      if (amount === null || amount === undefined) return false;
+      const value = parseFloat(amount);
+      // Vérifie que c'est un nombre, non NaN, positif (ou ≥ 0 selon le besoin)
+      return !isNaN(value) && isFinite(value) && value >= 0;
+    },
 
     validTextField(text){
       if (text){
