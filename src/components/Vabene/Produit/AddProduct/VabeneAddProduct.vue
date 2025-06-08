@@ -362,7 +362,7 @@ export default defineComponent({
       logoUpload: null,
       productResponse: null as ProductModel | null,
       actionDetected: null as string | null,
-      allTypeProduct: [ "Pizza", "Dessert", "Boisson", "Autre"] as string[],
+      allTypeProduct: ["Pizza", "Boisson", "Autre"] as string[],
       originalCategories: [] as CategorieModel[],
       allVariationsProduct: [] as ProductSizesModel[],
       productSizeDefine: {
