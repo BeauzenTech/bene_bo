@@ -320,7 +320,7 @@
             <li class="d-flex align-items-center justify-content-between" v-if="orderResponse.intructionOrder.cuisson">
               <span class="d-block text-paragraph fw-medium"> Type de cuisson </span>
               <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-                {{orderTypeSelected[0].libelle || '-'}}
+                {{orderResponse.intructionOrder.cuisson|| '-'}}
               </span>
             </li>
 
@@ -360,13 +360,25 @@
                 Frais de livraison
               </span>
               <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-                + 0 CHF
+               N/A
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> Remise </span>
-              <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-                - 0 CHF
+              <span v-if="orderResponse.coupon" class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
+                  {{ orderResponse.coupon }}
+              </span>
+              <span v-else class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
+                   N/A
+              </span>
+            </li>
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-block text-paragraph fw-medium"> Taxe </span>
+              <span v-if="orderResponse.taxe" class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
+                  {{ orderResponse.taxe }}
+              </span>
+              <span v-else class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
+                   N/A
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">

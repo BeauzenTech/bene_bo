@@ -26,6 +26,11 @@ export interface OrderModel {
     orderItems: OrderItemModel[];
     intructionOrder: InstructionOrderModel;
     created_at: string;
+    civilite: string;
+    reference: string;
+    fraisLivraison: string;
+    taxe: string;
+    coupon: string;
 
 
 }
