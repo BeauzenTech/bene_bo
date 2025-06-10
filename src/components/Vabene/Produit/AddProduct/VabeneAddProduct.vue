@@ -514,10 +514,10 @@ export default defineComponent({
         ingredients: [],
         cookingTime: 0 as number,
         variationsProduct: [],
-      },
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      }
+      // setTimeout(() => {
+      //   window.location.reload();
+      // }, 1000);
     },
     goBack() {
       this.$router.back()
@@ -653,7 +653,36 @@ export default defineComponent({
         }
       }
       else{
-        await this.updateProduct(this.productResponse?.id);
+        if(this.logoUpload){
+          console.log("=> Enter")
+          this.isLoading = true;
+          try {
+            const response = await uploadFile(this.logoUpload);
+            console.log(response);
+            if (response.code === 200 || response.code === 201) {
+              this.productData.image_urls = [response.data as string]
+              console.log("new data image add", this.productData.image_urls );
+              await this.updateProduct(this.productResponse?.id);
+            } else {
+              this.toast.error(response.message)
+            }
+          } catch (error) {
+            const axiosError = error as AxiosError;
+
+            this.isLoading = false;
+            if (axiosError.response && axiosError.response.data) {
+              const message = (axiosError.response.data as any).message;
+              this.toast.error(message);
+            } else {
+              this.toast.error("Une erreur est survenue");
+            }
+            console.error(axiosError);
+          }
+        }
+        else{
+          await this.updateProduct(this.productResponse?.id);
+        }
+
       }
 
 

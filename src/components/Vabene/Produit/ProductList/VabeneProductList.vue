@@ -632,7 +632,7 @@ export default defineComponent({
     changePage(page: number) {
       if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
         if(this.categorieSelected){
-          this.fetchProduct(1, "existing", this.categorieSelected.id)
+          this.fetchProduct(page, "existing", this.categorieSelected.id)
         }
       }
     },
