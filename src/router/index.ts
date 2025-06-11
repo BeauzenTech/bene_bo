@@ -201,9 +201,13 @@ const routes = [
     component: VaBeneUserListPage,
   },
   {
-    path: "/ajout-utilisateur",
+    path: "/ajout-utilisateur/:action/:userID?",
     name: "VabeneAddUserPage",
     component: VabeneAddUserPage,
+    props: route => ({
+      action: String(route.params.action),
+      userID: route.params.userID ? String(route.params.userID) : undefined
+    })
   },
 
     // CRUD FRANCHISE

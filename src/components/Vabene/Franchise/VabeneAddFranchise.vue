@@ -126,7 +126,7 @@
                     class="form-control shadow-none rounded-0 text-black"
                     placeholder="**************"
                     @change="(event) => handleInput(event, 'file')"
-                    required
+                    :required="actionDetected === ActionCrud.ADD"
                 />
               </div>
             </div>
@@ -498,7 +498,7 @@
 import {defineComponent, PropType} from "vue";
 
 
-import {createFranchise, detailFranchise, fetchAllPostalCode, uploadFile} from "@/service/api";
+import {createFranchise, detailFranchise, fetchAllPostalCode, updateFranchise, uploadFile} from "@/service/api";
 
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
@@ -610,30 +610,99 @@ export default defineComponent({
         this.isLoading = false;
       }
     },
+    async updateFranchise(franchiseID) {
+      this.isLoading = true
+      const payload = {
+        "name": this.franchiseData.name,
+        "description": this.franchiseData.description,
+        "ownerID": "",
+        "email": this.franchiseData.email,
+        "address": this.franchiseData.address,
+        "phoneNumber": this.franchiseData.phoneNumber,
+        "postalCode": this.franchiseData.postalCode,
+        "country": this.franchiseData.country,
+        "logo": this.franchiseData.logo,
+      }
+      console.log(payload)
+      try {
+        const response = await updateFranchise(franchiseID, payload);
+        console.log(response);
+        if (response.code === 200) {
+          this.toast.success(response.message)
+          this.clearData()
+        } else {
+          this.toast.error(response.message)
+        }
+      } catch (error) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response && axiosError.response.data) {
+          const message = (axiosError.response.data as any).message;
+          this.toast.error(message);
+        } else {
+          this.toast.error("Une erreur est survenue");
+        }
+      } finally {
+        this.isLoading = false;
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      }
+    },
     async uploadLogo(){
-      if(this.logoUpload){
-        this.isLoading = true;
-        try {
-          const response = await uploadFile(this.logoUpload);
-          console.log(response);
-          if (response.code === 200 || response.code === 201) {
-            this.franchiseData.logo = response.data
-            await this.createNewFranchise()
-          } else {
-            this.toast.error(response.message)
-          }
+      if(this.actionDetected === ActionCrud.ADD){
+        if(this.logoUpload){
+          this.isLoading = true;
+          try {
+            const response = await uploadFile(this.logoUpload);
+            console.log(response);
+            if (response.code === 200 || response.code === 201) {
+              this.franchiseData.logo = response.data
+              await this.createNewFranchise()
+            } else {
+              this.toast.error(response.message)
+            }
 
-        } catch (error) {
-          this.isLoading = false;
-          const axiosError = error as AxiosError;
-          if (axiosError.response && axiosError.response.data) {
-            const message = (axiosError.response.data as any).message;
-            this.toast.error(message);
-          } else {
-            this.toast.error("Une erreur est survenue");
+          } catch (error) {
+            this.isLoading = false;
+            const axiosError = error as AxiosError;
+            if (axiosError.response && axiosError.response.data) {
+              const message = (axiosError.response.data as any).message;
+              this.toast.error(message);
+            } else {
+              this.toast.error("Une erreur est survenue");
+            }
           }
         }
       }
+      else{
+        if(this.logoUpload){
+          this.isLoading = true;
+          try {
+            const response = await uploadFile(this.logoUpload);
+            console.log(response);
+            if (response.code === 200 || response.code === 201) {
+              this.franchiseData.logo = response.data
+              await this.updateFranchise(this.franchiseResponse?.id)
+            } else {
+              this.toast.error(response.message)
+            }
+
+          } catch (error) {
+            this.isLoading = false;
+            const axiosError = error as AxiosError;
+            if (axiosError.response && axiosError.response.data) {
+              const message = (axiosError.response.data as any).message;
+              this.toast.error(message);
+            } else {
+              this.toast.error("Une erreur est survenue");
+            }
+          }
+        }
+        else{
+          await this.updateFranchise(this.franchiseResponse?.id)
+        }
+      }
+
     },
     async fetchDetailFranchise(franchiseID) {
       this.isLoading = true;

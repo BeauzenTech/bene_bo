@@ -15,7 +15,7 @@
                 v-model="userData.firstName"
                 @change="(event) => handleInput(event, 'firstName')"
                 :class="{ 'is-valid': validTextField(userData.firstName) }"
-                required
+                :required="actionDetected === ActionCrud.ADD"
               />
             </div>
           </div>
@@ -31,7 +31,7 @@
                 v-model="userData.lastName"
                 @change="(event) => handleInput(event, 'lastName')"
                 :class="{ 'is-valid': validTextField(userData.lastName) }"
-                required
+                :required="actionDetected === ActionCrud.ADD"
               />
             </div>
           </div>
@@ -48,7 +48,7 @@
                 :class="{ 'is-valid': validEmail(userData.email) }"
                 class="form-control shadow-none rounded-0 text-black"
                 placeholder="e.g. adam127704@gmail.com"
-                required
+                :required="actionDetected === ActionCrud.ADD"
               />
             </div>
           </div>
@@ -64,7 +64,8 @@
                 placeholder="**************"
                 v-model="userData.password"
                 @change="(event) => handleInput(event, 'password')"
-                required
+                :disabled="actionDetected === ActionCrud.EDIT"
+                :required="actionDetected === ActionCrud.ADD"
               />
             </div>
           </div>
@@ -82,7 +83,7 @@
                   :reduce="postal => postal.numeroPostal"
                   placeholder="Selectionner le code postal"
                   :class="{ 'is-valid': validTextField(userData.postalCode) }"
-                  required
+                  :required="actionDetected === ActionCrud.ADD"
               />
             </div>
           </div>
@@ -127,7 +128,7 @@
                   :reduce="postal => postal.ville"
                   placeholder="Selectionner la ville"
                   :class="{ 'is-valid': validTextField(userData.city) }"
-                  required
+                  :required="actionDetected === ActionCrud.ADD"
               />
             </div>
           </div>
@@ -173,14 +174,14 @@
                   v-model="userData.batiment"
                   @change="(event) => handleInput(event, 'batiment')"
                   :class="{ 'is-valid': validTextField(userData.batiment) }"
-                  required
+                  :required="actionDetected === ActionCrud.ADD"
               />
             </div>
           </div>
           <div class="col-md-6">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
-                Nom *
+                Rue *
               </label>
               <input
                   type="text"
@@ -189,7 +190,7 @@
                   v-model="userData.numeroRue"
                   @change="(event) => handleInput(event, 'numeroRue')"
                   :class="{ 'is-valid': validTextField(userData.numeroRue) }"
-                  required
+                  :required="actionDetected === ActionCrud.ADD"
               />
             </div>
           </div>
@@ -443,7 +444,7 @@
                 :disabled="!isFormValid"
                 :class="{ 'opacity-50 cursor-not-allowed': !isFormValid }"
               >
-                Ajouter un utilisateur
+                {{ actionDetected === 'edit' ? 'Mettre à jour' : ' Ajouter un utilisateur'}}
               </button>
               <button
                 type="button"
@@ -453,7 +454,7 @@
                 <i
                   class="flaticon-delete lh-1 me-1 position-relative top-2"
                 ></i>
-                <span class="position-relative">Cancel</span>
+                <span class="position-relative">Annuler</span>
               </button>
             </div>
           </div>
@@ -463,20 +464,35 @@
   </div>
 </template>
 
-<script>
-import {defineComponent} from "vue";
+<script lang="ts">
+import {defineComponent, PropType} from "vue";
 
 
-import {createUser, fetchAllPostalCode} from "@/service/api";
+import {createUser, detailFranchise, detailUser, fetchAllPostalCode, updateUser} from "@/service/api";
 
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
+import {AxiosError} from "axios";
+import {ApiResponse} from "@/models/Apiresponse";
+import {FranchiseModel} from "@/models/franchise.model";
+import {UserModel} from "@/models/user.model";
+import {ActionCrud} from "@/enums/actionCrud.enum";
 
 export default defineComponent({
   name: "VabeneAddUser",
   components: {
     LoaderComponent
     // ImageUpload,
+  },
+  props: {
+    action: {
+      type: String as PropType<string>,
+      required: true
+    },
+    userID: {
+      type: String as PropType<string>,
+      required: false
+    },
   },
   data(){
     return{
@@ -496,22 +512,80 @@ export default defineComponent({
         numeroRue: ''
       },
       isLoading: false,
-      allPostalCode: []
+      allPostalCode: [],
+      actionDetected: null as string | null,
+      userResponse: null as UserModel | null,
     }
   },
   methods: {
     clearData(){
-      this.userData = {}
+      this.userData = {
+        email: '',
+        roles: '',
+        password: '',
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+        dateOfBirth: '',
+        addresse: '',
+        city: '',
+        postalCode: '',
+        country: 'Suisse',
+        batiment: '',
+        numeroRue: ''
+      }
     },
     goBack() {
       this.$router.back()
     },
     async createNewAccount() {
+      if(this.actionDetected === ActionCrud.ADD){
+        this.isLoading = true;
+        const payload = {
+          "email": this.userData.email,
+          "roles": this.userData.roles,
+          "password": this.userData.password,
+          "firstName": this.userData.firstName,
+          "lastName": this.userData.lastName,
+          "phoneNumber": this.userData.phoneNumber,
+          "dateOfBirth": this.userData.dateOfBirth,
+          "address": this.userData.addresse,
+          "city": this.userData.city,
+          "postalCode": this.userData.postalCode,
+          "country": this.userData.country,
+          "batiment": this.userData.batiment,
+          "numeroRue": this.userData.numeroRue
+        }
+        try {
+          const response = await createUser(payload);
+          console.log(response);
+          if (response.code === 201) {
+            this.toast.success(response.message)
+            this.clearData()
+          } else {
+            this.toast.error(response.message)
+          }
+        } catch (error) {
+          const axiosError = error as AxiosError;
+          if (axiosError.response && axiosError.response.data) {
+            const message = (axiosError.response.data as any).message;
+            this.toast.error(message);
+          } else {
+            this.toast.error("Une erreur est survenue");
+          }
+        } finally {
+          this.isLoading = false;
+        }
+      }
+      else{
+        await this.updateAccount(this.userResponse?.id)
+      }
+
+    },
+    async updateAccount(userID) {
       this.isLoading = true;
       const payload = {
-        "email": this.userData.email,
-        "roles": this.userData.roles,
-        "password": this.userData.password,
+
         "firstName": this.userData.firstName,
         "lastName": this.userData.lastName,
         "phoneNumber": this.userData.phoneNumber,
@@ -520,11 +594,9 @@ export default defineComponent({
         "city": this.userData.city,
         "postalCode": this.userData.postalCode,
         "country": this.userData.country,
-        "batiment": this.userData.batiment,
-        "numeroRue": this.userData.numeroRue
       }
       try {
-        const response = await createUser(payload);
+        const response = await updateUser(userID ,payload);
         console.log(response);
         if (response.code === 201) {
           this.toast.success(response.message)
@@ -533,12 +605,18 @@ export default defineComponent({
           this.toast.error(response.message)
         }
       } catch (error) {
-        if (error.response && error.response.data && error.response.data.message) {
-          this.toast.error(error.response.data.message)
+        const axiosError = error as AxiosError;
+        if (axiosError.response && axiosError.response.data) {
+          const message = (axiosError.response.data as any).message;
+          this.toast.error(message);
+        } else {
+          this.toast.error("Une erreur est survenue");
         }
-        console.error(error);
       } finally {
         this.isLoading = false;
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       }
     },
     async fetchPostalCode() {
@@ -552,9 +630,41 @@ export default defineComponent({
           this.toast.error(response.message)
         }
       } catch (error) {
-        if (error.response && error.response.data && error.response.data.message) {
-          this.toast.error(error.response.data.message)
+        const axiosError = error as AxiosError;
+        if (axiosError.response && axiosError.response.data) {
+          const message = (axiosError.response.data as any).message;
+          this.toast.error(message);
+        } else {
+          this.toast.error("Une erreur est survenue");
         }
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async fetchDetailUser(userID) {
+      this.isLoading = true;
+      try {
+        const response = await detailUser(userID) as ApiResponse<UserModel>;
+        console.log(response)
+        if (response.code === 200) {
+          if(response.data){
+            this.userResponse = response.data;
+            this.userData.email = this.userResponse.email;
+            this.userData.firstName = this.userResponse.first_name;
+            this.userData.lastName = this.userResponse.last_name;
+            this.userData.city = this.userResponse.city ?? '';
+            this.userData.addresse = this.userResponse.address ?? '';
+            this.userData.phoneNumber = this.userResponse.phone_number ?? '';
+            this.userData.postalCode = this.userResponse.postal_code;
+            this.userData.numeroRue = this.userResponse.numeroRue ?? '';
+            this.userData.batiment = this.userResponse.batiment ?? '';
+            this.userData.roles = this.userResponse.roles[0] ?? '';
+          }
+        } else {
+          this.toast.error(response.message);
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des categories");
         console.error(error);
       } finally {
         this.isLoading = false;
@@ -650,16 +760,25 @@ export default defineComponent({
 
   },
   computed: {
+    ActionCrud() {
+      return ActionCrud
+    },
     isFormValid() {
-      return (
-          this.validEmail(this.userData.email) &&
-          this.validPassword(this.userData.password) &&
-          this.validTextField(this.userData.firstName) &&
-          this.validTextField(this.userData.lastName) &&
-          this.validTextField(this.userData.roles) &&
-          this.validTextField(this.userData.postalCode) &&
-          this.validTextField(this.userData.country)
-      );
+      if(this.actionDetected === ActionCrud.ADD){
+        return (
+            this.validEmail(this.userData.email) &&
+            this.validPassword(this.userData.password) &&
+            this.validTextField(this.userData.firstName) &&
+            this.validTextField(this.userData.lastName) &&
+            this.validTextField(this.userData.roles) &&
+            this.validTextField(this.userData.postalCode) &&
+            this.validTextField(this.userData.country)
+        );
+      }
+      else{
+        return true
+      }
+
     }
   },
   setup: () => {
@@ -691,6 +810,10 @@ export default defineComponent({
   },
   mounted() {
     this.fetchPostalCode();
+    this.actionDetected = (this as any).$route.params.action
+    if((this as any).$route.params.action == ActionCrud.EDIT){
+      this.fetchDetailUser((this as any).$route.params.userID)
+    }
   }
 
 });

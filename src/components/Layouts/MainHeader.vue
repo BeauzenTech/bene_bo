@@ -456,25 +456,25 @@
             >
               <ul class="ps-0 mb-0 list-unstyled dropdown-body">
                 <li
-                  class="text-body-secondary fw-semibold transition position-relative"
+                  class="text-body-secondary fw-semibold transition position-relative cursor-pointer"
                 >
                   <i class="flaticon-user-2"></i>
                   Mon compte
-                  <router-link
-                    to="/profile"
+                  <a
+                    @click="gotoUserDetail"
                     class="d-block position-absolute start-0 top-0 end-0 bottom-0 text-decoration-none"
-                  ></router-link>
+                  ></a>
                 </li>
-                <li
-                  class="text-body-secondary fw-semibold transition position-relative"
-                >
-                  <i class="flaticon-setting"></i>
-                  Paramètres
-                  <router-link
-                    to="/profile-settings"
-                    class="d-block position-absolute start-0 top-0 end-0 bottom-0 text-decoration-none"
-                  ></router-link>
-                </li>
+<!--                <li-->
+<!--                  class="text-body-secondary fw-semibold transition position-relative"-->
+<!--                >-->
+<!--                  <i class="flaticon-setting"></i>-->
+<!--                  Paramètres-->
+<!--                  <router-link-->
+<!--                    to="/profile-settings"-->
+<!--                    class="d-block position-absolute start-0 top-0 end-0 bottom-0 text-decoration-none"-->
+<!--                  ></router-link>-->
+<!--                </li>-->
 <!--                <li-->
 <!--                  class="text-body-secondary fw-semibold transition position-relative"-->
 <!--                >-->
@@ -510,6 +510,7 @@ import LightDarkSwtichBtn from "./LightDarkSwtichBtn.vue";
 import stateStore from "../../utils/store";
 import {UserGeneralKey} from "@/models/user.generalkey";
 import defaultAvatar from '@/assets/images/user/avatar.png'
+import {ActionCrud} from "@/enums/actionCrud.enum";
 
 
 
@@ -527,6 +528,13 @@ export default defineComponent({
     }
   },
   methods:{
+    gotoUserDetail(){
+      const userID = localStorage.getItem(UserGeneralKey.USER_ID)
+      this.$router.push({
+        name: "VabeneAddUserPage",
+        params: { action: ActionCrud.EDIT ,userID: userID }
+      });
+    },
     getRoleName(role: string){
       switch(role){
         case "ROLE_ADMIN":

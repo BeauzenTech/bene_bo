@@ -144,7 +144,6 @@
               <span v-if="user.roles[0] === 'ROLE_ADMIN'" class="badge text-bg-danger fs-13">{{fetchRole(user.roles[0])}}</span>
               <span v-if="user.roles[0] === 'ROLE_FRANCHISE'" class="badge text-bg-primary fs-13">{{fetchRole(user.roles[0])}}</span>
               <span v-if="user.roles[0] === 'ROLE_RESTAURANT'" class="badge text-bg-warning fs-13">{{fetchRole(user.roles[0])}}</span>
-              <span v-if="user.roles[0] === 'ROLE_CLIENT'" class="badge text-bg-secondary fs-13">{{fetchRole(user.roles[0])}}</span>
             </td>
             <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">
               <span>-</span>
@@ -183,6 +182,7 @@
                 <ul class="dropdown-menu">
                   <li>
                     <a
+                        @click="gotoUserDetail(user)"
                         class="dropdown-item d-flex align-items-center"
                         href="javascript:void(0);"
                     ><i
@@ -193,6 +193,7 @@
                   </li>
                   <li>
                     <a
+                        @click="gotoUserDetail(user)"
                         class="dropdown-item d-flex align-items-center"
                         href="javascript:void(0);"
                     ><i
@@ -310,6 +311,7 @@ import {UserModel} from "@/models/user.model";
 import EmptyTable from "@/components/Vabene/EmptyTable/EmptyTable.vue";
 import {ApiResponse} from "@/models/Apiresponse";
 import {PaginatedUsers} from "@/models/Apiresponse";
+import {ActionCrud} from "@/enums/actionCrud.enum";
 
 export default defineComponent({
   name: "VabeneUsersList",
@@ -360,8 +362,17 @@ export default defineComponent({
     }
   },
   methods: {
+    gotoUserDetail(user){
+      this.$router.push({
+        name: "VabeneAddUserPage",
+        params: { action: ActionCrud.EDIT ,userID: user.id }
+      });
+    },
     gotoCreate(){
-      this.$router.push("/ajout-utilisateur");
+      this.$router.push({
+        name: "VabeneAddUserPage",
+        params: { action: ActionCrud.ADD }
+      });
     },
     selectionUser(user){
       this.userSelected = user;

@@ -136,7 +136,7 @@ export const deleteUser = async (userID: string): Promise<ApiResponse<void>> => 
 // Fonction pour detail  d'un compte utilisateur
 export const detailUser = async (userID: string): Promise<ApiResponse<any>> => {
     try {
-        const response: AxiosResponse<ApiResponse<any>> = await apiClient.get(`/user/detail/${userID}`);
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.get(`/v1/user/detail/${userID}`);
         return response.data;
     } catch (error) {
         console.error('Erreur lors de la lecture du compte utilisateur', error);
@@ -147,7 +147,7 @@ export const detailUser = async (userID: string): Promise<ApiResponse<any>> => {
 // Fonction pour mettre a jour un compte utilisateur
 export const updateUser = async (userID: string, userData): Promise<ApiResponse<any>> => {
     try {
-        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/user/update/${userID}`, userData);
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/user/update/${userID}`, userData);
         return response.data;
     } catch (error) {
         console.error('Erreur lors de la mise à jour du compte utilisateur.', error);
@@ -216,6 +216,17 @@ export const createFranchise = async (franchiseData): Promise<ApiResponse<any>> 
         return response.data;
     } catch (error) {
         console.error("Erreur lors de la creation d'une franchise", error);
+        throw error;
+    }
+};
+
+// Fonction pour créer d'une franchise
+export const updateFranchise = async (franchiseID: string,franchiseData): Promise<ApiResponse<any>> =>{
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/franchise/update/${franchiseID}`, franchiseData);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la mise a jour de la franchise", error);
         throw error;
     }
 };

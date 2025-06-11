@@ -7,8 +7,12 @@ export interface UserModel {
     first_name: string;
     last_name: string;
     phone_number: string | null;
+    address: string | null
+    city: string | null;
     postal_code: string;
     profil_picture: string | null;
+    batiment: string | null
+    numeroRue: string | null
     is_verified: boolean;
     is_active: boolean;
     created_at: string;
