@@ -583,7 +583,7 @@ export default defineComponent({
     async fetchCategories(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeCategorieActive(page) as ApiResponse<PaginatedCategorie>;
+        const response = await listeCategorieActive(page, "0") as ApiResponse<PaginatedCategorie>;
         console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
@@ -608,7 +608,7 @@ export default defineComponent({
       }
       this.isLoading = true;
       try {
-        const response = await listeProducts(page, filter, payload) as ApiResponse<PaginatedProduct>;
+        const response = await listeProducts(page, "1" ,filter, payload) as ApiResponse<PaginatedProduct>;
         console.log(response)
         if (response.code === 200) {
           this.productResponse = response;

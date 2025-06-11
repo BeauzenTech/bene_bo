@@ -862,7 +862,7 @@ export default defineComponent({
     async fetchCategories(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeCategorieActive(page) as ApiResponse<PaginatedCategorie>;
+        const response = await listeCategorieActive(page, "0") as ApiResponse<PaginatedCategorie>;
         console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {

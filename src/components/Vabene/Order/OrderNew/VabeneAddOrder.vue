@@ -1209,7 +1209,7 @@ export default defineComponent({
       }
       this.isLoading = true;
       try {
-        const response = await listeProducts(page, filter, payload) as ApiResponse<PaginatedProduct>;
+        const response = await listeProducts(page, "0" ,filter, payload) as ApiResponse<PaginatedProduct>;
         console.log(response)
         if (response.code === 200) {
           this.productResponse = response;

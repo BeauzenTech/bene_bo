@@ -298,7 +298,7 @@ export const listeOrder = async (page = 1): Promise<ApiResponse<PaginatedOrder>>
     try {
         const userID = localStorage.getItem(UserGeneralKey.USER_ID);
         // https://posme.pharmakilivreservice.com/api/initial/v1/orders/admin?page=1
-        const response = await apiClient.get(`/initial/v1/orders/admin/${userID}?page=${page}`);
+        const response = await apiClient.get(`/initial/v1/orders/admin/${userID}/1?page=${page}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
@@ -419,11 +419,11 @@ export const createCategorie = async (categorieData): Promise<ApiResponse<any>> 
 };
 
 
-export const listeCategorie = async (page = 1): Promise<ApiResponse<PaginatedCategorie>> => {
+export const listeCategorie = async (page = 1, usePagination: string): Promise<ApiResponse<PaginatedCategorie>> => {
     // eslint-disable-next-line no-useless-catch
     try {
 
-        const response = await apiClient.get(`/category/filter/existing?page=${page}`);
+        const response = await apiClient.get(`/category/filter/existing/${usePagination}?page=${page}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
@@ -434,11 +434,11 @@ export const listeCategorie = async (page = 1): Promise<ApiResponse<PaginatedCat
     }
 };
 
-export const listeCategorieActive = async (page = 1): Promise<ApiResponse<PaginatedCategorie>> => {
+export const listeCategorieActive = async (page = 1, usePagination: string): Promise<ApiResponse<PaginatedCategorie>> => {
     // eslint-disable-next-line no-useless-catch
     try {
 
-        const response = await apiClient.get(`/category/filter/active?page=${page}`);
+        const response = await apiClient.get(`/category/filter/active/${usePagination}?page=${page}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
@@ -591,10 +591,10 @@ export const createProduct = async (productData): Promise<ApiResponse<any>> =>{
 };
 
 
-export const listeProducts = async (page = 1, filter: string, filterData): Promise<ApiResponse<PaginatedProduct>> => {
+export const listeProducts = async (page = 1, usePagination: string ,filter: string, filterData): Promise<ApiResponse<PaginatedProduct>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.post(`/product/filter/${filter}?page=${page}`, filterData);
+        const response = await apiClient.post(`/product/filter/${filter}/${usePagination}?page=${page}`, filterData);
         return new ApiResponse(
             response.data.code,
             response.data.message,

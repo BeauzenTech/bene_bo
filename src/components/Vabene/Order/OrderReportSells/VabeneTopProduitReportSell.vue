@@ -21,7 +21,7 @@
           }"
         ></span>
             {{ item.name }} -
-            <span class="text-black fw-bold ms-1">{{ item.total_sales }} CHF</span>
+            <span class="text-black fw-bold ms-1">{{ Number(item.total_sales).toFixed(2) }} CHF</span>
           </td>
         </tr>
         </tbody>
@@ -128,7 +128,7 @@ export default defineComponent({
     },
     async fetchCategories(page = 1) {
       try {
-        const response = await listeCategorieActive(page) as ApiResponse<PaginatedCategorie>;
+        const response = await listeCategorieActive(page, "0") as ApiResponse<PaginatedCategorie>;
         console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
@@ -152,8 +152,13 @@ export default defineComponent({
             this.topSellResponse = response.data as TopProductSellModel[];
             if(this.topSellResponse.length > 0){
               for (let index = 0; index < this.topSellResponse.length; index++) {
-                this.expected.push(Number(this.topSellResponse[index].total_sales))
-                this.amountTotal += Number(this.topSellResponse[index].total_sales)
+                // On arrondit à 2 décimales avant de traiter
+                const rawValue = Number(this.topSellResponse[index].total_sales);
+                const roundedValue = Number(rawValue.toFixed(2));
+
+                this.expected.push(roundedValue);
+                this.amountTotal += roundedValue;
+
                 const color = this.colorsIndexed[index % this.colorsIndexed.length];
                 this.expectedEraningsChart.colors.push(color);
               }

@@ -470,7 +470,7 @@ export default defineComponent({
     async fetchCategories(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeCategorie(page) as ApiResponse<PaginatedCategorie>;
+        const response = await listeCategorie(page, "1") as ApiResponse<PaginatedCategorie>;
         console.log(response)
         if (response.code === 200) {
           this.categorieResponse = response;
