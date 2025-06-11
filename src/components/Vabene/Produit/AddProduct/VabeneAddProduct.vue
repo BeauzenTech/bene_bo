@@ -670,6 +670,8 @@ export default defineComponent({
             this.productData.image_urls = this.productResponse.image_urls;
             this.productData.cookingTime = this.productResponse.cookingTime;
             this.productData.categorieID = this.productResponse.categorieID.id;
+            this.productData.longDescription = this.productResponse.longDescription;
+            this.productData.additionnal = this.productResponse.additionnal;
             (this.productData.variationsProduct as any[]) = this.productResponse.productSizes;
             if(this.productResponse.productSizes.length > 0){
               (this.allVariationsProduct as any[]) = this.productResponse.productSizes.map(ps => ({

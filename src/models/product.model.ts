@@ -9,6 +9,8 @@ export interface ProductModel {
     type: string;
     image_urls: string[];
     categorieID: CategorieModel;
+    longDescription: string,
+    additionnal: string[],
     isAvailable: boolean;
     Ingredients: IngredientModel[];
     cookingTime: number;
