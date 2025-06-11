@@ -88,6 +88,14 @@
 
             <th
                 scope="col"
+                class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
+            >
+              TAILLE(S)
+            </th>
+
+
+            <th
+                scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0 text-end pe-0"
             ></th>
           </tr>
@@ -163,7 +171,7 @@
             </td>
 
             <td v-if="ingredient.extra_cost_price">
-              {{ ingredient.extra_cost_price  }} CHF
+              {{ ingredient.ingredientSizes.length  }} Taille(s)
             </td>
 
 

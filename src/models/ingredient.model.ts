@@ -1,3 +1,4 @@
+import {IngredientSizeModel} from "@/models/ingredientSize.model";
 
 export interface IngredientModel {
     id: string;
@@ -8,4 +9,5 @@ export interface IngredientModel {
     extra_cost_price: number;
     isDefault: boolean;
     quantite: number;
+    ingredientSizes: IngredientSizeModel[];
 }

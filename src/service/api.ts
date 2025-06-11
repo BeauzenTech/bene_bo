@@ -539,6 +539,26 @@ export const updateIngredient = async (ingredientID, ingredientData): Promise<Ap
     }
 };
 
+export const updateVariationIngredient = async (ingredientID, varationData): Promise<ApiResponse<any>> =>{
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/add/ingredient/variation/update/${ingredientID}`, varationData);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la mise a jour de la variation ingredient", error);
+        throw error;
+    }
+};
+
+export const deleteIngredientVariation = async (ingredientID: string, variationID: string): Promise<ApiResponse<void>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<void>> = await apiClient.delete(`/v1/add/ingredient/variation/delete/${ingredientID}/${variationID}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la suppression de variation ingredient', error);
+        throw error;
+    }
+};
+
 export const deleteIngredient = async (ingredientID: string): Promise<ApiResponse<void>> => {
     try {
         const response: AxiosResponse<ApiResponse<void>> = await apiClient.delete(`/v1/add/ingredient/delete/${ingredientID}`);
