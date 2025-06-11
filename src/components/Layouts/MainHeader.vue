@@ -20,20 +20,20 @@
           </button>
           <form class="search-box">
             <div class="input-group">
-              <input
-                type="text"
-                class="form-control shadow-none rounded-0 border-0"
-                placeholder="Recherche..."
-              />
-              <button
-                class="default-btn position-relative transition border-0 fw-medium text-white pt-8 pb-8 ps-15 pe-15 pt-md-12 pb-md-12 ps-md-20 pe-md-20"
-                type="button"
-              >
-                Rechercher
-                <i
-                  class="flaticon-search-interface-symbol position-relative ms-5 top-1"
-                ></i>
-              </button>
+<!--              <input-->
+<!--                type="text"-->
+<!--                class="form-control shadow-none rounded-0 border-0"-->
+<!--                placeholder="Recherche..."-->
+<!--              />-->
+<!--              <button-->
+<!--                class="default-btn position-relative transition border-0 fw-medium text-white pt-8 pb-8 ps-15 pe-15 pt-md-12 pb-md-12 ps-md-20 pe-md-20"-->
+<!--                type="button"-->
+<!--              >-->
+<!--                Rechercher-->
+<!--                <i-->
+<!--                  class="flaticon-search-interface-symbol position-relative ms-5 top-1"-->
+<!--                ></i>-->
+<!--              </button>-->
             </div>
           </form>
         </div>
@@ -336,102 +336,102 @@
 <!--              </div>-->
 <!--            </div>-->
 <!--          </div>-->
-          <div class="dropdown notification-dropdown">
-            <button
-              class="dropdown-toggle p-0 position-relative bg-transparent border-0 transition lh-1"
-              type="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
-              <i class="flaticon-bell-2"></i>
-              <span
-                class="dot-badge position-absolute fw-bold rounded-circle text-white bg-primary d-inline-block"
-              >
-                3
-              </span>
-            </button>
-            <div
-              class="dropdown-menu rounded-0 bg-white border-0 start-auto end-0"
-            >
-              <div
-                class="title d-flex align-items-center justify-content-between"
-              >
-                <span class="text-black fw-bold"
-                  >Notifications <span class="text-muted">(03)</span></span
-                >
-                <router-link
-                  to="/notifications"
-                  class="text-decoration-none link-btn transition text-primary fw-medium"
-                >
-                  Clear All
-                </router-link>
-              </div>
-              <ul class="ps-0 mb-0 list-unstyled dropdown-body">
-                <li class="text-muted position-relative">
-                  <div
-                    class="icon rounded-circle position-absolute text-center"
-                  >
-                    <i class="ph-bold ph-chat-centered-dots"></i>
-                  </div>
-                  <span class="d-block text-black-emphasis"
-                    >You have requested to
-                    <strong class="fw-semibold">withdrawal</strong></span
-                  >
-                  2 hrs ago
-                  <router-link
-                    to="/notifications"
-                    class="d-block position-absolute start-0 top-0 end-0 bottom-0 text-decoration-none"
-                  ></router-link>
-                  <span
-                    class="unread d-inline-block rounded-circle bg-primary position-absolute w-10 h-10"
-                  ></span>
-                </li>
-                <li class="text-muted position-relative">
-                  <div
-                    class="icon rounded-circle position-absolute text-center"
-                  >
-                    <i class="ph-bold ph-user-plus"></i>
-                  </div>
-                  <span class="d-block text-black-emphasis">
-                    <strong class="fw-semibold">A new user</strong> added in
-                    Adlash
-                  </span>
-                  3 hrs ago
-                  <router-link
-                    to="/notifications"
-                    class="d-block position-absolute start-0 top-0 end-0 bottom-0 text-decoration-none"
-                  ></router-link>
-                  <span
-                    class="unread d-inline-block rounded-circle bg-primary position-absolute w-10 h-10"
-                  ></span>
-                </li>
-                <li class="text-muted position-relative">
-                  <div
-                    class="icon rounded-circle position-absolute text-center"
-                  >
-                    <i class="ph-bold ph-chat-centered-dots"></i>
-                  </div>
-                  <span class="d-block text-black-emphasis">
-                    You have requested to
-                    <strong class="fw-semibold">withdrawal</strong>
-                  </span>
-                  1 day ago
-                  <router-link
-                    to="/notifications"
-                    class="d-block position-absolute start-0 top-0 end-0 bottom-0 text-decoration-none"
-                  ></router-link>
-                </li>
-              </ul>
-              <div class="text-center dropdown-footer">
-                <router-link
-                  to="/notifications"
-                  class="link-btn text-decoration-none text-primary position-relative d-inline-block transition fw-medium fw-medium"
-                >
-                  See All Notifications
-                </router-link>
-              </div>
-            </div>
-          </div>
+<!--          <div class="dropdown notification-dropdown">-->
+<!--            <button-->
+<!--              class="dropdown-toggle p-0 position-relative bg-transparent border-0 transition lh-1"-->
+<!--              type="button"-->
+<!--              data-bs-toggle="dropdown"-->
+<!--              aria-expanded="false"-->
+<!--            >-->
+<!--              <i class="flaticon-bell-2"></i>-->
+<!--              <span-->
+<!--                class="dot-badge position-absolute fw-bold rounded-circle text-white bg-primary d-inline-block"-->
+<!--              >-->
+<!--                3-->
+<!--              </span>-->
+<!--            </button>-->
+<!--            <div-->
+<!--              class="dropdown-menu rounded-0 bg-white border-0 start-auto end-0"-->
+<!--            >-->
+<!--              <div-->
+<!--                class="title d-flex align-items-center justify-content-between"-->
+<!--              >-->
+<!--                <span class="text-black fw-bold"-->
+<!--                  >Notifications <span class="text-muted">(03)</span></span-->
+<!--                >-->
+<!--                <router-link-->
+<!--                  to="/notifications"-->
+<!--                  class="text-decoration-none link-btn transition text-primary fw-medium"-->
+<!--                >-->
+<!--                  Clear All-->
+<!--                </router-link>-->
+<!--              </div>-->
+<!--              <ul class="ps-0 mb-0 list-unstyled dropdown-body">-->
+<!--                <li class="text-muted position-relative">-->
+<!--                  <div-->
+<!--                    class="icon rounded-circle position-absolute text-center"-->
+<!--                  >-->
+<!--                    <i class="ph-bold ph-chat-centered-dots"></i>-->
+<!--                  </div>-->
+<!--                  <span class="d-block text-black-emphasis"-->
+<!--                    >You have requested to-->
+<!--                    <strong class="fw-semibold">withdrawal</strong></span-->
+<!--                  >-->
+<!--                  2 hrs ago-->
+<!--                  <router-link-->
+<!--                    to="/notifications"-->
+<!--                    class="d-block position-absolute start-0 top-0 end-0 bottom-0 text-decoration-none"-->
+<!--                  ></router-link>-->
+<!--                  <span-->
+<!--                    class="unread d-inline-block rounded-circle bg-primary position-absolute w-10 h-10"-->
+<!--                  ></span>-->
+<!--                </li>-->
+<!--                <li class="text-muted position-relative">-->
+<!--                  <div-->
+<!--                    class="icon rounded-circle position-absolute text-center"-->
+<!--                  >-->
+<!--                    <i class="ph-bold ph-user-plus"></i>-->
+<!--                  </div>-->
+<!--                  <span class="d-block text-black-emphasis">-->
+<!--                    <strong class="fw-semibold">A new user</strong> added in-->
+<!--                    Adlash-->
+<!--                  </span>-->
+<!--                  3 hrs ago-->
+<!--                  <router-link-->
+<!--                    to="/notifications"-->
+<!--                    class="d-block position-absolute start-0 top-0 end-0 bottom-0 text-decoration-none"-->
+<!--                  ></router-link>-->
+<!--                  <span-->
+<!--                    class="unread d-inline-block rounded-circle bg-primary position-absolute w-10 h-10"-->
+<!--                  ></span>-->
+<!--                </li>-->
+<!--                <li class="text-muted position-relative">-->
+<!--                  <div-->
+<!--                    class="icon rounded-circle position-absolute text-center"-->
+<!--                  >-->
+<!--                    <i class="ph-bold ph-chat-centered-dots"></i>-->
+<!--                  </div>-->
+<!--                  <span class="d-block text-black-emphasis">-->
+<!--                    You have requested to-->
+<!--                    <strong class="fw-semibold">withdrawal</strong>-->
+<!--                  </span>-->
+<!--                  1 day ago-->
+<!--                  <router-link-->
+<!--                    to="/notifications"-->
+<!--                    class="d-block position-absolute start-0 top-0 end-0 bottom-0 text-decoration-none"-->
+<!--                  ></router-link>-->
+<!--                </li>-->
+<!--              </ul>-->
+<!--              <div class="text-center dropdown-footer">-->
+<!--                <router-link-->
+<!--                  to="/notifications"-->
+<!--                  class="link-btn text-decoration-none text-primary position-relative d-inline-block transition fw-medium fw-medium"-->
+<!--                >-->
+<!--                  See All Notifications-->
+<!--                </router-link>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
           <div class="dropdown profile-dropdown">
             <button
               class="dropdown-toggle text-start fs-14 text-black-emphasis d-flex align-items-center p-0 position-relative bg-transparent border-0 transition lh-1"
@@ -440,15 +440,15 @@
               aria-expanded="false"
             >
               <img
-                src="../../assets/images/admin.jpg"
+                :src="userProfileIMG"
                 class="rounded"
-                width="44"
-                height="44"
+                width="30"
+                height="30"
                 alt="admin"
               />
               <span class="title d-none d-lg-block ms-10 ms-lg-15">
-                <span class="d-block fw-bold mb-5 mb-md-8">Victor James</span>
-                <span class="text-body-emphasis fw-semibold fs-13">Admin</span>
+                <span class="d-block fw-bold mb-5 mb-md-8">{{userLastName}} {{userFirstName}}</span>
+                <span class="text-body-emphasis fw-semibold fs-13">{{getRoleName(userRole ?? '')}}</span>
               </span>
             </button>
             <div
@@ -475,16 +475,16 @@
                     class="d-block position-absolute start-0 top-0 end-0 bottom-0 text-decoration-none"
                   ></router-link>
                 </li>
-                <li
-                  class="text-body-secondary fw-semibold transition position-relative"
-                >
-                  <i class="flaticon-warning"></i>
-                  Support
-                  <router-link
-                    to="/support-desk-card"
-                    class="d-block position-absolute start-0 top-0 end-0 bottom-0 text-decoration-none"
-                  ></router-link>
-                </li>
+<!--                <li-->
+<!--                  class="text-body-secondary fw-semibold transition position-relative"-->
+<!--                >-->
+<!--                  <i class="flaticon-warning"></i>-->
+<!--                  Support-->
+<!--                  <router-link-->
+<!--                    to="/support-desk-card"-->
+<!--                    class="d-block position-absolute start-0 top-0 end-0 bottom-0 text-decoration-none"-->
+<!--                  ></router-link>-->
+<!--                </li>-->
                 <li
                   class="text-body-secondary fw-semibold transition position-relative"
                 >
@@ -509,13 +509,32 @@ import { defineComponent, ref, onMounted } from "vue";
 import LightDarkSwtichBtn from "./LightDarkSwtichBtn.vue";
 import stateStore from "../../utils/store";
 import {UserGeneralKey} from "@/models/user.generalkey";
+import defaultAvatar from '@/assets/images/user/avatar.png'
+
+
 
 export default defineComponent({
   name: "MainHeader",
   components: {
     LightDarkSwtichBtn,
   },
+  data(){
+    return{
+      userFirstName: localStorage.getItem(UserGeneralKey.USER_FIRST_NAME),
+      userLastName: localStorage.getItem(UserGeneralKey.USER_LAST_NAME),
+      userRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
+      userProfileIMG: localStorage.getItem(UserGeneralKey.USER_PROFIL_IMG) ?? defaultAvatar,
+    }
+  },
   methods:{
+    getRoleName(role: string){
+      switch(role){
+        case "ROLE_ADMIN":
+          return "Administrateur"
+        default:
+          return "Restaurant"
+      }
+    },
     logout(){
       UserGeneralKey.logout()
       this.$router.push("/")
@@ -537,5 +556,9 @@ export default defineComponent({
       stateStoreInstance,
     };
   },
+
+  mounted() {
+    console.log("Component mounted.", this.userProfileIMG);
+  }
 });
 </script>

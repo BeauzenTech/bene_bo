@@ -216,7 +216,7 @@
           </tr>
           <tr v-else>
             <EmptyTable
-                message="Aucun utilisateur pour le moment"
+                message="Aucune categorie pour le moment"
                 :colspan="8"
                 textClass="text-muted"
             />

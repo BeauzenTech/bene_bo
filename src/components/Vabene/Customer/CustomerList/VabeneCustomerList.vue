@@ -4,16 +4,7 @@
         class="card-head box-shadow bg-white d-lg-flex align-items-center justify-content-between p-15 p-sm-20 p-md-25"
     >
       <div class="d-sm-flex align-items-center">
-        <Button
-            @click="gotoCreate"
-            class="default-btn position-relative transition border-0 fw-medium text-white pt-11 pb-11 ps-25 pe-25 pt-md-12 pb-md-12 ps-md-30 pe-md-30 rounded-1 bg-success fs-md-15 fs-lg-16 d-inline-block me-10 mb-10 mb-lg-0"
-            type="button"
 
-        >
-             Ajouter une commande
-
-          <i class="flaticon-plus position-relative ms-5 fs-12"></i>
-        </Button>
 <!--        <button-->
 <!--            class="default-outline-btn position-relative transition fw-medium text-black pt-10 pb-10 ps-25 pe-25 pt-md-11 pb-md-11 ps-md-30 pe-md-30 rounded-1 bg-transparent fs-md-15 fs-lg-16 d-inline-block mb-10 mb-lg-0"-->
 <!--            type="button"-->
@@ -28,7 +19,7 @@
               v-model="searchQuery"
               type="text"
               class="form-control shadow-none text-black rounded-0 border-0"
-              placeholder="Rechercher un restaurant"
+              placeholder="Rechercher un client"
               @input="currentPage = 1"
 
           />
@@ -56,50 +47,37 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0 ps-0"
             >
-             COMMANDE ID
+              ID
             </th>
             <th
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
-              NOM DU PRODUIT
+              NOM COMPLET
             </th>
             <th
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
-              CLIENT
+              EMAIL
             </th>
+
             <th
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
-              MONTANT
+              TELEPHONE
             </th>
+
+
+
             <th
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
               CRÉER LE
             </th>
-            <th
-                scope="col"
-                class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-            >
-              COMMANDE STATUS
-            </th>
-            <th
-                scope="col"
-                class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-            >
-              PAIEMENT STATUS
-            </th>
-            <th
-                scope="col"
-                class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-            >
-              NUMERO TELEPHONE
-            </th>
+
             <th
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0 text-end pe-0"
@@ -112,10 +90,9 @@
               <LoaderComponent/>
             </td>
           </tr>
-          <tr v-else-if="!isLoading && allOrder.length > 0"
-              v-for="order in allOrder" :key="order.id"
+          <tr v-else-if="!isLoading && allCategorie.length > 0"
+              v-for="(categorie, index) in allCategorie" :key="categorie.id"
           >
-
             <th
                 class="shadow-none lh-1 fw-medium text-black-emphasis title ps-0 text-capitalize"
             >
@@ -129,64 +106,33 @@
                 <div
                     class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
                 >
-                  <a href="#" @click="selectionOrder(order)">
-                  #{{ getShortUuid(order.id)  }}
+                  <a href="#" @click="selectForDetail(categorie)">
+                    {{ index + 1}} - {{ getShortUuid(categorie.id) }}
                   </a>
+
+
                 </div>
               </div>
             </th>
-            <td v-if="order.orderItems.length > 0 && order.orderItems[0].productID" class="shadow-none lh-1 fw-medium text-black-emphasis">
-              <a
-                  href="#"
-                  class="d-flex align-items-center text-decoration-none text-black fs-md-15 fs-lg-16"
-              >
-                <img
-                    :src="order.orderItems[0].productID.image_urls[0]"
-                    class="me-15"
-                    width="44"
-                    alt="product"
-                />
-                {{ order.orderItems[0].productID.name }}
-              </a>
+            <td class="shadow-none lh-1 fw-medium text-black-emphasis">
+              {{ categorie.firstName }}  {{ categorie.lastName }}
             </td>
-            <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">
-              -
+            <td class="shadow-none lh-1 fw-medium text-black-emphasis">
+              {{ categorie.firstName }}
             </td>
-            <td v-if="order.guest_first_name" class="shadow-none lh-1 fw-medium text-black-emphasis">
-              {{ order.guest_first_name.toUpperCase() || '-' }}
-            </td>
-            <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">
-              {{ order.guest_first_name|| '-' }} {{ order.guest_last_name || '-' }}
-            </td>
-            <td class="shadow-none lh-1 fw-medium text-black-emphasis ">
-              {{ order.total_price || '-' }} CHF
-            </td>
-            <td v-if="order.orderItems.length > 0" class="shadow-none lh-1 fw-medium text-black-emphasis">
-              {{ convertDateCreate(order.created_at)  }}
 
-            </td>
-            <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">
-              <span>-</span>
-            </td>
-            <td class="shadow-none lh-1 fw-medium text-muted">
-              <span v-if="order.status === 'pending'" class="badge text-bg-warning fs-13">En attente</span>
-              <span v-if="order.status === 'processing'" class="badge text-bg-info fs-13">En cours de traitement</span>
-              <span v-if="order.status === 'ready_for_delivery'" class="badge text-bg-warning fs-13">Prêt pour livraison</span>
-              <span v-if="order.status === 'out_for_delivery'" class="badge text-bg-secondary fs-13">En cours de livraison</span>
-              <span v-if="order.status === 'delivered'" class="badge text-bg-primary fs-13">Livré</span>
-              <span v-if="order.status === 'cancelled'" class="badge text-bg-danger fs-13">Annulé</span>
-            </td>
-            <td class="shadow-none lh-1 fw-medium text-muted">
-              <span v-if="order.payment_status === 'pending'" class="badge text-outline-danger">En attente de paiement</span>
-              <span v-if="order.payment_status === 'paid'" class="badge text-outline-primary">Payé</span>
-              <span v-if="order.payment_status === 'refunded'" class="badge text-outline-muted">A remboursé</span>
-              <span v-if="order.payment_status === 'cancelled'" class="badge text-outline-warning">Annuler</span>
 
+
+            <td class="shadow-none lh-1 fw-medium text-muted">
+              {{ categorie.phoneNumber  }}
             </td>
-            <td>
-              <span v-if="order.guest_phone_number"  class="badge text-bg-secondary fs-13">{{order.guest_phone_number}}</span>
-              <span v-else  class="badge text-black-emphasis fs-13">-</span>
+
+
+            <td class="shadow-none lh-1 fw-medium text-muted">
+              {{ convertDateCreate(categorie.created_at)  }}
             </td>
+
+
             <td
                 class="shadow-none lh-1 fw-medium text-body-tertiary text-end pe-0"
             >
@@ -204,44 +150,21 @@
                     <a
                         class="dropdown-item d-flex align-items-center"
                         href="javascript:void(0);"
-                        @click="selectionOrder(order)"
+                        @click="selectForDetail(categorie)"
                     ><i
                         class="flaticon-view lh-1 me-8 position-relative top-1"
                     ></i>
                       Voir</a
                     >
                   </li>
-                  <li>
-                    <a
-                        class="dropdown-item d-flex align-items-center"
-                        href="javascript:void(0);"
-                        @click="selectionOrder(order)"
-                    ><i
-                        class="flaticon-pen lh-1 me-8 position-relative top-1"
-                    ></i>
-                      Editer</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                        class="dropdown-item d-flex align-items-center"
-                        data-bs-toggle="modal" data-bs-target="#confirmModal"
-                        href="javascript:void(0);"
-                        @click="selectionOrder(order)"
-                    ><i
-                        class="flaticon-delete lh-1 me-8 position-relative top-1"
-                    ></i>
-                      Supprimer</a
-                    >
-                  </li>
+
                 </ul>
               </div>
             </td>
-
           </tr>
           <tr v-else>
             <EmptyTable
-                message="Aucune commande pour le moment"
+                message="Aucun client pour le moment"
                 :colspan="8"
                 textClass="text-muted"
             />
@@ -312,7 +235,7 @@
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
             <i class="fas fa-times me-2"></i>Annuler
           </button>
-          <button type="button" class="btn btn-danger" @click="confirmationDeleteAction(orderSelected)" data-bs-dismiss="modal">
+          <button type="button" class="btn btn-danger" @click="confirmationDeleteAction(categorieSelected)" data-bs-dismiss="modal">
             <i class="fas fa-trash-alt me-2"></i>Supprimer
           </button>
         </div>
@@ -324,46 +247,63 @@
 </template>
 <script lang="ts">
 import { defineComponent } from "vue";
-import {listeOrder, toggleActivationUser, deleteUser, listeRestaurant} from "@/service/api";
+import {
+  listeCategorie,
+  toggleActivationCategorie,
+  deleteCategorie,
+  deleteFileUpload,
+  listeCustomers
+} from "@/service/api";
 import {UserGeneralKey} from "@/models/user.generalkey";
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import EmptyTable from "@/components/Vabene/EmptyTable/EmptyTable.vue";
-import {ApiResponse} from "@/models/Apiresponse";
-import {PaginatedOrder} from "@/models/Apiresponse";
-import {OrderModel} from "@/models/order.model";
-import VabeneOrderDetailsPage from "@/pages/Vabene/Order/VabeneOrderDetailsPage.vue";
+import {ApiResponse, PaginatedCategorie, PaginatedCustomer} from "@/models/Apiresponse";
+import {PaginatedUsers} from "@/models/Apiresponse";
+import {CategorieModel} from "@/models/categorie.model";
+import {ActionCrud} from "@/enums/actionCrud.enum";
+import {AxiosError} from "axios";
+import {Commons} from "@/utils/commons.utils";
+import {CustomerModel} from "@/models/customer.model";
 
 export default defineComponent({
-  name: "VabeneOrderList",
+  name: "VabeneCategorieList",
   components: {LoaderComponent, EmptyTable},
   data(){
     return{
-      orderResponse: null as ApiResponse<PaginatedOrder> | null,
+      categorieResponse: null as ApiResponse<PaginatedCustomer> | null,
       isLoading: false,
       currentPage: 1 ,
       searchQuery: '', // Ajout du champ de recherche
-      // eslint-disable-next-line no-undef
-      originalOrder: [] as OrderModel[], // Stockage des utilisateurs originaux
-      orderSelected: null,
+      originalCategories: [] as CustomerModel[], // Stockage des utilisateurs originaux
+      categorieSelected: null,
     }
   },
   computed: {
-    allOrder(): OrderModel[] {
-      const orders = this.orderResponse?.data?.items || this.originalOrder;
-      if (!this.searchQuery) return orders;
-      const query = this.searchQuery.toLowerCase();
-      return orders.filter(order => {
-        return (
-            (order.id?.toLowerCase().includes(query)) ||
-            (order.status?.toLowerCase().includes(query)) ||
-            (order.address?.toLowerCase().includes(query)) ||
-            (order.rue?.includes(query)));
+    allCategorie(): CustomerModel[] {
+      const categories = this.categorieResponse?.data?.items || this.originalCategories;
+
+      // Filtrage par searchQuery
+      const filtered = this.searchQuery
+          ? categories.filter(categorie => {
+            const query = this.searchQuery.toLowerCase();
+            return (
+                categorie.firstName?.toLowerCase().includes(query) ||
+                categorie.lastName?.toLowerCase().includes(query)
+            );
+          })
+          : categories;
+
+      // Tri alphabétique par name
+      return filtered.sort((a, b) => {
+        const nameA = a.firstName?.toLowerCase() || '';
+        const nameB = b.firstName?.toLowerCase() || '';
+        return nameA.localeCompare(nameB);
       });
     },
 
     pagination(): any {
-      return this.orderResponse?.data?.pagination || {
+      return this.categorieResponse?.data?.pagination || {
         current_page: 1,
         total_items: 0,
         total_pages: 1,
@@ -381,67 +321,98 @@ export default defineComponent({
     }
   },
   methods: {
-     getShortUuid(uuid: string): string {
-        return uuid.split('-')[0];
-     },
-    gotoCreate(){
-      this.$router.push("/ajout-commande");
+    getShortUuid(uuid: string): string {
+      return uuid.split('-')[0];
     },
-    selectionOrder(order){
-      this.orderSelected = order;
-      console.log(order)
+    gotoCreate(){
       this.$router.push({
-        name: "VabeneOrderDetailsPage",
-        params: { commandeID: order.id }
+        name: "VabeneAddCustomerPage",
+        params: { action: ActionCrud.ADD }
       });
     },
-    async confirmationDeleteAction(order){
+    selectForDetail(categorie){
+      this.categorieSelected = categorie;
+      console.log(categorie)
+      this.$router.push({
+        name: "VabeneAddCustomerPage",
+        params: { action: ActionCrud.EDIT, customerID: categorie.id }
+      });
+    },
+    selectForDelete(categorie){
+      this.categorieSelected = categorie;
+      console.log(categorie)
+      // this.$router.push({
+      //   name: "VabeneAddCategoriePage",
+      //   params: { action: 'edit' }
+      // });
+    },
+    async deleteFileUpload(fileID) {
       try {
-        const response = await deleteUser(order.id) as ApiResponse<any>;
-        //console.log(response)
-        if (response.code === 201) {
-          this.orderResponse = response;
-          this.toast.success(response.message);
+        const response = await deleteFileUpload(fileID);
+        console.log(response);
+        if (response.code === 200) {
+          // this.toast.success(response.message)
 
+        } else {
+          this.toast.error(response.message)
+        }
+      } catch (error) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response && axiosError.response.data) {
+          const message = (axiosError.response.data as any).message;
+          this.toast.error(message);
+        } else {
+          this.toast.error("Une erreur est survenue");
+        }
+      }
+    },
+    async confirmationDeleteAction(categorie){
+      const publicID = Commons.extractPublicId(categorie.icone)
+      console.log("publicID", publicID);
+      try {
+        const response = await deleteCategorie(categorie.id) as ApiResponse<any>;
+        await this.deleteFileUpload(publicID)
+        if (response.code === 201) {
+          this.categorieResponse = response;
+          this.toast.success(response.message);
         } else {
           this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des utilisateurs");
+        this.toast.error("Erreur lors du chargement des categories");
         console.error(error);
       } finally {
         setTimeout(() =>  {
-          this.fetchOrder(1);
-        }, 2000);
+          this.fetchCategories(1);
+        }, 3000);
       }
     },
-    async toggleUserActivation(user, status){
+    async toggleCategorieActivation(categorie, status){
       //this.isLoading = true;
       console.log(status)
       const payload = {
         'status': status
       }
       try {
-        const response = await toggleActivationUser(user.id, payload) as ApiResponse<any>;
+        const response = await toggleActivationCategorie(categorie.id, payload) as ApiResponse<any>;
         //console.log(response)
-        if (response.code === 201) {
-          this.orderResponse = response;
+        if (response.code === 200) {
+          this.categorieResponse = response;
           if (response.data) {
             const responseDecoded = response.data
             console.log(responseDecoded)
             this.toast.success(response.message);
-
           }
 
         } else {
           this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des utilisateurs");
+        this.toast.error("Erreur lors du chargement des categories");
         console.error(error);
       } finally {
         setTimeout(() =>  {
-          this.fetchOrder(1);
+          this.fetchCategories(1);
         }, 2000);
       }
     },
@@ -451,15 +422,15 @@ export default defineComponent({
     convertDateCreate(date: string): string {
       return UserGeneralKey.formatDateToFrenchLocale(date);
     },
-    async fetchOrder(page = 1) {
+    async fetchCategories(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeOrder(page) as ApiResponse<PaginatedOrder>;
+        const response = await listeCustomers(page) as ApiResponse<PaginatedCustomer>;
         console.log(response)
         if (response.code === 200) {
-          this.orderResponse = response;
+          this.categorieResponse = response;
           if (response.data?.items) {
-            this.originalOrder = response.data.items;
+            this.originalCategories = response.data.items;
           }
           if (response.data && response.data.pagination) {
             this.currentPage = response.data.pagination.current_page;
@@ -468,7 +439,7 @@ export default defineComponent({
           this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des restaurant");
+        this.toast.error("Erreur lors du chargement des customers");
         console.error(error);
       } finally {
         this.isLoading = false;
@@ -476,7 +447,7 @@ export default defineComponent({
     },
     changePage(page: number) {
       if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
-        this.fetchOrder(page);
+        this.fetchCategories(page);
       }
     },
     generatePageNumbers(): number[] {
@@ -503,7 +474,7 @@ export default defineComponent({
     return { toast };
   },
   mounted() {
-    this.fetchOrder();
+   this.fetchCategories();
   }
 });
 </script>

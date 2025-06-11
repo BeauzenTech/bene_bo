@@ -3,8 +3,8 @@ import axios, { AxiosResponse } from "axios";
 
 import { apiConfig } from "@/config/baseUrl";
 import {
-    ApiResponse, PaginatedCategorie,
-    PaginatedFrachises, PaginatedIngredient, PaginatedMethodePaiement,
+    ApiResponse, PaginatedCampagne, PaginatedCategorie, PaginatedCustomer,
+    PaginatedFrachises, PaginatedIngredient, PaginatedMethodePaiement, PaginatedNotification,
     PaginatedOrder, PaginatedOrderType, PaginatedPayment, PaginatedProduct,
     PaginatedRestaurant,
     PaginatedUsers
@@ -18,6 +18,12 @@ import {IngredientModel} from "@/models/ingredient.model";
 import {SellModel} from "@/models/vente.model";
 import {PeriodiqueCardReport} from "@/models/periodiqueCardReport.model";
 import {ProductModel} from "@/models/product.model";
+import {CampagneModel} from "@/models/campagne.model";
+import {NotificationModel} from "@/models/notification.model";
+import {CustomerModel} from "@/models/customer.model";
+import {TopProductSellModel} from "@/models/TopProductSell.model";
+import {AverageReportModel} from "@/models/averageReport.model";
+import {FranchiseModel} from "@/models/franchise.model";
 
 const apiClient = axios.create({
     baseURL: apiConfig.baseURL,
@@ -105,7 +111,7 @@ export const getUserData = async (): Promise<ApiResponse<UserModel>> => {
 export const listeUser = async (page = 1): Promise<ApiResponse<PaginatedUsers>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/v1/user/all?page=${page}`);
+        const response = await apiClient.get(`/v1/user/all/gestion?page=${page}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
@@ -189,6 +195,20 @@ export const listefranchises = async (page = 1): Promise<ApiResponse<PaginatedFr
     }
 };
 
+export const detailFranchise = async (franchiseID): Promise<ApiResponse<FranchiseModel>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/v1/franchise/detail/${franchiseID}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
 // Fonction pour créer d'une franchise
 export const createFranchise = async (franchiseData): Promise<ApiResponse<any>> =>{
     try {
@@ -226,6 +246,21 @@ export const listeRestaurant = async (page = 1): Promise<ApiResponse<PaginatedRe
     // eslint-disable-next-line no-useless-catch
     try {
         const response = await apiClient.get(`/restaurant/filter/active?page=${page}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+export const detailRestaurant = async (restaurantID): Promise<ApiResponse<FranchiseModel>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/v1/restaurant/detail/${restaurantID}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
@@ -539,13 +574,22 @@ export const createProduct = async (productData): Promise<ApiResponse<any>> =>{
 export const listeProducts = async (page = 1, filter: string, filterData): Promise<ApiResponse<PaginatedProduct>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-
         const response = await apiClient.post(`/product/filter/${filter}?page=${page}`, filterData);
         return new ApiResponse(
             response.data.code,
             response.data.message,
             response.data.data
         );
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const detailProduct = async (productID): Promise<ApiResponse<ProductModel>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/product/detail/${productID}`);
+        return response.data;
     } catch (error) {
         throw error;
     }
@@ -604,15 +648,7 @@ export const toggleActivationFeatureProduct = async (productID: string, productD
     }
 };
 
-export const detailProduct = async (productID): Promise<ApiResponse<ProductModel>> => {
-    // eslint-disable-next-line no-useless-catch
-    try {
-        const response = await apiClient.get(`/product/detail/${productID}`);
-        return response.data;
-    } catch (error) {
-        throw error;
-    }
-};
+
 
 export const deleteProductTemporary = async (productID: string): Promise<ApiResponse<void>> => {
     try {
@@ -666,8 +702,133 @@ export const reportPeriodiqueCardById = async (restaurantID: string): Promise<Ap
 };
 
 
+// CAMPAGNE
+
+export const createCampagne = async (campagneData): Promise<ApiResponse<any>> =>{
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/v1/campage', campagneData);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la creation de campagne", error);
+        throw error;
+    }
+};
+
+export const listeCampagne = async (page = 1): Promise<ApiResponse<PaginatedCampagne>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+
+        const response = await apiClient.get(`/v1/campagne/all?page=${page}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const detailCampagne = async (campgneID): Promise<ApiResponse<CampagneModel>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/v1/campagne/${campgneID}`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+// NOTIFICATION
 
 
+export const createNotification = async (notificationData): Promise<ApiResponse<any>> =>{
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/v1/notification', notificationData);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la creation de notification", error);
+        throw error;
+    }
+};
+
+export const listeNotification = async (page = 1): Promise<ApiResponse<PaginatedNotification>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/v1/notification/all?page=${page}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const detailNotification = async (notificationID): Promise<ApiResponse<NotificationModel>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/v1/notification/${notificationID}`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+export const listeCustomers = async (page = 1): Promise<ApiResponse<PaginatedCustomer>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/v1/customer/all?page=${page}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const detailCustomer = async (customerID): Promise<ApiResponse<CustomerModel>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/v1/customer/${customerID}`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+export const topProductReportSell = async (categoryID): Promise<ApiResponse<TopProductSellModel[]>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/v1/report_sale/products/${categoryID}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const averageReportSell = async (productID): Promise<ApiResponse<AverageReportModel[]>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/v1/report_sale/average/${productID}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
 
 
 

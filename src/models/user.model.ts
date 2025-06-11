@@ -1,3 +1,5 @@
+import {FranchiseModel} from "@/models/franchise.model";
+
 export interface UserModel {
     id: string;
     email: string;
@@ -11,6 +13,8 @@ export interface UserModel {
     is_active: boolean;
     created_at: string;
     updated_at: string;
+    franchises: FranchiseModel[];
+
 }
 
 export type UserRole = 'ROLE_ADMIN' | 'ROLE_USER' | 'ROLE_FRANCHISE' | 'ROLE_RESTAURANT'; // Ajoutez tous les rôles possibles

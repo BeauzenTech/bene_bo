@@ -48,6 +48,52 @@
               </div>
             </div>
           </div>
+          <div class="col-md-12">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Notes & valeurs nutritionnelles
+              </label>
+              <div class="mb-0">
+                <QuillEditor
+                    theme="snow"
+                    content-type="html"
+                    placeholder="Donnez une note et valeur nutritionnelle"
+                    toolbar="full"
+                    v-model:content="productData.longDescription"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 mb-20">
+            <!-- Toggle switch -->
+            <label class="d-block text-black fw-semibold mb-10">
+             Ajouter pointrine de Dinde / Jambon
+            </label>
+            <div class="form-check form-switch">
+              <input
+                  class="form-check-input"
+                  type="checkbox"
+                  v-model="addtionPointrineDine"
+                  @change="togglePointrineDine"
+              />
+
+            </div>
+          </div>
+          <div class="col-md-6 mb-20">
+            <!-- Toggle switch -->
+            <label class="d-block text-black fw-semibold mb-10">
+              Ajouter sucre en poudre
+            </label>
+            <div class="form-check form-switch">
+              <input
+                  class="form-check-input"
+                  type="checkbox"
+                  v-model="addSucrePoudre"
+                  @change="toggleSucrePoudre"
+              />
+
+            </div>
+          </div>
           <div class="col-md-6">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
@@ -374,10 +420,15 @@ export default defineComponent({
       ingredientResponse: null as ApiResponse<PaginatedIngredient> | null,
       originalIngredients: [] as IngredientModel[], // Stockage des utilisateurs originaux
       searchIngredientQuery: '', // Ajout du champ de recherche
+      additionalNote: [] as string[],
+      addtionPointrineDine: false as boolean,
+      addSucrePoudre: false as boolean,
       productData: {
         name: '',
         type: '',
         description: '',
+        longDescription: '',
+        additionnal: [] as string[],
         categorieID: '',
         image_urls: [] as string[],
         ingredients: [],
@@ -400,6 +451,48 @@ export default defineComponent({
     }
   },
   methods: {
+    togglePointrineDine() {
+      const poitrine = "- Ajouter poitrine de Dinde";
+      const jambon = "- Ajouter Jambon";
+      // Si on active l'ajout de poitrine
+      if (this.addtionPointrineDine) {
+        // Supprimer "Ajouter Jambon" s'il existe
+        const indexJambon = this.additionalNote.indexOf(jambon);
+        if (indexJambon !== -1) {
+          this.additionalNote.splice(indexJambon, 1);
+        }
+        // Ajouter "Ajouter poitrine de Dinde" s'il n'existe pas
+        if (!this.additionalNote.includes(poitrine)) {
+          this.additionalNote.push(poitrine);
+        }
+      } else {
+        // Supprimer "Ajouter poitrine de Dinde" s'il existe
+        const indexPoitrine = this.additionalNote.indexOf(poitrine);
+        if (indexPoitrine !== -1) {
+          this.additionalNote.splice(indexPoitrine, 1);
+        }
+
+        // Ajouter "Ajouter Jambon" s'il n'existe pas
+        if (!this.additionalNote.includes(jambon)) {
+          this.additionalNote.push(jambon);
+        }
+      }
+      console.log(this.additionalNote)
+    },
+    toggleSucrePoudre() {
+      const sucre = "- Ajouter Sucre en poudre";
+      if (this.addSucrePoudre) {
+        if (!this.additionalNote.includes(sucre)) {
+          this.additionalNote.push(sucre);
+        }
+      } else {
+        const index = this.additionalNote.indexOf(sucre);
+        if (index !== -1) {
+          this.additionalNote.splice(index, 1);
+        }
+      }
+      console.log(this.additionalNote)
+    },
     cleanAndTruncateHtmlText(html: string): string {
       // Supprimer les balises HTML
       const textOnly = html.replace(/<[^>]*>/g, '').trim();
@@ -509,6 +602,8 @@ export default defineComponent({
         name: '',
         type: '',
         description: '',
+        longDescription: '',
+        additionnal: [] as string[],
         categorieID: '',
         image_urls: [] as string[],
         ingredients: [],
@@ -533,6 +628,9 @@ export default defineComponent({
           "ingredients": this.productData.ingredients,
           "cookingTime": parseFloat(String(this.productData.cookingTime)),
           "variationsProduct": this.productData.variationsProduct,
+          "longDescription": this.productData.longDescription,
+          "additionnal": this.productData.additionnal,
+
         }
         try {
           const response = await createProduct(payload);
@@ -601,7 +699,9 @@ export default defineComponent({
         "categorieID": this.productData.categorieID,
         "image_urls": this.productData.image_urls,
         "ingredients": this.productData.ingredients,
-        "cookingTime": parseFloat(String(this.productData.cookingTime))
+        "cookingTime": parseFloat(String(this.productData.cookingTime)),
+        "longDescription": this.productData.longDescription,
+        "additionnal": this.productData.additionnal,
       }
       try {
         const response = await updateProduct(productID, payload);

@@ -8,6 +8,11 @@ export class UserGeneralKey {
     static readonly USER_FIRST_NAME = "USER_FIRST_NAME";
     static readonly USER_LAST_NAME = "USER_LAST_NAME";
     static readonly USER_ROLE = "USER_ROLE";
+    static readonly USER_FRANCHISE_ID = "USER_FRANCHISE_ID";
+    static readonly USER_RESTAURANT_ID = "USER_RESTAURANT_ID";
+    static readonly USER_PROFIL_IMG = "USER_PROFIL_IMG";
+
+
 
     static isTokenValid() {
         const token = localStorage.getItem(UserGeneralKey.USER_TOKEN);
@@ -32,10 +37,20 @@ export class UserGeneralKey {
     }
 
     static saveUserDatA(user: UserModel){
-        localStorage.setItem(UserGeneralKey.USERNAME, user.roles[0]);
+        localStorage.setItem(UserGeneralKey.USER_ROLE, user.roles[0]);
         localStorage.setItem(UserGeneralKey.USER_ID, user.id);
         localStorage.setItem(UserGeneralKey.USER_EMAIL, user.email);
         localStorage.setItem(UserGeneralKey.USER_FIRST_NAME, user.first_name);
+        localStorage.setItem(UserGeneralKey.USER_LAST_NAME, user.last_name);
+        if (typeof user.profil_picture === "string") {
+            localStorage.setItem(UserGeneralKey.USER_PROFIL_IMG, user.profil_picture)
+        }
+        if(user.franchises.length > 0){
+            localStorage.setItem(UserGeneralKey.USER_FRANCHISE_ID, user.franchises[0].id);
+            if(user.franchises[0].restaurants.length > 0){
+                localStorage.setItem(UserGeneralKey.USER_RESTAURANT_ID, user.franchises[0].restaurants[0].id);
+            }
+        }
     }
 
     static getRole(role){

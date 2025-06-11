@@ -8,6 +8,9 @@ import {PaymentModel} from "@/models/payment.model";
 import {CategorieModel} from "@/models/categorie.model";
 import {IngredientModel} from "@/models/ingredient.model";
 import {ProductModel} from "@/models/product.model";
+import {CustomerModel} from "@/models/customer.model";
+import {CampagneModel} from "@/models/campagne.model";
+import {NotificationModel} from "@/models/notification.model";
 
 export class ApiResponse<T> {
     code?: number;
@@ -114,6 +117,36 @@ export interface PaginatedIngredient {
 
 export interface PaginatedProduct {
     items: ProductModel[];
+    pagination: {
+        current_page: number;
+        total_items: number;
+        total_pages: number;
+        items_per_page: number;
+    };
+}
+
+export interface PaginatedCustomer {
+    items: CustomerModel[];
+    pagination: {
+        current_page: number;
+        total_items: number;
+        total_pages: number;
+        items_per_page: number;
+    };
+}
+
+export interface PaginatedCampagne {
+    items: CampagneModel[];
+    pagination: {
+        current_page: number;
+        total_items: number;
+        total_pages: number;
+        items_per_page: number;
+    };
+}
+
+export interface PaginatedNotification {
+    items: NotificationModel[];
     pagination: {
         current_page: number;
         total_items: number;

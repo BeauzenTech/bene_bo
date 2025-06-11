@@ -9,6 +9,21 @@
   <div v-else class="card-body p-15 p-sm-20 p-md-25 p-lg-30 letter-spacing bg-white">
 
     <div class="container mb-50"  v-if="periodiqueReportCard">
+      <div class="row mb-2 mt-2">
+        <div class="row">
+          <div class="col-lg-6">
+            <VabeneTopProduitReportSell />
+          </div>
+
+          <div class="col-lg-6">
+            <VabeneAverageReportSell />
+          </div>
+
+
+
+        </div>
+
+      </div>
       <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
         <div class="col">
           <div class="card radius-10 border-start border-0 border-3 border-info">
@@ -77,6 +92,7 @@
         </div>
       </div>
     </div>
+
     <div
       class="mb-15 mb-sm-0 d-sm-flex align-items-center justify-content-between"
     >
@@ -127,10 +143,15 @@ import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import {RepportModelData} from "@/models/report.model";
 import {PeriodiqueCardReport} from "@/models/periodiqueCardReport.model";
+import VabeneTopProduitReportSell from "@/components/Vabene/Order/OrderReportSells/VabeneTopProduitReportSell.vue";
+import VabeneAverageReportSell from "@/components/Vabene/Order/OrderReportSells/VabeneAverageReportSell.vue";
 
 export default defineComponent({
   name: "VabenerReportSell",
-  components: {LoaderComponent},
+  components: {
+    VabeneTopProduitReportSell,
+    VabeneAverageReportSell,
+    LoaderComponent},
   data(){
     return {
       reportVente: [] as RepportModelData[],

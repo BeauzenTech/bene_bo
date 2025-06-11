@@ -179,8 +179,13 @@ import VabeneAddIngredientPage from "@/pages/Vabene/Ingredient/VabeneAddIngredie
 import VabeneOrderReportSellPage from "@/pages/Vabene/Order/VabeneOrderReportSellPage.vue";
 import VaBeneProductListPage from "@/pages/Vabene/Produit/VaBeneProductListPage.vue";
 import VabeneAddProductPage from "@/pages/Vabene/Produit/VabeneAddProductPage.vue";
-
-
+import VaBeneCustomerListPage from "@/pages/Vabene/Customer/VaBeneCustomerListPage.vue";
+import VabeneAddCustomerPage from "@/pages/Vabene/Customer/VabeneAddCustomerPage.vue";
+import VabeneAddCampagePage from "@/pages/Vabene/Campagne/VabeneAddCampagePage.vue";
+import VaBeneCampagneListPage from "@/pages/Vabene/Campagne/VaBeneCampagneListPage.vue";
+import VabeneAddNotificationPage from "@/pages/Vabene/Notification/VabeneAddNotificationPage.vue";
+import VaBeneNotificationListPage from "@/pages/Vabene/Notification/VaBeneNotificationListPage.vue";
+import VabeneInfoFranchisePage from "@/pages/Vabene/Franchise/VabeneInfoFranchisePage.vue";
 const routes = [
     // DASHBOARD HOME
   {
@@ -208,9 +213,21 @@ const routes = [
     component: FranchiseListePage,
   },
   {
-    path: "/ajout-franchise",
+    path: "/ajout-franchise/:action/:franchiseID?",
     name: "VabeneAddFranchisePage",
     component: VabeneAddFranchisePage,
+    props: route => ({
+      action: String(route.params.action),
+      franchiseID: route.params.franchiseID ? String(route.params.franchiseID) : undefined
+    })
+  },
+  {
+    path: "/infofranchise/:franchiseID?",
+    name: "VabeneInfoFranchisePage",
+    component: VabeneInfoFranchisePage,
+    props: route => ({
+      franchiseID: route.params.franchiseID ? String(route.params.franchiseID) : undefined
+    })
   },
 
   // CRUD RESTAURANT
@@ -308,6 +325,51 @@ const routes = [
     props: route => ({
       action: String(route.params.action),
       productID: route.params.productID ? String(route.params.productID) : undefined
+    })
+  },
+
+  {
+    path: "/customer-list",
+    name: "VaBeneCustomerListPage",
+    component: VaBeneCustomerListPage,
+  },
+  {
+    path: "/customer/:action/:customerID?",
+    name: "VabeneAddCustomerPage",
+    component: VabeneAddCustomerPage,
+    props: route => ({
+      action: String(route.params.action),
+      customerID: route.params.customerID ? String(route.params.customerID) : undefined
+    })
+  },
+
+  {
+    path: "/campagne-list",
+    name: "VaBeneCampagneListPage",
+    component: VaBeneCampagneListPage,
+  },
+  {
+    path: "/ajout-campagne/:action/:campagneID?",
+    name: "VabeneAddCampagePage",
+    component: VabeneAddCampagePage,
+    props: route => ({
+      action: String(route.params.action),
+      campagneID: route.params.campagneID ? String(route.params.campagneID) : undefined
+    })
+  },
+
+  {
+    path: "/notifications-sending",
+    name: "VabeneNotificationListPage",
+    component: VaBeneNotificationListPage,
+  },
+  {
+    path: "/ajout-notification/:action/:notificationID?",
+    name: "VabeneAddNotificationPage",
+    component: VabeneAddNotificationPage,
+    props: route => ({
+      action: String(route.params.action),
+      notificationID: route.params.notificationID ? String(route.params.notificationID) : undefined
     })
   },
 
