@@ -3,6 +3,77 @@
     <div class="card-body p-15 p-sm-20 p-md-25 p-lg-30 letter-spacing">
       <form @submit.prevent="uploadLogo">
         <div class="row">
+
+
+          <div class="col-md-6" v-if="actionDetected === ActionCrud.ADD">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Prenom du responsable *
+              </label>
+              <input
+                  type="text"
+                  class="form-control shadow-none rounded-0 text-black"
+                  placeholder="e.g. Adam"
+                  v-model="franchiseData.firstName"
+                  @change="(event) => handleInput(event, 'firstName')"
+                  :class="{ 'is-valid': validTextField(franchiseData.firstName) }"
+                  required
+
+              />
+            </div>
+          </div>
+          <div class="col-md-6" v-if="actionDetected === ActionCrud.ADD">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Nom du responsable *
+              </label>
+              <input
+                  type="text"
+                  class="form-control shadow-none rounded-0 text-black"
+                  placeholder="e.g. Smith"
+                  v-model="franchiseData.lastName"
+                  @change="(event) => handleInput(event, 'lastName')"
+                  :class="{ 'is-valid': validTextField(franchiseData.lastName) }"
+                  required
+
+              />
+            </div>
+          </div>
+
+          <div class="col-md-12">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Email de la franchise *
+              </label>
+              <input
+                  type="email"
+                  v-model="franchiseData.email"
+                  @change="(event) => handleInput(event, 'email')"
+                  :class="{ 'is-valid': validEmail(franchiseData.email) }"
+                  class="form-control shadow-none rounded-0 text-black"
+                  placeholder="e.g. adam127704@gmail.com"
+                  required
+
+              />
+            </div>
+          </div>
+          <div class="col-md-12" v-if="actionDetected === ActionCrud.ADD">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Mot de passe *
+              </label>
+              <input
+                  type="password"
+                  class="form-control shadow-none rounded-0 text-black"
+                  :class="{ 'is-valid': validPassword(franchiseData.password) }"
+                  placeholder="**************"
+                  v-model="franchiseData.password"
+                  @change="(event) => handleInput(event, 'password')"
+                  required
+              />
+            </div>
+          </div>
+
           <div class="col-md-6">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
@@ -34,77 +105,21 @@
             </div>
           </div>
 
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Prenom du responsable *
-              </label>
-              <input
-                type="text"
-                class="form-control shadow-none rounded-0 text-black"
-                placeholder="e.g. Adam"
-                v-model="franchiseData.firstName"
-                @change="(event) => handleInput(event, 'firstName')"
-                :class="{ 'is-valid': validTextField(franchiseData.firstName) }"
-                required
-              />
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-               Nom du responsable *
-              </label>
-              <input
-                type="text"
-                class="form-control shadow-none rounded-0 text-black"
-                placeholder="e.g. Smith"
-                v-model="franchiseData.lastName"
-                @change="(event) => handleInput(event, 'lastName')"
-                :class="{ 'is-valid': validTextField(franchiseData.lastName) }"
-                required
-              />
-            </div>
-          </div>
-
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Email de la franchise *
-              </label>
-              <input
-                type="email"
-                v-model="franchiseData.email"
-                @change="(event) => handleInput(event, 'email')"
-                :class="{ 'is-valid': validEmail(franchiseData.email) }"
-                class="form-control shadow-none rounded-0 text-black"
-                placeholder="e.g. adam127704@gmail.com"
-                required
-              />
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Mot de passe *
-              </label>
-              <input
-                type="password"
-                class="form-control shadow-none rounded-0 text-black"
-                :class="{ 'is-valid': validPassword(franchiseData.password) }"
-                placeholder="**************"
-                v-model="franchiseData.password"
-                @change="(event) => handleInput(event, 'password')"
-                required
-              />
-            </div>
-          </div>
 
           <div class="col-md-12">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
                 Logo de la franchise *
               </label>
+              <div v-if="franchiseResponse?.logo" class="form-group mb-15 mb-sm-20 mb-md-25">
+                <img
+                    :src=" franchiseResponse.logo || require('@/assets/images/icon/jpg.png')"
+                    class="rounded-circle me-8"
+                    width="120"
+                    height="auto"
+                    alt="logo"
+                />
+              </div>
               <div class="mb-0">
                 <input
                     type="file"
@@ -116,6 +131,7 @@
               </div>
             </div>
           </div>
+
 
 
           <div class="col-md-12">
@@ -184,7 +200,7 @@
               />
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-6" v-if="actionDetected === ActionCrud.ADD">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
                 Ville
@@ -202,7 +218,7 @@
             </div>
           </div>
 
-          <div class="col-md-6">
+          <div class="col-md-6" v-if="actionDetected === ActionCrud.ADD">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
                 Batiment
@@ -218,7 +234,7 @@
               />
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-6" v-if="actionDetected === ActionCrud.ADD">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
                 Numero de Rue *
@@ -457,7 +473,8 @@
 
                 :class="{ 'opacity-50 cursor-not-allowed': !isFormValid }"
               >
-                Ajouter une franchise
+                {{ actionDetected === 'edit' ? 'Mettre à jour' : ' Ajouter une franchise'}}
+
               </button>
               <button
                 type="button"
@@ -467,7 +484,7 @@
                 <i
                   class="flaticon-delete lh-1 me-1 position-relative top-2"
                 ></i>
-                <span class="position-relative">Cancel</span>
+                <span class="position-relative">Annuler</span>
               </button>
             </div>
           </div>
@@ -477,20 +494,34 @@
   </div>
 </template>
 
-<script>
-import {defineComponent} from "vue";
+<script lang="ts">
+import {defineComponent, PropType} from "vue";
 
 
-import {createFranchise, fetchAllPostalCode, uploadFile} from "@/service/api";
+import {createFranchise, detailFranchise, fetchAllPostalCode, uploadFile} from "@/service/api";
 
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
+import {ActionCrud} from "@/enums/actionCrud.enum";
+import {AxiosError} from "axios";
+import {ApiResponse} from "@/models/Apiresponse";
+import {FranchiseModel} from "@/models/franchise.model";
 
 export default defineComponent({
   name: "VabeneAddFranchise",
   components: {
     LoaderComponent
-    // ImageUpload,
+
+  },
+  props: {
+    action: {
+      type: String as PropType<string>,
+      required: true
+    },
+    franchiseID: {
+      type: String as PropType<string>,
+      required: false
+    },
   },
   data(){
     return{
@@ -512,12 +543,30 @@ export default defineComponent({
       },
       isLoading: false,
       logoUpload: null,
-      allPostalCode: []
+      allPostalCode: [],
+      actionDetected: null as string | null,
+      franchiseResponse: null as FranchiseModel | null,
     }
   },
   methods: {
+
     clearData(){
-      this.franchiseData = {}
+      this.franchiseData = {
+        name: '',
+        description: '',
+        email: '',
+        address: '',
+        phoneNumber: '',
+        postalCode: '',
+        country: 'Suisse',
+        logo: '',
+        password: '',
+        firstName: '',
+        lastName: '',
+        city: '',
+        batiment: '',
+        numeroRue: ''
+      }
     },
     goBack() {
       this.$router.back()
@@ -550,34 +599,69 @@ export default defineComponent({
           this.toast.error(response.message)
         }
       } catch (error) {
-        if (error.response && error.response.data && error.response.data.message) {
-          this.toast.error(error.response.data.message)
+        const axiosError = error as AxiosError;
+        if (axiosError.response && axiosError.response.data) {
+          const message = (axiosError.response.data as any).message;
+          this.toast.error(message);
+        } else {
+          this.toast.error("Une erreur est survenue");
         }
-        console.error(error);
       } finally {
         this.isLoading = false;
       }
     },
     async uploadLogo(){
+      if(this.logoUpload){
+        this.isLoading = true;
+        try {
+          const response = await uploadFile(this.logoUpload);
+          console.log(response);
+          if (response.code === 200 || response.code === 201) {
+            this.franchiseData.logo = response.data
+            await this.createNewFranchise()
+          } else {
+            this.toast.error(response.message)
+          }
+
+        } catch (error) {
+          this.isLoading = false;
+          const axiosError = error as AxiosError;
+          if (axiosError.response && axiosError.response.data) {
+            const message = (axiosError.response.data as any).message;
+            this.toast.error(message);
+          } else {
+            this.toast.error("Une erreur est survenue");
+          }
+        }
+      }
+    },
+    async fetchDetailFranchise(franchiseID) {
       this.isLoading = true;
       try {
-        const response = await uploadFile(this.logoUpload);
-        console.log(response);
-        if (response.code === 200 || response.code === 201) {
-          this.franchiseData.logo = response.data
-          await this.createNewFranchise()
+        const response = await detailFranchise(franchiseID) as ApiResponse<FranchiseModel>;
+        console.log(response)
+        if (response.code === 200) {
+          if(response.data){
+            this.franchiseResponse = response.data;
+            this.franchiseData.name = this.franchiseResponse.name;
+            this.franchiseData.description = this.franchiseResponse.description;
+            this.franchiseData.email = this.franchiseResponse.email;
+            this.franchiseData.logo = this.franchiseResponse.logo;
+            this.franchiseData.address = this.franchiseResponse.address;
+            this.franchiseData.phoneNumber = this.franchiseResponse.phoneNumber;
+            this.franchiseData.postalCode = this.franchiseResponse.postalCode;
+            this.franchiseData.firstName = this.franchiseResponse.ownerID.first_name;
+            this.franchiseData.lastName = this.franchiseResponse.ownerID.last_name;
+          }
         } else {
-          this.toast.error(response.message)
+          this.toast.error(response.message);
         }
-
       } catch (error) {
-        this.isLoading = false;
-        if (error.response && error.response.data && error.response.data.message) {
-          this.toast.error(error.response.data.message)
-        }
+        this.toast.error("Erreur lors du chargement des categories");
         console.error(error);
+      } finally {
+        this.isLoading = false;
       }
-
     },
     async fetchPostalCode() {
       this.isLoading = true;
@@ -590,10 +674,13 @@ export default defineComponent({
           this.toast.error(response.message)
         }
       } catch (error) {
-        if (error.response && error.response.data && error.response.data.message) {
-          this.toast.error(error.response.data.message)
+        const axiosError = error as AxiosError;
+        if (axiosError.response && axiosError.response.data) {
+          const message = (axiosError.response.data as any).message;
+          this.toast.error(message);
+        } else {
+          this.toast.error("Une erreur est survenue");
         }
-        console.error(error);
       } finally {
         this.isLoading = false;
       }
@@ -626,10 +713,10 @@ export default defineComponent({
           this.validTextField(valueText)
           break
 
-        case 'addresse':
-          this.franchiseData.addresse = valueText
-          this.validTextField(valueText)
-          break
+        // case 'addresse':
+        //   this.franchiseData.addresse = valueText
+        //   this.validTextField(valueText)
+        //   break
 
         case 'phoneNumber':
           this.franchiseData.phoneNumber = valueText
@@ -715,22 +802,39 @@ export default defineComponent({
 
   },
   computed: {
+    ActionCrud() {
+      return ActionCrud
+    },
     isFormValid() {
-      return (
-          this.validEmail(this.franchiseData.email) &&
-          this.validPassword(this.franchiseData.password) &&
-          this.validTextField(this.franchiseData.name) &&
-          this.validTextField(this.franchiseData.firstName) &&
-          this.validTextField(this.franchiseData.lastName) &&
-          this.validTextField(this.franchiseData.address) &&
-          this.validTextField(this.franchiseData.phoneNumber) &&
-          this.validTextField(this.franchiseData.country) &&
-          this.validTextField(this.franchiseData.city) &&
-          this.validTextField(this.franchiseData.batiment) &&
-          this.validTextField(this.franchiseData.numeroRue) &&
-          this.validTextField(this.franchiseData.description) &&
-          this.validTextField(this.franchiseData.postalCode)
-      );
+      if (this.actionDetected === ActionCrud.ADD){
+        return (
+            this.validEmail(this.franchiseData.email) &&
+            this.validPassword(this.franchiseData.password) &&
+            this.validTextField(this.franchiseData.name) &&
+            this.validTextField(this.franchiseData.firstName) &&
+            this.validTextField(this.franchiseData.lastName) &&
+            this.validTextField(this.franchiseData.address) &&
+            this.validTextField(this.franchiseData.phoneNumber) &&
+            this.validTextField(this.franchiseData.country) &&
+            this.validTextField(this.franchiseData.city) &&
+            this.validTextField(this.franchiseData.batiment) &&
+            this.validTextField(this.franchiseData.numeroRue) &&
+            this.validTextField(this.franchiseData.description) &&
+            this.validTextField(this.franchiseData.postalCode)
+        );
+      }
+      else{
+        return (
+
+            this.validTextField(this.franchiseData.name) &&
+            this.validTextField(this.franchiseData.address) &&
+            this.validTextField(this.franchiseData.phoneNumber) &&
+            this.validTextField(this.franchiseData.country) &&
+            this.validTextField(this.franchiseData.description) &&
+            this.validTextField(this.franchiseData.postalCode)
+        );
+      }
+
     }
   },
   setup: () => {
@@ -762,6 +866,10 @@ export default defineComponent({
   },
   mounted() {
     this.fetchPostalCode();
+    this.actionDetected = (this as any).$route.params.action
+    if((this as any).$route.params.action == ActionCrud.EDIT){
+      this.fetchDetailFranchise((this as any).$route.params.franchiseID)
+    }
   }
 
 });

@@ -37,15 +37,16 @@
 
           </div>
         </div>
-        <router-link
-            to="/profile-settings"
+        <a
+            href="#"
+            @click="gotoEditFranchise(franchiseResponse)"
             class="d-inline-block text-decoration-none lh-1 text-muted fw-medium"
         >
           <i
               class="ph-duotone ph-pencil text-black position-relative top-1 fs-16 me-1"
           ></i>
-          Edit
-        </router-link>
+          Modifier
+        </a>
 
       </div>
       <ul class="info mt-25 ps-0 mb-0 list-unstyled">
@@ -91,7 +92,7 @@
             <i class="flaticon-home"></i>
           </div>
           <span class="d-block text-black mb-5 fw-semibold">
-            Restaurant
+            Restaurants
           </span>
           <span class="d-inline-block fs-md-15 fs-lg-16 text-muted">
             {{franchiseResponse.restaurants.length}} Restaurants
@@ -109,6 +110,7 @@ import {detailFranchise} from "@/service/api";
 import {ApiResponse} from "@/models/Apiresponse";
 import {defineComponent} from "vue";
 import LoaderComponent from "@/components/Loading/Loader.vue";
+import {ActionCrud} from "@/enums/actionCrud.enum";
 
 
 export default defineComponent({
@@ -121,6 +123,12 @@ export default defineComponent({
     }
   },
   methods: {
+    gotoEditFranchise(franchise){
+      this.$router.push({
+        name: "VabeneAddFranchisePage",
+        params: { action: ActionCrud.EDIT, franchiseID: franchise.id }
+      });
+    },
     gotoUpdate(){
       this.$router.push("/ajout-franchise");
     },

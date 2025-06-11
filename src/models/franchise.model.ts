@@ -1,3 +1,5 @@
+import {UserModel} from "@/models/user.model";
+
 export interface FranchiseModel {
     id: string;
     name: string;
@@ -10,4 +12,5 @@ export interface FranchiseModel {
     logo: string;
     is_active: boolean;
     restaurants: FranchiseModel[];
+    ownerID: UserModel
 }
