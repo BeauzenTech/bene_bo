@@ -666,6 +666,7 @@ export default defineComponent({
     categorieSelected(newVal, oldVal) {
       if (typeof newVal === 'string' && newVal !== oldVal) {
         console.log("Nouvelle catégorie sélectionnée :", newVal);
+        this.categorieSelected = this.originalCategories.find(c => c.id === newVal) ?? null;
         this.fetchProduct(1, "existing", newVal); // ou newVal.id selon le besoin
       }
     }
