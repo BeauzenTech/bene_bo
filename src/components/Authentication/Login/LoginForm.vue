@@ -265,7 +265,7 @@ div.logo-auth {
   position: relative;
   left: 25%;
   margin-bottom: 30px;
-  background-image: url('@/assets/images/LOGO_VABENE.png') ;
+  background-image: url('@/assets/images/logo.webp') ;
   background-size: contain;
   background-repeat: no-repeat;
   height: 100px;

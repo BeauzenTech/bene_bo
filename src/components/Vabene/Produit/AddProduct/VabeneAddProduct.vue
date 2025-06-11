@@ -109,7 +109,7 @@
 
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-12">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
                 Categorie *
@@ -123,11 +123,18 @@
               />
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-12">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
+              <label class="d-block text-black fw-semibold mb-2">
                 Image *
               </label>
+              <img v-if="productData.image_urls.length > 0"
+                   :src="productData.image_urls[0]"
+                   class="rounded-circle me-8 mb-4"
+                   width="45"
+                   height="45"
+                   alt="produit"
+              />
               <input
                   type="file"
                   class="form-control shadow-none rounded-0 text-black"

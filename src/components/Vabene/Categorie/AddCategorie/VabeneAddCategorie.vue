@@ -43,6 +43,13 @@
               <label class="d-block text-black fw-semibold mb-10">
                 Icone *
               </label>
+              <img v-if="categorieData.icone"
+                  :src="categorieData.icone"
+                  class="rounded-circle me-8 mb-4"
+                  width="45"
+                  height="45"
+                  alt="categorie"
+              />
               <input
                   type="file"
                   class="form-control shadow-none rounded-0 text-black"

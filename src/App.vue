@@ -97,7 +97,7 @@ export default defineComponent({
 <style>
 
 .login-background {
-  background-image: url('@/assets/images/pizzeria_77.jpg') ; /* Remplacez par le chemin de votre image */
+  background-image: url('@/assets/images/hero-bg.jpg') ; /* Remplacez par le chemin de votre image */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

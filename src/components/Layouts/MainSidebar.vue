@@ -11,7 +11,7 @@
         to="/"
         class="d-flex align-items-center text-white text-decoration-none"
       >
-        <img src="@/assets/images/LOGO_VABENE.png" class="" alt="logo-icon" />
+        <img src="@/assets/images/logo.webp" class="" alt="logo-icon" />
 <!--        <span class="fw-bold ms-10"></span>-->
       </router-link>
       <div class="border-bottom"></div>
@@ -310,7 +310,7 @@
                   </router-link>
                 </li>
                 <li class="sidebar-sub-menu-item">
-                  <router-link to="/ajout-utilisateur" class="sidebar-sub-menu-link">
+                  <router-link to="/ajout-utilisateur/add" class="sidebar-sub-menu-link">
                     Ajouter
                   </router-link>
                 </li>
