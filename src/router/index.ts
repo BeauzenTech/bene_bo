@@ -241,9 +241,13 @@ const routes = [
     component: VabeneRestaurantListPage,
   },
   {
-    path: "/ajout-restaurant",
+    path: "/ajout-restaurant/:action/:restaurantID?",
     name: "VabeneAddRestaurantPage",
     component: VabeneAddRestaurantPage,
+    props: route => ({
+      action: String(route.params.action),
+      restaurantID: route.params.restaurantID ? String(route.params.restaurantID) : undefined
+    })
   },
 
   // CRUD ORDER

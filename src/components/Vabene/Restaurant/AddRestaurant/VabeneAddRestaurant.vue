@@ -1,20 +1,68 @@
 <template>
   <div class="card mb-25 border-0 rounded-0 bg-white add-user-card">
     <div class="card-body p-15 p-sm-20 p-md-25 p-lg-30 letter-spacing">
-      <form @submit.prevent="createNewAccount">
+      <form @submit.prevent="createRestaurantAccount">
         <div class="row">
+          <div class="col-md-12">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Nom du Restaurant *
+              </label>
+              <input
+                  type="text"
+                  class="form-control shadow-none rounded-0 text-black"
+                  placeholder="e.g. Vega Restaurant"
+                  v-model="restaurantData.name"
+                  @change="(event) => handleInput(event, 'name')"
+                  :class="{ 'is-valid': validTextField(restaurantData.name) }"
+                  required
+              />
+            </div>
+          </div>
           <div class="col-md-6">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
-                Prénom *
+                Numero de rue *
+              </label>
+              <input
+                  type="text"
+                  class="form-control shadow-none rounded-0 text-black"
+                  placeholder="e.g. 34662"
+                  v-model="restaurantData.numeroRue"
+                  @change="(event) => handleInput(event, 'numeroRue')"
+                  :class="{ 'is-valid': validTextField(restaurantData.numeroRue) }"
+                  required
+              />
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Taxe *
+              </label>
+              <input
+                  type="text"
+                  class="form-control shadow-none rounded-0 text-black"
+                  placeholder="e.g. CHE-372.776.093 TVA"
+                  v-model="restaurantData.taxe"
+                  @change="(event) => handleInput(event, 'taxe')"
+                  :class="{ 'is-valid': validTextField(restaurantData.taxe) }"
+                  required
+              />
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Prenom du responsable *
               </label>
               <input
                 type="text"
                 class="form-control shadow-none rounded-0 text-black"
                 placeholder="e.g. Adam"
-                v-model="userData.firstName"
+                v-model="restaurantData.firstName"
                 @change="(event) => handleInput(event, 'firstName')"
-                :class="{ 'is-valid': validTextField(userData.firstName) }"
+                :class="{ 'is-valid': validTextField(restaurantData.firstName) }"
                 required
               />
             </div>
@@ -22,15 +70,15 @@
           <div class="col-md-6">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
-               Nom *
+               Nom du responsable *
               </label>
               <input
                 type="text"
                 class="form-control shadow-none rounded-0 text-black"
                 placeholder="e.g. Smith"
-                v-model="userData.lastName"
+                v-model="restaurantData.lastName"
                 @change="(event) => handleInput(event, 'lastName')"
-                :class="{ 'is-valid': validTextField(userData.lastName) }"
+                :class="{ 'is-valid': validTextField(restaurantData.lastName) }"
                 required
               />
             </div>
@@ -43,12 +91,13 @@
               </label>
               <input
                 type="email"
-                v-model="userData.email"
+                v-model="restaurantData.email"
                 @change="(event) => handleInput(event, 'email')"
-                :class="{ 'is-valid': validEmail(userData.email) }"
+                :class="{ 'is-valid': validEmail(restaurantData.email) }"
                 class="form-control shadow-none rounded-0 text-black"
                 placeholder="e.g. adam127704@gmail.com"
-                required
+                :required="actionDetected === ActionCrud.ADD"
+                :disabled="actionDetected === ActionCrud.EDIT"
               />
             </div>
           </div>
@@ -60,11 +109,12 @@
               <input
                 type="password"
                 class="form-control shadow-none rounded-0 text-black"
-                :class="{ 'is-valid': validPassword(userData.password) }"
+                :class="{ 'is-valid': validPassword(restaurantData.password) }"
                 placeholder="**************"
-                v-model="userData.password"
+                v-model="restaurantData.password"
                 @change="(event) => handleInput(event, 'password')"
-                required
+                :required="actionDetected === ActionCrud.ADD"
+                :disabled="actionDetected === ActionCrud.EDIT"
               />
             </div>
           </div>
@@ -75,13 +125,13 @@
                 Code postal *
               </label>
               <v-select
-                  v-model="userData.postalCode"
+                  v-model="restaurantData.postalCodeID"
                   :options="allPostalCode"
                   @change="(event) => handleInput(event, 'postalCode')"
                   label="numeroPostal"
-                  :reduce="postal => postal.numeroPostal"
+                  :reduce="postal => postal.id"
                   placeholder="Selectionner le code postal"
-                  :class="{ 'is-valid': validTextField(userData.postalCode) }"
+                  :class="{ 'is-valid': validTextField(restaurantData.postalCodeID) }"
                   required
               />
             </div>
@@ -91,9 +141,9 @@
               <label class="d-block text-black fw-semibold mb-10">
                 Pays*
               </label>
-              <select v-model="userData.country" class="form-select shadow-none fw-semibold rounded-0"
+              <select v-model="restaurantData.country" class="form-select shadow-none fw-semibold rounded-0"
                       @change="(event) => handleInput(event, 'country')"
-                      :class="{ 'is-valid': validTextField(userData.country) }"
+                      :class="{ 'is-valid': validTextField(restaurantData.country) }"
               >
                 <option selected>Suisse</option>
               </select>
@@ -108,9 +158,9 @@
                   type="text"
                   class="form-control shadow-none rounded-0 text-black"
                   placeholder="Rue 44 batiment 34"
-                  v-model="userData.addresse"
-                  @change="(event) => handleInput(event, 'addresse')"
-                  :class="{ 'is-valid': validTextField(userData.addresse) }"
+                  v-model="restaurantData.address"
+                  @change="(event) => handleInput(event, 'address')"
+                  :class="{ 'is-valid': validTextField(restaurantData.address) }"
               />
             </div>
           </div>
@@ -120,13 +170,13 @@
                 Ville
               </label>
               <v-select
-                  v-model="userData.city"
+                  v-model="restaurantData.city"
                   :options="allPostalCode"
                   @change="(event) => handleInput(event, 'city')"
                   label="ville"
                   :reduce="postal => postal.ville"
                   placeholder="Selectionner la ville"
-                  :class="{ 'is-valid': validTextField(userData.city) }"
+                  :class="{ 'is-valid': validTextField(restaurantData.city) }"
                   required
               />
             </div>
@@ -140,27 +190,13 @@
                   type="text"
                   class="form-control shadow-none rounded-0 text-black"
                   placeholder="e.g. +338830003"
-                  v-model="userData.phoneNumber"
+                  v-model="restaurantData.phoneNumber"
                   @change="(event) => handleInput(event, 'phoneNumber')"
-                  :class="{ 'is-valid': validTextField(userData.phoneNumber) }"
+                  :class="{ 'is-valid': validTextField(restaurantData.phoneNumber) }"
               />
             </div>
           </div>
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Date de naissance
-              </label>
-              <input
-                  type="date"
-                  class="form-control shadow-none rounded-0 text-black"
-                  placeholder="01-08-1996"
-                  v-model="userData.dateOfBirth"
-                  @change="(event) => handleInput(event, 'dateOfBirth')"
-                  :class="{ 'is-valid': validTextField(userData.dateOfBirth) }"
-              />
-            </div>
-          </div>
+
           <div class="col-md-6">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
@@ -170,45 +206,16 @@
                   type="text"
                   class="form-control shadow-none rounded-0 text-black"
                   placeholder="e.g. Vaderna"
-                  v-model="userData.batiment"
+                  v-model="restaurantData.batiment"
                   @change="(event) => handleInput(event, 'batiment')"
-                  :class="{ 'is-valid': validTextField(userData.batiment) }"
-                  required
-              />
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Nom *
-              </label>
-              <input
-                  type="text"
-                  class="form-control shadow-none rounded-0 text-black"
-                  placeholder="e.g. 43eme"
-                  v-model="userData.numeroRue"
-                  @change="(event) => handleInput(event, 'numeroRue')"
-                  :class="{ 'is-valid': validTextField(userData.numeroRue) }"
+                  :class="{ 'is-valid': validTextField(restaurantData.batiment) }"
                   required
               />
             </div>
           </div>
 
-          <div class="col-md-12">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Rôle
-              </label>
-              <select class="form-select shadow-none fw-semibold rounded-0"
-                      v-model="userData.roles"
-                      @change="(event) => handleInput(event, 'roles')"
-                      :class="{ 'is-valid': validTextField(userData.roles) }"
-              >
-                <option value="ROLE_ADMIN" selected>Administrateur</option>
-                <option value="ROLE_CLIENT" selected>Client</option>
-              </select>
-            </div>
-          </div>
+
+
 
 <!--          <div class="col-md-12">-->
 <!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
@@ -443,7 +450,7 @@
                 :disabled="!isFormValid"
                 :class="{ 'opacity-50 cursor-not-allowed': !isFormValid }"
               >
-                Ajouter un utilisateur
+                {{ actionDetected === 'edit' ? 'Mettre à jour' : ' Ajouter un restaurant'}}
               </button>
               <button
                 type="button"
@@ -453,7 +460,7 @@
                 <i
                   class="flaticon-delete lh-1 me-1 position-relative top-2"
                 ></i>
-                <span class="position-relative">Cancel</span>
+                <span class="position-relative">Annuler</span>
               </button>
             </div>
           </div>
@@ -463,14 +470,27 @@
   </div>
 </template>
 
-<script>
-import {defineComponent} from "vue";
+<script lang="ts">
+import {defineComponent, PropType} from "vue";
 
 
-import {createUser, fetchAllPostalCode} from "@/service/api";
+import {
+  createRestaurant,
+  createUser,
+  detailRestaurant,
+  detailUser,
+  fetchAllPostalCode,
+  updateRestaurant
+} from "@/service/api";
 
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
+import {AxiosError} from "axios";
+import {UserGeneralKey} from "@/models/user.generalkey";
+import {ActionCrud} from "@/enums/actionCrud.enum";
+import {ApiResponse} from "@/models/Apiresponse";
+import {UserModel} from "@/models/user.model";
+import {RestaurantModel} from "@/models/restaurant.model";
 
 export default defineComponent({
   name: "VabeneAddUser",
@@ -478,65 +498,175 @@ export default defineComponent({
     LoaderComponent
     // ImageUpload,
   },
+  props: {
+    action: {
+      type: String as PropType<string>,
+      required: true
+    },
+    restaurantID: {
+      type: String as PropType<string>,
+      required: false
+    },
+  },
   data(){
     return{
-      userData: {
-        email: '',
-        roles: '',
-        password: '',
-        firstName: '',
-        lastName: '',
-        phoneNumber: '',
-        dateOfBirth: '',
-        addresse: '',
-        city: '',
-        postalCode: '',
-        country: 'Suisse',
-        batiment: '',
-        numeroRue: ''
+      restaurantData: {
+        name: "",
+        email: "",
+        phoneNumber: "",
+        address: "",
+        city: "",
+        batiment: "",
+        numeroRue: "",
+        postalCodeID: "",
+        country: "",
+        latitude: "",
+        longitude: "",
+        horaires: [
+
+        ],
+        orderType: [],
+        password: "",
+        firstName: "",
+        lastName: "",
+        taxe: ""
       },
       isLoading: false,
-      allPostalCode: []
+      actionDetected: null as string | null,
+      restaurantResponse: null as RestaurantModel | null,
+      allPostalCode: [],
+      codePostalCode: null as string | null,
     }
   },
   methods: {
     clearData(){
-      this.userData = {}
+      this.restaurantData = {
+        name: "",
+        email: "",
+        phoneNumber: "",
+        address: "",
+        city: "",
+        batiment: "",
+        numeroRue: "",
+        postalCodeID: "",
+        country: "",
+        latitude: "",
+        longitude: "",
+        horaires: [
+
+        ],
+        orderType: [],
+        password: "",
+        firstName: "",
+        lastName: "",
+        taxe: ""
+      }
     },
     goBack() {
       this.$router.back()
     },
-    async createNewAccount() {
+    async createRestaurantAccount() {
+      if(this.actionDetected === ActionCrud.ADD){
+        const franchiseID  = localStorage.getItem(UserGeneralKey.USER_FRANCHISE_ID)
+        this.isLoading = true;
+        const payload = {
+          "franchiseID": franchiseID,
+          "name": this.restaurantData.name,
+          "email": this.restaurantData.email,
+          "phoneNumber": this.restaurantData.phoneNumber,
+          "address": this.restaurantData.address,
+          "city": this.restaurantData.city,
+          "batiment": this.restaurantData.batiment,
+          "numeroRue": this.restaurantData.numeroRue,
+          "postalCodeID": this.restaurantData.postalCodeID,
+          "country": this.restaurantData.country,
+          "latitude": "",
+          "longitude": "",
+          "horaires": [
+            {
+              "jour": "Lun - Dim",
+              "heure": "11:00 - 14:00"
+            },
+            {
+              "jour": "Lun - Dim",
+              "heure": "18:00 - 22:00"
+            }
+          ],
+          "orderType": ["delivery", "click_collect"],
+          "password": this.restaurantData.password,
+          "firstName": this.restaurantData.firstName,
+          "lastName": this.restaurantData.lastName,
+          "taxe": this.restaurantData.taxe
+        }
+        try {
+          const response = await createRestaurant(payload);
+          console.log(response);
+          if (response.code === 201 || response.code === 200) {
+            this.toast.success(response.message)
+            this.clearData()
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+          } else {
+            this.toast.error(response.message)
+          }
+        } catch (error) {
+          const axiosError = error as AxiosError;
+          if (axiosError.response && axiosError.response.data) {
+            const message = (axiosError.response.data as any).message;
+            this.toast.error(message);
+          } else {
+            this.toast.error("Une erreur est survenue");
+          }
+        } finally {
+          this.isLoading = false;
+        }
+      }
+      else{
+       await this.updateRestaurantAccount(this.restaurantID)
+      }
+
+    },
+    async updateRestaurantAccount(restaurantID) {
+      const franchiseID  = localStorage.getItem(UserGeneralKey.USER_FRANCHISE_ID)
       this.isLoading = true;
       const payload = {
-        "email": this.userData.email,
-        "roles": this.userData.roles,
-        "password": this.userData.password,
-        "firstName": this.userData.firstName,
-        "lastName": this.userData.lastName,
-        "phoneNumber": this.userData.phoneNumber,
-        "dateOfBirth": this.userData.dateOfBirth,
-        "address": this.userData.addresse,
-        "city": this.userData.city,
-        "postalCode": this.userData.postalCode,
-        "country": this.userData.country,
-        "batiment": this.userData.batiment,
-        "numeroRue": this.userData.numeroRue
+        "franchiseID": franchiseID,
+        "name": this.restaurantData.name,
+        "email": this.restaurantData.email,
+        "phoneNumber": this.restaurantData.phoneNumber,
+        "address": this.restaurantData.address,
+        "city": this.restaurantData.city,
+        "batiment": this.restaurantData.batiment,
+        "numeroRue": this.restaurantData.numeroRue,
+        "postalCodeID": this.restaurantData.postalCodeID,
+        "country": this.restaurantData.country,
+        "latitude": "",
+        "longitude": "",
+        "horaires": [],
+        "orderType": [],
+        "taxe": ""
       }
       try {
-        const response = await createUser(payload);
+        const response = await updateRestaurant(restaurantID, payload);
         console.log(response);
-        if (response.code === 201) {
+        if (response.code === 201 || response.code === 200) {
           this.toast.success(response.message)
           this.clearData()
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
         } else {
           this.toast.error(response.message)
         }
       } catch (error) {
-        if (error.response && error.response.data && error.response.data.message) {
-          this.toast.error(error.response.data.message)
+        const axiosError = error as AxiosError;
+        if (axiosError.response && axiosError.response.data) {
+          const message = (axiosError.response.data as any).message;
+          this.toast.error(message);
+        } else {
+          this.toast.error("Une erreur est survenue");
         }
-        console.error(error);
       } finally {
         this.isLoading = false;
       }
@@ -552,9 +682,44 @@ export default defineComponent({
           this.toast.error(response.message)
         }
       } catch (error) {
-        if (error.response && error.response.data && error.response.data.message) {
-          this.toast.error(error.response.data.message)
+        const axiosError = error as AxiosError;
+        if (axiosError.response && axiosError.response.data) {
+          const message = (axiosError.response.data as any).message;
+          this.toast.error(message);
+        } else {
+          this.toast.error("Une erreur est survenue");
         }
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async fetchDetailRestaurant(restaurantID) {
+      this.isLoading = true;
+      try {
+        const response = await detailRestaurant(restaurantID) as ApiResponse<RestaurantModel>;
+        console.log(response)
+        if (response.code === 200) {
+          if(response.data){
+            this.restaurantResponse = response.data;
+            this.restaurantData.name = this.restaurantResponse.name
+            this.restaurantData.email = this.restaurantResponse.email;
+            this.restaurantData.firstName = this.restaurantResponse.userID.first_name;
+            this.restaurantData.lastName = this.restaurantResponse.userID.last_name;
+            this.restaurantData.city = this.restaurantResponse.city ?? '';
+            this.restaurantData.address = this.restaurantResponse.address ?? '';
+            this.restaurantData.phoneNumber = this.restaurantResponse.phoneNumber ?? '';
+
+            this.restaurantData.postalCodeID = this.restaurantResponse.codePostalID.id;
+            this.restaurantData.numeroRue = this.restaurantResponse.numeroRue ?? '';
+            this.restaurantData.batiment = this.restaurantResponse.batiment ?? '';
+            this.restaurantData.taxe = this.restaurantResponse.taxe ?? '';
+          }
+        } else {
+          this.toast.error(response.message);
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des categories");
         console.error(error);
       } finally {
         this.isLoading = false;
@@ -565,66 +730,55 @@ export default defineComponent({
       console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
       switch (type){
+        case 'firstName':
+          this.restaurantData.firstName = valueText
+          this.validTextField(valueText)
+          break
+        case 'lastName':
+          this.restaurantData.lastName = valueText
+          this.validTextField(valueText)
+          break
+        case 'address':
+          this.restaurantData.address = valueText
+          this.validTextField(valueText)
+          break
         case 'email':
-          this.userData.email = valueText
+          this.restaurantData.email = valueText
           this.validEmail(valueText)
           break
         case 'password':
-          this.userData.password = valueText
+          this.restaurantData.password = valueText
           this.validPassword(valueText)
           break
-        case 'firstName':
-          this.userData.firstName = valueText
+        case 'batiment':
+          this.restaurantData.batiment = valueText
           this.validTextField(valueText)
           break
-
-        case 'lastName':
-          this.userData.lastName = valueText
+        case 'taxe':
+          this.restaurantData.taxe = valueText
           this.validTextField(valueText)
           break
-
-        case 'addresse':
-          this.userData.addresse = valueText
+        case 'city':
+          this.restaurantData.city = valueText
+          this.validTextField(valueText)
+          break
+        case 'name':
+          this.restaurantData.name = valueText
           this.validTextField(valueText)
           break
 
         case 'phoneNumber':
-          this.userData.phoneNumber = valueText
-          this.validTextField(valueText)
-          break
-
-        case 'dateOfBirth':
-          this.userData.dateOfBirth = valueText
-          this.validTextField(valueText)
-          break
-
-        case 'city':
-          this.userData.city = valueText
-          this.validTextField(valueText)
-          break
-
-        case 'postalCode':
-          this.userData.postalCode = valueText
+          this.restaurantData.phoneNumber = valueText
           this.validTextField(valueText)
           break
 
         case 'country':
-          this.userData.country = valueText
-          this.validTextField(valueText)
-          break
-
-        case 'roles':
-          this.userData.roles = valueText
-          this.validTextField(valueText)
-          break
-
-        case 'batiment':
-          this.userData.batiment = valueText
+          this.restaurantData.country = valueText
           this.validTextField(valueText)
           break
 
         case 'numeroRue':
-          this.userData.numeroRue = valueText
+          this.restaurantData.numeroRue = valueText
           this.validTextField(valueText)
           break
 
@@ -650,16 +804,31 @@ export default defineComponent({
 
   },
   computed: {
+    ActionCrud() {
+      return ActionCrud
+    },
     isFormValid() {
-      return (
-          this.validEmail(this.userData.email) &&
-          this.validPassword(this.userData.password) &&
-          this.validTextField(this.userData.firstName) &&
-          this.validTextField(this.userData.lastName) &&
-          this.validTextField(this.userData.roles) &&
-          this.validTextField(this.userData.postalCode) &&
-          this.validTextField(this.userData.country)
-      );
+      if(this.actionDetected === ActionCrud.ADD){
+        return (
+            this.validEmail(this.restaurantData.email) &&
+            this.validPassword(this.restaurantData.password) &&
+            this.validTextField(this.restaurantData.firstName) &&
+            this.validTextField(this.restaurantData.lastName) &&
+            this.validTextField(this.restaurantData.phoneNumber) &&
+            this.validTextField(this.restaurantData.address) &&
+            this.validTextField(this.restaurantData.taxe)
+        );
+      }
+      else{
+        return (
+            this.validTextField(this.restaurantData.firstName) &&
+            this.validTextField(this.restaurantData.lastName) &&
+            this.validTextField(this.restaurantData.phoneNumber) &&
+            this.validTextField(this.restaurantData.address) &&
+            this.validTextField(this.restaurantData.taxe)
+        );
+      }
+
     }
   },
   setup: () => {
@@ -690,7 +859,11 @@ export default defineComponent({
     return { toast };
   },
   mounted() {
+    this.actionDetected = (this as any).$route.params.action
     this.fetchPostalCode();
+    if((this as any).$route.params.action == ActionCrud.EDIT){
+      this.fetchDetailRestaurant((this as any).$route.params.restaurantID)
+    }
   }
 
 });

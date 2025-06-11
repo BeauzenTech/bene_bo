@@ -24,6 +24,7 @@ import {CustomerModel} from "@/models/customer.model";
 import {TopProductSellModel} from "@/models/TopProductSell.model";
 import {AverageReportModel} from "@/models/averageReport.model";
 import {FranchiseModel} from "@/models/franchise.model";
+import {RestaurantModel} from "@/models/restaurant.model";
 
 const apiClient = axios.create({
     baseURL: apiConfig.baseURL,
@@ -256,7 +257,7 @@ export const deleteFranchise = async (franchiseID: string): Promise<ApiResponse<
 export const listeRestaurant = async (page = 1): Promise<ApiResponse<PaginatedRestaurant>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/restaurant/filter/active?page=${page}`);
+        const response = await apiClient.get(`/restaurant/filter/existing?page=${page}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
@@ -268,10 +269,10 @@ export const listeRestaurant = async (page = 1): Promise<ApiResponse<PaginatedRe
 };
 
 
-export const detailRestaurant = async (restaurantID): Promise<ApiResponse<FranchiseModel>> => {
+export const detailRestaurant = async (restaurantID): Promise<ApiResponse<RestaurantModel>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/v1/restaurant/detail/${restaurantID}`);
+        const response = await apiClient.get(`/restaurant/detail/${restaurantID}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
@@ -281,6 +282,31 @@ export const detailRestaurant = async (restaurantID): Promise<ApiResponse<Franch
         throw error;
     }
 };
+
+// Fonction pour créer d'une franchise
+export const updateRestaurant = async (restaurantID: string, restaurantData): Promise<ApiResponse<any>> =>{
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/restaurant/update/${restaurantID}`, restaurantData);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la mise a jour de la franchise", error);
+        throw error;
+    }
+};
+
+// Fonction pour mettre a jour un compte utilisateur
+export const toggleRestaurant = async (restaurantID: string, restaurantData): Promise<ApiResponse<any>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/restaurant/activate/${restaurantID}`, restaurantData);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors du toggle activation du compte utilisateur.', error);
+        throw error;
+    }
+};
+
+
+
 
 export const createRestaurant = async (restaurantData): Promise<ApiResponse<any>> =>{
     try {
@@ -288,6 +314,17 @@ export const createRestaurant = async (restaurantData): Promise<ApiResponse<any>
         return response.data;
     } catch (error) {
         console.error("Erreur lors de la creation d'un restaurant", error);
+        throw error;
+    }
+};
+
+// Fonction pour supprimée un compte utilisateur
+export const deleteRestaurant = async (restaurantID: string): Promise<ApiResponse<void>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<void>> = await apiClient.delete(`/v1/restaurant/delete/${restaurantID}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la suppression du compte', error);
         throw error;
     }
 };

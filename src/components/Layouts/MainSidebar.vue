@@ -272,7 +272,7 @@
                 </li>
                 <li class="sidebar-sub-menu-item">
                   <router-link
-                      to="/ajout-restaurant"
+                      :to="{ name: 'VabeneAddRestaurantPage', params: { action: 'add', restaurantID: '' } }"
                       class="sidebar-sub-menu-link"
                   >
                     Ajouter

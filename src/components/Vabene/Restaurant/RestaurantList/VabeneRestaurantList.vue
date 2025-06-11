@@ -53,6 +53,7 @@
         <table class="table text-nowrap align-middle mb-0">
           <thead>
           <tr>
+
             <th
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0 ps-0"
@@ -126,9 +127,13 @@
                       type="checkbox"
                   />
                 </div>
+
                 <div
                     class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
                 >
+                  <a href="#" @click="selectionRestaurant(restaurant)" class="mx-4">
+                    #{{ getShortUuid(restaurant.id)  }}
+                  </a>
                   {{ restaurant.name }}
                 </div>
               </div>
@@ -187,6 +192,7 @@
                     <a
                         class="dropdown-item d-flex align-items-center"
                         href="javascript:void(0);"
+                        @click="selectionRestaurant(restaurant, ActionCrud.EDIT)"
                     ><i
                         class="flaticon-view lh-1 me-8 position-relative top-1"
                     ></i>
@@ -197,6 +203,7 @@
                     <a
                         class="dropdown-item d-flex align-items-center"
                         href="javascript:void(0);"
+                        @click="selectionRestaurant(restaurant, ActionCrud.EDIT)"
                     ><i
                         class="flaticon-pen lh-1 me-8 position-relative top-1"
                     ></i>
@@ -208,7 +215,7 @@
                         class="dropdown-item d-flex align-items-center"
                         data-bs-toggle="modal" data-bs-target="#confirmModal"
                         href="javascript:void(0);"
-                        @click="selectionRestaurant(restaurant)"
+                        @click="selectionRestaurant(restaurant, ActionCrud.ADD)"
                     ><i
                         class="flaticon-delete lh-1 me-8 position-relative top-1"
                     ></i>
@@ -304,7 +311,7 @@
 </template>
 <script lang="ts">
 import { defineComponent } from "vue";
-import {listeRestaurant, toggleActivationUser, deleteUser} from "@/service/api";
+import {listeRestaurant, toggleActivationUser, deleteUser, toggleRestaurant, deleteRestaurant} from "@/service/api";
 import {UserGeneralKey} from "@/models/user.generalkey";
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
@@ -313,6 +320,8 @@ import EmptyTable from "@/components/Vabene/EmptyTable/EmptyTable.vue";
 import {ApiResponse} from "@/models/Apiresponse";
 import {PaginatedRestaurant} from "@/models/Apiresponse";
 import {RestaurantModel} from "@/models/restaurant.model";
+import {ActionCrud} from "@/enums/actionCrud.enum";
+import VabeneAddRestaurantPage from "@/pages/Vabene/Restaurant/VabeneAddRestaurantPage.vue";
 
 export default defineComponent({
   name: "VabeneUsersList",
@@ -328,6 +337,9 @@ export default defineComponent({
     }
   },
   computed: {
+    ActionCrud() {
+      return ActionCrud
+    },
     allRestaurant(): RestaurantModel[] {
       const restaurants = this.restaurantResponse?.data?.items || this.originalRestaurant;
       if (!this.searchQuery) return restaurants;
@@ -360,17 +372,32 @@ export default defineComponent({
     }
   },
   methods: {
-    gotoCreate(){
-      this.$router.push("/ajout-restaurant");
+    getShortUuid(uuid: string): string {
+      return uuid.split('-')[0];
     },
-    selectionRestaurant(restaurant){
+    selectionRestaurant(restaurant, action){
       this.restaurantSelected = restaurant;
+      if(action === ActionCrud.EDIT){
+        console.log(restaurant)
+        this.$router.push({
+          name: "VabeneAddRestaurantPage",
+          params: { action: ActionCrud.EDIT ,restaurantID: restaurant.id }
+        });
+      }
+
     },
+    gotoCreate(){
+      this.$router.push({
+        name: "VabeneAddRestaurantPage",
+        params: { action: ActionCrud.ADD }
+      });
+    },
+
     async confirmationDeleteAction(restaurant){
       try {
-        const response = await deleteUser(restaurant.id) as ApiResponse<any>;
+        const response = await deleteRestaurant(restaurant.id) as ApiResponse<any>;
         //console.log(response)
-        if (response.code === 201) {
+        if (response.code === 201 || response.code === 200) {
           this.restaurantResponse = response;
           this.toast.success(response.message);
 
@@ -386,24 +413,22 @@ export default defineComponent({
         }, 2000);
       }
     },
-    async toggleUserActivation(user, status){
+    async toggleUserActivation(restaurant, status){
       //this.isLoading = true;
       console.log(status)
       const payload = {
         'status': status
       }
       try {
-        const response = await toggleActivationUser(user.id, payload) as ApiResponse<any>;
+        const response = await toggleRestaurant(restaurant.id, payload) as ApiResponse<any>;
         //console.log(response)
-        if (response.code === 201) {
+        if (response.code === 201 || response.code === 200) {
           this.restaurantResponse = response;
           if (response.data) {
             const responseDecoded = response.data
             console.log(responseDecoded)
             this.toast.success(response.message);
-
           }
-
         } else {
           this.toast.error(response.message);
         }
