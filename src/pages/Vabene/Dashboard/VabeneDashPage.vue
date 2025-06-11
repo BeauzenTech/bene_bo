@@ -1,13 +1,13 @@
 <template>
   <div class="col bg-white p-4">
     <div class="row">
-      <div class="col-xxl-7 col-xxxl-6">
-        <WhatHappening id="whatHappening" />
+      <div class="col-xxl-7 col-xxxl-6" v-if="periodiqueReportCard">
+        <WhatHappening :orderAmount="String(periodiqueReportCard.currentMonth.value) ?? '0'" id="whatHappening" />
       </div>
       <div class="col-xxl-5 col-xxxl-6">
         <div class="row">
           <div class="col-lg-12">
-            <VabeneTopProduitReportSell id="topProduitReport" />
+            <VabeneNombreCommandeProductDate id="nombreCommandeProductDate" />
           </div>
 
         </div>
@@ -137,12 +137,13 @@ import {reportPeriodiqueCard, reportVenteAdmin, reportVenteRestaurant} from "@/s
 import {ApiResponse} from "@/models/Apiresponse";
 import {SellModel} from "@/models/vente.model";
 import {useToast} from "vue-toastification";
+import VabeneNombreCommandeProductDate  from "@/components/Vabene/Order/OrderReportSells/VabeneNombreCommandeProductDate.vue";
 
 export default defineComponent({
   name: "VabeneDashPage",
   components: {
     WhatHappening,
-    VabeneTopProduitReportSell
+    VabeneNombreCommandeProductDate
   },
   data(){
     return {

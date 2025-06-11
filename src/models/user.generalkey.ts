@@ -94,3 +94,8 @@ export class UserGeneralKey {
         return `${formattedDate} à ${formattedTime}`;
     }
 }
+
+export enum UserRole {
+    FRANCHISE = 'ROLE_ADMIN',
+    RESTAURANT = 'ROLE_RESTAURANT',
+}

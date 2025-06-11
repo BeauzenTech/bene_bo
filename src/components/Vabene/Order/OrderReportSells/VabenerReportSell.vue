@@ -12,15 +12,17 @@
       <div class="row mb-2 mt-2">
         <div class="row">
           <div class="col-lg-6">
+            <VabeneTauxOrderCategorieDate />
+          </div>
+          <div class="col-lg-6">
+            <VabeneNombreCommandeProductDate />
+          </div>
+          <div class="col-lg-6">
             <VabeneTopProduitReportSell />
           </div>
-
           <div class="col-lg-6">
             <VabeneAverageReportSell />
           </div>
-
-
-
         </div>
 
       </div>
@@ -145,13 +147,18 @@ import {RepportModelData} from "@/models/report.model";
 import {PeriodiqueCardReport} from "@/models/periodiqueCardReport.model";
 import VabeneTopProduitReportSell from "@/components/Vabene/Order/OrderReportSells/VabeneTopProduitReportSell.vue";
 import VabeneAverageReportSell from "@/components/Vabene/Order/OrderReportSells/VabeneAverageReportSell.vue";
+import VabeneTauxOrderCategorieDate from "@/components/Vabene/Order/OrderReportSells/VabeneTauxOrderCategorieDate.vue";
+import VabeneNombreCommandeProductDate from "@/components/Vabene/Order/OrderReportSells/VabeneNombreCommandeProductDate.vue";
 
 export default defineComponent({
   name: "VabenerReportSell",
   components: {
     VabeneTopProduitReportSell,
     VabeneAverageReportSell,
-    LoaderComponent},
+    VabeneTauxOrderCategorieDate,
+    VabeneNombreCommandeProductDate,
+    LoaderComponent
+  },
   data(){
     return {
       reportVente: [] as RepportModelData[],

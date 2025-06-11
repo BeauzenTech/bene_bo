@@ -5,7 +5,7 @@
         <div class="col-lg-6 col-md-6">
           <div class="title position-relative">
             <h3 class="fw-semibold mb-8">
-              Salut, <span class="fw-bold">Victor!</span>
+              Salut, <span class="fw-bold">{{fullName}}!</span>
             </h3>
             <span class="d-block text-black-emphasis fs-md-15 fs-lg-16">
               Voici ce qui se passe dans votre restaurant aujourd'hui
@@ -15,9 +15,9 @@
             <li
               class="d-inline-block text-uppercase fw-medium fs-13 text-black-emphasis position-relative"
             >
-               VENTES D'AUJOURD'HUI
+               VENTES CETTE SEMAINE
               <span class="d-block fw-black lh-1 text-black mt-5 mt-md-10">
-                15,209 CHF
+                {{orderAmount}} CHF
               </span>
             </li>
 
@@ -36,9 +36,25 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import {defineComponent, PropType} from "vue";
+import {ProductModel} from "@/models/product.model";
+import {UserGeneralKey} from "@/models/user.generalkey";
 
 export default defineComponent({
   name: "WhatHappening",
+  props: {
+    orderAmount: {
+      type: String as PropType<string>,
+      required: true
+    },
+  },
+  data() {
+    return {
+      fullName: '' as string
+    };
+  },
+  mounted() {
+    this.fullName = localStorage.getItem(UserGeneralKey.USER_FIRST_NAME) + ' ' + localStorage.getItem(UserGeneralKey.USER_FIRST_NAME);
+  }
 });
 </script>

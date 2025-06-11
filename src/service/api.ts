@@ -884,6 +884,70 @@ export const topProductReportSell = async (categoryID): Promise<ApiResponse<TopP
     }
 };
 
+/* eslint-disable */
+export const tauxCommandeCategorie = async (
+    categoryID: string,
+    startDate?: string,
+    endDate?: string,
+    restaurantID?: string
+): Promise<ApiResponse<number>> => {
+
+
+    try {
+        const url = [
+            `/v1/report_sale/tauxcommande`,
+            categoryID,
+            startDate,
+            endDate,
+            restaurantID
+        ]
+            .filter(Boolean) // retire les undefined
+            .join('/');
+
+        const response = await apiClient.get(url);
+
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+/* eslint-disable */
+export const nombreCommandeParProduct = async (
+    productID: string,
+    startDate?: string,
+    endDate?: string,
+    restaurantID?: string
+): Promise<ApiResponse<number>> => {
+
+
+    try {
+        const url = [
+            `/v1/report_sale/nombrecommande`,
+            productID,
+            startDate,
+            endDate,
+            restaurantID
+        ]
+            .filter(Boolean) // retire les undefined
+            .join('/');
+
+        const response = await apiClient.get(url);
+
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
 export const averageReportSell = async (productID): Promise<ApiResponse<AverageReportModel[]>> => {
     // eslint-disable-next-line no-useless-catch
     try {
