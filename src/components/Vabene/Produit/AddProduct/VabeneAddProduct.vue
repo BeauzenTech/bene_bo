@@ -64,10 +64,10 @@
               </div>
             </div>
           </div>
-          <div class="col-md-6 mb-20">
+          <div class="col-md-4 mb-20">
             <!-- Toggle switch -->
             <label class="d-block text-black fw-semibold mb-10">
-             Ajouter pointrine de Dinde / Jambon
+             Ajouter pointrine de Dinde
             </label>
             <div class="form-check form-switch">
               <input
@@ -79,10 +79,25 @@
 
             </div>
           </div>
-          <div class="col-md-6 mb-20">
+          <div class="col-md-4 mb-20">
             <!-- Toggle switch -->
             <label class="d-block text-black fw-semibold mb-10">
-              Ajouter sucre en poudre
+              Ajouter Jambon
+            </label>
+            <div class="form-check form-switch">
+              <input
+                  class="form-check-input"
+                  type="checkbox"
+                  v-model="addtionJambon"
+                  @change="toggleJambon"
+              />
+
+            </div>
+          </div>
+          <div class="col-md-4 mb-20">
+            <!-- Toggle switch -->
+            <label class="d-block text-black fw-semibold mb-10">
+              Ajouter sucre glace
             </label>
             <div class="form-check form-switch">
               <input
@@ -422,6 +437,7 @@ export default defineComponent({
       searchIngredientQuery: '', // Ajout du champ de recherche
       additionalNote: [] as string[],
       addtionPointrineDine: false as boolean,
+      addtionJambon: false as boolean,
       addSucrePoudre: false as boolean,
       productData: {
         name: '',
@@ -451,36 +467,39 @@ export default defineComponent({
     }
   },
   methods: {
-    togglePointrineDine() {
-      const poitrine = "- Ajouter poitrine de Dinde";
-      const jambon = "- Ajouter Jambon";
+    toggleJambon() {
+      const jambon = "Jambon";
       // Si on active l'ajout de poitrine
-      if (this.addtionPointrineDine) {
-        // Supprimer "Ajouter Jambon" s'il existe
-        const indexJambon = this.additionalNote.indexOf(jambon);
-        if (indexJambon !== -1) {
-          this.additionalNote.splice(indexJambon, 1);
+      if (this.addtionJambon) {
+        if (!this.additionalNote.includes(jambon)) {
+          this.additionalNote.push(jambon);
         }
-        // Ajouter "Ajouter poitrine de Dinde" s'il n'existe pas
+      }
+      else{
+        const index = this.additionalNote.indexOf(jambon);
+        if (index !== -1) {
+          this.additionalNote.splice(index, 1);
+        }
+      }
+      console.log(this.additionalNote)
+    },
+    togglePointrineDine() {
+      const poitrine = "Pointrine de Dinde";
+      if (this.addtionPointrineDine) {
         if (!this.additionalNote.includes(poitrine)) {
           this.additionalNote.push(poitrine);
         }
-      } else {
-        // Supprimer "Ajouter poitrine de Dinde" s'il existe
-        const indexPoitrine = this.additionalNote.indexOf(poitrine);
-        if (indexPoitrine !== -1) {
-          this.additionalNote.splice(indexPoitrine, 1);
-        }
-
-        // Ajouter "Ajouter Jambon" s'il n'existe pas
-        if (!this.additionalNote.includes(jambon)) {
-          this.additionalNote.push(jambon);
+      }
+      else{
+        const index = this.additionalNote.indexOf(poitrine);
+        if (index !== -1) {
+          this.additionalNote.splice(index, 1);
         }
       }
       console.log(this.additionalNote)
     },
     toggleSucrePoudre() {
-      const sucre = "- Ajouter Sucre en poudre";
+      const sucre = "Sucre glace";
       if (this.addSucrePoudre) {
         if (!this.additionalNote.includes(sucre)) {
           this.additionalNote.push(sucre);
@@ -651,6 +670,9 @@ export default defineComponent({
           }
         } finally {
           this.isLoading = false;
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
         }
 
 
@@ -677,16 +699,16 @@ export default defineComponent({
               this.productData.additionnal = this.productResponse.additionnal;
               this.additionalNote = this.productResponse.additionnal;
               if(this.productData.additionnal.length > 0){
-                const poitrine = "- Ajouter poitrine de Dinde";
-                const jambon = "- Ajouter Jambon";
-                const sucre = "- Ajouter Sucre en poudre";
+                const poitrine = "Pointrine de Dinde";
+                const jambon = "Jambon";
+                const sucre = "Sucre glace";
                 if (this.additionalNote.includes(poitrine)) {
                   this.addtionPointrineDine = true
                 }
-                else if (this.additionalNote.includes(jambon)){
-                  this.addtionPointrineDine = false
+               if (this.additionalNote.includes(jambon)){
+                  this.addtionJambon = true
                 }
-                else if (this.additionalNote.includes(sucre)){
+                if (this.additionalNote.includes(sucre)){
                   this.addSucrePoudre = true
                 }
               }

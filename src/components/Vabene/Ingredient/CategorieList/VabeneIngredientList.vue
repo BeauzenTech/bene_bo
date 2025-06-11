@@ -170,7 +170,7 @@
               </div>
             </td>
 
-            <td v-if="ingredient.extra_cost_price">
+            <td v-if="ingredient.ingredientSizes">
               {{ ingredient.ingredientSizes.length  }} Taille(s)
             </td>
 
