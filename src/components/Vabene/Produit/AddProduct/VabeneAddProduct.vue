@@ -629,7 +629,7 @@ export default defineComponent({
           "cookingTime": parseFloat(String(this.productData.cookingTime)),
           "variationsProduct": this.productData.variationsProduct,
           "longDescription": this.productData.longDescription,
-          "additionnal": this.productData.additionnal,
+          "additionnal": this.additionalNote,
 
         }
         try {
@@ -670,8 +670,28 @@ export default defineComponent({
             this.productData.image_urls = this.productResponse.image_urls;
             this.productData.cookingTime = this.productResponse.cookingTime;
             this.productData.categorieID = this.productResponse.categorieID.id;
-            this.productData.longDescription = this.productResponse.longDescription;
-            this.productData.additionnal = this.productResponse.additionnal;
+            if(this.productResponse.longDescription){
+              this.productData.longDescription = this.productResponse.longDescription;
+            }
+            if(this.productResponse.additionnal){
+              this.productData.additionnal = this.productResponse.additionnal;
+              this.additionalNote = this.productResponse.additionnal;
+              if(this.productData.additionnal.length > 0){
+                const poitrine = "- Ajouter poitrine de Dinde";
+                const jambon = "- Ajouter Jambon";
+                const sucre = "- Ajouter Sucre en poudre";
+                if (this.additionalNote.includes(poitrine)) {
+                  this.addtionPointrineDine = true
+                }
+                else if (this.additionalNote.includes(jambon)){
+                  this.addtionPointrineDine = false
+                }
+                else if (this.additionalNote.includes(sucre)){
+                  this.addSucrePoudre = true
+                }
+              }
+            }
+
             (this.productData.variationsProduct as any[]) = this.productResponse.productSizes;
             if(this.productResponse.productSizes.length > 0){
               (this.allVariationsProduct as any[]) = this.productResponse.productSizes.map(ps => ({
@@ -686,7 +706,7 @@ export default defineComponent({
           this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des categories");
+        this.toast.error("Erreur lors du chargement du produit");
         console.error(error);
       } finally {
         this.isLoading = false;
@@ -703,7 +723,7 @@ export default defineComponent({
         "ingredients": this.productData.ingredients,
         "cookingTime": parseFloat(String(this.productData.cookingTime)),
         "longDescription": this.productData.longDescription,
-        "additionnal": this.productData.additionnal,
+        "additionnal": this.additionalNote,
       }
       try {
         const response = await updateProduct(productID, payload);
@@ -724,6 +744,9 @@ export default defineComponent({
         }
       } finally {
         this.isLoading = false;
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       }
     },
     async uploadLogo(){
