@@ -35,78 +35,78 @@
             <VabeneTopProduitReportSell  :restaurantId="restaurantSelected ?? 'all'" />
           </div>
           <div class="col-lg-6">
-            <VabeneAverageReportSell />
+            <VabeneAverageReportSell :restaurantId="restaurantSelected ?? 'all'" />
           </div>
         </div>
 
       </div>
-      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
-        <div class="col">
-          <div class="card radius-10 border-start border-0 border-3 border-info">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div>
-                  <p class="mb-0 text-secondary">Ventes cette semaine</p>
-                  <h4 class="my-1 text-info">{{periodiqueReportCard.currentMonth.value}} CHF</h4>
-                  <p v-if="periodiqueReportCard.currentMonth.ratio" class="mb-0 font-13">{{periodiqueReportCard.currentMonth.ratio ?? '0'}} cette semaine</p>
-                  <p v-else  class="mb-0 font-13">0</p>
-                </div>
-                <div class="widgets-icons-2 rounded-circle bg-gradient-scooter text-white ms-auto"><i class="fa fa-shopping-cart"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col">
-          <div class="card radius-10 border-start border-0 border-3 border-danger">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div>
-                  <p class="mb-0 text-secondary">Semaine passée</p>
-                  <h4 class="my-1 text-danger">{{periodiqueReportCard.lastWeek.value}}</h4>
-                  <p v-if="periodiqueReportCard.lastWeek.ratio" class="mb-0 font-13">{{periodiqueReportCard.lastWeek.ratio}}%</p>
-                  <p v-else class="mb-0 font-13">0%</p>
-                </div>
-                <div class="widgets-icons-2 rounded-circle bg-gradient-bloody text-white ms-auto"><i class="fa fa-dollar"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col">
-          <div class="card radius-10 border-start border-0 border-3 border-success">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div>
-                  <p class="mb-0 text-secondary">Mois passée</p>
-                  <h4 class="my-1 text-primary">{{periodiqueReportCard.lastMonth.value}}</h4>
-                  <p v-if="periodiqueReportCard.lastMonth.ratio" class="mb-0 font-13">{{periodiqueReportCard.lastMonth.ratio}}%</p>
-                  <p v-else class="mb-0 font-13">0%</p>
+<!--      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">-->
+<!--        <div class="col">-->
+<!--          <div class="card radius-10 border-start border-0 border-3 border-info">-->
+<!--            <div class="card-body">-->
+<!--              <div class="d-flex align-items-center">-->
+<!--                <div>-->
+<!--                  <p class="mb-0 text-secondary">Ventes cette semaine</p>-->
+<!--                  <h4 class="my-1 text-info">{{periodiqueReportCard.currentMonth.value}} CHF</h4>-->
+<!--                  <p v-if="periodiqueReportCard.currentMonth.ratio" class="mb-0 font-13">{{periodiqueReportCard.currentMonth.ratio ?? '0'}} cette semaine</p>-->
+<!--                  <p v-else  class="mb-0 font-13">0</p>-->
+<!--                </div>-->
+<!--                <div class="widgets-icons-2 rounded-circle bg-gradient-scooter text-white ms-auto"><i class="fa fa-shopping-cart"></i>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--        <div class="col">-->
+<!--          <div class="card radius-10 border-start border-0 border-3 border-danger">-->
+<!--            <div class="card-body">-->
+<!--              <div class="d-flex align-items-center">-->
+<!--                <div>-->
+<!--                  <p class="mb-0 text-secondary">Semaine passée</p>-->
+<!--                  <h4 class="my-1 text-danger">{{periodiqueReportCard.lastWeek.value}}</h4>-->
+<!--                  <p v-if="periodiqueReportCard.lastWeek.ratio" class="mb-0 font-13">{{periodiqueReportCard.lastWeek.ratio}}%</p>-->
+<!--                  <p v-else class="mb-0 font-13">0%</p>-->
+<!--                </div>-->
+<!--                <div class="widgets-icons-2 rounded-circle bg-gradient-bloody text-white ms-auto"><i class="fa fa-dollar"></i>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--        <div class="col">-->
+<!--          <div class="card radius-10 border-start border-0 border-3 border-success">-->
+<!--            <div class="card-body">-->
+<!--              <div class="d-flex align-items-center">-->
+<!--                <div>-->
+<!--                  <p class="mb-0 text-secondary">Mois passée</p>-->
+<!--                  <h4 class="my-1 text-primary">{{periodiqueReportCard.lastMonth.value}}</h4>-->
+<!--                  <p v-if="periodiqueReportCard.lastMonth.ratio" class="mb-0 font-13">{{periodiqueReportCard.lastMonth.ratio}}%</p>-->
+<!--                  <p v-else class="mb-0 font-13">0%</p>-->
 
-                </div>
-                <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto"><i class="fa fa-bar-chart"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col">
-          <div class="card radius-10 border-start border-0 border-3 border-warning">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div>
-                  <p class="mb-0 text-warning">Cette année</p>
-                  <h4 class="my-1 text-warning">{{periodiqueReportCard.year.value}} CHF</h4>
-                  <p v-if="periodiqueReportCard.year.ratio" class="mb-0 font-13">{{periodiqueReportCard.year.ratio}}%</p>
-                  <p v-else class="mb-0 font-13">0%</p>
-                </div>
-                <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto"><i class="fa fa-users"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+<!--                </div>-->
+<!--                <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto"><i class="fa fa-bar-chart"></i>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--        <div class="col">-->
+<!--          <div class="card radius-10 border-start border-0 border-3 border-warning">-->
+<!--            <div class="card-body">-->
+<!--              <div class="d-flex align-items-center">-->
+<!--                <div>-->
+<!--                  <p class="mb-0 text-warning">Cette année</p>-->
+<!--                  <h4 class="my-1 text-warning">{{periodiqueReportCard.year.value}} CHF</h4>-->
+<!--                  <p v-if="periodiqueReportCard.year.ratio" class="mb-0 font-13">{{periodiqueReportCard.year.ratio}}%</p>-->
+<!--                  <p v-else class="mb-0 font-13">0%</p>-->
+<!--                </div>-->
+<!--                <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto"><i class="fa fa-users"></i>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
     </div>
 
     <div
@@ -300,10 +300,10 @@ export default defineComponent({
         this.isLoading = false;
       }
     },
-    async getReportAdmin(){
+    async getReportAdmin(restaurantId?: string){
       try {
-        const response = await reportVenteAdmin() as ApiResponse<SellModel>;
-        console.log(response)
+        const response = await reportVenteAdmin(restaurantId) as ApiResponse<SellModel>;
+        console.log('courbe calling', response)
         if (response.code === 200) {
           if (response.data) {
             const dt = response.data as SellModel;
@@ -371,8 +371,26 @@ export default defineComponent({
     restaurantSelected(this: any, newVal){
       if (!newVal) return
       this.restaurantSelected = newVal as string;
+      if(newVal !== 'all'){
+         this.getReportAdmin(this.restaurantSelected);
+      }
+      else{
+        this.getReportAdmin();
+      }
       console.log('restaurant selected: ',this.restaurantSelected)
     },
+
+    // selectedPeriod(this: any, newVal){
+    //   if (!newVal) return
+    //   this.selectedPeriod = newVal as string;
+    //   if(this.restaurantSelected !== 'all'){
+    //     this.getReportAdmin(this.restaurantSelected);
+    //   }
+    //   else{
+    //     this.getReportAdmin();
+    //   }
+    //   console.log('restaurant selected: ',this.restaurantSelected)
+    // },
 
   }
 

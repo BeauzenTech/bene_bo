@@ -85,6 +85,7 @@ export default defineComponent({
       expectedColors: [] as string[], // Couleurs liées à chaque valeur dans expected
       newRestoId: null as string | null,
       amountTotal: 0,
+      display: 0,
       expected: [] as number[],
       expectedEraningsChart: {
         chart: {
@@ -150,6 +151,11 @@ export default defineComponent({
       }
     },
     async fetchTopProductSell(categoryID: string, restaurantID?: string) {
+      this.topSellResponse = []
+      this.expected = []
+      this.amountTotal = 0
+      this.expectedEraningsChart.colors = []
+      this.display = 0
       try {
         const response = await topProductReportSell(categoryID, restaurantID) as ApiResponse<TopProductSellModel[]>;
         console.log(response)
@@ -160,13 +166,12 @@ export default defineComponent({
                 // On arrondit à 2 décimales avant de traiter
                 const rawValue = Number(this.topSellResponse[index].total_sales);
                 const roundedValue = Number(rawValue.toFixed(2));
-
                 this.expected.push(roundedValue);
-                this.amountTotal += roundedValue;
-
+                this.display += Number(roundedValue.toFixed(2));
                 const color = this.colorsIndexed[index % this.colorsIndexed.length];
                 this.expectedEraningsChart.colors.push(color);
               }
+              this.amountTotal = Number(this.display.toFixed(2)); // string avec 2 décimales garanties
             }
 
         } else {

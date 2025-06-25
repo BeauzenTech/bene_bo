@@ -760,10 +760,17 @@ export const deleteProductTemporary = async (productID: string): Promise<ApiResp
     }
 };
 
-export const reportVenteAdmin = async (): Promise<ApiResponse<SellModel>> => {
+export const reportVenteAdmin = async (restaurantID?: string): Promise<ApiResponse<SellModel>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/initial/order/report`);
+        const url = [
+            `/initial/order/report`,
+            restaurantID,
+        ]
+            .filter(Boolean) // retire les undefined
+            .join('/');
+        console.log(url)
+        const response = await apiClient.get(url);
         return response.data;
     } catch (error) {
         throw error;
@@ -995,10 +1002,16 @@ export const nombreCommandeParProduct = async (
     }
 };
 
-export const averageReportSell = async (productID): Promise<ApiResponse<AverageReportModel[]>> => {
+export const averageReportSell = async (productID: string, restaurantID?: string): Promise<ApiResponse<AverageReportModel[]>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/v1/report_sale/average/${productID}`);
+        const url = [
+            `/v1/report_sale/average/${productID}`,
+            restaurantID
+        ]
+            .filter(Boolean) // retire les undefined
+            .join('/');
+        const response = await apiClient.get(url);
         return new ApiResponse(
             response.data.code,
             response.data.message,
