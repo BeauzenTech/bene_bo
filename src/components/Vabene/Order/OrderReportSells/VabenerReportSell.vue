@@ -21,7 +21,7 @@
         />
       </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-2" v-if="useRole === UserRole.RESTAURANT">
       <div class="form-group position-relative transition mt-2" v-if="originalRestaurant.length > 0">
         <label class="d-block text-black fw-semibold mb-10 fs-30">
          {{originalRestaurant[0].name}}

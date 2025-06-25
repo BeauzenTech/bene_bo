@@ -6,7 +6,7 @@ import {
     ApiResponse, PaginatedCampagne, PaginatedCategorie, PaginatedCoupon, PaginatedCustomer,
     PaginatedFrachises, PaginatedIngredient, PaginatedMethodePaiement, PaginatedNotification,
     PaginatedOrder, PaginatedOrderType, PaginatedPayment, PaginatedProduct,
-    PaginatedRestaurant, PaginatedRestaurantCategory,
+    PaginatedRestaurant, PaginatedRestaurantCategory, PaginatedRestaurantProduct,
     PaginatedUsers
 } from "@/models/Apiresponse";
 import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
@@ -563,6 +563,40 @@ export const deleteRestaurantCategorie = async (restaurantCategorieID: string): 
         return response.data;
     } catch (error) {
         console.error('Erreur lors de la suppression de la categorie', error);
+        throw error;
+    }
+};
+
+export const listeRestaurantProduct = async (page = 1, usePagination: string, categoryId?: string): Promise<ApiResponse<PaginatedRestaurantProduct>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
+
+        const path = [
+            `/restaurant/products/${restaurantID}/0/${usePagination}`,
+            categoryId
+        ]
+            .filter(Boolean)
+            .join('/');
+
+        const url = `${path}?page=${page}`;
+        const response = await apiClient.get(url);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const toggleActivationProductRestaurant = async (productID: string): Promise<ApiResponse<any>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/restaurant/product/toggle/${productID}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors du toggle activation du produit.', error);
         throw error;
     }
 };
