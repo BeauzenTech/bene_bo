@@ -90,12 +90,12 @@
             >
               CRÉER LE
             </th>
-            <th
-                scope="col"
-                class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-            >
-              DISPONIBILITE
-            </th>
+<!--            <th-->
+<!--                scope="col"-->
+<!--                class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"-->
+<!--            >-->
+<!--              DISPONIBILITE-->
+<!--            </th>-->
             <th
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
@@ -131,7 +131,7 @@
                 <div
                     class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
                 >
-                  <a href="#" @click="selectionRestaurant(restaurant)" class="mx-4">
+                  <a href="#" @click="selectionRestaurant(restaurant, ActionCrud.EDIT)" class="mx-4">
                     #{{ getShortUuid(restaurant.id)  }}
                   </a>
                   {{ restaurant.name }}
@@ -159,10 +159,10 @@
             <td class="shadow-none lh-1 fw-medium text-muted">
               {{ convertDateCreate(restaurant.created_at)  }}
             </td>
-            <td class="shadow-none lh-1 fw-medium text-muted">
-              <span v-if="restaurant.isOpen" class="badge text-outline-success">Ouvert</span>
-              <span v-else class="badge text-outline-danger">Fermé</span>
-            </td>
+<!--            <td class="shadow-none lh-1 fw-medium text-muted">-->
+<!--              <span v-if="restaurant.isOpen" class="badge text-outline-success">Ouvert</span>-->
+<!--              <span v-else class="badge text-outline-danger">Fermé</span>-->
+<!--            </td>-->
             <td>
               <!-- Toggle switch -->
               <div class="form-check form-switch">

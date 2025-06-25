@@ -19,18 +19,19 @@
               />
             </div>
           </div>
+
           <div class="col-md-6">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
-                Numero de rue *
+                Prenom du responsable *
               </label>
               <input
                   type="text"
                   class="form-control shadow-none rounded-0 text-black"
-                  placeholder="e.g. 34662"
-                  v-model="restaurantData.numeroRue"
-                  @change="(event) => handleInput(event, 'numeroRue')"
-                  :class="{ 'is-valid': validTextField(restaurantData.numeroRue) }"
+                  placeholder="e.g. Adam"
+                  v-model="restaurantData.firstName"
+                  @change="(event) => handleInput(event, 'firstName')"
+                  :class="{ 'is-valid': validTextField(restaurantData.firstName) }"
                   required
               />
             </div>
@@ -38,7 +39,24 @@
           <div class="col-md-6">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
-                Taxe *
+                Nom du responsable *
+              </label>
+              <input
+                  type="text"
+                  class="form-control shadow-none rounded-0 text-black"
+                  placeholder="e.g. Smith"
+                  v-model="restaurantData.lastName"
+                  @change="(event) => handleInput(event, 'lastName')"
+                  :class="{ 'is-valid': validTextField(restaurantData.lastName) }"
+                  required
+              />
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Numéro TVA *
               </label>
               <input
                   type="text"
@@ -47,136 +65,6 @@
                   v-model="restaurantData.taxe"
                   @change="(event) => handleInput(event, 'taxe')"
                   :class="{ 'is-valid': validTextField(restaurantData.taxe) }"
-                  required
-              />
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Prenom du responsable *
-              </label>
-              <input
-                type="text"
-                class="form-control shadow-none rounded-0 text-black"
-                placeholder="e.g. Adam"
-                v-model="restaurantData.firstName"
-                @change="(event) => handleInput(event, 'firstName')"
-                :class="{ 'is-valid': validTextField(restaurantData.firstName) }"
-                required
-              />
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-               Nom du responsable *
-              </label>
-              <input
-                type="text"
-                class="form-control shadow-none rounded-0 text-black"
-                placeholder="e.g. Smith"
-                v-model="restaurantData.lastName"
-                @change="(event) => handleInput(event, 'lastName')"
-                :class="{ 'is-valid': validTextField(restaurantData.lastName) }"
-                required
-              />
-            </div>
-          </div>
-
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Email *
-              </label>
-              <input
-                type="email"
-                v-model="restaurantData.email"
-                @change="(event) => handleInput(event, 'email')"
-                :class="{ 'is-valid': validEmail(restaurantData.email) }"
-                class="form-control shadow-none rounded-0 text-black"
-                placeholder="e.g. adam127704@gmail.com"
-                :required="actionDetected === ActionCrud.ADD"
-                :disabled="actionDetected === ActionCrud.EDIT"
-              />
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Mot de passe *
-              </label>
-              <input
-                type="password"
-                class="form-control shadow-none rounded-0 text-black"
-                :class="{ 'is-valid': validPassword(restaurantData.password) }"
-                placeholder="**************"
-                v-model="restaurantData.password"
-                @change="(event) => handleInput(event, 'password')"
-                :required="actionDetected === ActionCrud.ADD"
-                :disabled="actionDetected === ActionCrud.EDIT"
-              />
-            </div>
-          </div>
-
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Code postal *
-              </label>
-              <v-select
-                  v-model="restaurantData.postalCodeID"
-                  :options="allPostalCode"
-                  @change="(event) => handleInput(event, 'postalCode')"
-                  label="numeroPostal"
-                  :reduce="postal => postal.id"
-                  placeholder="Selectionner le code postal"
-                  :class="{ 'is-valid': validTextField(restaurantData.postalCodeID) }"
-                  required
-              />
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Pays*
-              </label>
-              <select v-model="restaurantData.country" class="form-select shadow-none fw-semibold rounded-0"
-                      @change="(event) => handleInput(event, 'country')"
-                      :class="{ 'is-valid': validTextField(restaurantData.country) }"
-              >
-                <option selected>Suisse</option>
-              </select>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Adresse
-              </label>
-              <input
-                  type="text"
-                  class="form-control shadow-none rounded-0 text-black"
-                  placeholder="Rue 44 batiment 34"
-                  v-model="restaurantData.address"
-                  @change="(event) => handleInput(event, 'address')"
-                  :class="{ 'is-valid': validTextField(restaurantData.address) }"
-              />
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Ville
-              </label>
-              <v-select
-                  v-model="restaurantData.city"
-                  :options="allPostalCode"
-                  @change="(event) => handleInput(event, 'city')"
-                  label="ville"
-                  :reduce="postal => postal.ville"
-                  placeholder="Selectionner la ville"
-                  :class="{ 'is-valid': validTextField(restaurantData.city) }"
                   required
               />
             </div>
@@ -200,19 +88,138 @@
           <div class="col-md-6">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
-                Batiment
+                Email *
               </label>
               <input
-                  type="text"
+                  type="email"
+                  v-model="restaurantData.email"
+                  @change="(event) => handleInput(event, 'email')"
+                  :class="{ 'is-valid': validEmail(restaurantData.email) }"
                   class="form-control shadow-none rounded-0 text-black"
-                  placeholder="e.g. Vaderna"
-                  v-model="restaurantData.batiment"
-                  @change="(event) => handleInput(event, 'batiment')"
-                  :class="{ 'is-valid': validTextField(restaurantData.batiment) }"
+                  placeholder="e.g. adam127704@gmail.com"
+                  :required="actionDetected === ActionCrud.ADD"
+                  :disabled="actionDetected === ActionCrud.EDIT"
+              />
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Mot de passe *
+              </label>
+              <input
+                  type="password"
+                  class="form-control shadow-none rounded-0 text-black"
+                  :class="{ 'is-valid': validPassword(restaurantData.password) }"
+                  placeholder="**************"
+                  v-model="restaurantData.password"
+                  @change="(event) => handleInput(event, 'password')"
+                  :required="actionDetected === ActionCrud.ADD"
+                  :disabled="actionDetected === ActionCrud.EDIT"
+              />
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Pays*
+              </label>
+              <select v-model="restaurantData.country" class="form-select shadow-none fw-semibold rounded-0"
+                      @change="(event) => handleInput(event, 'country')"
+                      :class="{ 'is-valid': validTextField(restaurantData.country) }"
+              >
+                <option selected>Suisse</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Code postal *
+              </label>
+              <v-select
+                  v-model="restaurantData.postalCodeID"
+                  :options="allPostalCode"
+                  @change="(event) => handleInput(event, 'postalCode')"
+                  label="numeroPostal"
+                  :reduce="postal => postal.id"
+                  placeholder="Selectionner le code postal"
+                  :class="{ 'is-valid': validTextField(restaurantData.postalCodeID) }"
                   required
               />
             </div>
           </div>
+
+          <div class="col-md-6">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Ville
+              </label>
+              <v-select
+                  v-model="restaurantData.city"
+                  :options="allPostalCode"
+                  @change="(event) => handleInput(event, 'city')"
+                  label="ville"
+                  :reduce="postal => postal.ville"
+                  placeholder="Selectionner la ville"
+                  :class="{ 'is-valid': validTextField(restaurantData.city) }"
+                  required
+              />
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Adresse
+              </label>
+              <input
+                  type="text"
+                  class="form-control shadow-none rounded-0 text-black"
+                  placeholder="Rue 44 batiment 34"
+                  v-model="restaurantData.address"
+                  @change="(event) => handleInput(event, 'address')"
+                  :class="{ 'is-valid': validTextField(restaurantData.address) }"
+              />
+            </div>
+          </div>
+
+
+          <div class="col-md-12">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Numero de rue *
+              </label>
+              <input
+                  type="text"
+                  class="form-control shadow-none rounded-0 text-black"
+                  placeholder="e.g. 34662"
+                  v-model="restaurantData.numeroRue"
+                  @change="(event) => handleInput(event, 'numeroRue')"
+                  :class="{ 'is-valid': validTextField(restaurantData.numeroRue) }"
+                  required
+              />
+            </div>
+          </div>
+
+
+
+<!--          <div class="col-md-6">-->
+<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
+<!--              <label class="d-block text-black fw-semibold mb-10">-->
+<!--                Batiment-->
+<!--              </label>-->
+<!--              <input-->
+<!--                  type="text"-->
+<!--                  class="form-control shadow-none rounded-0 text-black"-->
+<!--                  placeholder="e.g. Vaderna"-->
+<!--                  v-model="restaurantData.batiment"-->
+<!--                  @change="(event) => handleInput(event, 'batiment')"-->
+<!--                  :class="{ 'is-valid': validTextField(restaurantData.batiment) }"-->
+<!--                  required-->
+<!--              />-->
+<!--            </div>-->
+<!--          </div>-->
 
 
 

@@ -1,5 +1,5 @@
 <template>
-  <BreadCrumb PageTitle="Information General" />
+  <BreadCrumb PageTitle="Information générale" />
   <div class="row">
     <div class="col-12">
       <ProfileContent />

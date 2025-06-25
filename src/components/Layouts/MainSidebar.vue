@@ -105,7 +105,7 @@
               aria-controls="sidebarCollapseTwo"
           >
             <i class="flaticon-price-tag-2"></i>
-            <span class="title">Gestions</span>
+            <span class="title">Gestion</span>
           </a>
           <div
               id="sidebarCollapseTwo"
@@ -116,17 +116,17 @@
               <ul class="sidebar-sub-menu ps-0 mb-0 list-unstyled">
                 <li class="sidebar-sub-menu-item">
                   <router-link to="/categorie-list" class="sidebar-sub-menu-link"
-                  >Categorie</router-link
+                  >Catégories</router-link
                   >
                 </li>
                 <li class="sidebar-sub-menu-item">
                   <router-link to="/ingredient-list" class="sidebar-sub-menu-link">
-                    Ingredient
+                    Ingredients
                   </router-link>
                 </li>
                 <li class="sidebar-sub-menu-item">
                   <router-link to="/product-list" class="sidebar-sub-menu-link">
-                    Produit
+                    Produits
                   </router-link>
                 </li>
 <!--                <li class="sidebar-sub-menu-item">-->
@@ -180,7 +180,7 @@
                       to="/campagne-list"
                       class="sidebar-sub-menu-link"
                   >
-                    Campagnes
+                    Campagnes email
                   </router-link>
                 </li>
                 <li class="sidebar-sub-menu-item">
@@ -188,7 +188,7 @@
                       to="/notifications-sending"
                       class="sidebar-sub-menu-link"
                   >
-                   Notifications
+                   Notifications push
                   </router-link>
                 </li>
               </ul>
@@ -228,7 +228,7 @@
                       :to="{ name: 'VabeneInfoFranchisePage', params: { franchiseID: '' } }"
                       class="sidebar-sub-menu-link"
                   >
-                   Information general
+                   Information générale
                   </router-link>
                 </li>
 <!--                <li class="sidebar-sub-menu-item">-->
@@ -253,7 +253,7 @@
               aria-controls="sidebarCollapseSeven"
           >
             <i class="flaticon-layer-2"></i>
-            <span class="title">Restaurant</span>
+            <span class="title">Restaurants</span>
           </a>
           <div
               id="sidebarCollapseSeven"
@@ -295,7 +295,7 @@
               aria-controls="sidebarCollapseEleven"
           >
             <i class="flaticon-user-3"></i>
-            <span class="title">Utilisateur</span>
+            <span class="title">Utilisateurs</span>
           </a>
           <div
               id="sidebarCollapseEleven"
@@ -1986,7 +1986,7 @@
         <li class="sidebar-nav-item">
           <router-link @click="logout" to="" class="sidebar-nav-link d-block">
             <i class="flaticon-logout"></i>
-            <span class="title">Deconnexion</span>
+            <span class="title">Déconnexion</span>
           </router-link>
         </li>
       </ul>

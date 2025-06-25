@@ -42,13 +42,13 @@
                 Email *
               </label>
               <input
-                type="email"
-                v-model="userData.email"
-                @change="(event) => handleInput(event, 'email')"
-                :class="{ 'is-valid': validEmail(userData.email) }"
-                class="form-control shadow-none rounded-0 text-black"
-                placeholder="e.g. adam127704@gmail.com"
-                :required="actionDetected === ActionCrud.ADD"
+                  type="email"
+                  v-model="userData.email"
+                  @change="(event) => handleInput(event, 'email')"
+                  :class="{ 'is-valid': validEmail(userData.email) }"
+                  class="form-control shadow-none rounded-0 text-black"
+                  placeholder="e.g. adam127704@gmail.com"
+                  :required="actionDetected === ActionCrud.ADD"
               />
             </div>
           </div>
@@ -58,80 +58,18 @@
                 Mot de passe *
               </label>
               <input
-                type="password"
-                class="form-control shadow-none rounded-0 text-black"
-                :class="{ 'is-valid': validPassword(userData.password) }"
-                placeholder="**************"
-                v-model="userData.password"
-                @change="(event) => handleInput(event, 'password')"
-                :disabled="actionDetected === ActionCrud.EDIT"
-                :required="actionDetected === ActionCrud.ADD"
+                  type="password"
+                  class="form-control shadow-none rounded-0 text-black"
+                  :class="{ 'is-valid': validPassword(userData.password) }"
+                  placeholder="**************"
+                  v-model="userData.password"
+                  @change="(event) => handleInput(event, 'password')"
+                  :disabled="actionDetected === ActionCrud.EDIT"
+                  :required="actionDetected === ActionCrud.ADD"
               />
             </div>
           </div>
 
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Code postal *
-              </label>
-              <v-select
-                  v-model="userData.postalCode"
-                  :options="allPostalCode"
-                  @change="(event) => handleInput(event, 'postalCode')"
-                  label="numeroPostal"
-                  :reduce="postal => postal.numeroPostal"
-                  placeholder="Selectionner le code postal"
-                  :class="{ 'is-valid': validTextField(userData.postalCode) }"
-                  :required="actionDetected === ActionCrud.ADD"
-              />
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Pays*
-              </label>
-              <select v-model="userData.country" class="form-select shadow-none fw-semibold rounded-0"
-                      @change="(event) => handleInput(event, 'country')"
-                      :class="{ 'is-valid': validTextField(userData.country) }"
-              >
-                <option selected>Suisse</option>
-              </select>
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Adresse
-              </label>
-              <input
-                  type="text"
-                  class="form-control shadow-none rounded-0 text-black"
-                  placeholder="Rue 44 batiment 34"
-                  v-model="userData.addresse"
-                  @change="(event) => handleInput(event, 'addresse')"
-                  :class="{ 'is-valid': validTextField(userData.addresse) }"
-              />
-            </div>
-          </div>
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Ville
-              </label>
-              <v-select
-                  v-model="userData.city"
-                  :options="allPostalCode"
-                  @change="(event) => handleInput(event, 'city')"
-                  label="ville"
-                  :reduce="postal => postal.ville"
-                  placeholder="Selectionner la ville"
-                  :class="{ 'is-valid': validTextField(userData.city) }"
-                  :required="actionDetected === ActionCrud.ADD"
-              />
-            </div>
-          </div>
           <div class="col-md-6">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
@@ -162,23 +100,75 @@
               />
             </div>
           </div>
+
+
           <div class="col-md-6">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
-                Batiment
+                Pays*
               </label>
-              <input
-                  type="text"
-                  class="form-control shadow-none rounded-0 text-black"
-                  placeholder="e.g. Vaderna"
-                  v-model="userData.batiment"
-                  @change="(event) => handleInput(event, 'batiment')"
-                  :class="{ 'is-valid': validTextField(userData.batiment) }"
+              <select v-model="userData.country" class="form-select shadow-none fw-semibold rounded-0"
+                      @change="(event) => handleInput(event, 'country')"
+                      :class="{ 'is-valid': validTextField(userData.country) }"
+              >
+                <option selected>Suisse</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Code postal *
+              </label>
+              <v-select
+                  v-model="userData.postalCode"
+                  :options="allPostalCode"
+                  @change="(event) => handleInput(event, 'postalCode')"
+                  label="numeroPostal"
+                  :reduce="postal => postal.numeroPostal"
+                  placeholder="Selectionner le code postal"
+                  :class="{ 'is-valid': validTextField(userData.postalCode) }"
+                  :required="actionDetected === ActionCrud.ADD"
+              />
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Ville
+              </label>
+              <v-select
+                  v-model="userData.city"
+                  :options="allPostalCode"
+                  @change="(event) => handleInput(event, 'city')"
+                  label="ville"
+                  :reduce="postal => postal.ville"
+                  placeholder="Selectionner la ville"
+                  :class="{ 'is-valid': validTextField(userData.city) }"
                   :required="actionDetected === ActionCrud.ADD"
               />
             </div>
           </div>
           <div class="col-md-6">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Adresse
+              </label>
+              <input
+                  type="text"
+                  class="form-control shadow-none rounded-0 text-black"
+                  placeholder="Rue 44 batiment 34"
+                  v-model="userData.addresse"
+                  @change="(event) => handleInput(event, 'addresse')"
+                  :class="{ 'is-valid': validTextField(userData.addresse) }"
+              />
+            </div>
+          </div>
+
+
+
+          <div class="col-md-12">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
                 Rue *
@@ -206,10 +196,27 @@
                       :class="{ 'is-valid': validTextField(userData.roles) }"
               >
                 <option value="ROLE_ADMIN" selected>Administrateur</option>
-                <option value="ROLE_CLIENT" selected>Client</option>
+                <option value="ROLE_SUPPORT_TECHNIQUE" selected>Support Technique</option>
               </select>
             </div>
           </div>
+
+<!--          <div class="col-md-6">-->
+<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
+<!--              <label class="d-block text-black fw-semibold mb-10">-->
+<!--                Batiment-->
+<!--              </label>-->
+<!--              <input-->
+<!--                  type="text"-->
+<!--                  class="form-control shadow-none rounded-0 text-black"-->
+<!--                  placeholder="e.g. Vaderna"-->
+<!--                  v-model="userData.batiment"-->
+<!--                  @change="(event) => handleInput(event, 'batiment')"-->
+<!--                  :class="{ 'is-valid': validTextField(userData.batiment) }"-->
+<!--                  :required="actionDetected === ActionCrud.ADD"-->
+<!--              />-->
+<!--            </div>-->
+<!--          </div>-->
 
           <div class="col-md-12">
             <div class="d-flex align-items-center justify-content-between">
@@ -327,7 +334,6 @@ export default defineComponent({
   name: "VabeneAddUser",
   components: {
     LoaderComponent
-    // ImageUpload,
   },
   props: {
     action: {
