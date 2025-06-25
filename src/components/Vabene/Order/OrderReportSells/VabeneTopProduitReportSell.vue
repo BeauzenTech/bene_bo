@@ -4,8 +4,7 @@
       <span
           class="d-block mb-6 fs-13 text-uppercase fs-13  text-uppercase text-dark-emphasis fw-bold"
       >
-        TOP PRODUITS QUI <br>
-       ONT DE GROSSE COMMANDE
+        TOP PRODUITS
       </span>
       <h4 class="fw-black mb-12 lh-1">{{amountTotal}} CHF</h4>
       <table>

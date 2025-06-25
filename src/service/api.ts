@@ -25,6 +25,7 @@ import {TopProductSellModel} from "@/models/TopProductSell.model";
 import {AverageReportModel} from "@/models/averageReport.model";
 import {FranchiseModel} from "@/models/franchise.model";
 import {RestaurantModel} from "@/models/restaurant.model";
+import {RatioModel} from "@/models/ratio.model";
 
 const apiClient = axios.create({
     baseURL: apiConfig.baseURL,
@@ -929,7 +930,7 @@ export const tauxCommandeCategorie = async (
     startDate?: string,
     endDate?: string,
     restaurantID?: string
-): Promise<ApiResponse<number>> => {
+): Promise<ApiResponse<RatioModel>> => {
 
 
     try {
@@ -961,7 +962,7 @@ export const nombreCommandeParProduct = async (
     startDate?: string,
     endDate?: string,
     restaurantID?: string
-): Promise<ApiResponse<number>> => {
+): Promise<ApiResponse<RatioModel>> => {
 
 
     try {

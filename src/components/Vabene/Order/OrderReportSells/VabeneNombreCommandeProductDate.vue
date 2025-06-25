@@ -50,15 +50,15 @@
           </div>
         </div>
       </div>
-      <div class="info d-flex align-items-center justify-content-between mt-15">
+      <div v-if="tauxMoyenCommande" class="info d-flex align-items-center justify-content-between mt-15">
         <span class="fs-13 d-block text-uppercase text-dark-emphasis fw-bold">
           NOMBRE DE COMMANDES (PRODUIT)
         </span>
         <div class="d-flex align-items-center">
-          <h4 class="fw-black mb-0 me-10 lh-1">{{ tauxMoyenCommande }}</h4>
+          <h4 class="fw-black mb-0 me-10 lh-1">{{ tauxMoyenCommande.montant }} CHF</h4>
           <span class="fw-bold text-success text-badge d-inline-block">
             <i class="flaticon-up-arrow fs-11 lh-1 position-relative top-1"></i>
-            Commandes
+            {{tauxMoyenCommande.commande}} Commande(s)
           </span>
         </div>
       </div>
@@ -91,6 +91,7 @@ import {TopProductSellModel} from "@/models/TopProductSell.model";
 import {useToast} from "vue-toastification";
 import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 import {ProductModel} from "@/models/product.model";
+import {RatioModel} from "@/models/ratio.model";
 
 export default defineComponent({
   name: "VabeneNombreCommandeProductDate",
@@ -147,7 +148,7 @@ export default defineComponent({
           },
         },
       },
-      tauxMoyenCommande: 0 as number
+      tauxMoyenCommande: null as RatioModel | null
     };
   },
   methods: {
@@ -222,10 +223,10 @@ export default defineComponent({
 
     async fetchNombreDeCommandeMoyenByProduct(productID: string, startDate?: string, endDate?: string, restaurantId?: string) {
       try {
-        const response = await nombreCommandeParProduct(productID, startDate, endDate, restaurantId) as ApiResponse<number>;
+        const response = await nombreCommandeParProduct(productID, startDate, endDate, restaurantId) as ApiResponse<RatioModel>;
         console.log(response)
         if (response.code === 200) {
-          this.tauxMoyenCommande = response.data as number;
+          this.tauxMoyenCommande = response.data as RatioModel;
         } else {
           this.toast.error(response.message);
         }
