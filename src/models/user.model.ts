@@ -17,6 +17,7 @@ export interface UserModel {
     is_active: boolean;
     created_at: string;
     updated_at: string;
+    deviceToken: string
     franchises: FranchiseModel[];
 
 }

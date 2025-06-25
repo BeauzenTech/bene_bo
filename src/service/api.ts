@@ -876,10 +876,18 @@ export const detailNotification = async (notificationID): Promise<ApiResponse<No
 };
 
 
-export const listeCustomers = async (page = 1): Promise<ApiResponse<PaginatedCustomer>> => {
+export const listeCustomers = async (page = 1, usePagination: string, restaurantId?: string): Promise<ApiResponse<PaginatedCustomer>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/v1/customer/all?page=${page}`);
+        const url = [
+            `/v1/customer/all`,
+            usePagination,
+            restaurantId,
+        ]
+            .filter(Boolean) // retire les undefined
+            .join('/');
+
+        const response = await apiClient.get(`${url}?page=${page}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,

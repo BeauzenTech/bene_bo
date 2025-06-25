@@ -66,7 +66,7 @@
                   :options="originalUsers"
                   label="email"
                   :reduce="user => user.email"
-                  placeholder="Selectionner un utilisateur"
+                  placeholder="Selectionner un client"
               />
 
               <button
@@ -82,10 +82,6 @@
             </div>
 
           </div  >
-
-
-
-
 
 
           <div class="col-md-12" v-if="actionDetected == ActionCrud.ADD">
@@ -130,18 +126,20 @@ import {
   updateCategorie,
   uploadFile,
   deleteFileUpload,
-  createCampagne, detailCampagne, listeUser
+  createCampagne, detailCampagne, listeUser, listeCustomers
 } from "@/service/api";
 
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import { AxiosError } from 'axios';
-import {ApiResponse, PaginatedCategorie, PaginatedUsers} from "@/models/Apiresponse";
+import {ApiResponse, PaginatedCategorie, PaginatedCustomer, PaginatedUsers} from "@/models/Apiresponse";
 import {CategorieModel} from "@/models/categorie.model";
 import {ActionCrud} from "@/enums/actionCrud.enum";
 import {CampagneModel} from "@/models/campagne.model";
 import {UserModel} from "@/models/user.model";
 import {OrderTypeModel} from "@/models/orderType.model";
+import {UserGeneralKey} from "@/models/user.generalkey";
+import {CustomerModel} from "@/models/customer.model";
 
 
 export default defineComponent({
@@ -174,13 +172,24 @@ export default defineComponent({
       logoUpload: null,
       categorieResponse: null as CampagneModel | null,
       actionDetected: null as string | null,
-      originalUsers: [] as UserModel[], // Stockage des utilisateurs originaux
+      originalUsers: [] as CustomerModel[], // Stockage des utilisateurs originaux
       userSelected: null,
       sendingType: '' as string,
-      typeSending: ["Individuel", "Groupé"] as string[]
+      typeSending: ["Individuel", "Groupé"] as string[],
+      restaurantId: null as string | null,
+      payloadCampagne: {
+        title: '',
+        message: '',
+        destination: []
+      }
     }
   },
   methods: {
+    stripHtmlTags(input: string): string {
+      const div = document.createElement('div');
+      div.innerHTML = input;
+      return div.textContent || div.innerText || '';
+    },
     clearData(){
       this.categorieData = {
         name: '',
@@ -194,29 +203,40 @@ export default defineComponent({
 
       setTimeout(() => {
         window.location.reload();
-      }, 1000);
+      }, 2000);
     },
     goBack() {
       this.$router.back()
 
     },
+    // async sendingCampagne(){
+    //     for (let i = 0; i < this.categorieData.destination.length; i++) {
+    //       const destination = this.categorieData.destination[i];
+    //       await this.createNewCategorie(destination);
+    //     }
+    //     this.toast.success("Votre campagne a été envoyé avec succès.")
+    //     this.clearData()
+    //
+    // },
     async createNewCategorie() {
-
         this.isLoading = true;
+        const message = this.stripHtmlTags(this.categorieData.message)
         const payload = {
           "title": this.categorieData.title,
-          "message": this.categorieData.message,
+          "message": message,
           "destination": this.categorieData.destination
         }
         try {
           const response = await createCampagne(payload);
           console.log(response);
-          if (response.code === 200) {
-            this.toast.success(response.message)
-            this.clearData()
-          } else {
-            this.toast.error(response.message)
+          if(response.code == 200 || response.code == 201){
+                this.toast.success(response.message)
+                this.clearData()
           }
+          else{
+            this.toast.error(response.message);
+          }
+
         } catch (error) {
           const axiosError = error as AxiosError;
           if (axiosError.response && axiosError.response.data) {
@@ -234,7 +254,11 @@ export default defineComponent({
     async fetchUsers(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeUser(page) as ApiResponse<PaginatedUsers>;
+        const idResto = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
+        if(idResto){
+          this.restaurantId = idResto;
+        }
+        const response = await listeCustomers(page, '1', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
         console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
@@ -310,7 +334,7 @@ export default defineComponent({
           console.log(response);
           if (response.code === 200 || response.code === 201) {
             this.categorieData.icone = response.data
-            await this.createNewCategorie()
+            // await this.createNewCategorie()
           } else {
             this.toast.error(response.message)
           }

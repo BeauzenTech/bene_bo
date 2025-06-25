@@ -1,5 +1,13 @@
 <template>
-  <div class="row">
+  <div
+      v-if="isLoading"
+      class="d-flex justify-content-center align-items-center position-fixed top-0 start-0 w-100 h-100"
+      style="z-index: 9999;"
+  >
+    <LoaderComponent />
+  </div>
+
+  <div class="row" v-else>
     <div class="col-lg-5 col-xl-4">
       <LeadsInformation :lead="categorieResponse" />
     </div>
@@ -282,6 +290,7 @@ import LeadsInformation from "@/components/CRM/LeadDetails/LeadsInformation.vue"
 export default defineComponent({
   name: "VabeneAddCustomer",
   components: {
+    LoaderComponent,
     LeadsInformation
 
   },
@@ -316,6 +325,12 @@ export default defineComponent({
     }
   },
   methods: {
+    loaded(){
+      setTimeout(() => {
+        this.isLoading = true
+      }, 1500)
+      this.isLoading = false
+    },
     analyserListeCuisson(listeCuisson: (string | null)[]): string {
       if (!listeCuisson || listeCuisson.length === 0) {
         return "-";

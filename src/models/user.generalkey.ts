@@ -33,7 +33,7 @@ export class UserGeneralKey {
     }
 
     static logout(){
-        localStorage.removeItem(UserGeneralKey.USER_TOKEN);
+        this.clearAllUserData()
     }
 
     static saveUserDatA(user: UserModel){
@@ -51,6 +51,19 @@ export class UserGeneralKey {
                 localStorage.setItem(UserGeneralKey.USER_RESTAURANT_ID, user.franchises[0].restaurants[0].id);
             }
         }
+    }
+
+    static clearAllUserData() {
+        localStorage.removeItem(UserGeneralKey.USER_TOKEN);
+        localStorage.removeItem(UserGeneralKey.USERNAME);
+        localStorage.removeItem(UserGeneralKey.USER_ID);
+        localStorage.removeItem(UserGeneralKey.USER_EMAIL);
+        localStorage.removeItem(UserGeneralKey.USER_FIRST_NAME);
+        localStorage.removeItem(UserGeneralKey.USER_LAST_NAME);
+        localStorage.removeItem(UserGeneralKey.USER_ROLE);
+        localStorage.removeItem(UserGeneralKey.USER_FRANCHISE_ID);
+        localStorage.removeItem(UserGeneralKey.USER_RESTAURANT_ID);
+        localStorage.removeItem(UserGeneralKey.USER_PROFIL_IMG);
     }
 
     static getRole(role){

@@ -277,6 +277,7 @@ export default defineComponent({
       searchQuery: '', // Ajout du champ de recherche
       originalCategories: [] as CustomerModel[], // Stockage des utilisateurs originaux
       categorieSelected: null,
+      restaurantId: null as string | null
     }
   },
   computed: {
@@ -425,7 +426,12 @@ export default defineComponent({
     async fetchCategories(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeCustomers(page) as ApiResponse<PaginatedCustomer>;
+
+        const idResto = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
+        if(idResto){
+          this.restaurantId = idResto;
+        }
+        const response = await listeCustomers(page, '1', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
         console.log(response)
         if (response.code === 200) {
           this.categorieResponse = response;

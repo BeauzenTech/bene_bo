@@ -65,7 +65,7 @@
                   v-model="userSelected"
                   :options="originalUsers"
                   label="email"
-                  :reduce="user => user.email"
+                  :reduce="user => user.user.deviceToken"
                   placeholder="Selectionner un utilisateur"
               />
 
@@ -100,7 +100,7 @@
                       :disabled="!isFormValid"
                       :class="{ 'opacity-50 cursor-not-allowed': !isFormValid }"
               >
-                Envoyer la campagne
+                Envoyer
               </button>
               <button
                   type="button"
@@ -130,18 +130,20 @@ import {
   updateCategorie,
   uploadFile,
   deleteFileUpload,
-  createCampagne, detailCampagne, listeUser, createNotification
+  createCampagne, detailCampagne, listeUser, createNotification, listeCustomers
 } from "@/service/api";
 
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import { AxiosError } from 'axios';
-import {ApiResponse, PaginatedCategorie, PaginatedUsers} from "@/models/Apiresponse";
+import {ApiResponse, PaginatedCategorie, PaginatedCustomer, PaginatedUsers} from "@/models/Apiresponse";
 import {CategorieModel} from "@/models/categorie.model";
 import {ActionCrud} from "@/enums/actionCrud.enum";
 import {CampagneModel} from "@/models/campagne.model";
 import {UserModel} from "@/models/user.model";
 import {OrderTypeModel} from "@/models/orderType.model";
+import {CustomerModel} from "@/models/customer.model";
+import {UserGeneralKey} from "@/models/user.generalkey";
 
 
 export default defineComponent({
@@ -174,13 +176,19 @@ export default defineComponent({
       logoUpload: null,
       categorieResponse: null as CampagneModel | null,
       actionDetected: null as string | null,
-      originalUsers: [] as UserModel[], // Stockage des utilisateurs originaux
+      originalUsers: [] as CustomerModel[], // Stockage des utilisateurs originaux
       userSelected: null,
       sendingType: '' as string,
-      typeSending: ["Individuel", "Groupé"] as string[]
+      typeSending: ["Individuel", "Groupé"] as string[],
+      restaurantId: null as string | null,
     }
   },
   methods: {
+    stripHtmlTags(input: string): string {
+      const div = document.createElement('div');
+      div.innerHTML = input;
+      return div.textContent || div.innerText || '';
+    },
     clearData(){
       this.categorieData = {
         name: '',
@@ -192,20 +200,22 @@ export default defineComponent({
 
       }
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      // setTimeout(() => {
+      //   window.location.reload();
+      // }, 2000);
     },
     goBack() {
       this.$router.back()
 
     },
     async createNewCategorie() {
+      const message = this.stripHtmlTags(this.categorieData.message)
 
       this.isLoading = true;
       const payload = {
         "title": this.categorieData.title,
-        "destinationDevice": this.categorieData.message,
+        "description": message,
+        "destinationDevice": this.categorieData.destination,
         "data": []
       }
       try {
@@ -234,11 +244,17 @@ export default defineComponent({
     async fetchUsers(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeUser(page) as ApiResponse<PaginatedUsers>;
+        const idResto = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
+        if(idResto){
+          this.restaurantId = idResto;
+        }
+        const response = await listeCustomers(page, '1', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
         console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
-            this.originalUsers = response.data.items;
+            const data = response.data.items;
+            this.originalUsers = data.filter(item => item.user != null && item.user.deviceToken != null);
+            console.log("filter data: ", this.originalUsers);
           }
 
         } else {
@@ -427,7 +443,7 @@ export default defineComponent({
       const newValue = newVal as string
       if(newValue == 'Groupé'){
         for(let i=0; i<this.originalUsers.length; i++){
-          this.categorieData.destination.push(this.originalUsers[i].email);
+          this.categorieData.destination.push(this.originalUsers[i].user.deviceToken);
         }
       }
       this.userSelected = null;
