@@ -293,7 +293,7 @@ export default defineComponent({
       restaurantSelected: null,
       fakeAllOptionFranchise: {
        id: 'all',
-        name: 'Tous les resultats'
+        name: 'Tous les restaurants'
       }
     }
   },

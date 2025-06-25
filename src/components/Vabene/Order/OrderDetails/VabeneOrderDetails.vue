@@ -598,11 +598,11 @@
                 Status de paiement
               </span>
 
-                 <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-                   <span v-if="orderResponse.payment_status === 'pending'" class="badge text-outline-danger">  {{fetchStatusOrderPaiementFr(orderResponse.paymentID.status)}}</span>
-              <span v-if="orderResponse.payment_status === 'paid'" class="badge text-outline-primary">  {{fetchStatusOrderPaiementFr(orderResponse.paymentID.status)}}</span>
-              <span v-if="orderResponse.payment_status === 'refunded'" class="badge text-outline-muted">  {{fetchStatusOrderPaiementFr(orderResponse.paymentID.status)}}</span>
-              <span v-if="orderResponse.payment_status === 'cancelled'" class="badge text-outline-warning">  {{fetchStatusOrderPaiementFr(orderResponse.paymentID.status)}}</span>
+                 <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium" v-if="orderResponse.paymentID">
+                   <span v-if="orderResponse.paymentID.status === 'pending'" class="badge text-outline-danger">  {{fetchStatusOrderPaiementFr(orderResponse.paymentID.status)}}</span>
+              <span v-if="orderResponse.paymentID.status === 'paid'" class="badge text-outline-primary">  {{fetchStatusOrderPaiementFr(orderResponse.paymentID.status)}}</span>
+              <span v-if="orderResponse.paymentID.status === 'refunded'" class="badge text-outline-muted">  {{fetchStatusOrderPaiementFr(orderResponse.paymentID.status)}}</span>
+              <span v-if="orderResponse.paymentID.status === 'cancelled'" class="badge text-outline-warning">  {{fetchStatusOrderPaiementFr(orderResponse.paymentID.status)}}</span>
 
 
               </span>

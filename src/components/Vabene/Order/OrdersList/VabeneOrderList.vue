@@ -28,7 +28,7 @@
               v-model="searchQuery"
               type="text"
               class="form-control shadow-none text-black rounded-0 border-0"
-              placeholder="Rechercher un restaurant"
+              placeholder="Tous les restaurants"
               @input="currentPage = 1"
 
           />
@@ -176,11 +176,11 @@
               <span v-if="order.status === 'delivered'" class="badge text-bg-primary fs-13">Livré</span>
               <span v-if="order.status === 'cancelled'" class="badge text-bg-danger fs-13">Annulé</span>
             </td>
-            <td class="shadow-none lh-1 fw-medium text-muted">
-              <span v-if="order.payment_status === 'pending'" class="badge text-outline-danger">En attente de paiement</span>
-              <span v-if="order.payment_status === 'paid'" class="badge text-outline-primary">Payé</span>
-              <span v-if="order.payment_status === 'refunded'" class="badge text-outline-muted">A remboursé</span>
-              <span v-if="order.payment_status === 'cancelled'" class="badge text-outline-warning">Annuler</span>
+            <td class="shadow-none lh-1 fw-medium text-muted" v-if="order.paymentID" >
+              <span v-if="order.paymentID.status === 'pending'" class="badge text-outline-danger">En attente de paiement</span>
+              <span v-if="order.paymentID.status === 'paid'" class="badge text-outline-primary">Payé</span>
+              <span v-if="order.paymentID.status=== 'refunded'" class="badge text-outline-muted">A remboursé</span>
+              <span v-if="order.paymentID.status === 'cancelled'" class="badge text-outline-warning">Annuler</span>
 
             </td>
             <td>

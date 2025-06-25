@@ -96,7 +96,7 @@
                       to="/rapport-vente"
                       class="sidebar-sub-menu-link"
                   >
-                    Rapport de ventes
+                    Rapport de vente
                   </router-link>
                 </li>
 
