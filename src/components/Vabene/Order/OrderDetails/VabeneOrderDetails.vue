@@ -459,91 +459,128 @@
         </div>
       </div>
     </div>
-    <div class="col-lg-4">
-      <div v-if="orderResponse"
-        class="card mb-25 border-0 rounded-0 bg-white order-details-box letter-spacing"
+    <div v-if="orderResponse" class="col-lg-4">
+      <div
+          class="card mb-25 border-0 rounded-0 bg-white order-details-box letter-spacing"
       >
-        <div class="card-head bg-white">
+        <div
+            class="card-head bg-white d-flex justify-content-between align-items-center"
+        >
           <h5 class="mb-0 fw-bold text-black">Adresse de paiement</h5>
         </div>
         <div class="card-body">
-          <ul class="payment-address-list ps-0 mb-0 list-unstyled">
-            <li class="text-paragraph fs-md-15 fs-lg-16 position-relative">
-              <span class="fw-semibold text-black">Addresse:</span>
-              {{orderResponse.rue}} - {{orderResponse.batiment}}
+          <ul class="order-summary-list ps-0 mb-0 list-unstyled">
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-block text-paragraph fw-medium">
+                NPA:
+              </span>
+              <span class="d-block text-paragraph fw-medium">
+                <strong>{{orderResponse.npa ?? '-'}}</strong>
+              </span>
             </li>
-            <li class="text-paragraph fs-md-15 fs-lg-16 position-relative">
-              <span class="fw-semibold text-black">Tel:</span>
-              {{orderResponse.guest_phone_number || 'Indisponible'}}
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-block text-paragraph fw-medium">
+                Localité:
+              </span>
+              <span class="d-block text-paragraph fw-medium">
+                <strong>{{orderResponse.localite ?? '-'}}</strong>
+              </span>
             </li>
-            <li class="text-paragraph fs-md-15 fs-lg-16 position-relative">
-              <span class="fw-semibold text-black">Email:</span>
-              {{orderResponse.guest_email}}
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-block text-paragraph fw-medium">
+                Téléphone:
+              </span>
+              <span class="d-block text-paragraph fw-medium">
+                <strong>{{orderResponse.guest_phone_number ?? '-'}}</strong>
+              </span>
             </li>
-
-            <li class="text-paragraph fs-md-15 fs-lg-16 position-relative">
-              <span class="fw-semibold text-black">NPA</span>
-              {{orderResponse.npa}}
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-block text-paragraph fw-medium">
+                Email:
+              </span>
+              <span class="d-block text-paragraph fw-medium">
+                <strong>{{orderResponse.guest_email ?? '-'}}</strong>
+              </span>
             </li>
-
-            <li class="text-paragraph fs-md-15 fs-lg-16 position-relative">
-              <span class="fw-semibold text-black">Localité</span>
-              {{orderResponse.localite}}
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-block text-paragraph fw-medium">
+                Rue:
+              </span>
+              <span class="d-block text-paragraph fw-medium">
+                <strong>{{orderResponse.rue ?? '-'}}</strong>
+              </span>
             </li>
-            <li class="text-paragraph fs-md-15 fs-lg-16 position-relative">
-              <span class="fw-semibold text-black">Rue</span>
-              {{orderResponse.rue}}
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-block text-paragraph fw-medium">
+                Nº:
+              </span>
+              <span class="d-block text-paragraph fw-medium">
+                <strong>{{orderResponse.numberRue ?? '-'}}</strong>
+              </span>
             </li>
-
-            <li class="text-paragraph fs-md-15 fs-lg-16 position-relative">
-              <span class="fw-semibold text-black">Nº</span>
-              {{orderResponse.numberRue}}
-            </li>
-
           </ul>
         </div>
       </div>
     </div>
     <div v-if="orderResponse" class="col-lg-4">
       <div
-        class="card mb-25 border-0 rounded-0 bg-white order-details-box letter-spacing"
+          class="card mb-25 border-0 rounded-0 bg-white order-details-box letter-spacing"
       >
-        <div class="card-head bg-white">
+        <div
+            class="card-head bg-white d-flex justify-content-between align-items-center"
+        >
           <h5 class="mb-0 fw-bold text-black">Adresse de livraison</h5>
         </div>
         <div class="card-body">
-          <ul class="payment-address-list ps-0 mb-0 list-unstyled">
-            <li class="text-paragraph fs-md-15 fs-lg-16 position-relative">
-              <span class="fw-semibold text-black">Addresse:</span>
-              {{orderResponse.rue}} - {{orderResponse.batiment}}
+          <ul class="order-summary-list ps-0 mb-0 list-unstyled">
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-block text-paragraph fw-medium">
+                NPA:
+              </span>
+              <span class="d-block text-paragraph fw-medium">
+                <strong>{{orderResponse.npa ?? '-'}}</strong>
+              </span>
             </li>
-            <li class="text-paragraph fs-md-15 fs-lg-16 position-relative">
-              <span class="fw-semibold text-black">Tel:</span>
-              {{orderResponse.guest_phone_number || 'Indisponible'}}
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-block text-paragraph fw-medium">
+                Localité:
+              </span>
+              <span class="d-block text-paragraph fw-medium">
+                <strong>{{orderResponse.localite ?? '-'}}</strong>
+              </span>
             </li>
-            <li class="text-paragraph fs-md-15 fs-lg-16 position-relative">
-              <span class="fw-semibold text-black">Email:</span>
-              {{orderResponse.guest_email}}
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-block text-paragraph fw-medium">
+                Téléphone:
+              </span>
+              <span class="d-block text-paragraph fw-medium">
+                <strong>{{orderResponse.guest_phone_number ?? '-'}}</strong>
+              </span>
             </li>
-            <li class="text-paragraph fs-md-15 fs-lg-16 position-relative">
-              <span class="fw-semibold text-black">NPA</span>
-              {{orderResponse.npa}}
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-block text-paragraph fw-medium">
+                Email:
+              </span>
+              <span class="d-block text-paragraph fw-medium">
+                <strong>{{orderResponse.guest_email ?? '-'}}</strong>
+              </span>
             </li>
-
-            <li class="text-paragraph fs-md-15 fs-lg-16 position-relative">
-              <span class="fw-semibold text-black">Localité</span>
-              {{orderResponse.localite}}
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-block text-paragraph fw-medium">
+                Rue:
+              </span>
+              <span class="d-block text-paragraph fw-medium">
+                <strong>{{orderResponse.rue ?? '-'}}</strong>
+              </span>
             </li>
-            <li class="text-paragraph fs-md-15 fs-lg-16 position-relative">
-              <span class="fw-semibold text-black">Rue</span>
-              {{orderResponse.rue}}
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-block text-paragraph fw-medium">
+                Nº:
+              </span>
+              <span class="d-block text-paragraph fw-medium">
+                <strong>{{orderResponse.numberRue ?? '-'}}</strong>
+              </span>
             </li>
-
-            <li class="text-paragraph fs-md-15 fs-lg-16 position-relative">
-              <span class="fw-semibold text-black">Nº</span>
-              {{orderResponse.numberRue}}
-            </li>
-
           </ul>
         </div>
       </div>
