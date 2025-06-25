@@ -95,7 +95,7 @@
             Restaurants
           </span>
           <span class="d-inline-block fs-md-15 fs-lg-16 text-muted">
-            {{franchiseResponse.restaurants.length}} Restaurants
+            {{allRestaurantByFranchise.length}} Restaurants
           </span>
         </li>
       </ul>
@@ -111,6 +111,8 @@ import {ApiResponse} from "@/models/Apiresponse";
 import {defineComponent} from "vue";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import {ActionCrud} from "@/enums/actionCrud.enum";
+import {RestaurantModel} from "@/models/restaurant.model";
+import {IngredientModel} from "@/models/ingredient.model";
 
 
 export default defineComponent({
@@ -120,6 +122,7 @@ export default defineComponent({
     return{
       franchiseResponse: null as FranchiseModel | null,
       isLoading: false,
+      allRestaurantByFranchise: [] as RestaurantModel[]
     }
   },
   methods: {
@@ -140,6 +143,13 @@ export default defineComponent({
         console.log(response)
         if (response.code === 200) {
           this.franchiseResponse = response.data as FranchiseModel;
+          for (let i = 0; i < this.franchiseResponse.restaurants.length; i++) {
+            if(!this.franchiseResponse.restaurants[i].isDeleted){
+              this.allRestaurantByFranchise.push(this.franchiseResponse.restaurants[i] as RestaurantModel);
+            }
+          }
+
+
 
         } else {
           console.log(response.message)

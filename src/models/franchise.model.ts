@@ -1,4 +1,5 @@
 import {UserModel} from "@/models/user.model";
+import {RestaurantModel} from "@/models/restaurant.model";
 
 export interface FranchiseModel {
     id: string;
@@ -11,6 +12,7 @@ export interface FranchiseModel {
     country: string;
     logo: string;
     is_active: boolean;
-    restaurants: FranchiseModel[];
+    isDeleted: boolean;
+    restaurants: RestaurantModel[];
     ownerID: UserModel
 }
