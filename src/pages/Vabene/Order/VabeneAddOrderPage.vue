@@ -1,5 +1,5 @@
 <template>
-  <BreadCrumb PageTitle="Enregistrer une commande" />
+  <BreadCrumb PageTitle="POS Système (Terminal de vente)" />
   <VabeneAddOrder />
 </template>
 

@@ -31,8 +31,26 @@
             </li>
             <li class="nav-item" role="presentation">
               <button
+                  class="nav-link fs-14 fs-md-15 fs-lg-16 fw-semibold position-relative border-0 rounded-0 d-block w-100 opacity-50"
+                  :class="{'active opacity-100' : stepForm === 2}"
+                  id="selected-order-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#selected-order-tab-pane"
+                  type="button"
+                  role="tab"
+                  aria-controls="selected-order-tab-pane"
+                  aria-selected="false"
+                  @click="updateStepForm(2)"
+
+              >
+                <i class="flaticon-user-3"></i>
+                Preference Client
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
                   class="nav-link fs-14 fs-md-15 fs-lg-16 fw-semibold position-relative border-0 rounded-0 d-block w-100"
-                  :class="{'active' : stepForm === 2}"
+                  :class="{'active' : stepForm === 3}"
                   id="shipping-details-tab"
                   data-bs-toggle="tab"
                   data-bs-target="#shipping-details-tab-pane"
@@ -40,16 +58,16 @@
                   role="tab"
                   aria-controls="shipping-details-tab-pane"
                   aria-selected="false"
-                  @click="updateStepForm(2)"
+                  @click="updateStepForm(3)"
               >
                 <i class="flaticon-express-delivery"></i>
-               Client - Livraison
+               Livraison
               </button>
             </li>
             <li class="nav-item" role="presentation">
               <button
                 class="nav-link fs-14 fs-md-15 fs-lg-16 fw-semibold position-relative border-0 rounded-0 d-block w-100"
-                :class="{'active' : stepForm === 3}"
+                :class="{'active' : stepForm === 4}"
                 id="payment-method-tab"
                 data-bs-toggle="tab"
                 data-bs-target="#payment-method-tab-pane"
@@ -57,7 +75,7 @@
                 role="tab"
                 aria-controls="payment-method-tab-pane"
                 aria-selected="false"
-                @click="updateStepForm(3)"
+                @click="updateStepForm(4)"
               >
                 <i class="flaticon-atm"></i>
                Methode de paiement
@@ -76,28 +94,101 @@
               role="tabpanel"
               tabindex="0"
             >
-              <h5 class="mb-15 mb-md-25 fw-bold text-black">
-                Selection du produit
-              </h5>
               <form>
                 <div class="row">
-                  <div class="col-md-12">
-                    <div class="form-group mb-15 mb-sm-20 mb-md-25">
+                  <div class="col-md-4">
+                    <div class="form-group  position-relative transition">
                       <v-select
-                          v-model="productSelected"
-                          :options="allProducts"
+                          v-model="categorieSelected"
+                          :options="originalCategories"
                           label="name"
-                          placeholder="Selectionner un produit"
+                          :reduce="categorie => categorie.id"
+                          placeholder="Filtrer par categorie"
 
                       />
                     </div>
                   </div>
+                  <div class="col-md-8">
+                    <div class="border border-1 border-gray-200 rounded-0 bg-white checkout-box">
+                      <input
+                          v-model="searchQuery"
+                          type="text"
+                          class="form-control shadow-none text-black rounded-0 border-0"
+                          placeholder="Rechercher un produit"
+                          @input="currentPage = 1"
+
+                      />
+                    </div>
+                  </div>
+
                 </div>
+                <loader-component v-if="isLoading" class="mt-50" />
+                <div v-else class="col-lg-12" v-for="(groupe, index) in produitsParTrois" :key="index">
+                  <div class="row">
+                    <div class="col-lg-4" v-for="(produit, i) in groupe" :key="i">
+                      <!-- ✅ Ta carte produit ici -->
+                      <div class="card mb-25 border-0 rounded-0 bg-white single-product-box">
+                        <div class="card-body p-0 letter-spacing flex justify-content-center items-center align-items-center">
+                          <div class="image position-relative">
+                            <router-link to="/product-details" class="d-block">
+                              <img
+                                  :src="produit.image_urls[0]"
+                                  alt="product"
+                              />
+                            </router-link>
+
+                          </div>
+                          <div class="content p-20">
+                            <h4 class="text-center mb-10 fw-semibold fs-16 fs-lg-18">
+                              <a href="#" class="text-decoration-none text-black">
+                               {{ produit.name}}
+                              </a>
+                            </h4>
+
+                            <div class="mt-10 text-center mb-10 fw-semibold fs-16 fs-lg-18">
+                  <span class="text-primary text-center fw-bold fs-md-15 fs-lg-16">Existe en {{produit.productSizes.length}} taille(s)</span>
+                            </div>
+                            <button
+                                type="button"
+                                class="add-to-cart-btn text-center d-block mt-15 fw-medium transition w-100 rounded-1 position-relative"
+                            >
+                              Ajouter au panier
+                              <i class="flaticon-shopping-cart-2 transition"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+              </form>
+              <div class="text-end">
+                <button
+                    class="default-btn transition border-0 fw-medium text-white pt-11 pb-11 ps-25 pe-25 pt-md-12 pb-md-12 ps-md-35 pe-md-35 rounded-1 fs-md-15 fs-lg-16 bg-success"
+                    :disabled="newOrderData.paniers.length == 0 && orderTypeSelected === null"
+                    :class="{ 'opacity-50 cursor-not-allowed': newOrderData.paniers.length == 0 && orderTypeSelected === null  }"
+                    @click="nextStep"
+                >
+                  Suivant
+                </button>
+              </div>
+            </div>
+            <div
+                class="tab-pane fade show"
+                :class="{'active' : stepForm === 2}"
+                id="shipping-details-tab-pane"
+                role="tabpanel"
+                tabindex="0"
+            >
+              <form>
                 <div class="row">
-                  <div class="col-lg-12">
+                  <div class="col-12">
                     <div
-                        class="card mb-25 border-0 rounded-0 bg-white shopping-cart-box letter-spacing"
+                        class="card mb-25 border-0 rounded-0 bg-white order-summary-box letter-spacing"
                     >
+
                       <div class="card-body">
                         <div class="table-responsive">
                           <table class="table text-nowrap align-middle mb-0">
@@ -107,7 +198,7 @@
                                   scope="col"
                                   class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
                               >
-                               Nom du produit
+                                Nom du produit
                               </th>
                               <th
                                   scope="col"
@@ -142,10 +233,10 @@
                             </thead>
                             <tbody>
                             <template v-if="newOrderData.paniers.length > 0">
-                            <tr
-                                v-for="panier in newOrderData.paniers" :key="panier.product_id.id"
-                            >
-                              <th class="shadow-none fw-medium text-black product-title">
+                              <tr
+                                  v-for="panier in newOrderData.paniers" :key="panier.product_id.id"
+                              >
+                                <th class="shadow-none fw-medium text-black product-title">
                                 <span
 
                                     class="d-flex align-items-center text-decoration-none text-black fs-md-15 fs-lg-16"
@@ -158,43 +249,43 @@
                                   />
                                   {{panier.product_id.name}}
                                 </span>
-                              </th>
-                              <td class="shadow-none lh-1">
-                                <div class="number-counter" id="number-counter">
-                                  <button type="button" @click="decrementQuantity(panier)">
-                                    <i class="flaticon-minus"></i>
+                                </th>
+                                <td class="shadow-none lh-1">
+                                  <div class="number-counter" id="number-counter">
+                                    <button type="button" @click="decrementQuantity(panier)">
+                                      <i class="flaticon-minus"></i>
+                                    </button>
+                                    <input
+                                        type="number"
+                                        id="quantity-1"
+                                        v-model="panier.quantity"
+                                    />
+                                    <button type="button" @click="incrementQuantity(panier)">
+                                      <i class="flaticon-plus"></i>
+                                    </button>
+                                  </div>
+                                </td>
+                                <td class="shadow-none lh-1 fw-medium text-paragraph">
+                                  {{getTotalPrice(panier.specification_id, panier.quantity)}} CHF
+                                </td>
+                                <td class="shadow-none lh-1 fw-medium text-paragraph">
+                                  <a @click="addIgredientToPanier(panier)" class="text-primary fw-medium text-decoration-underline cursor-pointer" type="button" data-bs-toggle="modal" data-bs-target="#contentModalScrollable_ingredient">
+                                    {{panier.ingredient.length > 0 ? panier.ingredient.length + ' Ingredients' : 'Aucun ingredient'}}
+                                  </a>
+                                </td>
+                                <td class="shadow-none lh-1 fw-medium text-paragraph">
+                                  {{getTotalListeIngredientPrice(panier.ingredient) + getTotalPrice(panier.specification_id, panier.quantity)}} CHF
+                                </td>
+                                <td class="shadow-none lh-1">
+                                  <button
+                                      type="button"
+                                      class="bg-transparent p-0 border-0 text-paragraph fs-15 fs-md-16 fs-lg-18"
+                                      @click="removePanier(panier.product_id)"
+                                  >
+                                    <i class="ph-duotone ph-trash"></i>
                                   </button>
-                                  <input
-                                      type="number"
-                                      id="quantity-1"
-                                      v-model="panier.quantity"
-                                  />
-                                  <button type="button" @click="incrementQuantity(panier)">
-                                    <i class="flaticon-plus"></i>
-                                  </button>
-                                </div>
-                              </td>
-                              <td class="shadow-none lh-1 fw-medium text-paragraph">
-                              {{getTotalPrice(panier.specification_id, panier.quantity)}} CHF
-                              </td>
-                              <td class="shadow-none lh-1 fw-medium text-paragraph">
-                                <a @click="addIgredientToPanier(panier)" class="text-primary fw-medium text-decoration-underline cursor-pointer" type="button" data-bs-toggle="modal" data-bs-target="#contentModalScrollable_ingredient">
-                                  {{panier.ingredient.length > 0 ? panier.ingredient.length + ' Ingredients' : 'Aucun ingredient'}}
-                                </a>
-                              </td>
-                              <td class="shadow-none lh-1 fw-medium text-paragraph">
-                                {{getTotalListeIngredientPrice(panier.ingredient) + getTotalPrice(panier.specification_id, panier.quantity)}} CHF
-                              </td>
-                              <td class="shadow-none lh-1">
-                                <button
-                                    type="button"
-                                    class="bg-transparent p-0 border-0 text-paragraph fs-15 fs-md-16 fs-lg-18"
-                                    @click="removePanier(panier.product_id)"
-                                >
-                                  <i class="ph-duotone ph-trash"></i>
-                                </button>
-                              </td>
-                            </tr>
+                                </td>
+                              </tr>
                             </template>
                             <tr v-else>
                               <EmptyTable
@@ -246,7 +337,7 @@
                           <div class="col-md-12" v-if="orderDemandeCouvert">
                             <div class="form-group mb-15 mb-sm-20 mb-md-25">
                               <label class="d-block text-black fw-semibold mb-10">
-                               Quantité de couverts
+                                Quantité de couverts
                               </label>
                               <input
                                   type="number"
@@ -278,26 +369,38 @@
                             </div>
                           </div>
                         </div>
-
                       </div>
                     </div>
                   </div>
+
                 </div>
               </form>
-              <div class="text-end">
+              <div class="d-sm-flex align-items-center justify-content-between">
+                <span
+                    @click="previousStep"
+                    class="d-inline-block mb-12 mb-sm-0 fs-14 fs-md-15 fs-lg-16 fw-medium text-decoration-none cursor-pointer"
+                >
+                  <i
+                      class="flaticon-left-arrow lh-1 me-5 position-relative top-2"
+                  ></i>
+                  Retour
+                </span>
                 <button
                     class="default-btn transition border-0 fw-medium text-white pt-11 pb-11 ps-25 pe-25 pt-md-12 pb-md-12 ps-md-35 pe-md-35 rounded-1 fs-md-15 fs-lg-16 bg-success"
-                    :disabled="newOrderData.paniers.length == 0 && orderTypeSelected === null"
-                    :class="{ 'opacity-50 cursor-not-allowed': newOrderData.paniers.length == 0 && orderTypeSelected === null  }"
+                    :disabled="!isFormValid"
+                    :class="{'opacity-50 cursor-not-allowed': !isFormValid }"
                     @click="nextStep"
                 >
-                  Suivant
+                  Enregistrer & Suivant
+                  <i
+                      class="flaticon-right-arrow position-relative ms-5 top-2"
+                  ></i>
                 </button>
               </div>
             </div>
             <div
                 class="tab-pane fade show"
-                :class="{'active' : stepForm === 2}"
+                :class="{'active' : stepForm === 3}"
                 id="shipping-details-tab-pane"
                 role="tabpanel"
                 tabindex="0"
@@ -471,7 +574,7 @@
             </div>
             <div
               class="tab-pane fade show"
-              :class="{'active' : stepForm === 3}"
+              :class="{'active' : stepForm === 4}"
               id="payment-method-tab-pane"
               role="tabpanel"
               tabindex="0"
@@ -547,6 +650,7 @@
       </div>
     </div>
     <div class="col-xxl-4">
+
       <div
         class="card mb-25 border-0 rounded-0 bg-white order-summary-box letter-spacing"
       >
@@ -603,18 +707,11 @@
                {{getTotalPriceForAllPanier}} CHF
               </span>
             </li>
-            <li class="d-flex align-items-center justify-content-between">
-              <span class="d-block text-paragraph fw-medium">
-                Frais de livraison
-              </span>
-              <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-                + 0 CHF
-              </span>
-            </li>
+
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> Remise </span>
               <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-                - 0 CHF
+                 0 CHF
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
@@ -622,7 +719,7 @@
                 TVA
               </span>
               <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-                CHE - 372.776.093 TVA
+                2.6%
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
@@ -852,22 +949,22 @@
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import {
   createNewOrder,
-  fetchAllPostalCode,
+  fetchAllPostalCode, listeCategorieActive,
   listeIngredient,
   listeMethodePaiement,
   listeOrderType,
-  listeProducts
+  listeProducts, listeRestaurantProduct
 } from "@/service/api";
 import {useToast} from "vue-toastification";
 import {CartModel} from "@/models/cart.model";
 import {InstructionOrderModel} from "@/models/intructionOrder.model";
 import {NewOrderModel} from "@/models/newOrder.model";
 import {
-  ApiResponse,
+  ApiResponse, PaginatedCategorie,
   PaginatedIngredient,
   PaginatedMethodePaiement,
   PaginatedOrderType,
-  PaginatedProduct
+  PaginatedProduct, PaginatedRestaurantProduct
 } from "@/models/Apiresponse";
 import {IngredientModel} from "@/models/ingredient.model";
 import {ProductModel} from "@/models/product.model";
@@ -879,6 +976,9 @@ import {OrderTypeModel} from "@/models/orderType.model";
 import {CodepostalModel} from "@/models/codepostal.model";
 import {MethodePaiementModel} from "@/models/methodePaiement.model";
 import {OrderModel} from "@/models/order.model";
+import {CategorieModel} from "@/models/categorie.model";
+import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
+import {RestaurantProductModel} from "@/models/RestaurantProduct.model";
 
 export default defineComponent({
   name: "VabeneAddOrder",
@@ -894,6 +994,11 @@ export default defineComponent({
       productQuantity: "1" as string | "1",
       productResponse: null as ApiResponse<PaginatedProduct> | null,
       originalProducts: [] as ProductModel[],
+      originalCategories: [] as CategorieModel[], // Stockage des utilisateurs originaux
+      categorieSelected: null as CategorieModel | null,
+      userRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
+      productRestaurantResponse: null as ApiResponse<PaginatedRestaurantProduct> | null,
+      originalRestaurantProducts: [] as RestaurantProductModel[],
       currentPage: 1 ,
       searchQuery: '', // Ajout du champ de recherche
       newOrderData: {
@@ -936,6 +1041,87 @@ export default defineComponent({
     }
   },
   methods: {
+    chunkArray<ProductModel>(arr: ProductModel[], size: number): ProductModel[][] {
+      const chunks: ProductModel[][] = []
+      for (let i = 0; i < arr.length; i += size) {
+        chunks.push(arr.slice(i, i + size))
+      }
+      return chunks
+    },
+    async fetchCategories(page = 1) {
+      this.isLoading = true;
+      try {
+        const response = await listeCategorieActive(page, "0") as ApiResponse<PaginatedCategorie>;
+        console.log(response)
+        if (response.code === 200) {
+          if (response.data?.items) {
+            this.originalCategories = response.data.items;
+            this.categorieSelected = this.originalCategories[0];
+            console.log("categorie default: ", this.categorieSelected)
+            if(this.userRole === UserRole.FRANCHISE){
+              await  this.fetchProduct(1, "existing", this.categorieSelected.id);
+            }
+            else{
+              await this.fetchRestaurantProduct(1, this.categorieSelected.id)
+            }
+          }
+        } else {
+          this.toast.error(response.message);
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des categories");
+        console.error(error);
+      }
+    },
+    async fetchProduct(page = 1, filter: string, categorieID?: string) {
+      const payload = {
+        "categorieID": categorieID
+      }
+      this.isLoading = true;
+      try {
+        const response = await listeProducts(page, "0" ,filter, payload) as ApiResponse<PaginatedProduct>;
+        console.log(response)
+        if (response.code === 200) {
+          this.productResponse = response;
+          if (response.data?.items) {
+            this.originalProducts = response.data.items;
+          }
+          if (response.data && response.data.pagination) {
+            this.currentPage = response.data.pagination.current_page;
+          }
+        } else {
+          this.toast.error(response.message);
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des categories");
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async fetchRestaurantProduct(page = 1, categoryId: string) {
+      this.isLoading = true;
+      try {
+        const response = await listeRestaurantProduct(page, "1" , categoryId as string) as ApiResponse<PaginatedRestaurantProduct>;
+        console.log(response)
+        if (response.code === 200) {
+          this.productRestaurantResponse = response;
+          if (response.data?.items) {
+            this.originalRestaurantProducts = response.data.items;
+          }
+          if (response.data && response.data.pagination) {
+            this.currentPage = response.data.pagination.current_page;
+          }
+        } else {
+          this.toast.error(response.message);
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des categories");
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
     getMethodePaiementParType(
         liste: MethodePaiementModel[],
         type: string
@@ -1202,33 +1388,6 @@ export default defineComponent({
         this.isLoading = false;
       }
     },
-    async fetchProduct(page = 1, filter: string) {
-      const payload = {
-        "codePostal": "",
-        "categorieID": ""
-      }
-      this.isLoading = true;
-      try {
-        const response = await listeProducts(page, "0" ,filter, payload) as ApiResponse<PaginatedProduct>;
-        console.log(response)
-        if (response.code === 200) {
-          this.productResponse = response;
-          if (response.data?.items) {
-            this.originalProducts = response.data.items;
-          }
-          if (response.data && response.data.pagination) {
-            this.currentPage = response.data.pagination.current_page;
-          }
-        } else {
-          this.toast.error(response.message);
-        }
-      } catch (error) {
-        this.toast.error("Erreur lors du chargement des categories");
-        console.error(error);
-      } finally {
-        this.isLoading = false;
-      }
-    },
     handleInput(event, type) {
       console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
@@ -1307,6 +1466,9 @@ export default defineComponent({
 
   },
   computed: {
+    produitsParTrois(): ProductModel[][]{
+     return this.chunkArray(this.allProducts, 3)
+    },
     allIngredient(): IngredientModel[] {
       const ingredients = this.ingredientResponse?.data?.items || this.originalIngredients;
       if (!this.searchIngredientQuery) return ingredients;
@@ -1387,6 +1549,19 @@ export default defineComponent({
     }
   },
   watch: {
+    categorieSelected(newVal, oldVal) {
+      if (typeof newVal === 'string' && newVal !== oldVal) {
+        console.log("Nouvelle catégorie sélectionnée :", newVal);
+        this.categorieSelected = this.originalCategories.find(c => c.id === newVal) ?? null;
+        if(this.userRole === UserRole.FRANCHISE){
+          this.fetchProduct(1, "existing", newVal); // ou newVal.id selon le besoin
+        }
+        else{
+          this.fetchRestaurantProduct(1,  newVal);
+        }
+
+      }
+    },
     orderTypeSelected(this: any, newVal){
       if (!newVal) return
       const newValue = newVal as OrderTypeModel
@@ -1405,6 +1580,7 @@ export default defineComponent({
         modal.show()
       }
     },
+
     ingredientSelected(this: any, newVal) {
       if (!newVal) return
       this.ingredientSelected = newVal
@@ -1455,7 +1631,7 @@ export default defineComponent({
     return { toast };
   },
   mounted() {
-    this.fetchProduct(1, "active");
+    this.fetchCategories(1)
     this.fetchIngredients(1)
     this.fetchOrderType(1)
     this.fetchPostalCode()

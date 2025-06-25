@@ -29,9 +29,25 @@
       >
         <!--     TABLEAU DE BORD-->
         <li class="sidebar-nav-item">
-          <router-link to="/home" class="sidebar-nav-link d-block">
+          <router-link to="/home" class="sidebar-nav-link d-block"
+
+          >
             <i class="flaticon-more-1"></i>
             <span class="title">Tableau de bord</span>
+          </router-link>
+        </li>
+
+        <!-- POS -->
+        <li class="sub-title sidebar-nav-item">
+          <span class="d-block text-uppercase fw-medium">POS</span>
+        </li>
+
+        <!--     POS SYSTEM-->
+        <li class="sidebar-nav-item">
+          <router-link to="/ajout-commande" class="sidebar-nav-link d-block" @click="stateStoreInstance.onChange"
+          >
+            <i class="flaticon-shopping-cart-2"></i>
+            <span class="title">POS Système</span>
           </router-link>
         </li>
 
@@ -339,7 +355,7 @@
 
 
 
-        <!--        TEMPLATE DASHBOARD ITEM-->
+<!--        &lt;!&ndash;        TEMPLATE DASHBOARD ITEM&ndash;&gt;-->
 <!--        <li-->
 <!--          class="sidebar-nav-item accordion-item bg-transparent border-0 rounded-0"-->
 <!--        >-->
@@ -2004,7 +2020,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import {defineComponent, onMounted, ref} from "vue";
 import stateStore from "../../utils/store";
 import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 
@@ -2037,6 +2053,7 @@ export default defineComponent({
   },
   mounted() {
     //this.intervalId = setInterval(this.checkTokenValidity, 10000); // 10 sec
+
   },
   beforeUnmount() {
     // Nettoyage à la destruction du composant
@@ -2044,9 +2061,19 @@ export default defineComponent({
   },
   setup() {
     const stateStoreInstance = stateStore;
+    const isSticky = ref(false);
+    onMounted(() => {
+      window.addEventListener("scroll", () => {
+        let scrollPos = window.scrollY;
+        isSticky.value = scrollPos >= 100;
+      });
+    });
+
     return {
       stateStoreInstance,
+      isSticky
     };
   },
 });
 </script>
+

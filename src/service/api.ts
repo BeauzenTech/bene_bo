@@ -762,7 +762,7 @@ export const createProduct = async (productData): Promise<ApiResponse<any>> =>{
 };
 
 
-export const listeProducts = async (page = 1, usePagination: string ,filter: string, filterData): Promise<ApiResponse<PaginatedProduct>> => {
+export const listeProducts = async (page = 1, usePagination: string , filter: string, filterData): Promise<ApiResponse<PaginatedProduct>> => {
     // eslint-disable-next-line no-useless-catch
     try {
         const response = await apiClient.post(`/product/filter/${filter}/${usePagination}?page=${page}`, filterData);
