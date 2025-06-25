@@ -64,7 +64,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-4 mb-20">
+          <div class="col-md-3 mb-20">
             <!-- Toggle switch -->
             <label class="d-block text-black fw-semibold mb-10">
              Ajouter pointrine de Dinde
@@ -79,7 +79,7 @@
 
             </div>
           </div>
-          <div class="col-md-4 mb-20">
+          <div class="col-md-3 mb-20">
             <!-- Toggle switch -->
             <label class="d-block text-black fw-semibold mb-10">
               Ajouter Jambon
@@ -94,7 +94,7 @@
 
             </div>
           </div>
-          <div class="col-md-4 mb-20">
+          <div class="col-md-3 mb-20">
             <!-- Toggle switch -->
             <label class="d-block text-black fw-semibold mb-10">
               Ajouter sucre glace
@@ -105,6 +105,21 @@
                   type="checkbox"
                   v-model="addSucrePoudre"
                   @change="toggleSucrePoudre"
+              />
+
+            </div>
+          </div>
+          <div class="col-md-3 mb-20">
+            <!-- Toggle switch -->
+            <label class="d-block text-black fw-semibold mb-10">
+              Supprimer toutes les options
+            </label>
+            <div class="form-check form-switch">
+              <input
+                  class="form-check-input"
+                  type="checkbox"
+                  v-model="deleteAllOptions"
+                  @change="toggleDeleAllOptions"
               />
 
             </div>
@@ -120,6 +135,20 @@
                   label="name"
                   :reduce="categorie => categorie.id"
                   placeholder="Selectionner une categorie"
+              />
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Positionnement
+              </label>
+              <input
+                  type="number"
+                  class="form-control shadow-none rounded-0 text-black"
+                  placeholder="e.g. Poivre"
+                  v-model="productData.ordered"
+
               />
             </div>
           </div>
@@ -444,6 +473,7 @@ export default defineComponent({
       searchIngredientQuery: '', // Ajout du champ de recherche
       additionalNote: [] as string[],
       addtionPointrineDine: false as boolean,
+      deleteAllOptions: false as boolean,
       addtionJambon: false as boolean,
       addSucrePoudre: false as boolean,
       productData: {
@@ -456,7 +486,8 @@ export default defineComponent({
         image_urls: [] as string[],
         ingredients: [],
         cookingTime: 0 as number,
-        variationsProduct: []
+        variationsProduct: [],
+        ordered: ''
       },
       isLoading: false,
       logoUpload: null,
@@ -489,6 +520,12 @@ export default defineComponent({
         }
       }
       console.log(this.additionalNote)
+    },
+    toggleDeleAllOptions(){
+      this.addtionPointrineDine = false
+      this.addtionJambon = false
+      this.addSucrePoudre = false
+      this.additionalNote = [];
     },
     togglePointrineDine() {
       const poitrine = "Pointrine de Dinde";
@@ -635,6 +672,7 @@ export default defineComponent({
         ingredients: [],
         cookingTime: 0 as number,
         variationsProduct: [],
+        ordered: ''
       }
       // setTimeout(() => {
       //   window.location.reload();
@@ -656,7 +694,7 @@ export default defineComponent({
           "variationsProduct": this.productData.variationsProduct,
           "longDescription": this.productData.longDescription,
           "additionnal": this.additionalNote,
-
+          "ordered": String(this.productData.ordered)
         }
         try {
           const response = await createProduct(payload);
@@ -699,6 +737,7 @@ export default defineComponent({
             this.productData.image_urls = this.productResponse.image_urls;
             this.productData.cookingTime = this.productResponse.cookingTime;
             this.productData.categorieID = this.productResponse.categorieID.id;
+            this.productData.ordered = this.productResponse.ordered
             if(this.productResponse.longDescription){
               this.productData.longDescription = this.productResponse.longDescription;
             }
@@ -752,7 +791,8 @@ export default defineComponent({
         "ingredients": this.productData.ingredients,
         "cookingTime": parseFloat(String(this.productData.cookingTime)),
         "longDescription": this.productData.longDescription,
-        "additionnal": this.additionalNote,
+        "additionnal": this.deleteAllOptions ? [] : this.additionalNote,
+        "ordered": String(this.productData.ordered)
       }
       try {
         const response = await updateProduct(productID, payload);

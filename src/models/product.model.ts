@@ -21,4 +21,5 @@ export interface ProductModel {
     isVedette: boolean;
     isSelected: boolean;
     created_at: string;
+    ordered: string;
 }
