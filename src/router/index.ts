@@ -187,7 +187,8 @@ import VabeneAddNotificationPage from "@/pages/Vabene/Notification/VabeneAddNoti
 import VaBeneNotificationListPage from "@/pages/Vabene/Notification/VaBeneNotificationListPage.vue";
 import VabeneInfoFranchisePage from "@/pages/Vabene/Franchise/VabeneInfoFranchisePage.vue";
 import MotPasseOubliePage from "@/pages/Authentication/MotPasseOubliePage.vue";
-
+import VabeneAddCouponPage from "@/pages/Vabene/Coupon/VabeneAddCouponPage.vue";
+import VaBeneCouponListPage from "@/pages/Vabene/Coupon/VaBeneCouponListPage.vue";
 
 const routes = [
     // DASHBOARD HOME
@@ -392,6 +393,21 @@ const routes = [
     props: route => ({
       action: String(route.params.action),
       notificationID: route.params.notificationID ? String(route.params.notificationID) : undefined
+    })
+  },
+
+  {
+    path: "/list-coupon",
+    name: "VaBeneCouponListPage",
+    component: VaBeneCouponListPage,
+  },
+  {
+    path: "/ajout-coupon/:action/:couponID?",
+    name: "VabeneAddCouponPage",
+    component: VabeneAddCouponPage,
+    props: route => ({
+      action: String(route.params.action),
+      couponID: route.params.couponID ? String(route.params.couponID) : undefined
     })
   },
 

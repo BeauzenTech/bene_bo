@@ -129,14 +129,22 @@
                     Produits
                   </router-link>
                 </li>
-<!--                <li class="sidebar-sub-menu-item">-->
-<!--                  <router-link-->
-<!--                      to="/loyalty_programme-list"-->
-<!--                      class="sidebar-sub-menu-link"-->
-<!--                  >-->
-<!--                    Loyalty programme-->
-<!--                  </router-link>-->
-<!--                </li>-->
+                <li class="sidebar-sub-menu-item">
+                  <router-link
+                      to="/list-coupon"
+                      class="sidebar-sub-menu-link"
+                  >
+                    Coupon
+                  </router-link>
+                </li>
+                <li class="sidebar-sub-menu-item">
+                  <router-link
+                      to="/loyalty_programme-list"
+                      class="sidebar-sub-menu-link"
+                  >
+                    Loyalty programme
+                  </router-link>
+                </li>
               </ul>
             </div>
           </div>

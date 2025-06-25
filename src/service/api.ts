@@ -3,7 +3,7 @@ import axios, { AxiosResponse } from "axios";
 
 import { apiConfig } from "@/config/baseUrl";
 import {
-    ApiResponse, PaginatedCampagne, PaginatedCategorie, PaginatedCustomer,
+    ApiResponse, PaginatedCampagne, PaginatedCategorie, PaginatedCoupon, PaginatedCustomer,
     PaginatedFrachises, PaginatedIngredient, PaginatedMethodePaiement, PaginatedNotification,
     PaginatedOrder, PaginatedOrderType, PaginatedPayment, PaginatedProduct,
     PaginatedRestaurant,
@@ -863,6 +863,44 @@ export const listeNotification = async (page = 1): Promise<ApiResponse<Paginated
     // eslint-disable-next-line no-useless-catch
     try {
         const response = await apiClient.get(`/v1/notification/all?page=${page}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+// COUPON
+
+
+export const createCoupon = async (couponData): Promise<ApiResponse<any>> =>{
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/v1/coupon/order', couponData);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la creation du coupon", error);
+        throw error;
+    }
+};
+
+export const disableCoupon = async (code): Promise<ApiResponse<any>> =>{
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post(`/v1/coupon/order/disable/${code}`);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la desactivation du coupon", error);
+        throw error;
+    }
+};
+
+
+export const listeCoupon = async (page = 1): Promise<ApiResponse<PaginatedCoupon>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/v1/coupon/order/all?page=${page}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,

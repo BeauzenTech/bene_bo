@@ -153,7 +153,13 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import {SellModel} from "@/models/vente.model";
-import {listeRestaurant, reportPeriodiqueCard, reportVenteAdmin, reportVenteRestaurant} from "@/service/api";
+import {
+  detailRestaurant,
+  listeRestaurant,
+  reportPeriodiqueCard,
+  reportVenteAdmin,
+  reportVenteRestaurant
+} from "@/service/api";
 import {ApiResponse, PaginatedRestaurant} from "@/models/Apiresponse";
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
@@ -165,6 +171,7 @@ import VabeneTauxOrderCategorieDate from "@/components/Vabene/Order/OrderReportS
 import VabeneNombreCommandeProductDate
   from "@/components/Vabene/Order/OrderReportSells/VabeneNombreCommandeProductDate.vue";
 import {RestaurantModel} from "@/models/restaurant.model";
+import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 
 export default defineComponent({
   name: "VabenerReportSell",
@@ -281,24 +288,52 @@ export default defineComponent({
     }
   },
   methods:{
-    async fetchRestaurants(page = 1) {
+    async fetchDetailRestaurant(restaurantID) {
       this.isLoading = true;
       try {
-        const response = await listeRestaurant(page) as ApiResponse<PaginatedRestaurant>;
+        const response = await detailRestaurant(restaurantID) as ApiResponse<RestaurantModel>;
         console.log(response)
         if (response.code === 200) {
-          if (response.data?.items) {
-            this.originalRestaurant = [(this.fakeAllOptionFranchise as RestaurantModel), ...response.data.items];
+          if(response.data){
+            const dt = response.data
+            this.originalRestaurant = [dt]
           }
         } else {
           this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des restaurant");
+        this.toast.error("Erreur lors du chargement des categories");
         console.error(error);
       } finally {
         this.isLoading = false;
       }
+    },
+    async fetchRestaurants(page = 1) {
+      const userRole = localStorage.getItem(UserGeneralKey.USER_ROLE);
+      if(userRole === UserRole.RESTAURANT){
+        const restoId = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
+        await this.fetchDetailRestaurant(restoId)
+      }
+      else{
+        this.isLoading = true;
+        try {
+          const response = await listeRestaurant(page) as ApiResponse<PaginatedRestaurant>;
+          console.log(response)
+          if (response.code === 200) {
+            if (response.data?.items) {
+              this.originalRestaurant = [(this.fakeAllOptionFranchise as RestaurantModel), ...response.data.items];
+            }
+          } else {
+            this.toast.error(response.message);
+          }
+        } catch (error) {
+          this.toast.error("Erreur lors du chargement des restaurant");
+          console.error(error);
+        } finally {
+          this.isLoading = false;
+        }
+      }
+
     },
     async getReportAdmin(restaurantId?: string){
       try {

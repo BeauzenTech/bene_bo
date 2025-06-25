@@ -11,6 +11,7 @@ import {ProductModel} from "@/models/product.model";
 import {CustomerModel} from "@/models/customer.model";
 import {CampagneModel} from "@/models/campagne.model";
 import {NotificationModel} from "@/models/notification.model";
+import {CouponModel} from "@/models/coupon.model";
 
 export class ApiResponse<T> {
     code?: number;
@@ -147,6 +148,16 @@ export interface PaginatedCampagne {
 
 export interface PaginatedNotification {
     items: NotificationModel[];
+    pagination: {
+        current_page: number;
+        total_items: number;
+        total_pages: number;
+        items_per_page: number;
+    };
+}
+
+export interface PaginatedCoupon {
+    items: CouponModel[];
     pagination: {
         current_page: number;
         total_items: number;
