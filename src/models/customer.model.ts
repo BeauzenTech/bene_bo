@@ -1,3 +1,5 @@
+import {UserModel} from "@/models/user.model";
+
 export interface CustomerModel{
     id: string
     firstName: string
@@ -10,4 +12,17 @@ export interface CustomerModel{
     batiment: string
     rue: string
     created_at: string
+    user: UserModel
+    civilite: string
+    npa: string
+    localite: string
+    numeroRue: string
+    remarqueCommande: string[],
+    typesCommandes: string[],
+    demandeCouverts: number[],
+    moyenPaiements: string[],
+    type: string,
+    listeCuisson: string[]
+
 }
+
