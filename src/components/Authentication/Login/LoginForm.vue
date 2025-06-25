@@ -53,7 +53,7 @@
                 </label>
               </div>
               <router-link
-                  to="/forgot-password"
+                  to="/password-oublie"
                   class="forgot-password-btn fs-md-15 fs-lg-16 text-decoration-none position-relative text-primary"
               >
                 Mot de passe oublié?

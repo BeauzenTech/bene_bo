@@ -186,6 +186,9 @@ import VaBeneCampagneListPage from "@/pages/Vabene/Campagne/VaBeneCampagneListPa
 import VabeneAddNotificationPage from "@/pages/Vabene/Notification/VabeneAddNotificationPage.vue";
 import VaBeneNotificationListPage from "@/pages/Vabene/Notification/VaBeneNotificationListPage.vue";
 import VabeneInfoFranchisePage from "@/pages/Vabene/Franchise/VabeneInfoFranchisePage.vue";
+import MotPasseOubliePage from "@/pages/Authentication/MotPasseOubliePage.vue";
+
+
 const routes = [
     // DASHBOARD HOME
   {
@@ -193,6 +196,17 @@ const routes = [
     name: "VabeneDashPage",
     component: VabeneDashPage,
   },
+  {
+    path: "/password-oublie",
+    name: "MotPasseOubliePage",
+    component: MotPasseOubliePage,
+  },
+  {
+    path: "/reset-password",
+    name: "ResetPasswordPage",
+    component: ResetPasswordPage,
+  },
+
 
     // CRUD USER
   {

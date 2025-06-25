@@ -88,6 +88,28 @@ export const loginCheck = async (auth): Promise<ApiResponse<any>> =>{
     }
 };
 
+// Fonction pour se connecter
+export const resetPasswordStepOne = async (email): Promise<ApiResponse<any>> =>{
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/user/reset_password', email);
+        return response.data
+    } catch (error) {
+        console.error("Erreur lors de la reinitialisation de password.", error);
+        throw error;
+    }
+};
+
+// Fonction pour se connecter
+export const resetPasswordStepTwo = async (resetData): Promise<ApiResponse<any>> =>{
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put('/user/reset_password/update', resetData);
+        return response.data
+    } catch (error) {
+        console.error("Erreur lors de la tentative de connection.", error);
+        throw error;
+    }
+};
+
 // Fonction pour créer un utilisateur peut importe son role
 export const createUser = async (userData): Promise<ApiResponse<any>> =>{
     try {
@@ -156,6 +178,15 @@ export const updateUser = async (userID: string, userData): Promise<ApiResponse<
     }
 };
 
+export const updateUserPassword = async (userID: string, userData): Promise<ApiResponse<any>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/user/password/${userID}`, userData);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du compte utilisateur.', error);
+        throw error;
+    }
+};
 // Fonction pour mettre a jour un compte utilisateur
 export const toggleActivationUser = async (userID: string, userData): Promise<ApiResponse<any>> => {
     try {

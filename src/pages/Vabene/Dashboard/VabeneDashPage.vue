@@ -1,6 +1,13 @@
 <template>
-  <div class="col bg-white p-4">
-    <div class="row">
+  <div
+      v-if="isLoading"
+      class="d-flex justify-content-center align-items-center position-fixed top-0 start-0 w-100 h-100"
+      style="z-index: 9999;"
+  >
+    <LoaderComponent />
+  </div>
+  <div v-if="!isLoading" class="col bg-white p-4">
+    <div class="row" >
       <div class="col-xxl-7 col-xxxl-6" v-if="periodiqueReportCard">
         <WhatHappening :orderAmount="String(periodiqueReportCard.currentMonth.value) ?? '0'" id="whatHappening" />
       </div>
@@ -138,10 +145,12 @@ import {ApiResponse} from "@/models/Apiresponse";
 import {SellModel} from "@/models/vente.model";
 import {useToast} from "vue-toastification";
 import VabeneNombreCommandeProductDate  from "@/components/Vabene/Order/OrderReportSells/VabeneNombreCommandeProductDate.vue";
+import LoaderComponent from "@/components/Loading/Loader.vue";
 
 export default defineComponent({
   name: "VabeneDashPage",
   components: {
+    LoaderComponent,
     WhatHappening,
     VabeneNombreCommandeProductDate
   },
@@ -291,11 +300,13 @@ export default defineComponent({
       }
     },
   },
+
   setup() {
     const toast = useToast();
     return { toast };
   },
   async mounted(){
+
     await this.getReportAdmin();
     await this.getPeriodiqueReport()
   },

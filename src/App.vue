@@ -72,7 +72,7 @@ export default defineComponent({
     const toast = useToast();
 
     const route = useRoute();
-    const isLoginPage = computed(() => route.name === "LoginPage");
+    const isLoginPage = computed(() => route.name === "LoginPage" || route.name === "MotPasseOubliePage");
     const stateStoreInstance = stateStore;
     watchEffect(() => {
       if (stateStoreInstance.open) {

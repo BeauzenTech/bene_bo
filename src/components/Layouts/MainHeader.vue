@@ -461,8 +461,18 @@
                   <i class="flaticon-user-2"></i>
                   Mon compte
                   <a
-                    @click="gotoUserDetail"
+                    @click="gotoUserDetail(ActionCrud.EDIT)"
                     class="d-block position-absolute start-0 top-0 end-0 bottom-0 text-decoration-none"
+                  ></a>
+                </li>
+                <li
+                    class="text-body-secondary fw-semibold transition position-relative cursor-pointer"
+                >
+                  <i class="flaticon-user-2"></i>
+                  Modifier mot de passe
+                  <a
+                      @click="gotoUserDetail('password')"
+                      class="d-block position-absolute start-0 top-0 end-0 bottom-0 text-decoration-none"
                   ></a>
                 </li>
 <!--                <li-->
@@ -516,6 +526,11 @@ import {ActionCrud} from "@/enums/actionCrud.enum";
 
 export default defineComponent({
   name: "MainHeader",
+  computed: {
+    ActionCrud() {
+      return ActionCrud
+    }
+  },
   components: {
     LightDarkSwtichBtn,
   },
@@ -528,11 +543,11 @@ export default defineComponent({
     }
   },
   methods:{
-    gotoUserDetail(){
+    gotoUserDetail(action){
       const userID = localStorage.getItem(UserGeneralKey.USER_ID)
       this.$router.push({
         name: "VabeneAddUserPage",
-        params: { action: ActionCrud.EDIT ,userID: userID }
+        params: { action: action ,userID: userID }
       });
     },
     getRoleName(role: string){

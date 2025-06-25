@@ -1,5 +1,6 @@
 <template>
-  <BreadCrumb PageTitle="Ajouter un utilisateur" />
+  <BreadCrumb v-if="action ==='add'" PageTitle="Ajouter un utilisateur" />
+  <BreadCrumb v-else PageTitle="Mettre a jour mes informations" />
   <VabeneAddUser :action="action ?? 'add'" :userID="userID ?? ''" />
 </template>
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="card mb-25 border-0 rounded-0 bg-white add-user-card">
+  <div v-if="action === ActionCrud.ADD || action === ActionCrud.EDIT" class="card mb-25 border-0 rounded-0 bg-white add-user-card">
     <div class="card-body p-15 p-sm-20 p-md-25 p-lg-30 letter-spacing">
       <form @submit.prevent="createNewAccount">
         <div class="row">
@@ -211,227 +211,6 @@
             </div>
           </div>
 
-<!--          <div class="col-md-12">-->
-<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--              <label class="d-block text-black fw-semibold mb-10">-->
-<!--                Add Some Info-->
-<!--              </label>-->
-<!--              <div class="mb-0">-->
-<!--                <QuillEditor-->
-<!--                  theme="snow"-->
-<!--                  placeholder="Write your meta description"-->
-<!--                  toolbar="full"-->
-<!--                />-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--          <div class="col-md-12">-->
-<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--              <label class="d-block text-black fw-semibold mb-10">Status</label>-->
-<!--              <div-->
-<!--                class="form-check fs-md-15 fs-lg-16 text-black mb-0 d-inline-block me-15 me-md-25"-->
-<!--              >-->
-<!--                <input-->
-<!--                  class="form-check-input shadow-none"-->
-<!--                  type="radio"-->
-<!--                  name="communicationRadio"-->
-<!--                  id="activeRadio"-->
-<!--                  checked-->
-<!--                />-->
-<!--                <label class="form-check-label" for="activeRadio">-->
-<!--                  Active-->
-<!--                </label>-->
-<!--              </div>-->
-<!--              <div-->
-<!--                class="form-check fs-md-15 fs-lg-16 text-black mb-0 d-inline-block me-15 me-md-25"-->
-<!--              >-->
-<!--                <input-->
-<!--                  class="form-check-input shadow-none"-->
-<!--                  type="radio"-->
-<!--                  name="communicationRadio"-->
-<!--                  id="deactivatedRadio"-->
-<!--                />-->
-<!--                <label class="form-check-label" for="deactivatedRadio">-->
-<!--                  Deactivated-->
-<!--                </label>-->
-<!--              </div>-->
-<!--              <div-->
-<!--                class="form-check fs-md-15 fs-lg-16 text-black mb-0 d-inline-block me-15 me-md-25"-->
-<!--              >-->
-<!--                <input-->
-<!--                  class="form-check-input shadow-none"-->
-<!--                  type="radio"-->
-<!--                  name="communicationRadio"-->
-<!--                  id="blockedRadio"-->
-<!--                />-->
-<!--                <label class="form-check-label" for="blockedRadio">-->
-<!--                  Blocked-->
-<!--                </label>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--          <div class="col-md-12">-->
-<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--              <label class="d-block text-black fw-semibold mb-10">-->
-<!--                Designation-->
-<!--              </label>-->
-<!--              <input-->
-<!--                type="text"-->
-<!--                class="form-control shadow-none rounded-0 text-black"-->
-<!--                placeholder="add users designation"-->
-<!--              />-->
-<!--            </div>-->
-<!--          </div>-->
-<!--          <div class="col-md-6">-->
-<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--              <label class="d-block text-black fw-semibold mb-10">-->
-<!--                Company Name-->
-<!--              </label>-->
-<!--              <input-->
-<!--                type="text"-->
-<!--                class="form-control shadow-none rounded-0 text-black"-->
-<!--                placeholder="e.g. EnvyTheme Software"-->
-<!--              />-->
-<!--            </div>-->
-<!--          </div>-->
-<!--          <div class="col-md-6">-->
-<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--              <label class="d-block text-black fw-semibold mb-10">-->
-<!--                Company Website-->
-<!--              </label>-->
-<!--              <input-->
-<!--                type="text"-->
-<!--                class="form-control shadow-none rounded-0 text-black"-->
-<!--                placeholder="http//website.com"-->
-<!--              />-->
-<!--            </div>-->
-<!--          </div>-->
-<!--          <div class="col-md-12">-->
-<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--              <label class="d-block text-black fw-semibold mb-10">-->
-<!--                Who Will Be Able To See Your Profile?-->
-<!--              </label>-->
-<!--              <div-->
-<!--                class="form-check fs-md-15 fs-lg-16 text-black mb-0 d-inline-block me-15 me-md-25"-->
-<!--              >-->
-<!--                <input-->
-<!--                  class="form-check-input shadow-none"-->
-<!--                  type="radio"-->
-<!--                  name="communicationRadio"-->
-<!--                  id="onlyMeRadio"-->
-<!--                  checked-->
-<!--                />-->
-<!--                <label class="form-check-label" for="onlyMeRadio">-->
-<!--                  Only Me-->
-<!--                </label>-->
-<!--              </div>-->
-<!--              <div-->
-<!--                class="form-check fs-md-15 fs-lg-16 text-black mb-0 d-inline-block me-15 me-md-25"-->
-<!--              >-->
-<!--                <input-->
-<!--                  class="form-check-input shadow-none"-->
-<!--                  type="radio"-->
-<!--                  name="communicationRadio"-->
-<!--                  id="onlyFriendsRadio"-->
-<!--                />-->
-<!--                <label class="form-check-label" for="onlyFriendsRadio">-->
-<!--                  Only Friends-->
-<!--                </label>-->
-<!--              </div>-->
-<!--              <div-->
-<!--                class="form-check fs-md-15 fs-lg-16 text-black mb-0 d-inline-block me-15 me-md-25"-->
-<!--              >-->
-<!--                <input-->
-<!--                  class="form-check-input shadow-none"-->
-<!--                  type="radio"-->
-<!--                  name="communicationRadio"-->
-<!--                  id="everyoneRadio"-->
-<!--                />-->
-<!--                <label class="form-check-label" for="everyoneRadio">-->
-<!--                  Everyone-->
-<!--                </label>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--          <div class="col-md-12">-->
-<!--            <label class="d-block text-black fw-semibold mb-10">-->
-<!--              Add Social Media Link-->
-<!--            </label>-->
-<!--            <div class="row">-->
-<!--              <div class="col-md-6">-->
-<!--                <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--                  <div class="input-group">-->
-<!--                    <span-->
-<!--                      class="input-group-text rounded-0 fs-14 fw-bold text-primary"-->
-<!--                    >-->
-<!--                      <i class="ph-bold ph-facebook-logo lh-1 fs-md-18"></i>-->
-<!--                    </span>-->
-<!--                    <input-->
-<!--                      type="text"-->
-<!--                      class="form-control shadow-none rounded-0 text-black"-->
-<!--                      placeholder="facebook@example.com"-->
-<!--                    />-->
-<!--                  </div>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--              <div class="col-md-6">-->
-<!--                <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--                  <div class="input-group">-->
-<!--                    <span-->
-<!--                      class="input-group-text rounded-0 fs-14 fw-bold text-primary"-->
-<!--                    >-->
-<!--                      <i class="ph-fill ph-twitter-logo lh-1 fs-md-18"></i>-->
-<!--                    </span>-->
-<!--                    <input-->
-<!--                      type="text"-->
-<!--                      class="form-control shadow-none rounded-0 text-black"-->
-<!--                      placeholder="twitter@example.com"-->
-<!--                    />-->
-<!--                  </div>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--              <div class="col-md-6">-->
-<!--                <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--                  <div class="input-group">-->
-<!--                    <span-->
-<!--                      class="input-group-text rounded-0 fs-14 fw-bold text-primary"-->
-<!--                    >-->
-<!--                      <i class="ph-bold ph-linkedin-logo lh-1 fs-md-18"></i>-->
-<!--                    </span>-->
-<!--                    <input-->
-<!--                      type="text"-->
-<!--                      class="form-control shadow-none rounded-0 text-black"-->
-<!--                      placeholder="linkedin@example.com"-->
-<!--                    />-->
-<!--                  </div>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--              <div class="col-md-6">-->
-<!--                <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--                  <div class="input-group">-->
-<!--                    <span-->
-<!--                      class="input-group-text rounded-0 fs-14 fw-bold text-primary"-->
-<!--                    >-->
-<!--                      <i class="ph-bold ph-instagram-logo lh-1 fs-md-18"></i>-->
-<!--                    </span>-->
-<!--                    <input-->
-<!--                      type="text"-->
-<!--                      class="form-control shadow-none rounded-0 text-black"-->
-<!--                      placeholder="instagram@example.com"-->
-<!--                    />-->
-<!--                  </div>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--          <div class="col-md-12">-->
-<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--              <label class="d-block text-black fw-semibold mb-10">-->
-<!--                Upload User’s Profile Picture-->
-<!--              </label>-->
-<!--              <ImageUpload />-->
-<!--            </div>-->
-<!--          </div>-->
           <div class="col-md-12">
             <div class="d-flex align-items-center justify-content-between">
 
@@ -462,13 +241,79 @@
       </form>
     </div>
   </div>
+  <div v-if="action === 'password'" class="card mb-25 border-0 rounded-0 bg-white add-user-card">
+    <div class="card-body p-15 p-sm-20 p-md-25 p-lg-30 letter-spacing">
+      <form @submit.prevent="updatePassword">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+               Ancien mot de passe *
+              </label>
+              <input
+                  type="password"
+                  class="form-control shadow-none rounded-0 text-black"
+                  :class="{ 'is-valid': validPassword(resetUserPassword.oldPassword) }"
+                  placeholder="**************"
+                  v-model="resetUserPassword.oldPassword"
+                  @change="(event) => handleInput(event, 'password')"
+
+              />
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Nouveau mot de passe *
+              </label>
+              <input
+                  type="password"
+                  class="form-control shadow-none rounded-0 text-black"
+                  :class="{ 'is-valid': validPassword(resetUserPassword.newPassword) }"
+                  placeholder="**************"
+                  v-model="resetUserPassword.newPassword"
+                  @change="(event) => handleInput(event, 'password')"
+
+              />
+            </div>
+          </div>
+
+
+          <div class="col-md-12">
+            <div class="d-flex align-items-center justify-content-between">
+
+              <LoaderComponent
+                  v-if="isLoading"
+              />
+              <button v-else
+                      class="default-btn transition border-0 fw-medium text-white pt-10 pb-10 ps-25 pe-25 pt-md-11 pb-md-11 ps-md-35 pe-md-35 rounded-1 fs-md-15 fs-lg-16 bg-success"
+                      type="submit"
+                      :disabled="!isUpdateForm"
+                      :class="{ 'opacity-50 cursor-not-allowed': !isUpdateForm }"
+              >
+               Modifier mot de passe
+              </button>
+
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
 import {defineComponent, PropType} from "vue";
 
 
-import {createUser, detailFranchise, detailUser, fetchAllPostalCode, updateUser} from "@/service/api";
+import {
+  createUser,
+  detailFranchise,
+  detailUser,
+  fetchAllPostalCode,
+  updateUser,
+  updateUserPassword
+} from "@/service/api";
 
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
@@ -496,6 +341,10 @@ export default defineComponent({
   },
   data(){
     return{
+      resetUserPassword: {
+        oldPassword: '',
+        newPassword: ''
+      },
       userData: {
         email: '',
         roles: '',
@@ -578,9 +427,43 @@ export default defineComponent({
         }
       }
       else{
-        await this.updateAccount(this.userResponse?.id)
+          await this.updateAccount(this.userResponse?.id)
       }
 
+    },
+    async updatePassword() {
+
+      if(this.userResponse){
+        this.isLoading = true;
+        const payload = {
+          "oldPassword": this.resetUserPassword.oldPassword,
+          "password": this.resetUserPassword.newPassword
+        }
+        try {
+          const response = await updateUserPassword(this.userResponse.id ,payload);
+          console.log(response);
+          if (response.code === 201 || response.code === 200) {
+            this.toast.success(response.message)
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+
+          } else {
+            this.toast.error(response.message)
+          }
+        } catch (error) {
+          const axiosError = error as AxiosError;
+          if (axiosError.response && axiosError.response.data) {
+            const message = (axiosError.response.data as any).message;
+            this.toast.error(message);
+          } else {
+            this.toast.error("Une erreur est survenue");
+          }
+        } finally {
+          this.isLoading = false;
+
+        }
+      }
     },
     async updateAccount(userID) {
       this.isLoading = true;
@@ -679,6 +562,14 @@ export default defineComponent({
           this.userData.email = valueText
           this.validEmail(valueText)
           break
+        case 'old':
+          this.resetUserPassword.oldPassword = valueText
+          this.validPassword(valueText)
+          break
+        case 'new':
+          this.resetUserPassword.newPassword = valueText
+          this.validPassword(valueText)
+          break
         case 'password':
           this.userData.password = valueText
           this.validPassword(valueText)
@@ -763,6 +654,12 @@ export default defineComponent({
     ActionCrud() {
       return ActionCrud
     },
+    isUpdateForm(){
+      return (
+          this.validPassword(this.resetUserPassword.oldPassword) &&
+          this.validPassword(this.resetUserPassword.newPassword)
+      );
+    },
     isFormValid() {
       if(this.actionDetected === ActionCrud.ADD){
         return (
@@ -778,7 +675,6 @@ export default defineComponent({
       else{
         return true
       }
-
     }
   },
   setup: () => {
@@ -811,7 +707,7 @@ export default defineComponent({
   mounted() {
     this.fetchPostalCode();
     this.actionDetected = (this as any).$route.params.action
-    if((this as any).$route.params.action == ActionCrud.EDIT){
+    if((this as any).$route.params.action == ActionCrud.EDIT || (this as any).$route.params.action == 'password'){
       this.fetchDetailUser((this as any).$route.params.userID)
     }
   }
