@@ -676,10 +676,10 @@ export const createIngredient = async (ingredientData): Promise<ApiResponse<any>
 
 
 
-export const listeIngredient = async (page = 1): Promise<ApiResponse<PaginatedIngredient>> => {
+export const listeIngredient = async (page = 1, usePagination: string): Promise<ApiResponse<PaginatedIngredient>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/v1/add/ingredient/filter/all?page=${page}`);
+        const response = await apiClient.get(`/v1/add/ingredient/filter/all/${usePagination}?page=${page}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,

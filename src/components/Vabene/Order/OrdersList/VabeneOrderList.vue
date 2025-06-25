@@ -56,7 +56,7 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0 ps-0"
             >
-             COMMANDE ID
+            REF
             </th>
             <th
                 scope="col"
@@ -130,7 +130,7 @@
                     class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
                 >
                   <a href="#" @click="selectionOrder(order)">
-                  #{{ getShortUuid(order.id)  }}
+                  #{{ order.reference  }}
                   </a>
                 </div>
               </div>

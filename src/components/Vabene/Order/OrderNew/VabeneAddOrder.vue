@@ -44,43 +44,10 @@
 
               >
                 <i class="flaticon-user-3"></i>
-                Preference Client
+                Information générale
               </button>
             </li>
-            <li class="nav-item" role="presentation">
-              <button
-                  class="nav-link fs-14 fs-md-15 fs-lg-16 fw-semibold position-relative border-0 rounded-0 d-block w-100"
-                  :class="{'active' : stepForm === 3}"
-                  id="shipping-details-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#shipping-details-tab-pane"
-                  type="button"
-                  role="tab"
-                  aria-controls="shipping-details-tab-pane"
-                  aria-selected="false"
-                  @click="updateStepForm(3)"
-              >
-                <i class="flaticon-express-delivery"></i>
-               Livraison
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button
-                class="nav-link fs-14 fs-md-15 fs-lg-16 fw-semibold position-relative border-0 rounded-0 d-block w-100"
-                :class="{'active' : stepForm === 4}"
-                id="payment-method-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#payment-method-tab-pane"
-                type="button"
-                role="tab"
-                aria-controls="payment-method-tab-pane"
-                aria-selected="false"
-                @click="updateStepForm(4)"
-              >
-                <i class="flaticon-atm"></i>
-               Methode de paiement
-              </button>
-            </li>
+
 
           </ul>
           <div
@@ -94,7 +61,132 @@
               role="tabpanel"
               tabindex="0"
             >
-              <form>
+              <form v-if="stepForm === 1">
+                <div>
+                    <div class="row" v-if="newOrderData.paniers.length > 0">
+                      <div class="col-12">
+                        <div
+                            class="card mb-25 border-0 rounded-0 bg-white order-summary-box letter-spacing"
+                        >
+
+                          <div class="card-body">
+                            <div class="table-responsive">
+                              <table class="table text-nowrap align-middle mb-0">
+                                <thead>
+                                <tr>
+                                  <th
+                                      scope="col"
+                                      class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
+                                  >
+                                    Nom du produit
+                                  </th>
+                                  <th
+                                      scope="col"
+                                      class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
+                                  >
+                                    Quantité
+                                  </th>
+                                  <th
+                                      scope="col"
+                                      class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
+                                  >
+                                    Prix
+                                  </th>
+
+                                  <th
+                                      scope="col"
+                                      class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
+                                  >
+                                    Ingredient
+                                  </th>
+                                  <th
+                                      scope="col"
+                                      class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
+                                  >
+                                    Montant total
+                                  </th>
+                                  <th
+                                      scope="col"
+                                      class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 text-end"
+                                  ></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <template v-if="newOrderData.paniers.length > 0">
+                                  <tr
+                                      v-for="panier in newOrderData.paniers" :key="panier.product_id.id"
+                                  >
+                                    <th class="shadow-none fw-medium text-black product-title">
+                                <span
+
+                                    class="d-flex align-items-center text-decoration-none text-black fs-md-15 fs-lg-16"
+                                >
+                                  <img
+                                      :src="panier.product_id.image_urls[0]"
+                                      class="me-15"
+                                      width="44"
+                                      alt="product"
+                                  />
+                                  {{panier.product_id.name}}
+                                </span>
+                                    </th>
+                                    <td class="shadow-none lh-1">
+                                      <div class="col-md-3 col-lg-3 col-xl-2 d-flex">
+                                        <button type="button" id="decrementBtn" class="px-2 text-success text-decoration-none border-0"
+                                                @click="decrementQuantity(panier)"
+                                        >
+                                          -
+                                        </button>
+
+                                        <span class="text-success fs-15 mx-2">{{panier.quantity}}</span>
+
+                                        <button type="button" id="incrementBtn"  class="px-2 text-success text-decoration-none border-0"
+                                                @click="incrementQuantity(panier)">
+                                          +
+                                        </button>
+                                      </div>
+                                    </td>
+                                    <td class="shadow-none lh-1 fw-medium text-paragraph">
+                                      {{getTotalPrice(panier.specification_id, panier.quantity)}} CHF
+                                    </td>
+                                    <td class="shadow-none lh-1 fw-medium text-paragraph">
+                                      <button  @click="addIgredientToPanier(panier)" class="btn btn-success text-white fw-medium " type="button" data-bs-toggle="modal" data-bs-target="#contentModalScrollable_ingredient">
+                                        {{panier.ingredient.length > 0 ? panier.ingredient.length + ' Ingrédients' : 'Ajouter un ingrédient'}}
+                                      </button>
+                                    </td>
+                                    <td class="shadow-none lh-1 fw-medium text-paragraph">
+                                      {{getTotalListeIngredientPrice(panier.ingredient) + getTotalPrice(panier.specification_id, panier.quantity)}} CHF
+                                    </td>
+                                    <td class="shadow-none lh-1">
+                                      <button
+                                          type="button"
+                                          class="bg-transparent p-0 border-0 text-paragraph fs-15 fs-md-16 fs-lg-18"
+                                          @click="removePanier(panier.product_id)"
+                                      >
+                                        <i class="ph-duotone ph-trash"></i>
+                                      </button>
+                                    </td>
+                                  </tr>
+                                </template>
+                                <tr v-else>
+                                  <EmptyTable
+                                      message="Aucun produit ajouter au panier pour le moment"
+                                      :colspan="8"
+                                      textClass="text-muted"
+                                  />
+                                </tr>
+
+
+                                </tbody>
+                              </table>
+                            </div>
+
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                </div>
                 <div class="row">
                   <div class="col-md-4">
                     <div class="form-group  position-relative transition">
@@ -125,17 +217,17 @@
                 <loader-component v-if="isLoading" class="mt-50" />
                 <div v-else class="col-lg-12" v-for="(groupe, index) in produitsParTrois" :key="index">
                   <div class="row">
-                    <div class="col-lg-4" v-for="(produit, i) in groupe" :key="i">
+                    <div class="col-lg-3" v-for="(produit, i) in groupe" :key="i">
                       <!-- ✅ Ta carte produit ici -->
                       <div class="card mb-25 border-0 rounded-0 bg-white single-product-box">
                         <div class="card-body p-0 letter-spacing flex justify-content-center items-center align-items-center">
                           <div class="image position-relative">
-                            <router-link to="/product-details" class="d-block">
+                            <a href="#"  class="d-block">
                               <img
                                   :src="produit.image_urls[0]"
                                   alt="product"
                               />
-                            </router-link>
+                            </a>
 
                           </div>
                           <div class="content p-20">
@@ -151,8 +243,9 @@
                             <button
                                 type="button"
                                 class="add-to-cart-btn text-center d-block mt-15 fw-medium transition w-100 rounded-1 position-relative"
+                                @click="chooseProduct(produit)"
                             >
-                              Ajouter au panier
+                              Choisir
                               <i class="flaticon-shopping-cart-2 transition"></i>
                             </button>
                           </div>
@@ -161,19 +254,8 @@
                     </div>
                   </div>
                 </div>
-
-
               </form>
-              <div class="text-end">
-                <button
-                    class="default-btn transition border-0 fw-medium text-white pt-11 pb-11 ps-25 pe-25 pt-md-12 pb-md-12 ps-md-35 pe-md-35 rounded-1 fs-md-15 fs-lg-16 bg-success"
-                    :disabled="newOrderData.paniers.length == 0 && orderTypeSelected === null"
-                    :class="{ 'opacity-50 cursor-not-allowed': newOrderData.paniers.length == 0 && orderTypeSelected === null  }"
-                    @click="nextStep"
-                >
-                  Suivant
-                </button>
-              </div>
+
             </div>
             <div
                 class="tab-pane fade show"
@@ -182,152 +264,113 @@
                 role="tabpanel"
                 tabindex="0"
             >
-              <form>
+              <form >
                 <div class="row">
                   <div class="col-12">
                     <div
                         class="card mb-25 border-0 rounded-0 bg-white order-summary-box letter-spacing"
                     >
-
                       <div class="card-body">
-                        <div class="table-responsive">
-                          <table class="table text-nowrap align-middle mb-0">
-                            <thead>
-                            <tr>
-                              <th
-                                  scope="col"
-                                  class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
-                              >
-                                Nom du produit
-                              </th>
-                              <th
-                                  scope="col"
-                                  class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
-                              >
-                                Quantité
-                              </th>
-                              <th
-                                  scope="col"
-                                  class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
-                              >
-                                Prix
-                              </th>
-
-                              <th
-                                  scope="col"
-                                  class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
-                              >
-                                Ingredient
-                              </th>
-                              <th
-                                  scope="col"
-                                  class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
-                              >
-                                Montant total
-                              </th>
-                              <th
-                                  scope="col"
-                                  class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 text-end"
-                              ></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <template v-if="newOrderData.paniers.length > 0">
-                              <tr
-                                  v-for="panier in newOrderData.paniers" :key="panier.product_id.id"
-                              >
-                                <th class="shadow-none fw-medium text-black product-title">
-                                <span
-
-                                    class="d-flex align-items-center text-decoration-none text-black fs-md-15 fs-lg-16"
-                                >
-                                  <img
-                                      :src="panier.product_id.image_urls[0]"
-                                      class="me-15"
-                                      width="44"
-                                      alt="product"
-                                  />
-                                  {{panier.product_id.name}}
-                                </span>
-                                </th>
-                                <td class="shadow-none lh-1">
-                                  <div class="number-counter" id="number-counter">
-                                    <button type="button" @click="decrementQuantity(panier)">
-                                      <i class="flaticon-minus"></i>
-                                    </button>
-                                    <input
-                                        type="number"
-                                        id="quantity-1"
-                                        v-model="panier.quantity"
-                                    />
-                                    <button type="button" @click="incrementQuantity(panier)">
-                                      <i class="flaticon-plus"></i>
-                                    </button>
-                                  </div>
-                                </td>
-                                <td class="shadow-none lh-1 fw-medium text-paragraph">
-                                  {{getTotalPrice(panier.specification_id, panier.quantity)}} CHF
-                                </td>
-                                <td class="shadow-none lh-1 fw-medium text-paragraph">
-                                  <a @click="addIgredientToPanier(panier)" class="text-primary fw-medium text-decoration-underline cursor-pointer" type="button" data-bs-toggle="modal" data-bs-target="#contentModalScrollable_ingredient">
-                                    {{panier.ingredient.length > 0 ? panier.ingredient.length + ' Ingredients' : 'Aucun ingredient'}}
-                                  </a>
-                                </td>
-                                <td class="shadow-none lh-1 fw-medium text-paragraph">
-                                  {{getTotalListeIngredientPrice(panier.ingredient) + getTotalPrice(panier.specification_id, panier.quantity)}} CHF
-                                </td>
-                                <td class="shadow-none lh-1">
-                                  <button
-                                      type="button"
-                                      class="bg-transparent p-0 border-0 text-paragraph fs-15 fs-md-16 fs-lg-18"
-                                      @click="removePanier(panier.product_id)"
-                                  >
-                                    <i class="ph-duotone ph-trash"></i>
-                                  </button>
-                                </td>
-                              </tr>
-                            </template>
-                            <tr v-else>
-                              <EmptyTable
-                                  message="Aucun produit ajouter au panier pour le moment"
-                                  :colspan="8"
-                                  textClass="text-muted"
-                              />
-                            </tr>
-
-
-                            </tbody>
-                          </table>
-                        </div>
+                        <h5 class="mb-15 mb-md-25 fw-bold text-black">
+                          Instructions de commande
+                        </h5>
                         <div>
                           <div class="col-md-12">
                             <div class="form-group mb-15 mb-sm-20 mb-md-25">
                               <label class="d-block text-black fw-semibold mb-10">
-                                Type de commande
+                                Type de commande *
                               </label>
                               <v-select
                                   v-model="orderTypeSelected"
                                   :options="listeOrderType"
                                   label="libelle"
                                   placeholder="Selectionner type de commande"
-
+                                  required
                               />
                             </div>
                           </div>
                           <div class="col-md-12">
                             <div class="form-group mb-15 mb-sm-20 mb-md-25">
                               <label class="d-block text-black fw-semibold mb-10">
-                                Cuisson
+                                Quand souhaiteriez-vous votre commande ? *
                               </label>
                               <v-select
-                                  v-model="orderCuissonTypeSelected"
-                                  :options="listeTypeCuisson"
-                                  label=""
-                                  placeholder="Selectionner type de cuisson"
+                                  v-model="whenOrderSelected"
+                                  :options="whenOrder"
+                                  label="libelle"
+                                  placeholder=""
 
                               />
                             </div>
                           </div>
+                          <div class="row" v-if="whenOrderSelected === 'Date et heure souhaitées'">
+                            <div  class="col-md-6">
+                              <div class="form-group mb-15 mb-sm-20 mb-md-25">
+                                <label class="d-block text-black fw-semibold mb-10">
+                                  Date
+                                </label>
+                                <v-select
+                                    v-model="dateRecuperation"
+                                    :options="getDatesArray"
+                                    label="libelle"
+                                    placeholder=""
+
+                                />
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <div class="form-group mb-15 mb-sm-20 mb-md-25">
+                                <label class="d-block text-black fw-semibold mb-10">
+                                  Heure
+                                </label>
+                                <v-select
+                                    v-model="orderHourRecuperation"
+                                    :options="availableTimes"
+                                    label="time"
+                                    :reduce="time => time"
+
+
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-md-12">
+                            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+                              <label class="d-block text-black fw-semibold mb-10">
+                                À quoi devons-nous faire attention ? *
+                              </label>
+                              <div data-mdb-input-init class="form-outline">
+                                <textarea
+                                    v-model="remarqueOrder"
+                                    placeholder=""
+                                    class="form-control" id="textAreaExample3" rows="2"
+                                    @change="(event) => handleInput(event, 'remarqueOrder')"
+                                    :class="{ 'is-valid': validTextField(remarqueOrder) }"
+                                    required
+                                />
+
+                              </div>
+                            </div>
+                          </div>
+
+
+
+
+
+<!--                          <div class="col-md-12">-->
+<!--                            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
+<!--                              <label class="d-block text-black fw-semibold mb-10">-->
+<!--                                Cuisson-->
+<!--                              </label>-->
+<!--                              <v-select-->
+<!--                                  v-model="orderCuissonTypeSelected"-->
+<!--                                  :options="listeTypeCuisson"-->
+<!--                                  label=""-->
+<!--                                  placeholder="Selectionner type de cuisson"-->
+
+<!--                              />-->
+<!--                            </div>-->
+<!--                          </div>-->
                           <div class="col-md-12">
                             <div class="form-check form-switch form-group mb-15 mb-sm-20 mb-md-25">
                               <input class="form-check-input shadow-none me-8" type="checkbox" role="switch" id="flexSwitchCheckDefault" v-model="orderDemandeCouvert">
@@ -347,7 +390,6 @@
                               />
                             </div>
                           </div>
-
                           <div class="col-md-12">
                             <div class="form-check form-switch form-group mb-15 mb-sm-20 mb-md-25">
                               <input class="form-check-input shadow-none me-8" type="checkbox" role="switch" id="flexSwitchCheckDefault" v-model="orderTrancher">
@@ -355,99 +397,146 @@
                             </div>
                           </div>
 
-                          <div class="col-md-12">
-                            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-                              <label class="d-block text-black fw-semibold mb-10">
-                                Heure de recuperation
-                              </label>
-                              <input
-                                  type="time"
-                                  class="form-control shadow-none rounded-0 text-black"
-                                  placeholder="1"
-                                  v-model="orderHourRecuperation"
-                              />
-                            </div>
-                          </div>
+
                         </div>
                       </div>
                     </div>
                   </div>
 
                 </div>
-              </form>
-              <div class="d-sm-flex align-items-center justify-content-between">
-                <span
-                    @click="previousStep"
-                    class="d-inline-block mb-12 mb-sm-0 fs-14 fs-md-15 fs-lg-16 fw-medium text-decoration-none cursor-pointer"
-                >
-                  <i
-                      class="flaticon-left-arrow lh-1 me-5 position-relative top-2"
-                  ></i>
-                  Retour
-                </span>
-                <button
-                    class="default-btn transition border-0 fw-medium text-white pt-11 pb-11 ps-25 pe-25 pt-md-12 pb-md-12 ps-md-35 pe-md-35 rounded-1 fs-md-15 fs-lg-16 bg-success"
-                    :disabled="!isFormValid"
-                    :class="{'opacity-50 cursor-not-allowed': !isFormValid }"
-                    @click="nextStep"
-                >
-                  Enregistrer & Suivant
-                  <i
-                      class="flaticon-right-arrow position-relative ms-5 top-2"
-                  ></i>
-                </button>
-              </div>
-            </div>
-            <div
-                class="tab-pane fade show"
-                :class="{'active' : stepForm === 3}"
-                id="shipping-details-tab-pane"
-                role="tabpanel"
-                tabindex="0"
-            >
-              <h5 class="mb-15 mb-md-25 fw-bold text-black">
-                Informations du client
-              </h5>
-              <form>
                 <div class="row">
+                  <h5 class="mb-15 mb-md-25 fw-bold text-black">
+                    Information du client
+                  </h5>
+                  <div class="col-md-12">
+                    <div class="form-check form-switch form-group mb-15 mb-sm-20 mb-md-25">
+                      <input class="form-check-input shadow-none me-8" type="checkbox" role="switch" id="flexSwitchCheckDefault" v-model="useCustomerGenericInfos">
+                      <label class="form-check-label fw-medium" for="flexSwitchCheckDefault">Utiliser les informattions du client {{restaurantID === RestaurantEnum.RESTO_PENTHAZ ? 'Penthaz' : 'Morges'}}</label>
+                    </div>
+                  </div>
+                  <div v-if="!useCustomerGenericInfos" class="row">
+                    <div class="col-md-12">
+                      <div class="form-group mb-15 mb-sm-20 mb-md-25">
+                        <label class="d-block text-black fw-semibold mb-10">
+                          Civilité
+                        </label>
+                        <v-select
+                            v-model="newOrderData.civilite"
+                            :options="allCivites"
+                            label=""
+                            placeholder="Civilité"
+                        />
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group mb-15 mb-sm-20 mb-md-25">
+                        <label class="d-block text-black fw-semibold mb-10">
+                          Nom
+                        </label>
+                        <input
+                            type="text"
+                            class="form-control shadow-none rounded-0 text-black"
+                            placeholder="e.g. Ronan"
+                            v-model="newOrderData.guest_last_name"
+                            @change="(event) => handleInput(event, 'guest_last_name')"
+                            :class="{ 'is-valid': validTextField(newOrderData.guest_last_name) }"
+                            required
+                        />
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group mb-15 mb-sm-20 mb-md-25">
+                        <label class="d-block text-black fw-semibold mb-10">
+                          Prenom
+                        </label>
+                        <input
+                            type="text"
+                            class="form-control shadow-none rounded-0 text-black"
+                            placeholder="e.g. Jane"
+                            v-model="newOrderData.guest_first_name"
+                            @change="(event) => handleInput(event, 'guest_first_name')"
+                            :class="{ 'is-valid': validTextField(newOrderData.guest_first_name) }"
+                            required
+                        />
+                      </div>
+                    </div>
+                    <div class="col-md-12">
+                      <div class="form-group mb-15 mb-sm-20 mb-md-25">
+                        <label class="d-block text-black fw-semibold mb-10">
+                          Email
+                        </label>
+                        <input
+                            type="email"
+                            class="form-control shadow-none rounded-0 text-black"
+                            placeholder="e.g. jane3602@gmail.com"
+                            v-model="newOrderData.guest_email"
+                            @change="(event) => handleInput(event, 'guest_email')"
+                            :class="{ 'is-valid': validTextField(newOrderData.guest_email) }"
+                            required
+                        />
+                      </div>
+                    </div>
+                    <div class="col-md-12">
+                      <div class="form-group mb-15 mb-sm-20 mb-md-25">
+                        <label class="d-block text-black fw-semibold mb-10">
+                          Numéro téléphone
+                        </label>
+                        <input
+                            type="text"
+                            class="form-control shadow-none rounded-0 text-black"
+                            placeholder="e.g. +1-829-3456"
+                            v-model="newOrderData.guest_phone_number"
+                            @change="(event) => handleInput(event, 'guest_phone_number')"
+                            :class="{ 'is-valid': validTextField(newOrderData.guest_phone_number) }"
+                            required
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <h5 class="mb-15 mb-md-25 fw-bold text-black">
+                    Votre adresse de livraison
+                  </h5>
                   <div class="col-md-12">
                     <div class="form-group mb-15 mb-sm-20 mb-md-25">
+                      <label class="d-block text-black fw-semibold mb-10">
+                        Organisation *
+                      </label>
                       <v-select
-                          v-model="newOrderData.civilite"
-                          :options="allCivites"
+                          v-model="organisationTypeSelected"
+                          :options="allTypeOrganisation"
                           label=""
-                          placeholder="Civilité"
+
                       />
                     </div>
                   </div>
-                  <div class="col-md-6">
+                  <div class="col-md-6" v-if="organisationTypeSelected === 'Société'">
                     <div class="form-group mb-15 mb-sm-20 mb-md-25">
                       <label class="d-block text-black fw-semibold mb-10">
-                       Prenom
+                        Société
                       </label>
                       <input
                           type="text"
                           class="form-control shadow-none rounded-0 text-black"
-                          placeholder="e.g. Jane"
-                          v-model="newOrderData.guest_first_name"
-                          @change="(event) => handleInput(event, 'guest_first_name')"
-                          :class="{ 'is-valid': validTextField(newOrderData.guest_first_name) }"
+                          placeholder="e.g."
+                          v-model="societySelected"
+                          :class="{ 'is-valid': validTextField(societySelected) }"
                           required
                       />
                     </div>
                   </div>
-                  <div class="col-md-6">
+                  <div class="col-md-6" v-if="organisationTypeSelected === 'Société'">
                     <div class="form-group mb-15 mb-sm-20 mb-md-25">
                       <label class="d-block text-black fw-semibold mb-10">
-                       Nom
+                        Département
                       </label>
                       <input
                           type="text"
                           class="form-control shadow-none rounded-0 text-black"
-                          placeholder="e.g. Ronan"
-                          v-model="newOrderData.guest_last_name"
-                          @change="(event) => handleInput(event, 'guest_last_name')"
-                          :class="{ 'is-valid': validTextField(newOrderData.guest_last_name) }"
+                          placeholder="e.g. "
+                          v-model="departementSelected"
+                          :class="{ 'is-valid': validTextField(departementSelected) }"
                           required
                       />
                     </div>
@@ -455,77 +544,43 @@
                   <div class="col-md-6">
                     <div class="form-group mb-15 mb-sm-20 mb-md-25">
                       <label class="d-block text-black fw-semibold mb-10">
-                        Email
-                      </label>
-                      <input
-                          type="email"
-                          class="form-control shadow-none rounded-0 text-black"
-                          placeholder="e.g. jane3602@gmail.com"
-                          v-model="newOrderData.guest_email"
-                          @change="(event) => handleInput(event, 'guest_email')"
-                          :class="{ 'is-valid': validTextField(newOrderData.guest_email) }"
-                          required
-                      />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="form-group mb-15 mb-sm-20 mb-md-25">
-                      <label class="d-block text-black fw-semibold mb-10">
-                        Numéro téléphone
-                      </label>
-                      <input
-                          type="text"
-                          class="form-control shadow-none rounded-0 text-black"
-                          placeholder="e.g. +1-829-3456"
-                          v-model="newOrderData.guest_phone_number"
-                          @change="(event) => handleInput(event, 'guest_phone_number')"
-                          :class="{ 'is-valid': validTextField(newOrderData.guest_phone_number) }"
-                          required
-                      />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="form-group mb-15 mb-sm-20 mb-md-25">
-                      <label class="d-block text-black fw-semibold mb-10">
-                        Ville
+                        NPA *
                       </label>
                       <v-select
-                          v-model="villeSelected"
+                          v-model="NPASelected"
+                          :options="allPostalCode"
+                          label="numeroPostal"
+                          :reduce="postal => postal.numeroPostal"
+
+                      />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group mb-15 mb-sm-20 mb-md-25">
+                      <label class="d-block text-black fw-semibold mb-10">
+                        Localité
+                      </label>
+                      <v-select
+                          v-model="localitySelected"
                           :options="allPostalCode"
                           label="ville"
                           :reduce="postal => postal.ville"
-                          placeholder="Penthaz"
+
                       />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="form-group mb-15 mb-sm-20 mb-md-25">
                       <label class="d-block text-black fw-semibold mb-10">
-                        Adresse de livraison
-                      </label>
-                      <input
-                          type="text"
-                          class="form-control shadow-none rounded-0 text-black"
-                          placeholder="e.g. au 24eme penth"
-                          v-model="newOrderData.addressLivraison"
-                          @change="(event) => handleInput(event, 'addressLivraison')"
-                          :class="{ 'is-valid': validTextField(newOrderData.addressLivraison) }"
-                          required
-                      />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="form-group mb-15 mb-sm-20 mb-md-25">
-                      <label class="d-block text-black fw-semibold mb-10">
-                       Rue
+                        Rue *
                       </label>
                       <input
                           type="text"
                           class="form-control shadow-none rounded-0 text-black"
                           placeholder="e.g. au 24eme"
-                          v-model="newOrderData.rue"
-                          @change="(event) => handleInput(event, 'rue')"
-                          :class="{ 'is-valid': validTextField(newOrderData.rue) }"
+                          v-model="rueSelected"
+                          @change="(event) => handleInput(event, 'rueSelected')"
+                          :class="{ 'is-valid': validTextField(rueSelected) }"
                           required
                       />
                     </div>
@@ -533,113 +588,58 @@
                   <div class="col-md-6">
                     <div class="form-group mb-15 mb-sm-20 mb-md-25">
                       <label class="d-block text-black fw-semibold mb-10">
-                        Batiment
+                        N *
                       </label>
                       <input
                           type="text"
                           class="form-control shadow-none rounded-0 text-black"
                           placeholder="e.g. au 24eme"
-                          v-model="newOrderData.batiment"
-                          @change="(event) => handleInput(event, 'batiment')"
-                          :class="{ 'is-valid': validTextField(newOrderData.batiment) }"
+                          v-model="numberRueSelected"
+                          @change="(event) => handleInput(event, 'numberRueSelected')"
+                          :class="{ 'is-valid': validTextField(numberRueSelected) }"
                           required
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <h5 class="mb-15 mb-md-25 fw-bold text-black">
+                    Methode de paiement *
+                  </h5>
+                  <div class="col-md-12">
+                    <div class="form-group mb-15 mb-sm-20 mb-md-25">
+                      <label class="d-block text-black fw-semibold mb-10">
+                        Choisir la methode de paiement
+                      </label>
+                      <v-select
+                          v-model="methodePaiementDefault"
+                          :options="listeMethode"
+                          label="libelle"
+                          :reduce="methode => methode.type"
                       />
                     </div>
                   </div>
 
                 </div>
               </form>
-              <div class="d-sm-flex align-items-center justify-content-between">
-                <span
-                    @click="previousStep"
-                    class="d-inline-block mb-12 mb-sm-0 fs-14 fs-md-15 fs-lg-16 fw-medium text-decoration-none cursor-pointer"
-                >
-                  <i
-                      class="flaticon-left-arrow lh-1 me-5 position-relative top-2"
-                  ></i>
-                  Retour
-                </span>
-                <button
-                    class="default-btn transition border-0 fw-medium text-white pt-11 pb-11 ps-25 pe-25 pt-md-12 pb-md-12 ps-md-35 pe-md-35 rounded-1 fs-md-15 fs-lg-16 bg-success"
-                    :disabled="!isFormValid"
-                    :class="{'opacity-50 cursor-not-allowed': !isFormValid }"
-                    @click="nextStep"
-                >
-                  Enregistrer & Suivant
-                  <i
-                      class="flaticon-right-arrow position-relative ms-5 top-2"
-                  ></i>
-                </button>
-              </div>
-            </div>
-            <div
-              class="tab-pane fade show"
-              :class="{'active' : stepForm === 4}"
-              id="payment-method-tab-pane"
-              role="tabpanel"
-              tabindex="0"
-            >
-              <h5 class="mb-15 mb-md-25 fw-bold text-black">
-                Methode de paiement
-              </h5>
-              <div class="accordion" id="paymentAccordion">
-                <div class="accordion-item rounded-0" v-if="methodePaiementDefault">
-                  <button
-                    class="accordion-button text-black fs-14 fs-md-15 fs-lg-16 fw-semibold shadow-none border-0 rounded-0 bg-white d-flex align-items-center justify-content-between"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#paymentCollapseOne"
-                    aria-expanded="true"
-                    aria-controls="paymentCollapseOne"
-                  >
-                    <span class="dot"></span>
-                    {{methodePaiementDefault.libelle}}
-                    <div class="payment-types">
-                      <img
-                        :src="methodePaiementDefault.icone"
-                        width="50px"
-                        height="auto"
-                        alt="mastercard"
-                      />
+              <div class="d-sm-flex align-items-end justify-content-end">
 
-                    </div>
-                  </button>
-                  <div
-                    id="paymentCollapseOne"
-                    class="accordion-collapse collapse show"
-                    data-bs-parent="#paymentAccordion"
-                  >
-
-                  </div>
-                </div>
-
-              </div>
-              <div
-                class="mt-15 mt-sm-20 mt-md-25 d-sm-flex align-items-center justify-content-between"
-              >
-                <button
-                  type="button"
-                  class="d-inline-block fs-14 fs-md-15 fs-lg-16 fw-medium text-decoration-none bg-transparent p-0 border-0 text-primary mb-12 mb-sm-0"
-                  @click="previousStep"
-                >
-                  <i
-                    class="flaticon-left-arrow lh-1 me-5 position-relative top-2"
-                  ></i>
-                  Retour
-                </button>
                 <LoaderComponent
                     v-if="isLoading"
                 />
-                <button v-else
-                  class="default-btn transition border-0 fw-medium text-white pt-11 pb-11 ps-25 pe-25 pt-md-12 pb-md-12 ps-md-35 pe-md-35 rounded-1 fs-md-15 fs-lg-16 bg-success"
-                  :disabled="newOrderData.paniers.length === 0 && !isFormValid"
-                  :class="{ 'opacity-50 cursor-not-allowed': newOrderData.paniers.length === 0 && !isFormValid }"
 
-                  @click="createNewOrder"
+                <button
+                    v-else
+                    type="button"
+                    class="default-btn transition border-0 fw-medium text-white pt-11 pb-11 ps-25 pe-25 pt-md-12 pb-md-12 ps-md-35 pe-md-35 rounded-1 fs-md-15 fs-lg-16 bg-success"
+                    @click="submitOrder"
+                    :disabled="!isFormValid"
+                    :class="{ 'opacity-50 cursor-not-allowed': !isFormValid }"
+
                 >
-                 Commander maintenant
+                  Valider la commande
                   <i
-                    class="flaticon-right-arrow position-relative ms-5 top-2"
+                      class="flaticon-right-arrow position-relative ms-5 top-2"
                   ></i>
                 </button>
               </div>
@@ -651,6 +651,8 @@
     </div>
     <div class="col-xxl-4">
 
+
+      <!--      RECAPITULATIF-->
       <div
         class="card mb-25 border-0 rounded-0 bg-white order-summary-box letter-spacing"
       >
@@ -751,6 +753,12 @@
                         scope="col"
                         class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
                     >
+                      IMAGE
+                    </th>
+                    <th
+                        scope="col"
+                        class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
+                    >
                       TAILLE
                     </th>
                     <th
@@ -771,8 +779,20 @@
                   </thead>
                   <tbody v-if="productSelected && productSelected.productSizes.length > 0">
                   <tr
-                      v-for="productSize in productSelected.productSizes" :key="productSize.id"
+                      v-for="(productSize) in productSelected.productSizes" :key="productSize.id"
                   >
+                    <th class="shadow-none lh-1 fw-bold ps-0">
+                    <span
+                        class="text-decoration-none text-black-emphasis"
+                    >
+                      <img
+                          :src="productSelected.image_urls[0]"
+                          class="me-15"
+                          width="80"
+                          alt="product"
+                      />
+                    </span>
+                    </th>
                     <th class="shadow-none lh-1 fw-bold ps-0">
                     <span
                         class="text-decoration-none text-black-emphasis"
@@ -883,21 +903,22 @@
                     </td>
 
                     <td class="shadow-none lh-1">
-                      <div class="number-counter" id="number-counter">
-                        <button type="button" @click="decrementQuantityIngredient(panierSelected, ingredient)">
-                          <i class="flaticon-minus"></i>
+                      <div class="col-md-3 col-lg-3 col-xl-2 d-flex">
+                        <button type="button" id="decrementBtn" class="px-2 text-success text-decoration-none border-0"
+                                @click="decrementQuantityIngredient(panierSelected, ingredient)"
+                        >
+                          -
                         </button>
-                        <input
-                            type="number"
-                            id="quantity-1"
-                            v-model="ingredient.quantite"
-                            min="1"
-                            max="100"
-                        />
-                        <button type="button" @click="incrementQuantityIngredient(panierSelected, ingredient)">
-                          <i class="flaticon-plus"></i>
+
+                        <span class="text-success fs-15 mx-2">{{ingredient.quantite}}</span>
+
+                        <button type="button" id="incrementBtn"  class="px-2 text-success text-decoration-none border-0"
+                                @click="incrementQuantityIngredient(panierSelected, ingredient)">
+                          +
                         </button>
                       </div>
+
+
                     </td>
 
                     <td  class="shadow-none lh-1 fw-medium">
@@ -948,7 +969,7 @@
 <script lang="ts">
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import {
-  createNewOrder,
+  createNewOrder, detailRestaurant, detailUser,
   fetchAllPostalCode, listeCategorieActive,
   listeIngredient,
   listeMethodePaiement,
@@ -979,6 +1000,14 @@ import {OrderModel} from "@/models/order.model";
 import {CategorieModel} from "@/models/categorie.model";
 import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 import {RestaurantProductModel} from "@/models/RestaurantProduct.model";
+import {ProductSizeEnum} from "@/enums/productSize.enum";
+import {IngredientSizeEnum} from "@/enums/ingredientSize.enum";
+import {IngredientSizeModel} from "@/models/ingredientSize.model";
+import {UserModel} from "@/models/user.model";
+import {RestaurantModel} from "@/models/restaurant.model";
+import {RestaurantEnum} from "@/enums/restaurant.enum";
+import {ClientEnum} from "@/enums/client.enum";
+import {AxiosError} from "axios";
 
 export default defineComponent({
   name: "VabeneAddOrder",
@@ -989,6 +1018,11 @@ export default defineComponent({
   },
   data(){
     return{
+      customerRestauranInfo: null as UserModel | null,
+      dateRecuperation: '',
+      orderHourRecuperation: '',
+      availableTimes: [] as string[],
+      error: '',
       productSelected: null as ProductModel | null,
       previousProductSelected: null as ProductModel | null,
       productQuantity: "1" as string | "1",
@@ -997,10 +1031,14 @@ export default defineComponent({
       originalCategories: [] as CategorieModel[], // Stockage des utilisateurs originaux
       categorieSelected: null as CategorieModel | null,
       userRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
+      restaurantID: localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID),
       productRestaurantResponse: null as ApiResponse<PaginatedRestaurantProduct> | null,
       originalRestaurantProducts: [] as RestaurantProductModel[],
       currentPage: 1 ,
       searchQuery: '', // Ajout du champ de recherche
+      whenOrder: ['Dès que possible', 'Date et heure souhaitées'],
+      whenOrderSelected: 'Dès que possible',
+      remarqueOrder: '',
       newOrderData: {
         paniers : [] as CartModel[],
         userID: '',
@@ -1028,19 +1066,76 @@ export default defineComponent({
       orderCuissonTypeSelected: 'Normal' as string | 'Normal',
       listeTypeCuisson: ["Normal", "Saignant", "À point", "Bien cuit"] as string[],
       orderDemandeCouvert: false as boolean,
+      useCustomerGenericInfos: false as boolean,
       orderQuantityCouvert: 1 as number,
       orderTrancher: false as boolean,
-      orderHourRecuperation: '' as string | '',
       stepForm: 1 as number | number,
-      allCivites: ["Monsieur", "Madame"],
+      allCivites: ["M.", "Mme", "Autre"],
+      allTypeOrganisation: ["Privé", "Société"],
+      societySelected: '',
+      departementSelected: '',
       allPostalCode: [] as CodepostalModel[],
       listeMethode: [] as MethodePaiementModel[],
       methodePaiementDefault: null as MethodePaiementModel | null,
-      villeSelected: null as  string | null,
+      NPASelected: null as  string | null,
+      localitySelected: null as  string | null,
+      organisationTypeSelected: null as  string | null,
+      rueSelected: null as  string | null,
+      numberRueSelected: null as  string | null,
       simplyPanier: []
     }
   },
   methods: {
+    extraireDate(input: string): string {
+      // On supprime tout ce qui suit la date, y compris le séparateur " - "
+      return input.split(" - ")[0];
+    },
+    getWhenOrderType(){
+      switch (this.whenOrderSelected){
+        case 'Dès que possible':
+          return 'immediat'
+        default:
+          return 'ulterieur'
+
+      }
+    },
+    getCivilite(){
+      switch (this.newOrderData.civilite) {
+        case "M.":
+          return "Monsieur"
+        case "Mme":
+          return "Madame"
+        default:
+          return "Autre"
+      }
+    },
+    generateTimeSlots() {
+      const intervals = [
+        { start: "11:00", end: "14:00" },
+        { start: "18:00", end: "22:00" },
+      ];
+
+      const pad = n => n.toString().padStart(2, '0');
+      const toMinutes = t => {
+        const [h, m] = t.split(':').map(Number);
+        return h * 60 + m;
+      };
+      const toTime = m => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+
+      this.availableTimes = [];
+
+      for (const { start, end } of intervals) {
+        let current = toMinutes(start);
+        const max = toMinutes(end);
+        while (current <= max) {
+          this.availableTimes.push(toTime(current) as string);
+          current += 15;
+        }
+      }
+    },
+    chooseProduct(product: ProductModel) {
+      this.productSelected = product;
+    },
     chunkArray<ProductModel>(arr: ProductModel[], size: number): ProductModel[][] {
       const chunks: ProductModel[][] = []
       for (let i = 0; i < arr.length; i += size) {
@@ -1102,12 +1197,15 @@ export default defineComponent({
     async fetchRestaurantProduct(page = 1, categoryId: string) {
       this.isLoading = true;
       try {
-        const response = await listeRestaurantProduct(page, "1" , categoryId as string) as ApiResponse<PaginatedRestaurantProduct>;
+        const response = await listeRestaurantProduct(page, "0" , categoryId as string) as ApiResponse<PaginatedRestaurantProduct>;
         console.log(response)
         if (response.code === 200) {
           this.productRestaurantResponse = response;
           if (response.data?.items) {
             this.originalRestaurantProducts = response.data.items;
+            for (let i = 0; i < response.data.items.length; i++) {
+              this.originalProducts.push(response.data.items[i].product)
+            }
           }
           if (response.data && response.data.pagination) {
             this.currentPage = response.data.pagination.current_page;
@@ -1152,6 +1250,7 @@ export default defineComponent({
     },
     updateStepForm(value: number){
       this.stepForm = value
+      console.log('step:', this.stepForm)
     },
     async fetchPostalCode() {
       this.isLoading = true;
@@ -1172,24 +1271,8 @@ export default defineComponent({
         this.isLoading = false;
       }
     },
-    nextStep(){
-      if(this.stepForm === 1 && this.newOrderData.intructionOrder.length === 0 && this.orderTypeSelected){
-        const newInstructionOrder: InstructionOrderModel = {
-          demandeCouverts: this.orderDemandeCouvert,
-          quantityCouverts: `${this.orderQuantityCouvert}`,
-          delaiRecuperation: this.orderHourRecuperation,
-          isTrancher: this.orderTrancher,
-          cuisson: this.orderTypeSelected.type
-        }
-        this.newOrderData.intructionOrder.push(newInstructionOrder)
-      }
-      this.stepForm += 1
-    },
-    previousStep(){
-      if(this.stepForm > 1){
-        this.stepForm -= 1
-      }
-    },
+
+
     seeValue(){
       console.log("potential payload: ", this.newOrderData)
     },
@@ -1256,19 +1339,31 @@ export default defineComponent({
       }
     },
     incrementQuantityIngredient(panier: CartModel, ingredient: IngredientModel) {
+
       const cart = this.newOrderData.paniers.find(pan => pan.product_id.id === panier.product_id.id);
-      const simplyCart = (this.simplyPanier as any[]).find((pan) => pan.product_id.id === panier.product_id.id)
+      const simplyCart = (this.simplyPanier as any[]).find(pan => pan.product_id === panier.product_id.id);
+      console.log(cart)
+      console.log(simplyCart)
 
       if (cart && simplyCart) {
-        const ingredientFinded = cart.ingredient.find(ing => ing.id === ingredient.id);
-        const ingredientSimplyFinded = simplyCart.ingredient.find(ing => ing.id === ingredient.id);
+        console.log('AllIngredient: ', cart.ingredient)
+        console.log('AllIngredient Simply: ', simplyCart.ingredient)
+
+        const ingredientFinded = cart.ingredient.find(ing => ing.name === ingredient.name);
+        const ingredientSimplyFinded = simplyCart.ingredient.find(ing => ing.name === ingredient.name);
+
+
 
         if (ingredientFinded && ingredientSimplyFinded) {
+          console.log('ingredient trouvee', ingredientFinded);
+          console.log('ingredient trouvee', ingredientSimplyFinded);
           // Incrémente la quantité actuelle
           ingredientFinded.quantite = (ingredientFinded.quantite || 1) + 1;
           ingredientSimplyFinded.quantite = (ingredientFinded.quantite || 1) + 1;
         } else {
           // Ajoute l'ingrédient avec une quantité de 1 s'il n'existe pas encore
+          console.log('ingredient non trouvee', ingredientFinded);
+          console.log('ingredient non trouvee', ingredientSimplyFinded);
           ingredient.quantite = 1;
           simplyCart.ingredient.push(ingredientSimplyFinded);
           cart.ingredient.push(ingredient);
@@ -1288,10 +1383,10 @@ export default defineComponent({
       const simplyCart = (this.simplyPanier as any[]).find(pan => pan.product_id === panier.product_id.id);
       if(cart && simplyCart){
         // Vérifie si l'ingrédient n'existe pas déjà (optionnel)
-        const exists = cart.ingredient.some(ing => ing.id === ingredient.id);
-        const existSimplyCart = simplyCart.ingredient.some(ing => ing.id === ingredient.id);
-        const ingredientFinded = cart.ingredient.find(ing => ing.id === ingredient.id)
-        const symplyIngredientFinded = simplyCart.ingredient.find(ing => ing.id === ingredient.id)
+        const exists = cart.ingredient.some(ing => ing.name === ingredient.name);
+        const existSimplyCart = simplyCart.ingredient.some(ing => ing.name === ingredient.name);
+        const ingredientFinded = cart.ingredient.find(ing => ing.name === ingredient.name)
+        const symplyIngredientFinded = simplyCart.ingredient.find(ing => ing.name === ingredient.name)
         if (!exists && existSimplyCart) {
           ingredient.quantite = index
           cart.ingredient.push(ingredient);
@@ -1303,7 +1398,7 @@ export default defineComponent({
             symplyIngredientFinded.quantite = index
           }
         }
-        console.log("Ingredient added: ", symplyIngredientFinded)
+        console.log("Ingredient deleted: ", symplyIngredientFinded)
 
       }
       else{
@@ -1316,8 +1411,8 @@ export default defineComponent({
       const simplyCart = (this.simplyPanier as any[]).find(pan => pan.product_id === panier.product_id.id);
 
       if (cart && simplyCart) {
-        cart.ingredient = cart.ingredient.filter(ing => ing.id !== ingredient.id);
-        simplyCart.ingredient = simplyCart.ingredient.filter(ing => ing.id !== ingredient.id);
+        cart.ingredient = cart.ingredient.filter(ing => ing.name !== ingredient.name);
+        simplyCart.ingredient = simplyCart.ingredient.filter(ing => ing.name !== ingredient.name);
       }
     },
     clearData(){
@@ -1326,22 +1421,47 @@ export default defineComponent({
     goBack() {
       this.$router.back()
     },
+    submitOrder(){
+      this.createNewOrder()
+    },
     async createNewOrder() {
       this.isLoading = true;
+      if(this.newOrderData.intructionOrder.length === 0){
+        const newInstructionOrder: InstructionOrderModel = {
+          demandeCouverts: this.orderDemandeCouvert,
+          quantityCouverts: `${this.orderQuantityCouvert}`,
+          delaiRecuperation: this.getWhenOrderType() === 'ulterieur' ? `${this.extraireDate(this.dateRecuperation)} ${this.orderHourRecuperation}` : this.getWhenOrderType(),
+          isTrancher: this.orderTrancher,
+          cuisson: "Normal"
+        }
+        this.newOrderData.intructionOrder.push(newInstructionOrder)
+      }
       const payload = {
+        "deliveryLocality": this.localitySelected,
+        "promotions": "0",
+        "newsletter": "0",
+        "order_type": this.orderTypeSelected?.type,
+        "coupon": "",
+        "codePostal": this.NPASelected,
+        "restaurantID": this.restaurantID,
         "paniers": this.simplyPanier,
-        "userID": "",
-        "guest_first_name": this.newOrderData.guest_first_name,
-        "guest_last_name": this.newOrderData.guest_last_name,
-        "civilite": this.newOrderData.civilite,
-        "guest_email": this.newOrderData.guest_email,
-        "guest_phone_number": this.newOrderData.guest_phone_number,
-        "order_type": this.newOrderData.order_type,
-        "payment_method": "Cash_livraison",
-        "addressLivraison": `${this.newOrderData.ville} - ${this.newOrderData.addressLivraison}`,
-        "batiment": this.newOrderData.batiment,
-        "rue": this.newOrderData.rue,
-        "intructionOrder": this.newOrderData.intructionOrder
+        "userID": this.useCustomerGenericInfos ? this.customerRestauranInfo?.id : "",
+        "guest_first_name": this.useCustomerGenericInfos ? this.customerRestauranInfo?.first_name : this.newOrderData.guest_first_name,
+        "guest_last_name": this.useCustomerGenericInfos ? this.customerRestauranInfo?.last_name : this.newOrderData.guest_last_name,
+        "guest_email": this.useCustomerGenericInfos ? this.customerRestauranInfo?.email : this.newOrderData.guest_email,
+        "guest_phone_number": this.useCustomerGenericInfos ? this.customerRestauranInfo?.phone_number : this.newOrderData.guest_phone_number,
+        "payment_method": this.methodePaiementDefault?.type,
+        "addressLivraison": `${this.localitySelected}, ${this.rueSelected} - ${this.numberRueSelected}`,
+        "batiment": this.numberRueSelected,
+        "rue": this.rueSelected,
+        "civilite": this.getCivilite(),
+        "intructionOrder": this.newOrderData.intructionOrder,
+        "feature": [this.remarqueOrder],
+        "numberRue": this.numberRueSelected,
+        "deliveryPreference": this.getWhenOrderType(),
+        "SpecialInstructions": this.remarqueOrder,
+        "timeOrder": this.getWhenOrderType() === 'ulterieur' ? `${this.extraireDate(this.dateRecuperation)} ${this.orderHourRecuperation}` : '',
+        "typeCustomer": this.organisationTypeSelected === 'Société' ? 'organisation' : 'customer',
       }
       console.log("payload create order: ", payload)
       try {
@@ -1350,25 +1470,33 @@ export default defineComponent({
         if (response.code === 201) {
           const order = response.data as OrderModel;
           this.toast.success(response.message)
-          this.$router.push({
-            name: "VabeneOrderDetailsPage",
-            params: { commandeID: order.id }
-          });
+          // this.$router.push({
+          //   name: "VabeneOrderDetailsPage",
+          //   params: { commandeID: order.id }
+          // });
 
         } else {
           this.toast.error(response.message)
         }
       } catch (error) {
-        this.toast.error(error)
-        console.error(error);
+        const axiosError = error as AxiosError;
+        if (axiosError.response && axiosError.response.data) {
+          const message = (axiosError.response.data as any).message;
+          this.toast.error(message);
+        } else {
+          this.toast.error("Une erreur est survenue");
+        }
       } finally {
         this.isLoading = false;
+        setTimeout(() => {
+          window.location.reload();
+        }, 2500);
       }
     },
     async fetchIngredients(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeIngredient(page) as ApiResponse<PaginatedIngredient>;
+        const response = await listeIngredient(1, '1') as ApiResponse<PaginatedIngredient>;
         console.log(response)
         if (response.code === 200) {
           this.ingredientResponse = response;
@@ -1392,6 +1520,10 @@ export default defineComponent({
       console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
       switch (type){
+        case 'remarqueOrder':
+          this.remarqueOrder = valueText
+          this.validTextField(valueText)
+          break
         case 'guest_first_name':
           this.newOrderData.guest_first_name = valueText
           this.validTextField(valueText)
@@ -1444,6 +1576,14 @@ export default defineComponent({
         return text.trim().length > 0
       }
     },
+    getOrderTypeParType(
+        liste:  OrderTypeModel[],
+        type: string
+    ):  OrderTypeModel | undefined{
+      console.log(liste)
+      console.log(type)
+      return liste.find(methode => methode.type === type);
+    },
     async fetchOrderType(page = 1) {
       // this.isLoading = true;
       try {
@@ -1452,6 +1592,7 @@ export default defineComponent({
         if (response.code === 200) {
           if (response.data?.items) {
             this.listeOrderType = response.data.items;
+            this.orderTypeSelected = this.getOrderTypeParType(this.listeOrderType, 'dine_in') as OrderTypeModel
           }
         } else {
           this.toast.error(response.message);
@@ -1463,16 +1604,91 @@ export default defineComponent({
         // this.isLoading = false;
       }
     },
+    async fetchDetailUser() {
+      let userID = this.restaurantID === RestaurantEnum.RESTO_MORGES ? ClientEnum.CLIENT_MORGES : ClientEnum.CLIENT_PENTHAZ
+      try {
+        const response = await detailUser(userID) as ApiResponse<UserModel>;
+        console.log(response)
+        if (response.code === 200) {
+          if(response.data){
+            this.customerRestauranInfo = response.data
+          }
+        } else {
+          this.toast.error(response.message);
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des informations clients");
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    getCodePostalByNumero(
+        liste:  CodepostalModel[],
+        numeroPostal: string
+    ):  CodepostalModel | undefined{
+      console.log(liste)
+      return liste.find(postal => postal.numeroPostal === numeroPostal);
+    },
+    getCodePostalByVille(
+        liste:  CodepostalModel[],
+        city: string
+    ):  CodepostalModel | undefined{
+      console.log(liste)
+      return liste.find(postal => postal.numeroPostal === city);
+    },
+    async fetchDetailRestaurant() {
+      try {
+        const response = await detailRestaurant(this.restaurantID) as ApiResponse<RestaurantModel>;
+        console.log(response)
+        if (response.code === 200) {
+          if(response.data){
+            const dt = response.data
+            this.NPASelected = dt.codePostalID.numeroPostal
+            this.localitySelected = dt.codePostalID.ville
+            this.rueSelected = dt.numeroRue
+            this.numberRueSelected = dt.address
+          }
+        } else {
+          this.toast.error(response.message);
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des categories");
+        console.error(error);
+      }
+    },
+
+
 
   },
   computed: {
+    RestaurantEnum() {
+      return RestaurantEnum
+    },
+    getDatesArray(): string[] {
+      const today = new Date();
+      const tomorrow = new Date();
+      tomorrow.setDate(today.getDate() + 1);
+
+      const formatDate = (date: Date): string => {
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        const day = pad(date.getDate());
+        const month = pad(date.getMonth() + 1);
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+      };
+
+      return [
+        `${formatDate(today)} - aujourd'hui`,
+        `${formatDate(tomorrow)} - demain`
+      ];
+    },
     produitsParTrois(): ProductModel[][]{
-     return this.chunkArray(this.allProducts, 3)
+     return this.chunkArray(this.allProducts, 4)
     },
     allIngredient(): IngredientModel[] {
       const ingredients = this.ingredientResponse?.data?.items || this.originalIngredients;
       if (!this.searchIngredientQuery) return ingredients;
-
       const query = this.searchIngredientQuery.toLowerCase();
       return ingredients.filter(ingredient => {
         return (
@@ -1538,17 +1754,37 @@ export default defineComponent({
     },
     isFormValid() {
       return (
-          this.validEmail(this.newOrderData.guest_email) &&
-          this.validTextField(this.newOrderData.guest_first_name) &&
-          this.validTextField(this.newOrderData.guest_last_name) &&
-          this.validTextField(this.newOrderData.guest_phone_number) &&
-          this.validTextField(this.newOrderData.addressLivraison) &&
-          this.validTextField(this.newOrderData.rue) &&
-          this.validTextField(this.newOrderData.batiment)
+          this.simplyPanier.length > 0 &&
+          this.validTextField(this.remarqueOrder) &&
+          this.validTextField(this.rueSelected) &&
+          this.validTextField(this.numberRueSelected)
       );
     }
   },
   watch: {
+    useCustomerGenericInfos(newVal, oldVal){
+      if (typeof newVal === 'boolean' && newVal !== oldVal && newVal) {
+        console.log("utilisation des information client generique:", newVal);
+        this.newOrderData.guest_first_name = this.customerRestauranInfo?.first_name as  string
+        this.newOrderData.guest_last_name = this.customerRestauranInfo?.last_name as  string
+        this.newOrderData.guest_phone_number = this.customerRestauranInfo?.phone_number as  string
+        this.newOrderData.guest_email = this.customerRestauranInfo?.email as  string
+      }
+    },
+    // NPASelected(newVal, oldVal){
+    //   if (typeof newVal === 'string' && newVal !== oldVal) {
+    //     console.log("Nouvelle NPA sélectionnée :", newVal);
+    //     const NPA = this.getCodePostalByNumero(this.allPostalCode, newVal) ?? null;
+    //     this.localitySelected = NPA?.ville ?? ''
+    //   }
+    // },
+    // localitySelected(newVal, oldVal){
+    //   if (typeof newVal === 'string' && newVal !== oldVal) {
+    //     console.log("Nouvelle locality sélectionnée :", newVal);
+    //     const locality = this.getCodePostalByNumero(this.allPostalCode, newVal) ?? null;
+    //     this.NPASelected = locality?.numeroPostal ?? ''
+    //   }
+    // },
     categorieSelected(newVal, oldVal) {
       if (typeof newVal === 'string' && newVal !== oldVal) {
         console.log("Nouvelle catégorie sélectionnée :", newVal);
@@ -1564,8 +1800,8 @@ export default defineComponent({
     },
     orderTypeSelected(this: any, newVal){
       if (!newVal) return
-      const newValue = newVal as OrderTypeModel
-      this.newOrderData.order_type = newValue.type
+      this.orderTypeSelected = newVal as OrderTypeModel
+      console.log('ordertype selected: ',  this.orderTypeSelected)
     },
     villeSelected(this: any, newVal) {
       if (!newVal) return
@@ -1580,7 +1816,6 @@ export default defineComponent({
         modal.show()
       }
     },
-
     ingredientSelected(this: any, newVal) {
       if (!newVal) return
       this.ingredientSelected = newVal
@@ -1589,12 +1824,39 @@ export default defineComponent({
       if(simplyCart && this.ingredientSelected){
         // Vérifie si l'ingrédient n'existe pas déjà (optionnel)
         const exists = simplyCart.ingredient.some(ing => ing.id === this.ingredientSelected?.id);
+        const smallSizeIngredient = this.ingredientSelected.ingredientSizes.find(ing => ing.size === IngredientSizeEnum.PETITE) as IngredientSizeModel;
+        const mediumSizeIngredient = this.ingredientSelected.ingredientSizes.find(ing => ing.size === IngredientSizeEnum.NORMAL);
+        const bigSizeIngredient = this.ingredientSelected.ingredientSizes.find(ing => ing.size === IngredientSizeEnum.GRANDE);
+        let ing = {};
         if (!exists) {
-          const ing = {
-            "name": this.ingredientSelected.name,
-            "extra_cost_price": this.ingredientSelected.extra_cost_price,
-            "isDefault": false,
-            "quantite": this.ingredientSelected.quantite ?? 1
+          switch (this.panierSelected.specification_id.size){
+            case ProductSizeEnum.PETITE:
+              ing = {
+                "name": this.ingredientSelected.name + " " + smallSizeIngredient.size,
+                "size": IngredientSizeEnum.PETITE,
+                "extra_cost_price": smallSizeIngredient.price,
+                "isDefault": false,
+                "quantite": this.ingredientSelected.quantite ?? 1
+              }
+              break
+            case ProductSizeEnum.NORMAL:
+              ing = {
+                "name": this.ingredientSelected.name + " " + mediumSizeIngredient.size,
+                "size": IngredientSizeEnum.NORMAL,
+                "extra_cost_price": mediumSizeIngredient.price,
+                "isDefault": false,
+                "quantite": this.ingredientSelected.quantite ?? 1
+              }
+              break
+            default:
+              ing = {
+                "name": this.ingredientSelected.name + " " + bigSizeIngredient.size,
+                "size": IngredientSizeEnum.GRANDE,
+                "extra_cost_price": bigSizeIngredient.price,
+                "isDefault": false,
+                "quantite": this.ingredientSelected.quantite ?? 1
+              }
+              break
           }
           simplyCart.ingredient.push(ing);
           console.log("Ingredient added: ", this.simplyCart)
@@ -1606,12 +1868,39 @@ export default defineComponent({
       if(cart && this.ingredientSelected){
         // Vérifie si l'ingrédient n'existe pas déjà (optionnel)
         const exists = cart.ingredient.some(ing => ing.id === this.ingredientSelected?.id);
+        const smallSizeIngredient = this.ingredientSelected.ingredientSizes.find(ing => ing.size === IngredientSizeEnum.PETITE) as IngredientSizeModel;
+        const mediumSizeIngredient = this.ingredientSelected.ingredientSizes.find(ing => ing.size === IngredientSizeEnum.NORMAL);
+        const bigSizeIngredient = this.ingredientSelected.ingredientSizes.find(ing => ing.size === IngredientSizeEnum.GRANDE);
+        let ing = {};
         if (!exists) {
-          const ing = {
-            "name": this.ingredientSelected.name,
-            "extra_cost_price": this.ingredientSelected.extra_cost_price,
-            "isDefault": false,
-            "quantite": this.ingredientSelected.quantite ?? 1
+          switch (this.panierSelected.specification_id.size){
+            case ProductSizeEnum.PETITE:
+              ing = {
+                "name": this.ingredientSelected.name + " " + smallSizeIngredient.size,
+                "size": IngredientSizeEnum.PETITE,
+                "extra_cost_price": smallSizeIngredient.price,
+                "isDefault": false,
+                "quantite": this.ingredientSelected.quantite ?? 1
+              }
+              break
+            case ProductSizeEnum.NORMAL:
+              ing = {
+                "name": this.ingredientSelected.name + " " + mediumSizeIngredient.size,
+                "size": IngredientSizeEnum.NORMAL,
+                "extra_cost_price": mediumSizeIngredient.price,
+                "isDefault": false,
+                "quantite": this.ingredientSelected.quantite ?? 1
+              }
+              break
+            default:
+              ing = {
+                "name": this.ingredientSelected.name + " " + bigSizeIngredient.size,
+                "size": IngredientSizeEnum.GRANDE,
+                "extra_cost_price": bigSizeIngredient.price,
+                "isDefault": false,
+                "quantite": this.ingredientSelected.quantite ?? 1
+              }
+              break
           }
           cart.ingredient.push(ing);
           this.ingredientSelected = null
@@ -1625,6 +1914,9 @@ export default defineComponent({
       }
     }
   },
+  created() {
+    this.generateTimeSlots();
+  },
   setup: () => {
     const toast = useToast();
 
@@ -1636,6 +1928,9 @@ export default defineComponent({
     this.fetchOrderType(1)
     this.fetchPostalCode()
     this.fetchListeMethodePaiement(1)
+    this.fetchDetailUser()
+    this.fetchDetailRestaurant()
+
   }
 });
 </script>

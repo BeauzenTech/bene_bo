@@ -5,6 +5,7 @@ import {RestaurantModel} from "@/models/restaurant.model";
 import {PaymentModel} from "@/models/payment.model";
 import {OrderItemModel} from "@/models/orderItem.model";
 import {InstructionOrderModel} from "@/models/instructionOrder.model";
+import {CustomerModel} from "@/models/customer.model";
 
 export interface OrderModel {
     id: string;
@@ -31,6 +32,15 @@ export interface OrderModel {
     fraisLivraison: string;
     taxe: string;
     coupon: string;
-
+    DeliveryPreference: string
+    SpecialInstructions: string
+    timeOrder: string
+    typeCustomer: string
+    numberRue: string
+    feature: string[]
+    customer: CustomerModel
+    deliveryLocality: string
+    npa: string
+    localite: string
 
 }

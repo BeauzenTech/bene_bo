@@ -10,16 +10,16 @@
     class="card mb-25 border-0 rounded-0 bg-white letter-spacing invoice-details-box"
   >
     <div class="card-body p-15 p-sm-20 p-md-25 p-lg-30">
-      <div class="d-lg-flex justify-content-between">
+      <div class="d-lg-flex justify-content-between" v-if="paiementResponse && paiementResponse.orderSelf">
         <div class="text-start">
           <img
-            src="@/assets/images/LOGO_VABENE.png"
+            src="https://vabenepizza.ch/imgs/logo.svg"
             class="black-logo"
             alt="logo"
             style="width: 140px; height: auto;"
           />
           <img
-            src="@/assets/images/LOGO_VABENE.png"
+            src="https://vabenepizza.ch/imgs/logo.svg"
             class="white-logo"
             alt="logo"
             style="width: 140px; height: auto;"
@@ -29,11 +29,11 @@
           >
             Restaurant
           </span>
-          <p v-if="paiementResponse" class="mb-5 text-muted fs-md-15 fs-md-16 lh-base">
-            {{paiementResponse.orderSelf.restaurantID.name}} <br /> {{paiementResponse.orderSelf.restaurantID.numeroRue}}{{paiementResponse.orderSelf.restaurantID.address}}
+          <p v-if="paiementResponse.orderSelf.restaurantID"  class="mb-5 text-muted fs-md-15 fs-md-16 lh-base">
+            {{paiementResponse.orderSelf.restaurantID.name ?? ''}} <br /> {{paiementResponse.orderSelf.restaurantID.numeroRue ?? ''}}{{paiementResponse.orderSelf.restaurantID.address ?? ''}}
           </p>
-          <span v-if="paiementResponse" class="d-block text-muted fs-md-15 fs-md-16">
-            Tel :  {{paiementResponse.orderSelf.restaurantID.phoneNumber}}
+          <span v-if="paiementResponse.orderSelf.restaurantID" class="d-block text-muted fs-md-15 fs-md-16">
+            Tel :  {{paiementResponse.orderSelf.restaurantID.phoneNumber ?? ''}}
           </span>
         </div>
         <div class="text-lg-center mt-15 mt-md-20 mt-lg-0">
@@ -42,10 +42,10 @@
           >
             Reference
           </h2>
-          <span v-if="paiementResponse" class="d-block fs-md-15 fs-md-16 text-muted">
+          <span v-if="paiementResponse.orderSelf" class="d-block fs-md-15 fs-md-16 text-muted">
             <span class="me-md-5 d-block d-md-inline-block">
               ref.commande :
-              <span class="text-paragraph">#{{getShortUuid(paiementResponse.orderSelf.id)}}</span>
+              <span class="text-paragraph">#{{getShortUuid(paiementResponse.orderSelf.reference)}}</span>
             </span>
             <span class="ms-md-5 d-block d-md-inline-block">
               Date :
@@ -53,23 +53,23 @@
             </span>
           </span>
         </div>
-        <div v-if="qrcode" class="text-lg-end mt-15 mt-md-20 mt-lg-0">
+        <div v-if="paiementResponse.orderSelf && qrcode" class="text-lg-end mt-15 mt-md-20 mt-lg-0">
           <img :src="qrcode" alt="qr-code" />
         </div>
       </div>
       <div class="invoice-info d-lg-flex justify-content-between">
-        <div class="d-flex">
-          <div>
+        <div class="d-flex"  v-if="paiementResponse">
+          <div v-if="paiementResponse.orderSelf">
             <span class="d-block text-black fs-md-15 fw-bold mb-12">
              Operation effectuée par:
             </span>
-            <span v-if="paiementResponse"
+            <span
               class="d-block fs-md-15 fs-lg-16 fw-medium text-paragraph mb-8"
             >
-              {{paiementResponse.userID.last_name}} {{paiementResponse.userID.first_name}}
+              {{paiementResponse.orderSelf.guest_first_name}} {{paiementResponse.orderSelf.guest_last_name}}
             </span>
-            <p v-if="paiementResponse" class="mb-5 text-muted fs-md-15 fs-md-16 lh-base">
-              Tel :  {{paiementResponse.orderSelf.guest_phone_number ?? paiementResponse.userID.phone_number}}
+            <p  class="mb-5 text-muted fs-md-15 fs-md-16 lh-base">
+              Tel :  {{paiementResponse.orderSelf.guest_phone_number}}
             </p>
 
           </div>
@@ -77,7 +77,7 @@
             <span class="d-block text-black fs-md-15 fw-bold mb-12">
               Paiement:
             </span>
-            <span v-if="paiementResponse"
+            <span v-if="paiementResponse &&  paiementResponse.paymentMethod"
               class="d-block fs-md-15 fs-lg-16 fw-medium text-paragraph mb-8"
             >
               {{getMethodePaiementParType(listeMethode,  paiementResponse.paymentMethod)?.libelle ?? '-' }}
@@ -98,7 +98,7 @@
       <span class="d-block text-black fs-md-15 fw-bold mb-15 mb-md-20 mb-lg-25">
         Recapitulatif de commande
       </span>
-      <div class="table-responsive">
+      <div class="table-responsive" v-if="paiementResponse">
         <table class="table text-nowrap align-middle mb-0">
           <thead>
             <tr>
@@ -134,7 +134,7 @@
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody v-if="paiementResponse.orderSelf">
             <tr
                 v-for="(orderItem, index) in paiementResponse?.orderSelf.orderItems" :key="orderItem.id"
             >
@@ -146,10 +146,10 @@
                   {{orderItem.productID.name}}
                 </h5>
                 <spand class="d-block">
-                  {{orderItem.productID.description}}
+                  {{cleanAndTruncateHtmlText(orderItem.productID.description)}}
                 </spand>
               </td>
-              <td class="shadow-none lh-1 fw-medium text-paragraph"> {{orderItem.quantity}}</td>
+              <td class="shadow-none lh-1 fw-medium text-paragraph"> x{{orderItem.quantity}}</td>
               <td class="shadow-none lh-1 fw-medium text-paragraph"> {{orderItem.unit_price}} CHF</td>
               <td class="shadow-none lh-1 fw-medium text-paragraph pe-0">
                 {{orderItem.total_price}} CHF
@@ -159,35 +159,30 @@
           </tbody>
         </table>
       </div>
-      <ul class="order-summary-list ps-0 mb-0 list-unstyled">
-        <li v-if="paiementResponse" class="d-flex align-items-center justify-content-between">
-          <span class="d-block text-paragraph fw-medium"> Total commandé </span>
+      <ul class="order-summary-list ps-0 mb-0 list-unstyled" v-if="paiementResponse">
+        <li v-if="paiementResponse && paiementResponse.orderSelf" class="d-flex align-items-center justify-content-between">
+          <span class="d-block text-paragraph fw-medium"> SOUS-TOTAL </span>
           <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-            {{paiementResponse.orderSelf.total_price}} CHF
+            {{(paiementResponse.orderSelf.total_price - (paiementResponse.orderSelf.total_price * 2.60/100)).toFixed(2)}} CHF
           </span>
         </li>
         <li class="d-flex align-items-center justify-content-between">
           <span class="d-block text-paragraph fw-medium">
-            Frais de livraison
+          2.60% TVA
           </span>
           <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-            + 0 CHF
+              {{ (paiementResponse.orderSelf.total_price * 2.60 / 100).toFixed(2) }} CHF
           </span>
         </li>
         <li class="d-flex align-items-center justify-content-between">
-          <span class="d-block text-paragraph fw-medium"> Remise </span>
+          <span class="d-block text-paragraph fw-medium"> RABAIS </span>
           <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-            - 0 CHF
+            0 CHF
           </span>
         </li>
-        <li class="d-flex align-items-center justify-content-between">
-          <span class="d-block text-paragraph fw-medium"> Tax </span>
-          <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-            + 0 CHF
-          </span>
-        </li>
-        <li v-if="paiementResponse" class="d-flex align-items-center justify-content-between">
-          <span class="d-block text-paragraph fw-medium"> Total a payer </span>
+
+        <li v-if="paiementResponse && paiementResponse.amount" class="d-flex align-items-center justify-content-between">
+          <span class="d-block text-paragraph fw-medium"> TOTAL BRUT </span>
           <span class="d-block text-primary fs-md-15 fs-lg-16 fw-bold">
             {{ paiementResponse.amount }} CHF
           </span>
@@ -203,7 +198,7 @@
     <div class="modal fade" id="contentModalScrollable_facture" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-scrollable modal-lg">
         <div class="modal-content" v-if="paiementResponse">
-          <div class="modal-header">
+          <div class="modal-header" v-if="paiementResponse.orderSelf">
             <h1 class="modal-title fs-5">Facture de la commande #{{getShortUuid(paiementResponse.orderSelf.id)}}</h1>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
@@ -212,47 +207,116 @@
               <main class="ticket-system" >
                 <div class="receipts-wrapper" >
                   <div class="receipts"  id="recu-pdf">
-                    <div class="receipt">
-                      <img src="@/assets/images/LOGO_VABENE.png" class="airliner-logo"/>
-                      <div class="route">
-                        <h2>Ref</h2>
-                        <h2>#{{getShortUuid(paiementResponse.orderSelf.id)}}</h2>
+                    <div class="receipt" v-if="paiementResponse.orderSelf">
+                      <img src="https://vabenepizza.ch/imgs/logo.svg" class="airliner-logo"/>
+                      <div class="route" v-if="paiementResponse.orderSelf.restaurantID">
+                        <h2><strong>Livraison de pizzas {{paiementResponse.orderSelf.restaurantID.name}}</strong></h2>
+                        <h2><strong>{{paiementResponse.orderSelf.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'Va Bene pizza sàrl Morges' : 'Pizzeria Va Bene SA '}}</strong></h2>
+                        <h2><strong>{{paiementResponse.orderSelf.restaurantID.address}}</strong></h2>
+                        <h2><strong>{{paiementResponse.orderSelf.restaurantID.codePostalID.numeroPostal}} {{paiementResponse.orderSelf.restaurantID.name}}</strong> </h2>
+                        <h2><strong>+4121 {{paiementResponse.orderSelf.restaurantID.phoneNumber}}</strong></h2>
+                        <h2><strong>{{paiementResponse.orderSelf.restaurantID.taxe}}</strong></h2>
                       </div>
-                      <div class="details">
-                        <div class="item">
-                          <span>Nom complet</span>
-                          <h3>{{paiementResponse.orderSelf.guest_first_name}}</h3>
-                          <h3>{{paiementResponse.orderSelf.guest_last_name}}</h3>
-                        </div>
-                        <div class="item">
-                          <span>Coût total </span>
-                          <h3>{{paiementResponse.orderSelf.total_price}} CHF</h3>
-                        </div>
-                        <div class="item">
-                          <span>Fait le</span>
-                          <h3>{{convertDateCreate(paiementResponse.orderSelf.created_at)}}</h3>
-                        </div>
+                      <hr class="dashed-line" />
 
-                        <div class="item">
-                          <span>Adresse</span>
-                          <h3>{{paiementResponse.orderSelf.address}}</h3>
-                        </div>
-                        <div class="item">
-                          <span>Rue & batiment</span>
-                          <h3>{{paiementResponse.orderSelf.rue}}</h3>
-                          <h3>{{paiementResponse.orderSelf.batiment}}</h3>
+                      <div class="route" v-if="paiementResponse.orderSelf">
+                        <h2><strong>{{paiementResponse.orderSelf.guest_first_name}} {{paiementResponse.orderSelf.guest_last_name}}</strong></h2>
+                        <h2><strong>{{paiementResponse.orderSelf.address}} - {{paiementResponse.orderSelf.numberRue}}</strong></h2>
+                        <h2><strong>{{paiementResponse.orderSelf.npa ?? ''}} {{paiementResponse.orderSelf.localite ?? ''}}</strong></h2>
+                        <h2><strong>{{paiementResponse.orderSelf.guest_phone_number}}</strong></h2>
+                        <h2><strong>{{paiementResponse.orderSelf.guest_email}}</strong></h2>
+                      </div>
 
+                      <hr class="dashed-line" />
+
+                      <div class="route" v-if="paiementResponse.orderSelf">
+                        <h2><strong>{{orderTypeSelected[0].libelle}}</strong></h2>
+                        <h2><strong>{{convertDateCreate(paiementResponse.orderSelf.created_at)}}</strong></h2>
+                        <h2><strong>{{paiementResponse.orderSelf.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'TOUT DE SUITE'}}</strong></h2>
+                        <h2><strong>{{convertDateCreate(paiementResponse.orderSelf.timeOrder) ?? ''}} </strong></h2>
+                        <h2><strong>{{paiementResponse.orderSelf.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ paiementResponse.orderSelf.reference : 'VBP'+ paiementResponse.orderSelf.reference}}</strong></h2>
+                        <h2><strong>{{getLast6Digits(paiementResponse.orderSelf.customer.id)}}</strong></h2>
+
+                      </div>
+                      <hr class="dashed-line" />
+
+                      <div class="product-ticket" v-if="paiementResponse.orderSelf">
+                        <div
+                            v-for="(items, categoryName) in groupedByCategory"
+                            :key="categoryName"
+                            class="category-section"
+                            style="margin-bottom: 10px;"
+                        >
+                          <!-- 🏷️ Nom unique de la catégorie -->
+                          <div style="font-weight: 600; font-size: 12px; margin-bottom: 8px;">
+                            {{ categoryName }}
+                          </div>
+
+                          <!-- 🍕 Tous les produits de cette catégorie -->
+                          <div
+                              v-for="item in items"
+                              :key="item.id"
+                              style="display: flex; flex-direction: column; margin-bottom: 10px;"
+                          >
+                            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+                              <span><strong>{{ item.quantity }}x {{ item.productID.name }}</strong></span>
+                              <span><strong>{{ item.total_price }} CHF</strong></span>
+                            </div>
+
+                            <!-- 🧂 Ingrédients -->
+                            <ul v-if="item.ingredients && item.ingredients.length" style="margin: 2px 0 0 10px; font-size: 9px; color: #555;">
+                              <li
+                                  v-for="ingredient in item.ingredients"
+                                  :key="ingredient.id"
+                                  class="text-decoration-none list-unstyled"
+                              >
+                                <strong>x{{ ingredient.quantite }} {{ ingredient.name }} ({{ingredient.size}})</strong>
+                              </li>
+                            </ul>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div class="receipt qr-code" v-if="qrcode">
-                      <img
-                          :src="qrcode" alt="qrcode"
-                      />
-                      <div class="description">
-                        <h2>A livré</h2>
-                        <p>à {{paiementResponse.orderSelf.rue}} - {{paiementResponse.orderSelf.batiment}}</p>
+
+
+
+                      <hr class="dashed-line" />
+                      <div class="product-list" v-if="paiementResponse.orderSelf">
+                        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                          <span><strong>SOUS-TOTAL: </strong></span>
+                          <span><strong>{{(paiementResponse.orderSelf.total_price - (paiementResponse.orderSelf.total_price * 2.60/100)).toFixed(2) }} CHF</strong></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                          <span><strong>2.60% TVA </strong></span>
+                          <span><strong>{{(paiementResponse.orderSelf.total_price * 2.60/100).toFixed(2)}} CHF</strong></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                          <span><strong>RABAIS: </strong></span>
+                          <span><strong>0 CHF</strong></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                          <span><strong>TOTAL BRUT:  </strong></span>
+                          <span><strong>{{ paiementResponse.orderSelf.total_price }} CHF</strong></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                          <span>Méthode de paiements :  </span>
+                          <span v-if="methodePaiementSelected">{{ methodePaiementSelected.libelle }}</span>
+                        </div>
                       </div>
+                      <hr class="dashed-line" />
+                      <div class="route" v-if="paiementResponse.orderSelf">
+                        <h2 v-if="paiementResponse.orderSelf.feature"><strong>{{paiementResponse.orderSelf.feature[0]}}</strong></h2>
+                        <h2><strong>Trancher: {{paiementResponse.orderSelf.intructionOrder.isTrancher ? 'OUI': 'NON'}}</strong></h2>
+                        <h2><strong>Couverts: {{paiementResponse.orderSelf.intructionOrder.quantityCouverts}}</strong></h2>
+
+                      </div>
+
+                      <!--                        <div class="barcode-footer">-->
+                      <!--                          <img-->
+                      <!--                              :src="`https://quickchart.io/barcode?type=code128&text=${orderResponse.reference}`"-->
+                      <!--                              alt="Code-barres de la facture"-->
+                      <!--                              class="barcode-image"-->
+                      <!--                          />-->
+                      <!--                        </div>-->
                     </div>
                   </div>
                 </div>
@@ -276,6 +340,8 @@ import {OrderTypeModel} from "@/models/orderType.model";
 import {OrderItemModel} from "@/models/orderItem.model";
 import html2pdf from "html2pdf.js";
 import {UserGeneralKey} from "@/models/user.generalkey";
+import {RestaurantEnum} from "../../../../enums/restaurant.enum";
+
 import {
   allStatusOrder,
   allStatusPaiementOrder,
@@ -294,6 +360,27 @@ import {defineComponent} from "vue";
 
 export default defineComponent({
   name: "TransactionDetails",
+  computed: {
+    groupedByCategory() {
+      const grouped: Record<string, any[]> = {};
+
+      if(this.paiementResponse){
+        for (const item of this.paiementResponse.orderSelf.orderItems) {
+          const categoryName = item.productID?.categorieID?.name || "Sans catégorie";
+
+          if (!grouped[categoryName]) {
+            grouped[categoryName] = [];
+          }
+
+          grouped[categoryName].push(item);
+        }
+      }
+      return grouped;
+    },
+    RestaurantEnum() {
+      return RestaurantEnum
+    }
+  },
   components: {LoaderComponent},
   data(){
     return{
@@ -311,6 +398,22 @@ export default defineComponent({
   },
 
   methods: {
+    getLast6Digits(uuid: string): string {
+      const parts = uuid.split('-');
+      const lastPart = parts[parts.length - 1];
+      // On garde uniquement les chiffres
+      const digitsOnly = lastPart.replace(/\D/g, '');
+      return digitsOnly.slice(-6);
+    },
+    cleanAndTruncateHtmlText(html: string): string {
+      // Supprimer les balises HTML
+      const textOnly = html.replace(/<[^>]*>/g, '').trim();
+      // Tronquer et ajouter "..." si nécessaire
+      if (textOnly.length <= 100) {
+        return textOnly;
+      }
+      return textOnly.substring(0, 100).trim() + '...';
+    },
     previewPDF() {
       const element = document.getElementById('recu-pdf');
 
@@ -321,155 +424,214 @@ export default defineComponent({
         element.style.margin = '0 auto';
         // Injecter les styles avec un scope sur #recu-pdf uniquement
         style.textContent = `
-      #recu-pdf * {
-        box-sizing: border-box;
-        font-family: 'Ubuntu', sans-serif;
-        color: #1c1c1c;
-      }
-      #recu-pdf {
-        max-width: 385px;
-        padding: 25px 30px;
-        margin: auto;
-      }
+        #recu-pdf * {
+  box-sizing: border-box;
+  font-family: 'Ubuntu', sans-serif;
+  color: #1c1c1c;
+}
+#recu-pdf {
+  max-width: 450px;
+  padding: 25px 30px;
+  margin: auto;
+}
 
-      #recu-pdf .top {
-        display: flex;
-        align-items: center;
-        flex-direction: column;
-      }
-      #recu-pdf .top .title {
-        font-weight: normal;
-        font-size: 1.6em;
-        text-align: left;
-        margin-left: 20px;
-        margin-bottom: 50px;
-        color: #fff;
-      }
-      #recu-pdf .top .printer {
-        width: 90%;
-        height: 20px;
-        border: 5px solid #fff;
-        border-radius: 10px;
-        box-shadow: 1px 3px 3px 0 rgba(0, 0, 0, 0.2);
-      }
+#recu-pdf .top {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+#recu-pdf .top .title {
+  font-weight: normal;
+  font-size: 1.6em;
+  text-align: left;
+  margin-left: 20px;
+  margin-bottom: 50px;
+  color: #fff;
+}
+#recu-pdf .top .printer {
+  width: 90%;
+  height: 20px;
+  border: 5px solid #fff;
+  border-radius: 10px;
+  box-shadow: 1px 3px 3px 0 rgba(0, 0, 0, 0.2);
+}
 
-      #recu-pdf .receipts-wrapper {
-        overflow: hidden;
-        margin-top: -10px;
-        padding-bottom: 10px;
-      }
+#recu-pdf .receipts-wrapper {
+  overflow: hidden;
+  margin-top: -10px;
+  padding-bottom: 10px;
+}
 
-      #recu-pdf .receipts {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        flex-direction: column;
-        transform: translateY(-510px);
+#recu-pdf .receipts {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  transform: translateY(-510px);
 
-        animation-duration: 2.5s;
-        animation-delay: 500ms;
-        animation-name: print;
-        animation-fill-mode: forwards;
-      }
+  animation-duration: 2.5s;
+  animation-delay: 500ms;
+  animation-name: print;
+  animation-fill-mode: forwards;
+}
 
-      #recu-pdf .receipt {
-        padding: 25px 30px;
-        text-align: left;
-        min-height: 200px;
-        width: 88%;
-        background-color: #fff;
-        border-radius: 10px 10px 20px 20px;
-        box-shadow: 1px 3px 8px 3px rgba(0, 0, 0, 0.2);
-      }
+#recu-pdf .receipt {
+  padding: 25px 30px;
+  text-align: left;
+  min-height: 200px;
+  width: 110%;
+  background-color: #fff;
+  border-radius: 10px 10px 20px 20px;
+  box-shadow: 1px 3px 8px 3px rgba(0, 0, 0, 0.2);
+}
 
-      #recu-pdf .airliner-logo {
-        max-width: 110px;
-      }
+#recu-pdf .airliner-logo {
+  max-width: 70px;
+}
 
-      #recu-pdf .route {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin: 30px 0;
-      }
+#recu-pdf .route {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: start;
+  margin: 5px 0;
+}
 
-      #recu-pdf .plane-icon {
-        width: 30px;
-        height: 30px;
-        transform: rotate(90deg);
-      }
+.dashed-line {
+  border: none;
+  border-top: 2px dashed #333; /* couleur personnalisable */
+  margin: 1rem 0;
+  width: 100%;
+}
 
-      #recu-pdf .route h2 {
-        font-weight: 300;
-        font-size: 22px;
-        margin: 0;
-      }
+#recu-pdf .plane-icon {
+  width: 30px;
+  height: 30px;
+  transform: rotate(90deg);
+}
 
-      #recu-pdf .details {
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
-      }
+#recu-pdf .route h2 {
+  font-weight: 100;
+  font-size: 12px;
+  margin: 0;
+}
 
-      #recu-pdf .details .item {
-        display: flex;
-        flex-direction: column;
-        min-width: 70px;
-      }
+#recu-pdf .details {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
 
-      #recu-pdf .details .item span {
-        font-size: .8em;
-        color: rgba(28, 28, 28, .7);
-        font-weight: 500;
-      }
+#recu-pdf .details .item {
+  display: flex;
+  flex-direction: column;
+  min-width: 70px;
+}
 
-      #recu-pdf .details .item h3 {
-        font-size: 18px !important;
-        margin-top: 0;
-        margin-bottom: 0;
-      }
+#recu-pdf .details .item span {
+  font-size: .8em;
+  color: rgba(28, 28, 28, .7);
+  font-weight: 500;
+}
 
-      #recu-pdf .receipt.qr-code {
-        height: 110px;
-        min-height: unset;
-        position: relative;
-        border-radius: 20px 20px 10px 10px;
-        display: flex;
-        align-items: center;
-      }
+#recu-pdf .details .item h3 {
+  font-size: 18px !important;
+  margin-top: 0;
+  margin-bottom: 0;
+}
 
-      #recu-pdf .receipt.qr-code::before {
-        content: '';
-        background: linear-gradient(to right, #fff 50%, #3a8d35 50%);
-        background-size: 22px 4px, 100% 4px;
-        height: 4px;
-        width: 90%;
-        display: block;
-        left: 0;
-        right: 0;
-        top: -1px;
-        position: absolute;
-        margin: auto;
-      }
+#recu-pdf .receipt.qr-code {
+  height: 110px;
+  min-height: unset;
+  position: relative;
+  border-radius: 20px 20px 10px 10px;
+  display: flex;
+  align-items: center;
+}
 
-      #recu-pdf .qr {
-        width: 70px;
-        height: 70px;
-      }
+#recu-pdf .receipt.qr-code::before {
+  content: '';
+  background: linear-gradient(to right, #fff 50%, #3a8d35 50%);
+  background-size: 22px 4px, 100% 4px;
+  height: 4px;
+  width: 90%;
+  display: block;
+  left: 0;
+  right: 0;
+  top: -1px;
+  position: absolute;
+  margin: auto;
+}
 
-      #recu-pdf .description {
-        margin-left: 20px;
-      }
+#recu-pdf .qr {
+  width: 70px;
+  height: 70px;
+}
 
-      #recu-pdf .description h2 {
-        margin: 0 0 5px 0;
-        font-weight: 500;
-      }
+#recu-pdf .description {
+  margin-left: 20px;
+}
 
-      #recu-pdf .description p {
-        margin: 0;
-        font-weight: 400;
-      }
+#recu-pdf .description h2 {
+  margin: 0 0 5px 0;
+  font-weight: 500;
+}
+
+#recu-pdf .description p {
+  margin: 0;
+  font-weight: 400;
+}
+
+#recu-pdf.product-list {
+  margin-top: 10px;
+  font-family: 'Arial', sans-serif;
+}
+
+#recu-pdf.product-list h2 {
+  font-size: 10px;
+  margin-bottom: 5px;
+  border-bottom: 1px dashed #ccc;
+  padding-bottom: 2px;
+}
+
+#recu-pdf.product-list div {
+  padding: 1px 0;
+  border-bottom: 1px dashed #ddd;
+}
+
+#recu-pdf.product-list span {
+  font-size: 10px;
+  line-height: 1.2;
+  display: inline-block;
+}
+
+#recu-pdf.product-list span:first-child {
+  font-weight: bold;
+  color: #333;
+}
+
+#recu-pdf.product-list span:last-child {
+  font-weight: 500;
+  color: #007bff;
+}
+#recu-pdf.barcode-footer {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px dashed #ccc;
+}
+
+#recu-pdf.barcode-image {
+  height: 60px;
+  margin-bottom: 6px;
+}
+
+#recu-pdf.barcode-label {
+  font-size: 13px;
+  color: #444;
+  font-style: italic;
+}
+
 
       @keyframes print {
         0% { transform: translateY(-510px); }
@@ -699,174 +861,226 @@ html, body {
   height: 100%;
   margin: 0;
 }
-body {
-  @import url('https://fonts.googleapis.com/css?family=Ubuntu:300,400,500,700');
+#recu-pdf * {
+  box-sizing: border-box;
   font-family: 'Ubuntu', sans-serif;
-  background-color: #3a8d35;
-  height: 100%;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #1c1c1c;
+}
+#recu-pdf {
+  max-width: 450px;
+  padding: 25px 30px;
+  margin: auto;
+}
+
+#recu-pdf .top {
   display: flex;
-  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+#recu-pdf .top .title {
+  font-weight: normal;
+  font-size: 1.6em;
+  text-align: left;
+  margin-left: 20px;
+  margin-bottom: 50px;
+  color: #fff;
+}
+#recu-pdf .top .printer {
+  width: 90%;
+  height: 20px;
+  border: 5px solid #fff;
+  border-radius: 10px;
+  box-shadow: 1px 3px 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+#recu-pdf .receipts-wrapper {
+  overflow: hidden;
+  margin-top: -10px;
+  padding-bottom: 10px;
+}
+
+#recu-pdf .receipts {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  transform: translateY(-510px);
+
+  animation-duration: 2.5s;
+  animation-delay: 500ms;
+  animation-name: print;
+  animation-fill-mode: forwards;
+}
+
+#recu-pdf .receipt {
+  padding: 25px 30px;
+  text-align: left;
+  min-height: 200px;
+  width: 110%;
+  background-color: #fff;
+  border-radius: 10px 10px 20px 20px;
+  box-shadow: 1px 3px 8px 3px rgba(0, 0, 0, 0.2);
+}
+
+#recu-pdf .airliner-logo {
+  max-width: 120px;
+  position: relative;
+  left: 30%;
+  margin-bottom: 20px;
+}
+
+#recu-pdf .route {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: start;
+  margin: 5px 0;
+}
+
+.dashed-line {
+  border: none;
+  border-top: 2px dashed #333; /* couleur personnalisable */
+  margin: 1rem 0;
+  width: 100%;
 }
 
 
-.ticket-system {
-  max-width: 385px;
-  .top {
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    .title {
-      font-weight: normal;
-      font-size: 1.6em;
-      text-align: left;
-      margin-left: 20px;
-      margin-bottom: 50px;
-      color: #fff;
-    }
-    .printer {
-      width: 90%;
-      height: 20px;
-      border: 5px solid #fff;
-      border-radius: 10px;
-      box-shadow: 1px 3px 3px 0px rgba(0, 0, 0, 0.2);
-    }
-  }
-
-  .receipts-wrapper {
-    overflow: hidden;
-    margin-top: -10px;
-    padding-bottom: 10px;
-  }
-
-  .receipts {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    transform: translateY(-510px);
-
-    animation-duration: 2.5s;
-    animation-delay: 500ms;
-    animation-name: print;
-    animation-fill-mode: forwards;
 
 
-    .receipt {
-      padding: 25px 30px;
-      text-align: left;
-      min-height: 200px;
-      width: 88%;
-      background-color: #fff;
-      border-radius: 10px 10px 20px 20px;
-      box-shadow: 1px 3px 8px 3px rgba(0, 0, 0, 0.2);
-
-      .airliner-logo {
-        max-width: 110px;
-      }
-
-      .route {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin: 30px 0;
-
-        .plane-icon {
-          width: 30px;
-          height: 30px;
-          transform: rotate(90deg);
-        }
-        h2 {
-          font-weight: 300;
-
-          font-size: 22px;
-          margin: 0;
-        }
-      }
-
-      .details {
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
-
-        .item {
-          display: flex;
-          flex-direction: column;
-          min-width: 70px;
-
-          span {
-            font-size: .8em;
-            color: rgba(28, 28, 28, .7);
-            font-weight: 500;
-          }
-          h3 {
-            font-size: 18px !important;
-            margin-top: 0px;
-            margin-bottom: 0px;
-          }
-        }
-      }
-
-      &.qr-code {
-        height: 110px;
-        min-height: unset;
-        position: relative;
-        border-radius: 20px 20px 10px 10px;
-        display: flex;
-        align-items: center;
-
-        &::before {
-          content: '';
-          background: linear-gradient(to right, #fff 50%, #3a8d35 50%);
-          background-size: 22px 4px, 100% 4px;
-          height: 4px;
-          width: 90%;
-          display: block;
-          left: 0;
-          right: 0;
-          top: -1px;
-          position: absolute;
-          margin: auto;
-        }
-
-        .qr {
-          width: 70px;
-          height: 70px;
-        }
-
-        .description {
-          margin-left: 20px;
-
-          h2 {
-            margin: 0 0 5px 0;
-            font-weight: 500;
-          }
-          p {
-            margin: 0;
-            font-weight: 400;
-          }
-        }
-      }
-    }
-  }
+#recu-pdf .plane-icon {
+  width: 30px;
+  height: 30px;
+  transform: rotate(90deg);
 }
+
+#recu-pdf .route h2 {
+  font-weight: 100;
+  font-size: 12px;
+  margin: 0;
+}
+
+#recu-pdf .details {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+#recu-pdf .details .item {
+  display: flex;
+  flex-direction: column;
+  min-width: 70px;
+}
+
+#recu-pdf .details .item span {
+  font-size: .8em;
+  color: rgba(28, 28, 28, .7);
+  font-weight: 500;
+}
+
+#recu-pdf .details .item h3 {
+  font-size: 18px !important;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+#recu-pdf .receipt.qr-code {
+  height: 110px;
+  min-height: unset;
+  position: relative;
+  border-radius: 20px 20px 10px 10px;
+  display: flex;
+  align-items: center;
+}
+
+#recu-pdf .receipt.qr-code::before {
+  content: '';
+  background: linear-gradient(to right, #fff 50%, #3a8d35 50%);
+  background-size: 22px 4px, 100% 4px;
+  height: 4px;
+  width: 90%;
+  display: block;
+  left: 0;
+  right: 0;
+  top: -1px;
+  position: absolute;
+  margin: auto;
+}
+
+#recu-pdf .qr {
+  width: 70px;
+  height: 70px;
+}
+
+#recu-pdf .description {
+  margin-left: 20px;
+}
+
+#recu-pdf .description h2 {
+  margin: 0 0 5px 0;
+  font-weight: 500;
+}
+
+#recu-pdf .description p {
+  margin: 0;
+  font-weight: 400;
+}
+
+#recu-pdf.product-list {
+  margin-top: 10px;
+  font-family: 'Arial', sans-serif;
+}
+
+#recu-pdf.product-list h2 {
+  font-size: 10px;
+  margin-bottom: 5px;
+  border-bottom: 1px dashed #ccc;
+  padding-bottom: 2px;
+}
+
+#recu-pdf.product-list div {
+  padding: 1px 0;
+  border-bottom: 1px dashed #ddd;
+}
+
+#recu-pdf.product-list span {
+  font-size: 10px;
+  line-height: 1.2;
+  display: inline-block;
+}
+
+#recu-pdf.product-list span:first-child {
+  font-weight: bold;
+  color: #333;
+}
+
+#recu-pdf.product-list span:last-child {
+  font-weight: 500;
+  color: #007bff;
+}
+#recu-pdf.barcode-footer {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px dashed #ccc;
+}
+
+#recu-pdf.barcode-image {
+  height: 60px;
+  margin-bottom: 6px;
+}
+
+#recu-pdf.barcode-label {
+  font-size: 13px;
+  color: #444;
+  font-style: italic;
+}
+
 
 @keyframes print {
-  0% {
-    transform: translateY(-510px)
-  }
-  35% {
-    transform: translateY(-395px);
-  }
-  70% {
-    transform: translateY(-140px);
-  }
-  100% {
-    transform: translateY(0);
-  }
+  0% { transform: translateY(-510px); }
+  35% { transform: translateY(-395px); }
+  70% { transform: translateY(-140px); }
+  100% { transform: translateY(0); }
 }
 
 .modal-dialog-scrollable .modal-body {

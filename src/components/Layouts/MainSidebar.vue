@@ -38,12 +38,12 @@
         </li>
 
         <!-- POS -->
-        <li class="sub-title sidebar-nav-item">
+        <li class="sub-title sidebar-nav-item" v-if="userRole === UserRole.RESTAURANT">
           <span class="d-block text-uppercase fw-medium">POS</span>
         </li>
 
         <!--     POS SYSTEM-->
-        <li class="sidebar-nav-item">
+        <li class="sidebar-nav-item" v-if="userRole === UserRole.RESTAURANT">
           <router-link to="/ajout-commande" class="sidebar-nav-link d-block" @click="stateStoreInstance.onChange"
           >
             <i class="flaticon-shopping-cart-2"></i>
@@ -308,7 +308,7 @@
             </div>
           </div>
         </li>
-        <li
+        <li  v-if="userRole === UserRole.FRANCHISE"
             class="sidebar-nav-item accordion-item bg-transparent border-0 rounded-0"
         >
           <a

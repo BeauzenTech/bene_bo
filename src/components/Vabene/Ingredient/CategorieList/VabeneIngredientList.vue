@@ -470,7 +470,7 @@ export default defineComponent({
     async fetchIngredients(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeIngredient(page) as ApiResponse<PaginatedIngredient>;
+        const response = await listeIngredient(page, '0') as ApiResponse<PaginatedIngredient>;
         console.log(response)
         if (response.code === 200) {
           this.ingredientResponse = response;
