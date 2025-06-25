@@ -467,6 +467,17 @@
                 </li>
                 <li
                     class="text-body-secondary fw-semibold transition position-relative cursor-pointer"
+                    v-if="userRole === UserRole.RESTAURANT"
+                >
+                  <i class="flaticon-user-2"></i>
+                  Mon restaurant
+                  <a
+                      @click="gotoUpdateRestaurant"
+                      class="d-block position-absolute start-0 top-0 end-0 bottom-0 text-decoration-none"
+                  ></a>
+                </li>
+                <li
+                    class="text-body-secondary fw-semibold transition position-relative cursor-pointer"
                 >
                   <i class="flaticon-user-2"></i>
                   Modifier mot de passe
@@ -518,7 +529,7 @@
 import { defineComponent, ref, onMounted } from "vue";
 import LightDarkSwtichBtn from "./LightDarkSwtichBtn.vue";
 import stateStore from "../../utils/store";
-import {UserGeneralKey} from "@/models/user.generalkey";
+import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 import defaultAvatar from '@/assets/images/user/avatar.png'
 import {ActionCrud} from "@/enums/actionCrud.enum";
 
@@ -527,6 +538,9 @@ import {ActionCrud} from "@/enums/actionCrud.enum";
 export default defineComponent({
   name: "MainHeader",
   computed: {
+    UserRole() {
+      return UserRole
+    },
     ActionCrud() {
       return ActionCrud
     }
@@ -543,6 +557,13 @@ export default defineComponent({
     }
   },
   methods:{
+    gotoUpdateRestaurant(){
+      const restuarantId = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
+      this.$router.push({
+        name: "VabeneAddRestaurantPage",
+        params: { action: ActionCrud.EDIT ,restaurantID: restuarantId }
+      });
+    },
     gotoUserDetail(action){
       const userID = localStorage.getItem(UserGeneralKey.USER_ID)
       this.$router.push({

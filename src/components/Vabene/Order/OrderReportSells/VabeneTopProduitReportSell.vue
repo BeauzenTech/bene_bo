@@ -63,7 +63,7 @@ import {ApiResponse, PaginatedCategorie, PaginatedOrder, PaginatedProduct} from 
 import {ActionCrud} from "@/enums/actionCrud.enum";
 import {AxiosError} from "axios";
 import {Commons} from "@/utils/commons.utils";
-import {UserGeneralKey} from "@/models/user.generalkey";
+import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 import {CategorieModel} from "@/models/categorie.model";
 import {useToast} from "vue-toastification";
 import {TopProductSellModel} from "@/models/TopProductSell.model";
@@ -120,6 +120,8 @@ export default defineComponent({
           },
         },
       },
+      userRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
+      restaurantIdStorage: localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID),
     };
   },
   methods: {
@@ -140,7 +142,12 @@ export default defineComponent({
           if (response.data?.items) {
             this.originalCategories = response.data.items;
             this.categorieSelected = this.originalCategories[0];
-           await this.fetchTopProductSell(this.categorieSelected.id);
+            if(this.userRole === UserRole.FRANCHISE){
+              await this.fetchTopProductSell(this.categorieSelected.id);
+            }
+            else{
+              await this.fetchTopProductSell(this.categorieSelected.id, this.restaurantIdStorage ?? undefined);
+            }
           }
         } else {
           this.toast.error(response.message);
@@ -215,12 +222,19 @@ export default defineComponent({
         this.expected = []
         this.amountTotal = 0
         this.categorieSelected = this.originalCategories.find(c => c.id === newVal) ?? null;
-        if(this.categorieSelected && this.newRestoId !== 'all'){
-          this.fetchTopProductSell(this.categorieSelected.id as string, this.newRestoId as string);
+        if(this.userRole === UserRole.FRANCHISE){
+          if(this.categorieSelected && this.newRestoId !== 'all'){
+            this.fetchTopProductSell(this.categorieSelected.id as string, this.newRestoId as string);
+          }
+          else{
+            if(this.categorieSelected){
+              this.fetchTopProductSell(this.categorieSelected.id);
+            }
+          }
         }
         else{
           if(this.categorieSelected){
-            this.fetchTopProductSell(this.categorieSelected.id);
+            this.fetchTopProductSell(this.categorieSelected.id, this.restaurantIdStorage ?? undefined);
           }
         }
       }

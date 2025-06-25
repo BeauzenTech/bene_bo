@@ -66,7 +66,7 @@
                     Commandes
                   </router-link>
                 </li>
-                <li class="sidebar-sub-menu-item">
+                <li v-if="userRole === UserRole.FRANCHISE" class="sidebar-sub-menu-item">
                   <router-link
                       to="/transaction-list"
                       class="sidebar-sub-menu-link"
@@ -119,7 +119,7 @@
                   >Catégories</router-link
                   >
                 </li>
-                <li class="sidebar-sub-menu-item">
+                <li class="sidebar-sub-menu-item" v-if="userRole === UserRole.FRANCHISE">
                   <router-link to="/ingredient-list" class="sidebar-sub-menu-link">
                     Ingredients
                   </router-link>
@@ -129,7 +129,7 @@
                     Produits
                   </router-link>
                 </li>
-                <li class="sidebar-sub-menu-item">
+                <li v-if="userRole === UserRole.FRANCHISE" class="sidebar-sub-menu-item">
                   <router-link
                       to="/list-coupon"
                       class="sidebar-sub-menu-link"
@@ -137,7 +137,7 @@
                     Coupon
                   </router-link>
                 </li>
-                <li class="sidebar-sub-menu-item">
+                <li v-if="userRole === UserRole.FRANCHISE" class="sidebar-sub-menu-item">
                   <router-link
                       to="/loyalty_programme-list"
                       class="sidebar-sub-menu-link"
@@ -183,7 +183,7 @@
                     Clients
                   </router-link>
                 </li>
-                <li class="sidebar-sub-menu-item">
+                <li class="sidebar-sub-menu-item" v-if="userRole === UserRole.FRANCHISE">
                   <router-link
                       to="/campagne-list"
                       class="sidebar-sub-menu-link"
@@ -191,7 +191,7 @@
                     Campagnes email
                   </router-link>
                 </li>
-                <li class="sidebar-sub-menu-item">
+                <li class="sidebar-sub-menu-item" v-if="userRole === UserRole.FRANCHISE">
                   <router-link
                       to="/notifications-sending"
                       class="sidebar-sub-menu-link"
@@ -206,11 +206,12 @@
 
 
        <!-- COMPTE -->
-        <li class="sub-title sidebar-nav-item">
+
+        <li v-if="userRole === UserRole.FRANCHISE" class="sub-title sidebar-nav-item">
           <span class="d-block text-uppercase fw-medium">Comptes</span>
         </li>
         <!-- COMPTE UTILISATEUR-->
-        <li
+        <li v-if="userRole === UserRole.FRANCHISE"
             class="sidebar-nav-item accordion-item bg-transparent border-0 rounded-0"
         >
           <a
@@ -249,7 +250,7 @@
             </div>
           </div>
         </li>
-        <li
+        <li v-if="userRole === UserRole.FRANCHISE"
             class="sidebar-nav-item accordion-item bg-transparent border-0 rounded-0"
         >
           <a

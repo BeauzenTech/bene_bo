@@ -47,9 +47,9 @@ export class UserGeneralKey {
         }
         if(user.franchises.length > 0){
             localStorage.setItem(UserGeneralKey.USER_FRANCHISE_ID, user.franchises[0].id);
-            if(user.franchises[0].restaurants.length > 0){
-                localStorage.setItem(UserGeneralKey.USER_RESTAURANT_ID, user.franchises[0].restaurants[0].id);
-            }
+        }
+        if(user.roles[0] === UserRole.RESTAURANT){
+            localStorage.setItem(UserGeneralKey.USER_RESTAURANT_ID, user.restaurant.id);
         }
     }
 
@@ -78,7 +78,6 @@ export class UserGeneralKey {
                 return 'Gestion - Restaurant'
             default:
                 return 'Utilisateur'
-
         }
     }
 

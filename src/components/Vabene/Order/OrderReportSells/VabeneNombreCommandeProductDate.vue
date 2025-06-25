@@ -107,6 +107,8 @@ export default defineComponent({
       endDate: '' as string,
       originalProducts: [] as ProductModel[], // Stockage des utilisateurs originaux
       productSelected: null as ProductModel | null,
+      userRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
+      restaurantIdStorage: localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID),
       answered: [
         {
           name: "Taux moyen de commandes",
@@ -176,22 +178,33 @@ export default defineComponent({
           console.log(valueText)
           this.startDate = valueText
           if(this.productSelected){
-            if(this.newRestaurantId !== 'all'){
-              this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? undefined);
+            if(this.userRole === UserRole.FRANCHISE){
+              if(this.newRestaurantId !== 'all'){
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? undefined);
+              }
+              else{
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate);
+              }
             }
             else{
-              this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate);
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? undefined);
             }
+
           }
           break
         case 'endDate':
           this.endDate = valueText
           if(this.productSelected){
-            if(this.newRestaurantId !== 'all'){
-              this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? undefined);
+            if(this.userRole === UserRole.FRANCHISE){
+              if(this.newRestaurantId !== 'all'){
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? undefined);
+              }
+              else{
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate);
+              }
             }
             else{
-              this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate);
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? undefined);
             }
           }
           break
@@ -220,9 +233,14 @@ export default defineComponent({
             this.productSelected = this.originalProducts[0]
             this.startDate = this.getSameDayLastMonth()
             this.endDate = this.getTodayDate()
-            const userRole = localStorage.getItem(UserGeneralKey.USER_ROLE);
-
+            if(this.userRole === UserRole.FRANCHISE){
               await this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate);
+            }
+            else{
+              console.log(this.restaurantIdStorage);
+              await this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.restaurantIdStorage as string);
+            }
+
 
 
           }
@@ -237,7 +255,6 @@ export default defineComponent({
 
     async fetchNombreDeCommandeMoyenByProduct(productID: string, startDate?: string, endDate?: string, idRest?: string) {
       try {
-
         const response = await nombreCommandeParProduct(productID, startDate, endDate, idRest ?? undefined) as ApiResponse<RatioModel>;
         console.log(response)
         if (response.code === 200) {
@@ -258,6 +275,10 @@ export default defineComponent({
   },
   mounted() {
     this.fetchProduct(1, "active", '');
+    if(this.userRole === UserRole.RESTAURANT){
+       this.newRestaurantId = this.restaurantId
+    }
+
   },
   watch:{
     restaurantId(newVal, oldVal){
@@ -283,6 +304,7 @@ export default defineComponent({
         // this.expected = []
         // this.amountTotal = 0
         this.productSelected = this.originalProducts.find(c => c.id === newVal) ?? null;
+
         if(this.productSelected  && this.newRestaurantId !== 'all'){
           this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? undefined);
         }

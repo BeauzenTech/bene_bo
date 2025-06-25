@@ -54,7 +54,7 @@ export default defineComponent({
     };
   },
   mounted() {
-    this.fullName = localStorage.getItem(UserGeneralKey.USER_FIRST_NAME) + ' ' + localStorage.getItem(UserGeneralKey.USER_FIRST_NAME);
+    this.fullName = localStorage.getItem(UserGeneralKey.USER_FIRST_NAME) + ' ' + localStorage.getItem(UserGeneralKey.USER_LAST_NAME);
   }
 });
 </script>

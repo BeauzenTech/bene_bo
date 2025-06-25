@@ -51,6 +51,7 @@ import {useToast} from "vue-toastification";
 import {AverageReportModel} from "@/models/averageReport.model";
 import {ProductModel} from "@/models/product.model";
 import {round} from "@popperjs/core/lib/utils/math";
+import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 
 export default defineComponent({
   name: "VabeneAverageReportSell",
@@ -154,6 +155,8 @@ export default defineComponent({
           borderColor: "#f0f0f0",
         },
       },
+      userRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
+      restaurantIdStorage: localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID),
     };
   },
   methods: {
@@ -178,7 +181,12 @@ export default defineComponent({
           if (response.data?.items) {
             this.originalProducts = response.data.items;
             this.productSelected = this.originalProducts[0]
-            await this.fetchAverageProductSell(this.productSelected.id as string)
+            if(this.userRole === UserRole.FRANCHISE){
+              await this.fetchAverageProductSell(this.productSelected.id as string)
+            }
+            else{
+              await this.fetchAverageProductSell(this.productSelected.id as string, this.restaurantIdStorage ?? undefined);
+            }
           }
         } else {
           this.toast.error(response.message);
@@ -264,14 +272,22 @@ export default defineComponent({
         ] as { name: string; data: number[] }[]
         this.amountTotal = 0
         this.productSelected = this.originalProducts.find(c => c.id === newVal) ?? null;
-        if(this.productSelected  && this.newRestoId !== 'all'){
-          this.fetchAverageProductSell(this.productSelected.id as string, this.newRestoId as string);
+        if(this.userRole === UserRole.FRANCHISE){
+          if(this.productSelected  && this.newRestoId !== 'all'){
+            this.fetchAverageProductSell(this.productSelected.id as string, this.newRestoId as string);
+          }
+          else{
+            if(this.productSelected){
+              this.fetchAverageProductSell(this.productSelected.id);
+            }
+          }
         }
         else{
           if(this.productSelected){
-            this.fetchAverageProductSell(this.productSelected.id);
+            this.fetchAverageProductSell(this.productSelected.id, this.restaurantIdStorage ?? undefined);
           }
         }
+
       }
     }
   }

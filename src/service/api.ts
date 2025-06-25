@@ -9,7 +9,7 @@ import {
     PaginatedRestaurant,
     PaginatedUsers
 } from "@/models/Apiresponse";
-import {UserGeneralKey} from "@/models/user.generalkey";
+import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 import {UserModel} from "@/models/user.model";
 import {OrderModel} from "@/models/order.model";
 import {PaymentModel} from "@/models/payment.model";
@@ -377,8 +377,12 @@ export const listeOrder = async (page = 1): Promise<ApiResponse<PaginatedOrder>>
     // eslint-disable-next-line no-useless-catch
     try {
         const userID = localStorage.getItem(UserGeneralKey.USER_ID);
+        const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
+        const role = localStorage.getItem(UserGeneralKey.USER_ROLE)
+        const id = role === UserRole.FRANCHISE ? userID : restaurantID
+        const owner = role === UserRole.FRANCHISE ? 'admin' : 'restaurant'
         // https://posme.pharmakilivreservice.com/api/initial/v1/orders/admin?page=1
-        const response = await apiClient.get(`/initial/v1/orders/admin/${userID}/1?page=${page}`);
+        const response = await apiClient.get(`/initial/v1/orders/${owner}/${id}/1?page=${page}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
@@ -777,9 +781,15 @@ export const reportVenteAdmin = async (restaurantID?: string): Promise<ApiRespon
     }
 };
 
-export const reportVenteRestaurant = async (restaurantID: string): Promise<ApiResponse<SellModel>> => {
+export const reportVenteRestaurant = async (restaurantID?: string): Promise<ApiResponse<SellModel>> => {
     // eslint-disable-next-line no-useless-catch
     try {
+        const url = [
+            `/initial/order/report`,
+            restaurantID,
+        ]
+            .filter(Boolean) // retire les undefined
+            .join('/');
         const response = await apiClient.get(`/initial/order/report/${restaurantID}`);
         return response.data;
     } catch (error) {
@@ -787,10 +797,16 @@ export const reportVenteRestaurant = async (restaurantID: string): Promise<ApiRe
     }
 };
 
-export const reportPeriodiqueCard = async (): Promise<ApiResponse<PeriodiqueCardReport>> => {
+export const reportPeriodiqueCard = async (restaurantID?: string): Promise<ApiResponse<PeriodiqueCardReport>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/initial/order/periodique_report`);
+        const url = [
+            `initial/order/periodique_report`,
+            restaurantID,
+        ]
+            .filter(Boolean) // retire les undefined
+            .join('/');
+        const response = await apiClient.get(url);
         return response.data;
     } catch (error) {
         throw error;

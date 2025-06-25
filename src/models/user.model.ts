@@ -1,4 +1,5 @@
 import {FranchiseModel} from "@/models/franchise.model";
+import {RestaurantModel} from "@/models/restaurant.model";
 
 export interface UserModel {
     id: string;
@@ -19,6 +20,7 @@ export interface UserModel {
     updated_at: string;
     deviceToken: string
     franchises: FranchiseModel[];
+    restaurant: RestaurantModel
 
 }
 

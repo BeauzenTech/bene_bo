@@ -7,7 +7,7 @@
     <LoaderComponent />
   </div>
   <div v-else class="card-body p-15 p-sm-20 p-md-25 p-lg-30 letter-spacing bg-white">
-    <div class="col-md-2">
+    <div class="col-md-2" v-if="useRole === UserRole.FRANCHISE">
       <div class="form-group position-relative transition mt-2">
         <label class="d-block text-black fw-semibold mb-10 fs-16">
           Filtre par restaurant
@@ -19,6 +19,14 @@
             :reduce="restaurant => restaurant.id"
             placeholder="Restaurant"
         />
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="form-group position-relative transition mt-2" v-if="originalRestaurant.length > 0">
+        <label class="d-block text-black fw-semibold mb-10 fs-30">
+         {{originalRestaurant[0].name}}
+        </label>
+
       </div>
     </div>
 
@@ -186,6 +194,8 @@ export default defineComponent({
     return {
       reportVente: [] as RepportModelData[],
       isLoading: false,
+      useRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
+      restaurantIdStorage: localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID),
       selectedPeriod: 2,
       weeklySalesChart: {
         chart: {
@@ -387,12 +397,20 @@ export default defineComponent({
     return { toast };
   },
   async mounted(){
-   await this.getReportAdmin();
-   await this.getPeriodiqueReport()
+    if(this.useRole === UserRole.FRANCHISE){
+      await this.getReportAdmin();
+    }
+    else{
+      await this.getReportAdmin(this.restaurantIdStorage ?? undefined);
+    }
+    await this.getPeriodiqueReport()
     await this.fetchRestaurants()
   },
 
   computed: {
+    UserRole() {
+      return UserRole
+    },
     getTitleForPeriod(): string {
       switch (this.selectedPeriod) {
         case 3: return "RAPPORT DE VENTE CETTE ANNÉE";

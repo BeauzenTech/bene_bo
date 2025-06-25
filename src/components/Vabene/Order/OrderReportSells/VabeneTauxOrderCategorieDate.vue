@@ -149,7 +149,9 @@ export default defineComponent({
         },
       },
       tauxMoyenCommande: null as RatioModel | null,
-      newRestoId: null as string | null
+      newRestoId: null as string | null,
+      userRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
+      restaurantIdStorage: localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID),
     };
   },
   methods: {
@@ -170,23 +172,35 @@ export default defineComponent({
           console.log(valueText)
           this.startDate = valueText
           if(this.categorieSelected){
-            if(this.newRestoId !== 'all'){
-              this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.newRestoId ?? undefined);
-            }
-            else{
-              this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
-            }
-          }
-          break
-        case 'endDate':
-          this.endDate = valueText
-            if(this.categorieSelected){
+            if(this.userRole === UserRole.FRANCHISE){
               if(this.newRestoId !== 'all'){
                 this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.newRestoId ?? undefined);
               }
               else{
                 this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
               }
+            }
+            else{
+              this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? undefined);
+            }
+
+          }
+          break
+        case 'endDate':
+          this.endDate = valueText
+            if(this.categorieSelected){
+              if(this.userRole === UserRole.FRANCHISE){
+                if(this.newRestoId !== 'all'){
+                  this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.newRestoId ?? undefined);
+                }
+                else{
+                  this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+                }
+              }
+              else{
+                this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? undefined);
+              }
+
             }
           break
 
@@ -211,8 +225,12 @@ export default defineComponent({
             this.categorieSelected = this.originalCategories[0];
             this.startDate = this.getSameDayLastMonth()
             this.endDate = this.getTodayDate()
-            const userRole = localStorage.getItem(UserGeneralKey.USER_ROLE);
-            await this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+            if(this.userRole === UserRole.FRANCHISE){
+              await this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+            }
+            else{
+              await this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? undefined);
+            }
 
           }
         } else {
@@ -270,12 +288,19 @@ export default defineComponent({
         // this.expected = []
         // this.amountTotal = 0
         this.categorieSelected = this.originalCategories.find(c => c.id === newVal) ?? null;
-        if(this.categorieSelected && this.newRestoId !== 'all'){
-           this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.newRestoId ?? undefined);
+        if(this.userRole === UserRole.FRANCHISE){
+          if(this.categorieSelected && this.newRestoId !== 'all'){
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.newRestoId ?? undefined);
+          }
+          else{
+            if(this.categorieSelected){
+              this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+            }
+          }
         }
         else{
           if(this.categorieSelected){
-            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? undefined);
           }
         }
       }

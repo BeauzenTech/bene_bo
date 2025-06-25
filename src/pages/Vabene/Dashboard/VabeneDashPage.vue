@@ -14,7 +14,7 @@
       <div class="col-xxl-5 col-xxxl-6">
         <div class="row">
           <div class="col-lg-12">
-            <VabeneNombreCommandeProductDate id="nombreCommandeProductDate" />
+            <VabeneNombreCommandeProductDate id="nombreCommandeProductDate" :restaurantId="restaurantId" />
           </div>
 
         </div>
@@ -92,8 +92,9 @@
 
     <div
         class="mb-15 mb-sm-0 d-sm-flex align-items-center justify-content-between"
+        v-if="reportVente && reportVente.length >0"
     >
-      <div class="title" v-if="reportVente && reportVente.length >0">
+      <div class="title" >
         <span class="fw-medium text-muted fs-13 d-block mb-5 text-uppercase">
           {{getTitleForPeriod}}
         </span>
@@ -119,7 +120,7 @@
         </select>
       </div>
     </div>
-    <div class="chart bg-white mt-4" v-if="reportVente" >
+    <div class="chart bg-white mt-4" v-if="reportVente && reportVente.length > 0" >
       <apexchart
           type="line"
           height="374"
@@ -146,6 +147,7 @@ import {SellModel} from "@/models/vente.model";
 import {useToast} from "vue-toastification";
 import VabeneNombreCommandeProductDate  from "@/components/Vabene/Order/OrderReportSells/VabeneNombreCommandeProductDate.vue";
 import LoaderComponent from "@/components/Loading/Loader.vue";
+import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 
 export default defineComponent({
   name: "VabeneDashPage",
@@ -157,6 +159,8 @@ export default defineComponent({
   data(){
     return {
       reportVente: [] as RepportModelData[],
+      userRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
+      restaurantId: localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID) ?? null,
       isLoading: false,
       selectedPeriod: 2,
       weeklySalesChart: {
@@ -254,9 +258,9 @@ export default defineComponent({
     }
   },
   methods:{
-    async getReportAdmin(){
+    async getReportAdmin(restaurantId?: string){
       try {
-        const response = await reportVenteAdmin() as ApiResponse<SellModel>;
+        const response = await reportVenteAdmin(restaurantId) as ApiResponse<SellModel>;
         console.log(response)
         if (response.code === 200) {
           if (response.data) {
@@ -284,10 +288,10 @@ export default defineComponent({
         this.isLoading = false
       }
     },
-    async getPeriodiqueReport(){
+    async getPeriodiqueReport(restaurantID?: string){
       this.isLoading = true
       try {
-        const response = await reportPeriodiqueCard() as ApiResponse<PeriodiqueCardReport>;
+        const response = await reportPeriodiqueCard(restaurantID) as ApiResponse<PeriodiqueCardReport>;
         if (response.code === 200) {
           if (response.data) {
             this.periodiqueReportCard = response.data
@@ -306,11 +310,20 @@ export default defineComponent({
     return { toast };
   },
   async mounted(){
+      if(this.userRole === UserRole.FRANCHISE){
+        await this.getReportAdmin();
+        await this.getPeriodiqueReport()
+      }
+      else{
+        await this.getReportAdmin(this.restaurantId as string);
+        await this.getPeriodiqueReport(this.restaurantId as string)
+      }
 
-    await this.getReportAdmin();
-    await this.getPeriodiqueReport()
   },
   computed: {
+    UserRole() {
+      return UserRole
+    },
     getTitleForPeriod(): string {
       switch (this.selectedPeriod) {
         case 3: return "RAPPORT DE VENTE CETTE ANNÉE";
