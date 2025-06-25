@@ -1,5 +1,6 @@
 import {FranchiseModel} from "@/models/franchise.model";
 import {RestaurantModel} from "@/models/restaurant.model";
+import {b} from "@fullcalendar/core/internal-common";
 
 export interface UserModel {
     id: string;
@@ -21,7 +22,7 @@ export interface UserModel {
     deviceToken: string
     franchises: FranchiseModel[];
     restaurant: RestaurantModel
-
+    enableNotification: boolean
 }
 
 export type UserRole = 'ROLE_ADMIN' | 'ROLE_USER' | 'ROLE_FRANCHISE' | 'ROLE_RESTAURANT'; // Ajoutez tous les rôles possibles

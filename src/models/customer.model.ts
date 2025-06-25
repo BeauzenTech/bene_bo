@@ -23,6 +23,7 @@ export interface CustomerModel{
     moyenPaiements: string[],
     type: string,
     listeCuisson: string[]
-
+    promotions: boolean
+    newsletter: boolean
 }
 

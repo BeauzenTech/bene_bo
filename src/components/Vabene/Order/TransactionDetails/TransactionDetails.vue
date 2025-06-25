@@ -202,7 +202,7 @@
             <h1 class="modal-title fs-5">Facture de la commande #{{getShortUuid(paiementResponse.orderSelf.id)}}</h1>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div class="modal-body flex-row align-items-center justify-content-center" >
+          <div class="modal-body  align-items-center justify-content-center" >
             <div class="flex-column items-center justify-content-center">
               <main class="ticket-system" >
                 <div class="receipts-wrapper" >
@@ -255,7 +255,7 @@
                           <!-- 🍕 Tous les produits de cette catégorie -->
                           <div
                               v-for="item in items"
-                              :key="item.id"
+                              :key="item?.id || 'unknown-item'"
                               style="display: flex; flex-direction: column; margin-bottom: 10px;"
                           >
                             <div style="display: flex; justify-content: space-between; font-size: 11px;">
@@ -358,6 +358,13 @@ import {useToast} from "vue-toastification";
 import {PaymentModel} from "@/models/payment.model";
 import {defineComponent} from "vue";
 
+document.addEventListener('hidden.bs.modal', function (event) {
+  document.body.classList.remove('modal-open'); // au cas où
+  const backdrops = document.querySelectorAll('.modal-backdrop');
+  backdrops.forEach(el => el.remove());
+});
+
+
 export default defineComponent({
   name: "TransactionDetails",
   computed: {
@@ -432,7 +439,7 @@ export default defineComponent({
 #recu-pdf {
   max-width: 450px;
   padding: 25px 30px;
-  margin: auto;
+  margin-top: 50%;
 }
 
 #recu-pdf .top {
@@ -869,7 +876,7 @@ html, body {
 #recu-pdf {
   max-width: 450px;
   padding: 25px 30px;
-  margin: auto;
+  margin-top: 50%;
 }
 
 #recu-pdf .top {
@@ -905,7 +912,6 @@ html, body {
   align-items: center;
   flex-direction: column;
   transform: translateY(-510px);
-
   animation-duration: 2.5s;
   animation-delay: 500ms;
   animation-name: print;
@@ -920,6 +926,7 @@ html, body {
   background-color: #fff;
   border-radius: 10px 10px 20px 20px;
   box-shadow: 1px 3px 8px 3px rgba(0, 0, 0, 0.2);
+  margin-top: 20%;
 }
 
 #recu-pdf .airliner-logo {

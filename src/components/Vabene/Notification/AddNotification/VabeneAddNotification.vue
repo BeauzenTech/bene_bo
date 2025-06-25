@@ -248,12 +248,12 @@ export default defineComponent({
         if(idResto){
           this.restaurantId = idResto;
         }
-        const response = await listeCustomers(page, '1', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
+        const response = await listeCustomers(page, '0', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
         console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             const data = response.data.items;
-            this.originalUsers = data.filter(item => item.user != null && item.user.deviceToken != null);
+            this.originalUsers = data.filter(item => item.user !== null && item.user.enableNotification  && item.user.deviceToken != null );
             console.log("filter data: ", this.originalUsers);
           }
 

@@ -166,8 +166,6 @@
             </div>
           </div>
 
-
-
           <div class="col-md-12">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
@@ -185,6 +183,36 @@
             </div>
           </div>
 
+          <div class="col-md-12"  v-if="actionDetected === ActionCrud.ADD">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Type de compte
+              </label>
+              <select class="form-select shadow-none fw-semibold rounded-0"
+                      v-model="selectedTypeCompte"
+                      @change="(event) => handleInput(event, 'roles')"
+                      :class="{ 'is-valid': validTextField(userData.roles) }"
+              >
+                <option value="TEAM" selected>Equipe</option>
+                <option value="CLASSIQUE" selected>Classique</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-12" v-if="actionDetected === ActionCrud.ADD && selectedTypeCompte === 'TEAM'">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                RESTAURANT
+              </label>
+              <v-select
+                  v-model="restaurantSelected"
+                  :options="originalRestaurant"
+                  label="name"
+                  placeholder="Selectionner le restaurant"
+
+              />
+            </div>
+          </div>
+
           <div class="col-md-12">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
@@ -195,8 +223,9 @@
                       @change="(event) => handleInput(event, 'roles')"
                       :class="{ 'is-valid': validTextField(userData.roles) }"
               >
-                <option value="ROLE_ADMIN" selected>Administrateur</option>
-                <option value="ROLE_SUPPORT_TECHNIQUE" selected>Support Technique</option>
+                <option value="ROLE_ADMIN" selected>ADMINISTRATEUR</option>
+                <option value="ROLE_RESTAURANT" selected>RESTAURANT</option>
+                <option value="ROLE_SUPPORT_TECHNIQUE" selected>SUPPORT TECHNIQUE</option>
               </select>
             </div>
           </div>
@@ -317,7 +346,7 @@ import {
   createUser,
   detailFranchise,
   detailUser,
-  fetchAllPostalCode,
+  fetchAllPostalCode, listeRestaurant,
   updateUser,
   updateUserPassword
 } from "@/service/api";
@@ -325,10 +354,11 @@ import {
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import {AxiosError} from "axios";
-import {ApiResponse} from "@/models/Apiresponse";
+import {ApiResponse, PaginatedRestaurant} from "@/models/Apiresponse";
 import {FranchiseModel} from "@/models/franchise.model";
 import {UserModel} from "@/models/user.model";
 import {ActionCrud} from "@/enums/actionCrud.enum";
+import {RestaurantModel} from "@/models/restaurant.model";
 
 export default defineComponent({
   name: "VabeneAddUser",
@@ -370,6 +400,10 @@ export default defineComponent({
       allPostalCode: [],
       actionDetected: null as string | null,
       userResponse: null as UserModel | null,
+      allTypeCompte: ["TEAM", "CLASSIQUE"],
+      selectedTypeCompte: '',
+      restaurantSelected: null as RestaurantModel | null,
+      originalRestaurant: [] as RestaurantModel[]
     }
   },
   methods: {
@@ -409,28 +443,30 @@ export default defineComponent({
           "postalCode": this.userData.postalCode,
           "country": this.userData.country,
           "batiment": this.userData.batiment,
-          "numeroRue": this.userData.numeroRue
+          "numeroRue": this.userData.numeroRue,
+          "restaurantId": this.restaurantSelected?.id
         }
-        try {
-          const response = await createUser(payload);
-          console.log(response);
-          if (response.code === 201) {
-            this.toast.success(response.message)
-            this.clearData()
-          } else {
-            this.toast.error(response.message)
-          }
-        } catch (error) {
-          const axiosError = error as AxiosError;
-          if (axiosError.response && axiosError.response.data) {
-            const message = (axiosError.response.data as any).message;
-            this.toast.error(message);
-          } else {
-            this.toast.error("Une erreur est survenue");
-          }
-        } finally {
-          this.isLoading = false;
-        }
+        console.log(payload)
+        // try {
+        //   const response = await createUser(payload);
+        //   console.log(response);
+        //   if (response.code === 201) {
+        //     this.toast.success(response.message)
+        //     this.clearData()
+        //   } else {
+        //     this.toast.error(response.message)
+        //   }
+        // } catch (error) {
+        //   const axiosError = error as AxiosError;
+        //   if (axiosError.response && axiosError.response.data) {
+        //     const message = (axiosError.response.data as any).message;
+        //     this.toast.error(message);
+        //   } else {
+        //     this.toast.error("Une erreur est survenue");
+        //   }
+        // } finally {
+        //   this.isLoading = false;
+        // }
       }
       else{
           await this.updateAccount(this.userResponse?.id)
@@ -474,7 +510,6 @@ export default defineComponent({
     async updateAccount(userID) {
       this.isLoading = true;
       const payload = {
-
         "firstName": this.userData.firstName,
         "lastName": this.userData.lastName,
         "phoneNumber": this.userData.phoneNumber,
@@ -559,7 +594,26 @@ export default defineComponent({
         this.isLoading = false;
       }
     },
+    async fetchRestaurants(page = 1) {
+      this.isLoading = true;
+      try {
+        const response = await listeRestaurant(page) as ApiResponse<PaginatedRestaurant>;
+        console.log(response)
+        if (response.code === 200) {
+          if (response.data?.items) {
+            this.originalRestaurant = response.data.items;
+          }
 
+        } else {
+          this.toast.error(response.message);
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des restaurant");
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
     handleInput(event, type) {
       console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
@@ -712,9 +766,11 @@ export default defineComponent({
   },
   mounted() {
     this.fetchPostalCode();
+    this.fetchRestaurants(1)
     this.actionDetected = (this as any).$route.params.action
     if((this as any).$route.params.action == ActionCrud.EDIT || (this as any).$route.params.action == 'password'){
       this.fetchDetailUser((this as any).$route.params.userID)
+
     }
   }
 

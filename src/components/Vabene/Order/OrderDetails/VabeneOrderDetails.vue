@@ -855,6 +855,12 @@ import {PaymentStatus} from "@/enums/orderPaiementMethode.enum";
 import {Modal} from "bootstrap";
 import {RestaurantEnum} from "../../../../enums/restaurant.enum";
 
+document.addEventListener('hidden.bs.modal', function (event) {
+  document.body.classList.remove('modal-open'); // au cas où
+  const backdrops = document.querySelectorAll('.modal-backdrop');
+  backdrops.forEach(el => el.remove());
+});
+
 
 export default defineComponent({
   name: "VaBeneOrderDetails",
@@ -927,7 +933,7 @@ export default defineComponent({
 #recu-pdf {
   max-width: 450px;
   padding: 25px 30px;
-  margin: auto;
+  margin-top: 50%;
 }
 
 #recu-pdf .top {
@@ -1403,7 +1409,7 @@ html, body {
 #recu-pdf {
   max-width: 450px;
   padding: 25px 30px;
-  margin: auto;
+  margin-top: 50%;
 }
 
 #recu-pdf .top {

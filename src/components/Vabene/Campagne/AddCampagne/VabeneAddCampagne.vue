@@ -120,24 +120,14 @@
 import {defineComponent, PropType} from "vue";
 
 
-import {
-  createCategorie,
-  detailCategorie,
-  updateCategorie,
-  uploadFile,
-  deleteFileUpload,
-  createCampagne, detailCampagne, listeUser, listeCustomers
-} from "@/service/api";
+import {createCampagne, detailCampagne, listeCustomers, updateCategorie, uploadFile} from "@/service/api";
 
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
-import { AxiosError } from 'axios';
-import {ApiResponse, PaginatedCategorie, PaginatedCustomer, PaginatedUsers} from "@/models/Apiresponse";
-import {CategorieModel} from "@/models/categorie.model";
+import {AxiosError} from 'axios';
+import {ApiResponse, PaginatedCustomer} from "@/models/Apiresponse";
 import {ActionCrud} from "@/enums/actionCrud.enum";
 import {CampagneModel} from "@/models/campagne.model";
-import {UserModel} from "@/models/user.model";
-import {OrderTypeModel} from "@/models/orderType.model";
 import {UserGeneralKey} from "@/models/user.generalkey";
 import {CustomerModel} from "@/models/customer.model";
 
@@ -258,11 +248,11 @@ export default defineComponent({
         if(idResto){
           this.restaurantId = idResto;
         }
-        const response = await listeCustomers(page, '1', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
+        const response = await listeCustomers(page, '0', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
         console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
-            this.originalUsers = response.data.items;
+            this.originalUsers = response.data.items.filter(item => item.promotions && item.newsletter);
           }
 
         } else {

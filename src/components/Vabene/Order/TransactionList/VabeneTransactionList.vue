@@ -60,12 +60,7 @@
             >
               MONTANT
             </th>
-            <th
-                scope="col"
-                class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-            >
-              METHODE DE PAIEMENT
-            </th>
+
             <th
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
@@ -100,7 +95,7 @@
               v-for="paiement in allPayments" :key="paiement.id"
           >
 
-            <th
+            <th v-if="paiement"
                 class="shadow-none lh-1 fw-medium text-black-emphasis title ps-0 text-capitalize"
             >
               <div class="d-flex align-items-center text-capitalize">
@@ -120,13 +115,13 @@
               </div>
             </th>
             <td  class="shadow-none lh-1 fw-medium text-black-emphasis">
-              <div
+              <div v-if="paiement.orderSelf"
                   class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
               >
               <a
                   href="#"
               >
-                #{{ getShortUuid(paiement.orderSelf.id)  }}
+                #{{ getShortUuid(paiement.orderSelf.id) ?? '-'  }}
               </a>
               </div>
             </td>
@@ -143,25 +138,20 @@
             <td class="shadow-none lh-1 fw-medium text-black-emphasis ">
               {{ paiement.amount || '-' }} CHF
             </td>
-            <td v-if="paiement.paymentMethod && listeMethode && getMethodePaiementParType(listeMethode,  paiement.paymentMethod)?.libelle" class="shadow-none lh-1 fw-medium text-black-emphasis">
-              {{ getMethodePaiementParType(listeMethode,  paiement.paymentMethod)!.libelle }}
-            </td>
-            <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">
-              <span>-</span>
-            </td>
 
-            <td class="shadow-none lh-1 fw-medium text-muted">
-              <span v-if="paiement.orderSelf.status === 'delivered'" class="badge text-bg-success">{{fetchStatusOrderFr(paiement.orderSelf.status)}}</span>
-              <span v-else class="badge text-bg-warning">{{fetchStatusOrderFr(paiement.orderSelf.status)}}</span>
+
+            <td class="shadow-none lh-1 fw-medium text-muted" v-if="paiement.orderSelf">
+              <span v-if="paiement.orderSelf.status === 'delivered'" class="badge text-bg-success">{{fetchStatusOrderFr(paiement.orderSelf.status)  ?? '-' }}</span>
+              <span v-else class="badge text-bg-warning">{{fetchStatusOrderFr(paiement.orderSelf.status)  ?? '-' }}</span>
             </td>
-            <td>
+            <td  v-if="paiement.orderSelf">
               <span v-if="paiement.orderSelf.status === 'pending'" class="badge text-outline-danger">En attente de paiement</span>
               <span v-if="paiement.status === 'paid'" class="badge text-outline-primary">Payé</span>
               <span v-if="paiement.status === 'refunded'" class="badge text-outline-muted">A remboursé</span>
               <span v-if="paiement.status === 'cancelled'" class="badge text-outline-warning">Annuler</span>
             </td>
             <td>
-              {{convertDateCreate(paiement.created_at)}}
+              {{convertDateCreate(paiement.created_at)  ?? '-' }}
             </td>
 
             <td
@@ -407,7 +397,11 @@ export default defineComponent({
       }
     },
      getShortUuid(uuid: string): string {
+      if(uuid){
         return uuid.split('-')[0];
+      }
+      return ''
+
      },
     gotoCreate(){
       this.$router.push("/ajout-commande");
