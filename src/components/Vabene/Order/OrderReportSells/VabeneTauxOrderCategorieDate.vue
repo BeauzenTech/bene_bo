@@ -78,7 +78,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import {defineComponent, PropType} from "vue";
 import {CategorieModel} from "@/models/categorie.model";
 import {listeCategorieActive, tauxCommandeCategorie, topProductReportSell} from "@/service/api";
 import {ApiResponse, PaginatedCategorie} from "@/models/Apiresponse";
@@ -89,7 +89,12 @@ import {RatioModel} from "@/models/ratio.model";
 
 export default defineComponent({
   name: "VabeneTauxOrderCategorieDate",
-
+  props: {
+    restaurantId: {
+      type: String as PropType<string>,
+      required: true
+    },
+  },
   data: function () {
     return {
       startDate: '' as string,
@@ -143,7 +148,8 @@ export default defineComponent({
           },
         },
       },
-      tauxMoyenCommande: null as RatioModel | null
+      tauxMoyenCommande: null as RatioModel | null,
+      newRestoId: null as string | null
     };
   },
   methods: {
@@ -164,13 +170,23 @@ export default defineComponent({
           console.log(valueText)
           this.startDate = valueText
           if(this.categorieSelected){
-            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+            if(this.newRestoId !== 'all'){
+              this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.newRestoId ?? undefined);
+            }
+            else{
+              this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+            }
           }
           break
         case 'endDate':
           this.endDate = valueText
             if(this.categorieSelected){
-              this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+              if(this.newRestoId !== 'all'){
+                this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.newRestoId ?? undefined);
+              }
+              else{
+                this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+              }
             }
           break
 
@@ -196,13 +212,8 @@ export default defineComponent({
             this.startDate = this.getSameDayLastMonth()
             this.endDate = this.getTodayDate()
             const userRole = localStorage.getItem(UserGeneralKey.USER_ROLE);
-            if(userRole === UserRole.RESTAURANT){
-              const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
-              await this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, (restaurantID as string));
-            }
-            else{
-              await this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
-            }
+            await this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+
           }
         } else {
           this.toast.error(response.message);
@@ -212,9 +223,9 @@ export default defineComponent({
         console.error(error);
       }
     },
-    async fetchTauxCommandeMoyenByCategorie(categoryID: string, startDate?: string, endDate?: string, restaurantId?: string) {
+    async fetchTauxCommandeMoyenByCategorie(categoryID: string, startDate?: string, endDate?: string, idRest?: string) {
       try {
-        const response = await tauxCommandeCategorie(categoryID, startDate, endDate, restaurantId) as ApiResponse<RatioModel>;
+        const response = await tauxCommandeCategorie(categoryID, startDate, endDate, idRest ?? undefined) as ApiResponse<RatioModel>;
         console.log(response)
         if (response.code === 200) {
           this.tauxMoyenCommande = response.data as RatioModel;
@@ -236,14 +247,36 @@ export default defineComponent({
     this.fetchCategories(1)
   },
   watch:{
+    restaurantId(newVal, oldVal){
+      if (typeof newVal === 'string' && newVal !== oldVal) {
+        console.log("Nouvelle option restaurant ID sélectionnée :", newVal);
+        this.newRestoId = newVal;
+        if(newVal !== 'all'){
+          if(this.categorieSelected){
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, newVal);
+          }
+        }
+        else{
+          if(this.categorieSelected){
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+          }
+        }
+
+      }
+    },
     categorieSelected(newVal, oldVal) {
       if (typeof newVal === 'string' && newVal !== oldVal) {
         console.log("Nouvelle catégorie sélectionnée :", newVal);
         // this.expected = []
         // this.amountTotal = 0
         this.categorieSelected = this.originalCategories.find(c => c.id === newVal) ?? null;
-        if(this.categorieSelected){
-           this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+        if(this.categorieSelected && this.newRestoId !== 'all'){
+           this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.newRestoId ?? undefined);
+        }
+        else{
+          if(this.categorieSelected){
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+          }
         }
       }
     }

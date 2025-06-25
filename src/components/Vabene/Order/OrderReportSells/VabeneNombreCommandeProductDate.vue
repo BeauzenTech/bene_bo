@@ -78,7 +78,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import {defineComponent, PropType} from "vue";
 import {
   listeCategorieActive,
   listeProducts,
@@ -95,6 +95,12 @@ import {RatioModel} from "@/models/ratio.model";
 
 export default defineComponent({
   name: "VabeneNombreCommandeProductDate",
+  props: {
+    restaurantId: {
+      type: String as PropType<string>,
+      required: true
+    },
+  },
   data() {
     return {
       startDate: '' as string,
@@ -148,7 +154,8 @@ export default defineComponent({
           },
         },
       },
-      tauxMoyenCommande: null as RatioModel | null
+      tauxMoyenCommande: null as RatioModel | null,
+      newRestaurantId: null as string | null
     };
   },
   methods: {
@@ -169,13 +176,23 @@ export default defineComponent({
           console.log(valueText)
           this.startDate = valueText
           if(this.productSelected){
-            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate);
+            if(this.newRestaurantId !== 'all'){
+              this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? undefined);
+            }
+            else{
+              this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate);
+            }
           }
           break
         case 'endDate':
           this.endDate = valueText
           if(this.productSelected){
-            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate);
+            if(this.newRestaurantId !== 'all'){
+              this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? undefined);
+            }
+            else{
+              this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate);
+            }
           }
           break
 
@@ -204,13 +221,10 @@ export default defineComponent({
             this.startDate = this.getSameDayLastMonth()
             this.endDate = this.getTodayDate()
             const userRole = localStorage.getItem(UserGeneralKey.USER_ROLE);
-            if(userRole === UserRole.RESTAURANT){
-              const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
-              await this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, (restaurantID as string));
-            }
-            else{
+
               await this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate);
-            }
+
+
           }
         } else {
           this.toast.error(response.message);
@@ -221,9 +235,10 @@ export default defineComponent({
       }
     },
 
-    async fetchNombreDeCommandeMoyenByProduct(productID: string, startDate?: string, endDate?: string, restaurantId?: string) {
+    async fetchNombreDeCommandeMoyenByProduct(productID: string, startDate?: string, endDate?: string, idRest?: string) {
       try {
-        const response = await nombreCommandeParProduct(productID, startDate, endDate, restaurantId) as ApiResponse<RatioModel>;
+
+        const response = await nombreCommandeParProduct(productID, startDate, endDate, idRest ?? undefined) as ApiResponse<RatioModel>;
         console.log(response)
         if (response.code === 200) {
           this.tauxMoyenCommande = response.data as RatioModel;
@@ -245,14 +260,36 @@ export default defineComponent({
     this.fetchProduct(1, "active", '');
   },
   watch:{
+    restaurantId(newVal, oldVal){
+      if (typeof newVal === 'string' && newVal !== oldVal) {
+        console.log("Nouvelle option restaurant ID sélectionnée :", newVal);
+        this.newRestaurantId = newVal;
+        if(newVal !== 'all'){
+          if(this.productSelected){
+            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, newVal);
+          }
+        }
+        else{
+          if(this.productSelected){
+            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate);
+          }
+        }
+
+      }
+    },
     productSelected(newVal, oldVal) {
       if (typeof newVal === 'string' && newVal !== oldVal) {
         console.log("Nouvelle catégorie sélectionnée :", newVal);
         // this.expected = []
         // this.amountTotal = 0
         this.productSelected = this.originalProducts.find(c => c.id === newVal) ?? null;
-        if(this.productSelected){
-          this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate);
+        if(this.productSelected  && this.newRestaurantId !== 'all'){
+          this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? undefined);
+        }
+        else{
+          if(this.productSelected){
+            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate);
+          }
         }
       }
     }

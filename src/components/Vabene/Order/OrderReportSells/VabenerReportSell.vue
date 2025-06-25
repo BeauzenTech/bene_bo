@@ -7,18 +7,32 @@
     <LoaderComponent />
   </div>
   <div v-else class="card-body p-15 p-sm-20 p-md-25 p-lg-30 letter-spacing bg-white">
+    <div class="col-md-2">
+      <div class="form-group position-relative transition mt-2">
+        <label class="d-block text-black fw-semibold mb-10 fs-16">
+          Filtre par restaurant
+        </label>
+        <v-select
+            v-model="restaurantSelected"
+            :options="originalRestaurant"
+            label="name"
+            :reduce="restaurant => restaurant.id"
+            placeholder="Restaurant"
+        />
+      </div>
+    </div>
 
     <div class="container mb-50"  v-if="periodiqueReportCard">
       <div class="row mb-2 mt-2">
         <div class="row">
           <div class="col-lg-6">
-            <VabeneTauxOrderCategorieDate />
+            <VabeneTauxOrderCategorieDate :restaurantId="restaurantSelected ?? 'all'"/>
           </div>
           <div class="col-lg-6">
-            <VabeneNombreCommandeProductDate />
+            <VabeneNombreCommandeProductDate :restaurantId="restaurantSelected ?? 'all'" />
           </div>
           <div class="col-lg-6">
-            <VabeneTopProduitReportSell />
+            <VabeneTopProduitReportSell  :restaurantId="restaurantSelected ?? 'all'" />
           </div>
           <div class="col-lg-6">
             <VabeneAverageReportSell />
@@ -137,10 +151,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import {defineComponent} from "vue";
 import {SellModel} from "@/models/vente.model";
-import {reportPeriodiqueCard, reportVenteAdmin, reportVenteRestaurant, toggleActivationFranchise} from "@/service/api";
-import {ApiResponse} from "@/models/Apiresponse";
+import {listeRestaurant, reportPeriodiqueCard, reportVenteAdmin, reportVenteRestaurant} from "@/service/api";
+import {ApiResponse, PaginatedRestaurant} from "@/models/Apiresponse";
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import {RepportModelData} from "@/models/report.model";
@@ -148,7 +162,9 @@ import {PeriodiqueCardReport} from "@/models/periodiqueCardReport.model";
 import VabeneTopProduitReportSell from "@/components/Vabene/Order/OrderReportSells/VabeneTopProduitReportSell.vue";
 import VabeneAverageReportSell from "@/components/Vabene/Order/OrderReportSells/VabeneAverageReportSell.vue";
 import VabeneTauxOrderCategorieDate from "@/components/Vabene/Order/OrderReportSells/VabeneTauxOrderCategorieDate.vue";
-import VabeneNombreCommandeProductDate from "@/components/Vabene/Order/OrderReportSells/VabeneNombreCommandeProductDate.vue";
+import VabeneNombreCommandeProductDate
+  from "@/components/Vabene/Order/OrderReportSells/VabeneNombreCommandeProductDate.vue";
+import {RestaurantModel} from "@/models/restaurant.model";
 
 export default defineComponent({
   name: "VabenerReportSell",
@@ -255,10 +271,35 @@ export default defineComponent({
         },
       },
       allSells: [] as RepportModelData[],
-      periodiqueReportCard: null as PeriodiqueCardReport | null
+      periodiqueReportCard: null as PeriodiqueCardReport | null,
+      originalRestaurant: [] as RestaurantModel[], // Stockage des utilisateurs originaux
+      restaurantSelected: null,
+      fakeAllOptionFranchise: {
+       id: 'all',
+        name: 'Tous les resultats'
+      }
     }
   },
   methods:{
+    async fetchRestaurants(page = 1) {
+      this.isLoading = true;
+      try {
+        const response = await listeRestaurant(page) as ApiResponse<PaginatedRestaurant>;
+        console.log(response)
+        if (response.code === 200) {
+          if (response.data?.items) {
+            this.originalRestaurant = [(this.fakeAllOptionFranchise as RestaurantModel), ...response.data.items];
+          }
+        } else {
+          this.toast.error(response.message);
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des restaurant");
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
     async getReportAdmin(){
       try {
         const response = await reportVenteAdmin() as ApiResponse<SellModel>;
@@ -267,6 +308,7 @@ export default defineComponent({
           if (response.data) {
             const dt = response.data as SellModel;
             this.reportVente = dt.vente as RepportModelData[]
+            console.log('report sell: ', this.reportVente)
           }
         }
       } catch (error) {
@@ -312,7 +354,9 @@ export default defineComponent({
   async mounted(){
    await this.getReportAdmin();
    await this.getPeriodiqueReport()
+    await this.fetchRestaurants()
   },
+
   computed: {
     getTitleForPeriod(): string {
       switch (this.selectedPeriod) {
@@ -322,6 +366,16 @@ export default defineComponent({
         default: return "RAPPORT DE VENTE CETTE SEMAINE";
       }
     }
+  },
+  watch:{
+    restaurantSelected(this: any, newVal){
+      if (!newVal) return
+      this.restaurantSelected = newVal as string;
+      console.log('restaurant selected: ',this.restaurantSelected)
+    },
+
   }
+
+
 });
 </script>

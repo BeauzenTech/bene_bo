@@ -137,7 +137,7 @@
 
 
             <td class="shadow-none lh-1 fw-medium text-muted">
-              {{ truncateDescription(categorie.message)  }}
+              {{ categorie.message  }}
             </td>
 
             <td class="shadow-none badge text-bg-warning fs-13 lh-1 fw-medium text-muted">

@@ -910,10 +910,17 @@ export const detailCustomer = async (customerID): Promise<ApiResponse<CustomerMo
 };
 
 
-export const topProductReportSell = async (categoryID): Promise<ApiResponse<TopProductSellModel[]>> => {
+export const topProductReportSell = async (categoryID, restaurantID): Promise<ApiResponse<TopProductSellModel[]>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/v1/report_sale/products/${categoryID}`);
+        const url = [
+            `/v1/report_sale/products`,
+            categoryID,
+            restaurantID
+        ]
+            .filter(Boolean) // retire les undefined
+            .join('/');
+        const response = await apiClient.get(url);
         return new ApiResponse(
             response.data.code,
             response.data.message,

@@ -51,7 +51,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import {defineComponent, PropType} from "vue";
 import {
   deleteFileUpload,
   deleteProductTemporary, listeCategorieActive,
@@ -70,6 +70,12 @@ import {TopProductSellModel} from "@/models/TopProductSell.model";
 
 export default defineComponent({
   name: "VabeneTopProduitReportSell",
+  props: {
+    restaurantId: {
+      type: String as PropType<string>,
+      required: true
+    },
+  },
   data: function () {
     return {
       topSellResponse: [] as TopProductSellModel[],
@@ -77,7 +83,7 @@ export default defineComponent({
       categorieSelected: null as CategorieModel | null,
       colorsIndexed: ["#002D01", "#F4D3AE", "#B83C37"],
       expectedColors: [] as string[], // Couleurs liées à chaque valeur dans expected
-
+      newRestoId: null as string | null,
       amountTotal: 0,
       expected: [] as number[],
       expectedEraningsChart: {
@@ -143,9 +149,9 @@ export default defineComponent({
         console.error(error);
       }
     },
-    async fetchTopProductSell(categoryID) {
+    async fetchTopProductSell(categoryID: string, restaurantID?: string) {
       try {
-        const response = await topProductReportSell(categoryID) as ApiResponse<TopProductSellModel[]>;
+        const response = await topProductReportSell(categoryID, restaurantID) as ApiResponse<TopProductSellModel[]>;
         console.log(response)
         if (response.code === 200) {
             this.topSellResponse = response.data as TopProductSellModel[];
@@ -181,14 +187,36 @@ export default defineComponent({
     this.fetchCategories(1)
   },
   watch:{
+    restaurantId(newVal, oldVal){
+      if (typeof newVal === 'string' && newVal !== oldVal) {
+        console.log("Nouvelle option restaurant ID sélectionnée :", newVal);
+        this.newRestoId = newVal;
+        if(newVal !== 'all'){
+          if(this.categorieSelected){
+            this.fetchTopProductSell(this.categorieSelected.id, newVal);
+          }
+        }
+        else{
+          if(this.categorieSelected){
+            this.fetchTopProductSell(this.categorieSelected.id,);
+          }
+        }
+
+      }
+    },
     categorieSelected(newVal, oldVal) {
       if (typeof newVal === 'string' && newVal !== oldVal) {
         console.log("Nouvelle catégorie sélectionnée :", newVal);
         this.expected = []
         this.amountTotal = 0
         this.categorieSelected = this.originalCategories.find(c => c.id === newVal) ?? null;
-        if(this.categorieSelected){
-          this.fetchTopProductSell(this.categorieSelected.id as string);
+        if(this.categorieSelected && this.newRestoId !== 'all'){
+          this.fetchTopProductSell(this.categorieSelected.id as string, this.newRestoId as string);
+        }
+        else{
+          if(this.categorieSelected){
+            this.fetchTopProductSell(this.categorieSelected.id);
+          }
         }
       }
     }
