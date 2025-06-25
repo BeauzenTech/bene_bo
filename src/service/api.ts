@@ -6,7 +6,7 @@ import {
     ApiResponse, PaginatedCampagne, PaginatedCategorie, PaginatedCoupon, PaginatedCustomer,
     PaginatedFrachises, PaginatedIngredient, PaginatedMethodePaiement, PaginatedNotification,
     PaginatedOrder, PaginatedOrderType, PaginatedPayment, PaginatedProduct,
-    PaginatedRestaurant,
+    PaginatedRestaurant, PaginatedRestaurantCategory,
     PaginatedUsers
 } from "@/models/Apiresponse";
 import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
@@ -518,6 +518,57 @@ export const listeCategorie = async (page = 1, usePagination: string): Promise<A
     }
 };
 
+
+export const addRestaurantCategorie = async (categorieID: string): Promise<ApiResponse<any>> =>{
+    try {
+        const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/restaurant/categorie/addcategorie_restaurant/${restaurantID}/${categorieID}`);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de l'ajout de restaurant de la categorie", error);
+        throw error;
+    }
+};
+
+export const listeRestaurantCategorie = async (page = 1, usePagination: string): Promise<ApiResponse<PaginatedRestaurantCategory>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
+        const response = await apiClient.get(`/restaurant/categories/${restaurantID}/0/${usePagination}?page=${page}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const toggleActivationCategorieRestaurant = async (categorieID: string): Promise<ApiResponse<any>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/restaurant/categorie/toggle/${categorieID}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors du toggle activation de la categorie.', error);
+        throw error;
+    }
+};
+
+
+export const deleteRestaurantCategorie = async (restaurantCategorieID: string): Promise<ApiResponse<void>> => {
+    try {
+        const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
+        const response: AxiosResponse<ApiResponse<void>> = await apiClient.delete(`/v1/restaurant/categorie/remove/${restaurantID}/${restaurantCategorieID}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la suppression de la categorie', error);
+        throw error;
+    }
+};
+
+
+
 export const listeCategorieActive = async (page = 1, usePagination: string): Promise<ApiResponse<PaginatedCategorie>> => {
     // eslint-disable-next-line no-useless-catch
     try {
@@ -532,6 +583,8 @@ export const listeCategorieActive = async (page = 1, usePagination: string): Pro
         throw error;
     }
 };
+
+
 
 export const detailCategorie = async (categorieID): Promise<ApiResponse<CategorieModel>> => {
     // eslint-disable-next-line no-useless-catch

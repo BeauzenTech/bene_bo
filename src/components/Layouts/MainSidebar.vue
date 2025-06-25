@@ -2006,12 +2006,18 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import stateStore from "../../utils/store";
-import {UserGeneralKey} from "@/models/user.generalkey";
+import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 
 export default defineComponent({
   name: "MainSidebar",
+  computed: {
+    UserRole() {
+      return UserRole
+    }
+  },
   data() {
     return {
+      userRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
       intervalId: 0,
     };
   },

@@ -1,7 +1,7 @@
 <template>
   <div class="card mb-25 border-0 rounded-0 bg-white add-user-card">
     <div class="card-body p-15 p-sm-20 p-md-25 p-lg-30 letter-spacing">
-      <form @submit.prevent="uploadLogo">
+      <form @submit.prevent="uploadLogo" v-if="userRole === UserRole.FRANCHISE">
         <div class="row">
           <div class="col-md-12">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
@@ -92,6 +92,53 @@
           </div>
         </div>
       </form>
+      <form @submit.prevent="addRestaurantCategorie" v-else>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Selectionner le categorie *
+              </label>
+              <v-select
+                  v-model="categorieSelected"
+                  :options="resteCategorieModel"
+                  label="name"
+                  :reduce="categorie => categorie.id"
+                  placeholder="Restaurant"
+              />
+            </div>
+          </div>
+
+
+
+          <div class="col-md-12">
+            <div class="d-flex align-items-center justify-content-between" v-if="actionDetected">
+
+              <LoaderComponent
+                  v-if="isLoading"
+              />
+              <button v-else
+                      class="default-btn transition border-0 fw-medium text-white pt-10 pb-10 ps-25 pe-25 pt-md-11 pb-md-11 ps-md-35 pe-md-35 rounded-1 fs-md-15 fs-lg-16 bg-success"
+                      type="submit"
+                      :disabled="!categorieSelected"
+                      :class="{ 'opacity-50 cursor-not-allowed': !categorieSelected }"
+              >
+                Ajouter cette categorie
+              </button>
+              <button
+                  type="button"
+                  @click="goBack"
+                  class="bg-transparent p-0 border-0 text-danger lh-1 fw-medium"
+              >
+                <i
+                    class="flaticon-delete lh-1 me-1 position-relative top-2"
+                ></i>
+                <span class="position-relative">Annuler</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 </template>
@@ -100,14 +147,23 @@
 import {defineComponent, PropType} from "vue";
 
 
-import {createCategorie, detailCategorie, updateCategorie, uploadFile, deleteFileUpload} from "@/service/api";
+import {
+  createCategorie,
+  detailCategorie,
+  updateCategorie,
+  uploadFile,
+  deleteFileUpload,
+  listeRestaurantCategorie, listeCategorie, listeCategorieActive, addRestaurantCategorie
+} from "@/service/api";
 
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import { AxiosError } from 'axios';
-import {ApiResponse, PaginatedCategorie} from "@/models/Apiresponse";
+import {ApiResponse, PaginatedCategorie, PaginatedRestaurantCategory} from "@/models/Apiresponse";
 import {CategorieModel} from "@/models/categorie.model";
 import {ActionCrud} from "@/enums/actionCrud.enum";
+import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
+import {RestaurantCategoryModel} from "@/models/restaurantCategory.model";
 
 
 export default defineComponent({
@@ -128,6 +184,12 @@ export default defineComponent({
   },
   data(){
     return{
+      userRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
+      originalRestaurantCategorie: [] as RestaurantCategoryModel[],
+      originalCategories: [] as CategorieModel[],
+      resteCategorieModel: [] as CategorieModel[],
+      categorieSelected: null,
+      categorieResponse: null as CategorieModel | null,
       categorieData: {
         name: '',
         description: '',
@@ -135,11 +197,70 @@ export default defineComponent({
       },
       isLoading: false,
       logoUpload: null,
-      categorieResponse: null as CategorieModel | null,
-      actionDetected: null as string | null,
+      actionDetected: ''
     }
   },
   methods: {
+    filtrerElementsExclus(a: CategorieModel[], b: RestaurantCategoryModel[]): CategorieModel[] {
+      const resultat: CategorieModel[] = [];
+
+      for (let i = 0; i < a.length; i++) {
+        let existe = false;
+
+        for (let j = 0; j < b.length; j++) {
+          console.log(a[i].id === b[j].category.id)
+          if (a[i].id === b[j].category.id) {
+            existe = true;
+            break;
+          }
+        }
+
+        if (!existe) {
+          resultat.push(a[i]);
+        }
+      }
+
+      return resultat;
+    },
+    async fetchCategoriesRestaurant(page = 1) {
+      this.isLoading = true;
+      try {
+        const response = await listeRestaurantCategorie(page, "0") as ApiResponse<PaginatedRestaurantCategory>;
+        console.log(response)
+        if (response.code === 200) {
+          if (response.data?.items) {
+            this.originalRestaurantCategorie = response.data.items;
+            console.log( this.originalRestaurantCategorie)
+            this.resteCategorieModel = this.filtrerElementsExclus(this.originalCategories, this.originalRestaurantCategorie)
+          }
+
+        }
+      } catch (error) {
+
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async fetchCategories(page = 1) {
+      this.isLoading = true;
+      try {
+        const response = await listeCategorieActive(page, "0") as ApiResponse<PaginatedCategorie>;
+        console.log(response)
+        if (response.code === 200) {
+          if (response.data?.items) {
+            this.originalCategories = response.data.items;
+            console.log(this.originalCategories)
+            this.resteCategorieModel = this.filtrerElementsExclus(this.originalCategories, this.originalRestaurantCategorie)
+          }
+
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
     clearData(){
       this.categorieData = {
         name: '',
@@ -152,6 +273,35 @@ export default defineComponent({
     },
     goBack() {
       this.$router.back()
+
+    },
+
+    async addRestaurantCategorie() {
+     if(this.categorieSelected){
+       this.isLoading = true;
+       try {
+         const response = await addRestaurantCategorie(this.categorieSelected);
+         console.log(response);
+         if (response.code === 201 || response.code === 200 ) {
+           this.toast.success(response.message)
+           this.clearData()
+         } else {
+           this.toast.error(response.message)
+         }
+       } catch (error) {
+         const axiosError = error as AxiosError;
+         if (axiosError.response && axiosError.response.data) {
+           const message = (axiosError.response.data as any).message;
+           this.toast.error(message);
+         } else {
+           this.toast.error("Une erreur est survenue");
+         }
+       } finally {
+         this.isLoading = false;
+       }
+     }
+
+
 
     },
     async createNewCategorie() {
@@ -325,6 +475,9 @@ export default defineComponent({
 
   },
   computed: {
+    UserRole() {
+      return UserRole
+    },
     isFormValid() {
       return (
           this.validTextField(this.categorieData.name) &&
@@ -339,9 +492,17 @@ export default defineComponent({
   },
   mounted() {
     this.actionDetected = (this as any).$route.params.action
-    if((this as any).$route.params.action == ActionCrud.EDIT){
-      this.fetchDetailCategorie((this as any).$route.params.categorieID)
+   if(this.userRole === UserRole.FRANCHISE){
+      if((this as any).$route.params.action == ActionCrud.EDIT){
+        this.fetchDetailCategorie((this as any).$route.params.categorieID)
+      }
     }
+    else{
+      this.fetchCategories()
+      this.fetchCategoriesRestaurant()
+      console.log('reste categorie', this.resteCategorieModel)
+    }
+
     // const action = (this as any).$route.params.action
   }
 

@@ -98,7 +98,7 @@
               <LoaderComponent/>
             </td>
           </tr>
-          <tr v-else-if="!isLoading && allCategorie.length > 0"
+          <tr v-else-if="!isLoading && allCategorie.length > 0 && userRole === UserRole.FRANCHISE"
               v-for="(categorie, index) in allCategorie" :key="categorie.id"
           >
             <th
@@ -214,6 +214,122 @@
               </div>
             </td>
           </tr>
+          <tr v-else-if="!isLoading && allRestaurantCategorie.length > 0 && userRole === UserRole.RESTAURANT"
+              v-for="(cat, index) in allRestaurantCategorie" :key="cat.id"
+          >
+            <th
+                class="shadow-none lh-1 fw-medium text-black-emphasis title ps-0 text-capitalize"
+            >
+              <div class="d-flex align-items-center text-capitalize">
+                <div class="form-check mb-0 text-capitalize">
+                  <input
+                      class="form-check-input shadow-none"
+                      type="checkbox"
+                  />
+                </div>
+                <div
+                    class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
+                >
+                  <a href="#" @click="selectForDetail(cat)">
+                    {{ index + 1}} - {{ getShortUuid(cat.id) }}
+                  </a>
+
+
+                </div>
+              </div>
+            </th>
+            <td class="shadow-none lh-1 fw-medium text-black-emphasis">
+              {{ cat.category.name }}
+            </td>
+            <th
+                class="shadow-none lh-1 fw-medium text-black-emphasis title ps-0 text-capitalize"
+            >
+              <div class="d-flex align-items-center text-capitalize">
+
+                <div
+                    class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
+                >
+                  <img
+                      :src=" cat.category.icone || require('@/assets/images/icon/jpg.png')"
+                      class="rounded-circle me-8"
+                      width="24"
+                      height="24"
+                      alt="categorie"
+                  />
+
+                </div>
+              </div>
+            </th>
+
+
+
+            <td class="shadow-none lh-1 fw-medium text-muted">
+              {{ convertDateCreate(cat.category.created_at)  }}
+            </td>
+
+            <td>
+              <!-- Toggle switch -->
+              <div class="form-check form-switch">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    v-model="cat.isActive"
+                    @change="toggleCategorieActivation(cat, cat.isActive)"
+                />
+
+              </div>
+            </td>
+            <td
+                class="shadow-none lh-1 fw-medium text-body-tertiary text-end pe-0"
+            >
+              <div class="dropdown">
+                <button
+                    class="dropdown-toggle lh-1 bg-transparent border-0 shadow-none p-0 transition"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                >
+                  <i class="flaticon-dots"></i>
+                </button>
+                <ul class="dropdown-menu">
+                  <li v-if="userRole != UserRole.RESTAURANT">
+                    <a
+                        class="dropdown-item d-flex align-items-center"
+                        href="javascript:void(0);"
+                        @click="selectForDetail(cat)"
+                    ><i
+                        class="flaticon-view lh-1 me-8 position-relative top-1"
+                    ></i>
+                      Voir</a
+                    >
+                  </li>
+                  <li v-if="userRole != UserRole.RESTAURANT">
+                    <a
+                        class="dropdown-item d-flex align-items-center"
+                        href="javascript:void(0);"
+                        @click="selectForDetail(cat)"
+                    ><i
+                        class="flaticon-pen lh-1 me-8 position-relative top-1"
+                    ></i>
+                      Editer</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                        class="dropdown-item d-flex align-items-center"
+                        data-bs-toggle="modal" data-bs-target="#confirmModal"
+                        href="javascript:void(0);"
+                        @click="selectForDelete(cat)"
+                    ><i
+                        class="flaticon-delete lh-1 me-8 position-relative top-1"
+                    ></i>
+                      Supprimer</a
+                    >
+                  </li>
+                </ul>
+              </div>
+            </td>
+          </tr>
           <tr v-else>
             <EmptyTable
                 message="Aucune categorie pour le moment"
@@ -299,33 +415,46 @@
 </template>
 <script lang="ts">
 import { defineComponent } from "vue";
-import {listeCategorie, toggleActivationCategorie, deleteCategorie, deleteFileUpload} from "@/service/api";
-import {UserGeneralKey} from "@/models/user.generalkey";
+import {
+  listeCategorie,
+  toggleActivationCategorie,
+  deleteCategorie,
+  deleteFileUpload,
+  listeRestaurantCategorie, deleteRestaurantCategorie, toggleActivationCategorieRestaurant
+} from "@/service/api";
+import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import EmptyTable from "@/components/Vabene/EmptyTable/EmptyTable.vue";
-import {ApiResponse, PaginatedCategorie} from "@/models/Apiresponse";
+import {ApiResponse, PaginatedCategorie, PaginatedRestaurantCategory} from "@/models/Apiresponse";
 import {PaginatedUsers} from "@/models/Apiresponse";
 import {CategorieModel} from "@/models/categorie.model";
 import {ActionCrud} from "@/enums/actionCrud.enum";
 import {AxiosError} from "axios";
 import {Commons} from "@/utils/commons.utils";
+import {RestaurantCategoryModel} from "@/models/restaurantCategory.model";
 
 export default defineComponent({
   name: "VabeneCategorieList",
   components: {LoaderComponent, EmptyTable},
   data(){
     return{
+      userRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
       categorieResponse: null as ApiResponse<PaginatedCategorie> | null,
+      categorieRestaurantResponse: null as ApiResponse<PaginatedRestaurantCategory> | null,
       isLoading: false,
       currentPage: 1 ,
       searchQuery: '', // Ajout du champ de recherche
-      originalCategories: [] as CategorieModel[], // Stockage des utilisateurs originaux
+      originalCategories:  [] as CategorieModel[], // Stockage des utilisateurs originaux
+      originalRestaurantCategorie: [] as RestaurantCategoryModel[],
       categorieSelected: null,
     }
   },
   computed: {
-    allCategorie(): CategorieModel[] {
+    UserRole() {
+      return UserRole
+    },
+    allCategorie():  CategorieModel[] {
       const categories = this.categorieResponse?.data?.items || this.originalCategories;
 
       // Filtrage par searchQuery
@@ -346,14 +475,46 @@ export default defineComponent({
         return nameA.localeCompare(nameB);
       });
     },
+    allRestaurantCategorie():  RestaurantCategoryModel[] {
+      const categories = this.categorieRestaurantResponse?.data?.items || this.originalRestaurantCategorie;
+
+      // Filtrage par searchQuery
+      const filtered = this.searchQuery
+          ? categories.filter(categorie => {
+            const query = this.searchQuery.toLowerCase();
+            return (
+                categorie.category.name?.toLowerCase().includes(query) ||
+                categorie.category.description?.toLowerCase().includes(query)
+            );
+          })
+          : categories;
+
+      // Tri alphabétique par name
+      return filtered.sort((a, b) => {
+        const nameA = a.category.name?.toLowerCase() || '';
+        const nameB = b.category.name?.toLowerCase() || '';
+        return nameA.localeCompare(nameB);
+      });
+    },
 
     pagination(): any {
-      return this.categorieResponse?.data?.pagination || {
-        current_page: 1,
-        total_items: 0,
-        total_pages: 1,
-        items_per_page: 8
-      };
+      if(this.userRole === UserRole.FRANCHISE){
+        return this.categorieResponse?.data?.pagination || {
+          current_page: 1,
+          total_items: 0,
+          total_pages: 1,
+          items_per_page: 8
+        };
+      }
+      else{
+        return this.categorieRestaurantResponse?.data?.pagination || {
+          current_page: 1,
+          total_items: 0,
+          total_pages: 1,
+          items_per_page: 8
+        };
+      }
+
     },
     paginationInfo(): string {
       const { current_page, items_per_page, total_items } = this.pagination;
@@ -376,15 +537,19 @@ export default defineComponent({
       });
     },
     selectForDetail(categorie){
-      this.categorieSelected = categorie;
-      console.log(categorie)
-      this.$router.push({
-        name: "VabeneAddCategoriePage",
-        params: { action: ActionCrud.EDIT, categorieID: categorie.id }
-      });
+      if(this.userRole === UserRole.FRANCHISE){
+        this.categorieSelected = categorie;
+        console.log(categorie)
+        this.$router.push({
+          name: "VabeneAddCategoriePage",
+          params: { action: ActionCrud.EDIT, categorieID: categorie.id }
+        });
+      }
+
     },
     selectForDelete(categorie){
       this.categorieSelected = categorie;
+
       console.log(categorie)
       // this.$router.push({
       //   name: "VabeneAddCategoriePage",
@@ -412,54 +577,108 @@ export default defineComponent({
       }
     },
     async confirmationDeleteAction(categorie){
-      const publicID = Commons.extractPublicId(categorie.icone)
-      console.log("publicID", publicID);
-      try {
-        const response = await deleteCategorie(categorie.id) as ApiResponse<any>;
-        await this.deleteFileUpload(publicID)
-        if (response.code === 201) {
-          this.categorieResponse = response;
-          this.toast.success(response.message);
-        } else {
-          this.toast.error(response.message);
+      if(this.userRole === UserRole.FRANCHISE){
+        const publicID = Commons.extractPublicId(categorie.icone)
+        console.log("publicID", publicID);
+        try {
+          const response = await deleteCategorie(categorie.id) as ApiResponse<any>;
+          await this.deleteFileUpload(publicID)
+          if (response.code === 201) {
+            this.categorieResponse = response;
+            this.toast.success(response.message);
+          } else {
+            this.toast.error(response.message);
+          }
+        } catch (error) {
+          this.toast.error("Erreur lors du chargement des categories");
+          console.error(error);
+        } finally {
+          setTimeout(() =>  {
+            this.fetchCategories(1);
+          }, 3000);
         }
-      } catch (error) {
-        this.toast.error("Erreur lors du chargement des categories");
-        console.error(error);
-      } finally {
-        setTimeout(() =>  {
-          this.fetchCategories(1);
-        }, 3000);
       }
+      else{
+        try {
+          const response = await deleteRestaurantCategorie(categorie.id) as ApiResponse<any>;
+          if (response.code === 201 || response.code === 200) {
+            this.categorieResponse = response;
+            this.toast.success(response.message);
+          }
+        } catch (error) {
+          console.error(error);
+        } finally {
+          if(this.userRole === UserRole.FRANCHISE){
+            setTimeout(() =>  {
+              this.fetchCategories(1);
+            }, 3000);
+          }
+          else{
+            setTimeout(() =>  {
+              this.fetchCategoriesRestaurant(1);
+            }, 3000);
+          }
+
+        }
+      }
+
     },
     async toggleCategorieActivation(categorie, status){
       //this.isLoading = true;
-      console.log(status)
-      const payload = {
-        'status': status
-      }
-      try {
-        const response = await toggleActivationCategorie(categorie.id, payload) as ApiResponse<any>;
-        //console.log(response)
-        if (response.code === 200) {
-          this.categorieResponse = response;
-          if (response.data) {
-            const responseDecoded = response.data
-            console.log(responseDecoded)
-            this.toast.success(response.message);
-          }
-
-        } else {
-          this.toast.error(response.message);
+      if(this.userRole === UserRole.FRANCHISE){
+        console.log(status)
+        const payload = {
+          'status': status
         }
-      } catch (error) {
-        this.toast.error("Erreur lors du chargement des categories");
-        console.error(error);
-      } finally {
-        setTimeout(() =>  {
-          this.fetchCategories(1);
-        }, 2000);
+        try {
+          const response = await toggleActivationCategorie(categorie.id, payload) as ApiResponse<any>;
+          //console.log(response)
+          if (response.code === 200) {
+            this.categorieResponse = response;
+            if (response.data) {
+              const responseDecoded = response.data
+              console.log(responseDecoded)
+              this.toast.success(response.message);
+            }
+
+          } else {
+            this.toast.error(response.message);
+          }
+        } catch (error) {
+          this.toast.error("Erreur lors du chargement des categories");
+          console.error(error);
+        } finally {
+          setTimeout(() =>  {
+            this.fetchCategories(1);
+          }, 2000);
+        }
       }
+      else{
+
+        try {
+          const response = await toggleActivationCategorieRestaurant(categorie.id) as ApiResponse<any>;
+          //console.log(response)
+          if (response.code === 200) {
+            this.toast.success(response.message);
+            if (response.data) {
+              const responseDecoded = response.data
+              console.log(responseDecoded)
+              this.toast.success(response.message);
+            }
+
+          } else {
+            this.toast.error(response.message);
+          }
+        } catch (error) {
+          this.toast.error("Erreur lors du chargement des categories");
+          console.error(error);
+        } finally {
+          setTimeout(() =>  {
+            this.fetchCategoriesRestaurant(1);
+          }, 2000);
+        }
+      }
+
     },
     fetchRole(role: string): string {
       return UserGeneralKey.getRole(role);
@@ -480,11 +699,29 @@ export default defineComponent({
           if (response.data && response.data.pagination) {
             this.currentPage = response.data.pagination.current_page;
           }
-        } else {
-          this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des categories");
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async fetchCategoriesRestaurant(page = 1) {
+      this.isLoading = true;
+      try {
+        const response = await listeRestaurantCategorie(page, "1") as ApiResponse<PaginatedRestaurantCategory>;
+        console.log(response)
+        if (response.code === 200) {
+          this.categorieRestaurantResponse = response;
+          if (response.data?.items) {
+            this.originalRestaurantCategorie = response.data.items;
+          }
+          if (response.data && response.data.pagination) {
+            this.currentPage = response.data.pagination.current_page;
+          }
+        }
+      } catch (error) {
+
         console.error(error);
       } finally {
         this.isLoading = false;
@@ -492,7 +729,12 @@ export default defineComponent({
     },
     changePage(page: number) {
       if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
-        this.fetchCategories(page);
+        if(this.userRole === UserRole.FRANCHISE){
+          this.fetchCategories(page);
+        }
+        else{
+          this.fetchCategoriesRestaurant(page)
+        }
       }
     },
     generatePageNumbers(): number[] {
@@ -519,7 +761,13 @@ export default defineComponent({
     return { toast };
   },
   mounted() {
-   this.fetchCategories();
+    if(this.userRole === UserRole.FRANCHISE){
+      this.fetchCategories();
+    }
+    else{
+      this.fetchCategoriesRestaurant()
+    }
+
   }
 });
 </script>
