@@ -39,6 +39,21 @@
             </div>
           </div>
 
+          <div class="col-md-12">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Choix de la cible
+              </label>
+              <v-select
+                  v-model="restaurantSelected"
+                  :options="originalRestaurant"
+                  label="name"
+                  :reduce="restaurant => restaurant.id"
+                  placeholder="Restaurant"
+              />
+            </div>
+          </div>
+
           <div class="col-md-12" v-if="actionDetected == ActionCrud.ADD">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
@@ -130,13 +145,19 @@ import {
   updateCategorie,
   uploadFile,
   deleteFileUpload,
-  createCampagne, detailCampagne, listeUser, createNotification, listeCustomers
+  createCampagne, detailCampagne, listeUser, createNotification, listeCustomers, listeRestaurant
 } from "@/service/api";
 
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import { AxiosError } from 'axios';
-import {ApiResponse, PaginatedCategorie, PaginatedCustomer, PaginatedUsers} from "@/models/Apiresponse";
+import {
+  ApiResponse,
+  PaginatedCategorie,
+  PaginatedCustomer,
+  PaginatedRestaurant,
+  PaginatedUsers
+} from "@/models/Apiresponse";
 import {CategorieModel} from "@/models/categorie.model";
 import {ActionCrud} from "@/enums/actionCrud.enum";
 import {CampagneModel} from "@/models/campagne.model";
@@ -144,6 +165,7 @@ import {UserModel} from "@/models/user.model";
 import {OrderTypeModel} from "@/models/orderType.model";
 import {CustomerModel} from "@/models/customer.model";
 import {UserGeneralKey} from "@/models/user.generalkey";
+import {RestaurantModel} from "@/models/restaurant.model";
 
 
 export default defineComponent({
@@ -181,9 +203,38 @@ export default defineComponent({
       sendingType: '' as string,
       typeSending: ["Individuel", "Groupé"] as string[],
       restaurantId: null as string | null,
+      originalRestaurant: [] as RestaurantModel[], // Stockage des utilisateurs originaux
+      restaurantSelected: null as string | null,
+      fakeAllOptionFranchise: {
+        id: 'all',
+        name: 'Tous les restaurants'
+      }
     }
   },
   methods: {
+    async fetchRestaurants(page = 1) {
+      this.isLoading = true;
+      try {
+        const response = await listeRestaurant(page) as ApiResponse<PaginatedRestaurant>;
+        console.log(response)
+        if (response.code === 200) {
+          if (response.data?.items) {
+            this.originalRestaurant = [(this.fakeAllOptionFranchise as RestaurantModel), ...response.data.items];
+            this.restaurantSelected = "Tous les restaurants"
+            await this.fetchUsers(1)
+          }
+        } else {
+          this.toast.error(response.message);
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des restaurant");
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+
+
+    },
     stripHtmlTags(input: string): string {
       const div = document.createElement('div');
       div.innerHTML = input;
@@ -256,6 +307,27 @@ export default defineComponent({
             this.originalUsers = data.filter(item => item.user !== null && item.user.enableNotification  && item.user.deviceToken != null );
             console.log("filter data: ", this.originalUsers);
           }
+
+        } else {
+          this.toast.error(response.message);
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des utilisateurs");
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async getCustomerByOption(idResto?: string) {
+      this.isLoading = true;
+      try {
+        const response = await listeCustomers(1, '0', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
+        console.log(response)
+        if (response.code === 200) {
+          if (response.data?.items) {
+            const data = response.data.items;
+            this.originalUsers = data.filter(item => item.user !== null && item.user.enableNotification  && item.user.deviceToken != null );
+            console.log("filter data: ", this.originalUsers);          }
 
         } else {
           this.toast.error(response.message);
@@ -427,10 +499,21 @@ export default defineComponent({
     if((this as any).$route.params.action == ActionCrud.EDIT){
       this.fetchDetailCategorie((this as any).$route.params.notificationID)
     }
-    this.fetchUsers(1)
+    this.fetchRestaurants(1)
     // const action = (this as any).$route.params.action
   },
   watch:{
+    restaurantSelected(this: any, newVal){
+      if (!newVal) return
+      this.restaurantSelected = newVal as string;
+      if(newVal !== "Tous les restaurants"){
+        this.getCustomerByOption(this.restaurantSelected)
+      }
+      else{
+        this.getCustomerByOption();
+      }
+      console.log('restaurant selected: ',this.restaurantSelected)
+    },
     userSelected(this: any, newVal){
       if (!newVal) return
       const newValue = newVal as string
