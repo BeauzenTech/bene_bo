@@ -150,23 +150,23 @@
               />
             </div>
           </div>
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Adresse
-              </label>
-              <input
-                  type="text"
-                  class="form-control shadow-none rounded-0 text-black"
-                  placeholder="Rue 44 batiment 34"
-                  v-model="userData.addresse"
-                  @change="(event) => handleInput(event, 'addresse')"
-                  :class="{ 'is-valid': validTextField(userData.addresse) }"
-              />
-            </div>
-          </div>
+<!--          <div class="col-md-6">-->
+<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
+<!--              <label class="d-block text-black fw-semibold mb-10">-->
+<!--                Adresse-->
+<!--              </label>-->
+<!--              <input-->
+<!--                  type="text"-->
+<!--                  class="form-control shadow-none rounded-0 text-black"-->
+<!--                  placeholder="Rue 44 batiment 34"-->
+<!--                  v-model="userData.addresse"-->
+<!--                  @change="(event) => handleInput(event, 'addresse')"-->
+<!--                  :class="{ 'is-valid': validTextField(userData.addresse) }"-->
+<!--              />-->
+<!--            </div>-->
+<!--          </div>-->
 
-          <div class="col-md-12">
+          <div class="col-md-6">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
                 Rue *
@@ -438,7 +438,7 @@ export default defineComponent({
           "lastName": this.userData.lastName,
           "phoneNumber": this.userData.phoneNumber,
           "dateOfBirth": this.userData.dateOfBirth,
-          "address": this.userData.addresse,
+          "address": this.userData.numeroRue,
           "city": this.userData.city,
           "postalCode": this.userData.postalCode,
           "country": this.userData.country,
@@ -512,12 +512,15 @@ export default defineComponent({
     },
     async updateAccount(userID) {
       this.isLoading = true;
+      const oldEmail = this.userResponse?.email
       const payload = {
+        "email": this.userData.email !== oldEmail ? this.userData.email : '',
+        "roles": this.userData.roles,
         "firstName": this.userData.firstName,
         "lastName": this.userData.lastName,
         "phoneNumber": this.userData.phoneNumber,
         "dateOfBirth": this.userData.dateOfBirth,
-        "address": this.userData.addresse,
+        "address": this.userData.numeroRue,
         "city": this.userData.city,
         "postalCode": this.userData.postalCode,
         "country": this.userData.country,
@@ -580,12 +583,12 @@ export default defineComponent({
             this.userData.firstName = this.userResponse.first_name;
             this.userData.lastName = this.userResponse.last_name;
             this.userData.city = this.userResponse.city ?? '';
-            this.userData.addresse = this.userResponse.address ?? '';
+            // this.userData.addresse = this.userResponse.numeroRue ?? '';
             this.userData.phoneNumber = this.userResponse.phone_number ?? '';
             this.userData.postalCode = this.userResponse.postal_code;
-            this.userData.numeroRue = this.userResponse.numeroRue ?? '';
+            this.userData.numeroRue = this.userResponse.address ?? '';
             this.userData.batiment = this.userResponse.batiment ?? '';
-            this.userData.roles = this.userResponse.roles[0] ?? '';
+            this.userData.roles = this.userResponse.roles.length == 2 ? this.userResponse.roles[1] : this.userResponse.roles[1]
           }
         } else {
           this.toast.error(response.message);

@@ -110,16 +110,20 @@
           <tr v-else-if="!isLoading && allUser.length > 0"
               v-for="user in allUser" :key="user.id"
           >
+            <th>
+              <div
+                  class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
+              >
+                <a href="#" @click="gotoUserDetail(user)" class="mx-4">
+                  #{{ getShortUuid(user.id)  }}
+                </a>
+              </div>
+            </th>
             <th
                 class="shadow-none lh-1 fw-medium text-black-emphasis title ps-0 text-capitalize"
             >
               <div class="d-flex align-items-center text-capitalize">
-                <div class="form-check mb-0 text-capitalize">
-                  <input
-                      class="form-check-input shadow-none"
-                      type="checkbox"
-                  />
-                </div>
+
                 <div
                     class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
                 >
@@ -146,7 +150,7 @@
                 <span v-if="user.roles[1] as UserRole === UserRole.SUPPORT_TECHNIQUE" class="badge text-bg-dark fs-13"><i class="flaticon-support text-white"></i> {{fetchRole(user.roles[1])}}</span>
               </div>
               <div v-if="user.roles.length === 1">
-                <span v-if="user.roles[0] as UserRole === UserRole.FRANCHISE" class="badge text-bg-success fs-13"><i class="flaticon-secure-shield text-black"></i> {{fetchRole(user.roles[0])}}</span>
+                <span v-if="user.roles[0] as UserRole === UserRole.FRANCHISE" class="badge text-bg-success fs-13"><i class="flaticon-secure-shield text-white"></i> {{fetchRole(user.roles[0])}}</span>
                 <span v-if="user.roles[0] as UserRole === UserRole.UTILISATEUR" class="badge text-bg-info fs-13"><i class="flaticon-phone-call text-black"></i> {{fetchRole(user.roles[0])}}</span>
                 <span v-if="user.roles[0] as UserRole === UserRole.RESTAURANT" class="badge text-bg-warning fs-13"><i class="flaticon-shopping-cart-2 text-black"></i> {{fetchRole(user.roles[0])}}</span>
               </div>
@@ -371,6 +375,9 @@ export default defineComponent({
     }
   },
   methods: {
+    getShortUuid(uuid: string): string {
+      return uuid.split('-')[0];
+    },
     gotoUserDetail(user){
       this.$router.push({
         name: "VabeneAddUserPage",
