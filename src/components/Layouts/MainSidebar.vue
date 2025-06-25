@@ -155,10 +155,10 @@
                 </li>
                 <li v-if="userRole === UserRole.FRANCHISE" class="sidebar-sub-menu-item">
                   <router-link
-                      to="/loyalty_programme-list"
+                      to="/affiliation-programmes"
                       class="sidebar-sub-menu-link"
                   >
-                    Loyalty programme
+                    Parrainage & Fidelité
                   </router-link>
                 </li>
               </ul>

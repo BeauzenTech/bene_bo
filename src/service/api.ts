@@ -5,7 +5,7 @@ import { apiConfig } from "@/config/baseUrl";
 import {
     ApiResponse, PaginatedCampagne, PaginatedCategorie, PaginatedCoupon, PaginatedCustomer,
     PaginatedFrachises, PaginatedIngredient, PaginatedMethodePaiement, PaginatedNotification,
-    PaginatedOrder, PaginatedOrderType, PaginatedPayment, PaginatedProduct,
+    PaginatedOrder, PaginatedOrderType, PaginatedPayment, PaginatedProduct, PaginatedProgramme,
     PaginatedRestaurant, PaginatedRestaurantCategory, PaginatedRestaurantProduct,
     PaginatedUsers
 } from "@/models/Apiresponse";
@@ -26,6 +26,7 @@ import {AverageReportModel} from "@/models/averageReport.model";
 import {FranchiseModel} from "@/models/franchise.model";
 import {RestaurantModel} from "@/models/restaurant.model";
 import {RatioModel} from "@/models/ratio.model";
+import {ProgrammeModel} from "@/models/programme.model";
 
 const apiClient = axios.create({
     baseURL: apiConfig.baseURL,
@@ -1010,6 +1011,30 @@ export const listeCoupon = async (page = 1): Promise<ApiResponse<PaginatedCoupon
             response.data.data
         );
     } catch (error) {
+        throw error;
+    }
+};
+
+export const listeProgramme = async (page = 1): Promise<ApiResponse<PaginatedProgramme>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/v1/programme/all`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const toggleActivationProgramme = async (programmeData): Promise<ApiResponse<any>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/programme/active`, programmeData);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors du toggle activation du programme.', error);
         throw error;
     }
 };

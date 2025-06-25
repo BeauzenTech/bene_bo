@@ -189,6 +189,7 @@ import VabeneInfoFranchisePage from "@/pages/Vabene/Franchise/VabeneInfoFranchis
 import MotPasseOubliePage from "@/pages/Authentication/MotPasseOubliePage.vue";
 import VabeneAddCouponPage from "@/pages/Vabene/Coupon/VabeneAddCouponPage.vue";
 import VaBeneCouponListPage from "@/pages/Vabene/Coupon/VaBeneCouponListPage.vue";
+import VaBeneProgrammeAffiliationListPage from "@/pages/Vabene/Programme/VaBeneProgrammeAffiliationListPage.vue";
 
 const routes = [
     // DASHBOARD HOME
@@ -206,6 +207,13 @@ const routes = [
     path: "/reset-password",
     name: "ResetPasswordPage",
     component: ResetPasswordPage,
+  },
+
+    //
+  {
+    path: "/affiliation-programmes",
+    name: "VaBeneProgrammeAffiliationListPage",
+    component: VaBeneProgrammeAffiliationListPage,
   },
 
 
