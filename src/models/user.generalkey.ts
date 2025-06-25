@@ -69,15 +69,16 @@ export class UserGeneralKey {
     static getRole(role){
         switch(role){
             case 'ROLE_ADMIN':
-                return 'Administrateur'
+                return 'ADMINISTRATEUR'
             case 'ROLE_CLIENT':
-                return 'Client'
+                return 'UTILISATEUR'
             case 'ROLE_FRANCHISE':
-                return 'Gestion - Franchise'
+                return 'FRANCHISE'
             case 'ROLE_RESTAURANT':
-                return 'Gestion - Restaurant'
+                return 'RESTAURANT'
+
             default:
-                return 'Utilisateur'
+                return 'SUPPORT TECHNIQUE'
         }
     }
 
@@ -110,4 +111,6 @@ export class UserGeneralKey {
 export enum UserRole {
     FRANCHISE = 'ROLE_ADMIN',
     RESTAURANT = 'ROLE_RESTAURANT',
+    UTILISATEUR = 'ROLE_CLIENT',
+    SUPPORT_TECHNIQUE = 'ROLE_SUPPORT_TECHNIQUE'
 }

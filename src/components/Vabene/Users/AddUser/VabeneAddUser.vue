@@ -183,35 +183,35 @@
             </div>
           </div>
 
-          <div class="col-md-12"  v-if="actionDetected === ActionCrud.ADD">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Type de compte
-              </label>
-              <select class="form-select shadow-none fw-semibold rounded-0"
-                      v-model="selectedTypeCompte"
-                      @change="(event) => handleInput(event, 'roles')"
-                      :class="{ 'is-valid': validTextField(userData.roles) }"
-              >
-                <option value="TEAM" selected>Equipe</option>
-                <option value="CLASSIQUE" selected>Classique</option>
-              </select>
-            </div>
-          </div>
-          <div class="col-md-12" v-if="actionDetected === ActionCrud.ADD && selectedTypeCompte === 'TEAM'">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                RESTAURANT
-              </label>
-              <v-select
-                  v-model="restaurantSelected"
-                  :options="originalRestaurant"
-                  label="name"
-                  placeholder="Selectionner le restaurant"
+<!--          <div class="col-md-12"  v-if="actionDetected === ActionCrud.ADD">-->
+<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
+<!--              <label class="d-block text-black fw-semibold mb-10">-->
+<!--                Type de compte-->
+<!--              </label>-->
+<!--              <select class="form-select shadow-none fw-semibold rounded-0"-->
+<!--                      v-model="selectedTypeCompte"-->
+<!--                      @change="(event) => handleInput(event, 'roles')"-->
+<!--                      :class="{ 'is-valid': validTextField(userData.roles) }"-->
+<!--              >-->
+<!--                <option value="TEAM" selected>Equipe</option>-->
+<!--                <option value="CLASSIQUE" selected>Classique</option>-->
+<!--              </select>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <div class="col-md-12" v-if="actionDetected === ActionCrud.ADD && selectedTypeCompte === 'TEAM'">-->
+<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
+<!--              <label class="d-block text-black fw-semibold mb-10">-->
+<!--                RESTAURANT-->
+<!--              </label>-->
+<!--              <v-select-->
+<!--                  v-model="restaurantSelected"-->
+<!--                  :options="originalRestaurant"-->
+<!--                  label="name"-->
+<!--                  placeholder="Selectionner le restaurant"-->
 
-              />
-            </div>
-          </div>
+<!--              />-->
+<!--            </div>-->
+<!--          </div>-->
 
           <div class="col-md-12">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
@@ -224,7 +224,7 @@
                       :class="{ 'is-valid': validTextField(userData.roles) }"
               >
                 <option value="ROLE_ADMIN" selected>ADMINISTRATEUR</option>
-                <option value="ROLE_RESTAURANT" selected>RESTAURANT</option>
+<!--                <option value="ROLE_RESTAURANT" selected>RESTAURANT</option>-->
                 <option value="ROLE_SUPPORT_TECHNIQUE" selected>SUPPORT TECHNIQUE</option>
               </select>
             </div>
@@ -444,29 +444,32 @@ export default defineComponent({
           "country": this.userData.country,
           "batiment": this.userData.batiment,
           "numeroRue": this.userData.numeroRue,
-          "restaurantId": this.restaurantSelected?.id
+          // "restaurantId": this.restaurantSelected?.id
         }
         console.log(payload)
-        // try {
-        //   const response = await createUser(payload);
-        //   console.log(response);
-        //   if (response.code === 201) {
-        //     this.toast.success(response.message)
-        //     this.clearData()
-        //   } else {
-        //     this.toast.error(response.message)
-        //   }
-        // } catch (error) {
-        //   const axiosError = error as AxiosError;
-        //   if (axiosError.response && axiosError.response.data) {
-        //     const message = (axiosError.response.data as any).message;
-        //     this.toast.error(message);
-        //   } else {
-        //     this.toast.error("Une erreur est survenue");
-        //   }
-        // } finally {
-        //   this.isLoading = false;
-        // }
+        try {
+          const response = await createUser(payload);
+          console.log(response);
+          if (response.code === 201) {
+            this.toast.success(response.message)
+            this.clearData()
+          } else {
+            this.toast.error(response.message)
+          }
+        } catch (error) {
+          const axiosError = error as AxiosError;
+          if (axiosError.response && axiosError.response.data) {
+            const message = (axiosError.response.data as any).message;
+            this.toast.error(message);
+          } else {
+            this.toast.error("Une erreur est survenue");
+          }
+        } finally {
+          this.isLoading = false;
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        }
       }
       else{
           await this.updateAccount(this.userResponse?.id)

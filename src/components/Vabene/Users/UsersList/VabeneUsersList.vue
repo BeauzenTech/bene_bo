@@ -141,9 +141,15 @@
               {{ user.phone_number || '-' }}
             </td>
             <td v-if="user.roles.length > 0" class="shadow-none lh-1 fw-medium text-black-emphasis">
-              <span v-if="user.roles[0] === 'ROLE_ADMIN'" class="badge text-bg-danger fs-13">{{fetchRole(user.roles[0])}}</span>
-              <span v-if="user.roles[0] === 'ROLE_FRANCHISE'" class="badge text-bg-primary fs-13">{{fetchRole(user.roles[0])}}</span>
-              <span v-if="user.roles[0] === 'ROLE_RESTAURANT'" class="badge text-bg-warning fs-13">{{fetchRole(user.roles[0])}}</span>
+
+              <div v-if="user.roles.length === 2">
+                <span v-if="user.roles[1] as UserRole === UserRole.SUPPORT_TECHNIQUE" class="badge text-bg-dark fs-13"><i class="flaticon-support text-white"></i> {{fetchRole(user.roles[1])}}</span>
+              </div>
+              <div v-if="user.roles.length === 1">
+                <span v-if="user.roles[0] as UserRole === UserRole.FRANCHISE" class="badge text-bg-success fs-13"><i class="flaticon-secure-shield text-black"></i> {{fetchRole(user.roles[0])}}</span>
+                <span v-if="user.roles[0] as UserRole === UserRole.UTILISATEUR" class="badge text-bg-info fs-13"><i class="flaticon-phone-call text-black"></i> {{fetchRole(user.roles[0])}}</span>
+                <span v-if="user.roles[0] as UserRole === UserRole.RESTAURANT" class="badge text-bg-warning fs-13"><i class="flaticon-shopping-cart-2 text-black"></i> {{fetchRole(user.roles[0])}}</span>
+              </div>
             </td>
             <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">
               <span>-</span>
@@ -302,16 +308,16 @@
 
 </template>
 <script lang="ts">
-import { defineComponent } from "vue";
-import {listeUser, toggleActivationUser, deleteUser} from "@/service/api";
-import {UserGeneralKey} from "@/models/user.generalkey";
+import {defineComponent} from "vue";
+import {deleteUser, listeUser, toggleActivationUser} from "@/service/api";
+import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import {UserModel} from "@/models/user.model";
 import EmptyTable from "@/components/Vabene/EmptyTable/EmptyTable.vue";
-import {ApiResponse} from "@/models/Apiresponse";
-import {PaginatedUsers} from "@/models/Apiresponse";
+import {ApiResponse, PaginatedUsers} from "@/models/Apiresponse";
 import {ActionCrud} from "@/enums/actionCrud.enum";
+
 
 export default defineComponent({
   name: "VabeneUsersList",
@@ -327,6 +333,9 @@ export default defineComponent({
     }
   },
   computed: {
+    UserRole() {
+      return UserRole
+    },
     allUser(): UserModel[] {
       const users = this.usersResponse?.data?.items || this.originalUsers;
       if (!this.searchQuery) return users;

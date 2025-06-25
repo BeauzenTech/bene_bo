@@ -98,7 +98,7 @@
                   class="form-control shadow-none rounded-0 text-black"
                   placeholder="e.g. adam127704@gmail.com"
                   :required="actionDetected === ActionCrud.ADD"
-                  :disabled="actionDetected === ActionCrud.EDIT"
+
               />
             </div>
           </div>
@@ -652,7 +652,9 @@ export default defineComponent({
         "longitude": "",
         "horaires": [],
         "orderType": [],
-        "taxe": ""
+        "taxe": "",
+        "firstName": this.restaurantData.firstName,
+        "lastName": this.restaurantData.lastName,
       }
       try {
         const response = await updateRestaurant(restaurantID, payload);
