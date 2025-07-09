@@ -630,9 +630,19 @@ export default defineComponent({
       }
     },
     async updateVariationProduct(productID, variationID) {
-      if(this.actionDetected === 'edit'){
+      let clearVariation = [] as any
+      clearVariation = this.allVariationsProduct
+          .filter(variation => !variation.id) // sélectionne ceux sans ID
+          .map(variation => ({
+            size: variation.size,
+            price: variation.price,
+            priceLivraison: variation.priceLivraison,
+            description: variation.description
+          }));
+      if(this.actionDetected === 'edit' && clearVariation.length > 0){
+
         const payload = {
-          "variationsProduct": this.allVariationsProduct
+          "variationsProduct": clearVariation
         }
         try {
           const response = await updateVariationProduct(productID, payload);
@@ -674,9 +684,9 @@ export default defineComponent({
         variationsProduct: [],
         ordered: ''
       }
-      // setTimeout(() => {
-      //   window.location.reload();
-      // }, 1000);
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     },
     goBack() {
       this.$router.back()
@@ -766,6 +776,7 @@ export default defineComponent({
                 id: ps.id,
                 size: ps.size,
                 price: ps.price,
+                priceLivraison: ps.priceLivraison,
                 description: ps.generalDescription ?? ps.description,
               }));
             }
