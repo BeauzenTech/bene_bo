@@ -57,6 +57,12 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0 ps-0"
             >
+             ID
+            </th>
+            <th
+                scope="col"
+                class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0 ps-0"
+            >
               Nom & Prenom
             </th>
             <th
@@ -144,13 +150,17 @@
             <td class="shadow-none lh-1 fw-medium text-black-emphasis">
               {{ user.phone_number || '-' }}
             </td>
-            <td v-if="user.roles.length > 0" class="shadow-none lh-1 fw-medium text-black-emphasis">
-              <span v-if="user.roles[0] === 'ROLE_ADMIN'" class="badge text-bg-danger fs-13">{{fetchRole(user.roles[0])}}</span>
-              <span v-if="user.roles[0] === 'ROLE_FRANCHISE'" class="badge text-bg-primary fs-13">{{fetchRole(user.roles[0])}}</span>
-              <span v-if="user.roles[0] === 'ROLE_RESTAURANT'" class="badge text-bg-warning fs-13">{{fetchRole(user.roles[0])}}</span>
+            <td v-if="user.roles.length == 2" class="shadow-none lh-1 fw-medium text-black-emphasis">
+              <span v-if="user.roles[1] === UserRole.FRANCHISE" class="badge text-bg-danger fs-13">{{fetchRole(user.roles[1])}}</span>
+              <span v-else-if="user.roles[1] === UserRole.RESTAURANT" class="badge text-bg-primary fs-13">{{fetchRole(user.roles[1])}}</span>
+              <span v-else-if="user.roles[1] === UserRole.UTILISATEUR" class="badge text-bg-info fs-13">{{fetchRole(user.roles[1])}}</span>
+              <span v-else class="badge text-bg-warning fs-13">{{fetchRole(user.roles[1])}}</span>
             </td>
-            <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">
-              <span>-</span>
+            <td v-if="user.roles.length == 1" class="shadow-none lh-1 fw-medium text-black-emphasis">
+              <span v-if="user.roles[0] === UserRole.FRANCHISE" class="badge text-bg-danger fs-13">{{fetchRole(user.roles[0])}}</span>
+              <span v-else-if="user.roles[0] === UserRole.RESTAURANT" class="badge text-bg-primary fs-13">{{fetchRole(user.roles[0])}}</span>
+              <span v-else-if="user.roles[0] === UserRole.UTILISATEUR" class="badge text-bg-info fs-13">{{fetchRole(user.roles[0])}}</span>
+              <span v-else class="badge text-bg-warning fs-13">{{fetchRole(user.roles[0])}}</span>
             </td>
             <td class="shadow-none lh-1 fw-medium text-muted">
               {{ convertDateCreate(user.created_at)  }}
@@ -308,7 +318,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import {listeUser, toggleActivationUser, deleteUser} from "@/service/api";
-import {UserGeneralKey} from "@/models/user.generalkey";
+import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import {UserModel} from "@/models/user.model";
@@ -331,6 +341,9 @@ export default defineComponent({
     }
   },
   computed: {
+    UserRole() {
+      return UserRole
+    },
     allUser(): UserModel[] {
       const users = this.usersResponse?.data?.items || this.originalUsers;
       if (!this.searchQuery) return users;
@@ -366,6 +379,10 @@ export default defineComponent({
     }
   },
   methods: {
+
+      getShortUuid(uuid: string): string {
+        return uuid.split('-')[0];
+      },
     gotoUserDetail(user){
       this.$router.push({
         name: "VabeneAddUserPage",
