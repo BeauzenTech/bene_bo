@@ -627,6 +627,7 @@ export default defineComponent({
       }
     },
     async launchPrint(pdfFile: File) {
+      console.log('impression launch')
       try {
         const response = await printTicketLocally(pdfFile);
         if (response.status === 200 && response.data.success) {
