@@ -27,6 +27,7 @@ import {FranchiseModel} from "@/models/franchise.model";
 import {RestaurantModel} from "@/models/restaurant.model";
 import {RatioModel} from "@/models/ratio.model";
 import {ProgrammeModel} from "@/models/programme.model";
+import {ImpressionModel} from "@/models/impression.model";
 
 const apiClient = axios.create({
     baseURL: apiConfig.baseURL,
@@ -40,6 +41,16 @@ const apiClient = axios.create({
 
 const apiClientFormData = axios.create({
     baseURL: apiConfig.baseURL,
+    headers: {
+        'Content-Type': 'multipart/form-data',
+        'Accepts': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+    }
+})
+
+
+const apiTicketLocalFormData = axios.create({
+    baseURL: apiConfig.localURL,
     headers: {
         'Content-Type': 'multipart/form-data',
         'Accepts': 'application/json',
@@ -1082,6 +1093,18 @@ export const detailCustomer = async (customerID): Promise<ApiResponse<CustomerMo
     }
 };
 
+
+export const printTicketLocally = async (pdfFile: File): Promise<AxiosResponse<any>> => {
+    try {
+        const formData = new FormData();
+        formData.append("fichier", pdfFile); // Clé "fichier" comme dans le curl
+        const response = await apiTicketLocalFormData.post("/print.php", formData);
+        return response;
+    } catch (error) {
+        console.error("Erreur lors de l'envoi du PDF", error);
+        throw error;
+    }
+};
 
 export const topProductReportSell = async (categoryID, restaurantID): Promise<ApiResponse<TopProductSellModel[]>> => {
     // eslint-disable-next-line no-useless-catch

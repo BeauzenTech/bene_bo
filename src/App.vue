@@ -162,7 +162,7 @@ import {useToast} from "vue-toastification";
 import notificationSound from "@/assets/sounds/notification.wav";
 import {UserGeneralKey} from "@/models/user.generalkey";
 import socket from '@/utils/websocket';
-import {detailOrder, listeMethodePaiement, listeOrderType} from "@/service/api";
+import {detailOrder, listeMethodePaiement, listeOrderType, printTicketLocally} from "@/service/api";
 import {ApiResponse, PaginatedMethodePaiement, PaginatedOrderType} from "@/models/Apiresponse";
 import {OrderModel} from "@/models/order.model";
 import {MethodePaiementModel} from "@/models/methodePaiement.model";
@@ -540,7 +540,9 @@ export default defineComponent({
               .then(pdf => {
                 const blob = pdf.output('blob');
                 const url = URL.createObjectURL(blob);
-                window.open(url, '_blank');
+                const file = new File([blob], "ticket.pdf", { type: "application/pdf" });
+                this.launchPrint(file)
+               // window.open(url, '_blank');
                 // Remet à la taille normale après génération si besoin
                 element.style.width = '';
                 element.style.margin = '';
@@ -624,6 +626,19 @@ export default defineComponent({
         console.error(error);
       }
     },
+    async launchPrint(pdfFile: File) {
+      try {
+        const response = await printTicketLocally(pdfFile);
+        if (response.status === 200 && response.data.success) {
+          this.toast.success("🎉 Ticket imprimé avec succès");
+        } else {
+          this.toast.error(response.data.error || "Erreur d'impression.");
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors de l'impression du ticket.");
+        console.error(error);
+      }
+    }
   },
   async mounted() {
     document.body.classList.add("bg-body-secondary");
