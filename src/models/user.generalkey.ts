@@ -48,7 +48,7 @@ export class UserGeneralKey {
         if(user.franchises.length > 0){
             localStorage.setItem(UserGeneralKey.USER_FRANCHISE_ID, user.franchises[0].id);
         }
-        if(user.roles[0] === UserRole.RESTAURANT){
+        if(user.restaurant){
             localStorage.setItem(UserGeneralKey.USER_RESTAURANT_ID, user.restaurant.id);
         }
     }

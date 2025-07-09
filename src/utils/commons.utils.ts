@@ -1,3 +1,5 @@
+import {UserGeneralKey} from "@/models/user.generalkey";
+
 export class Commons {
     static extractPublicId(url: string): string | null {
         try {
@@ -11,3 +13,4 @@ export class Commons {
         }
     }
 }
+
