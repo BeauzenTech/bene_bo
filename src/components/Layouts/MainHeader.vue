@@ -134,7 +134,7 @@
 <!--              </ul>-->
 <!--            </div>-->
 <!--          </div>-->
-          <LightDarkSwtichBtn />
+<!--          <LightDarkSwtichBtn />-->
 <!--          <div class="dropdown apps-dropdown">-->
 <!--            <button-->
 <!--              class="dropdown-toggle p-0 position-relative bg-transparent border-0 transition lh-1"-->
@@ -527,7 +527,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from "vue";
-import LightDarkSwtichBtn from "./LightDarkSwtichBtn.vue";
+// import LightDarkSwtichBtn from "./LightDarkSwtichBtn.vue";
 import stateStore from "../../utils/store";
 import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 import defaultAvatar from '@/assets/images/user/avatar.png'
@@ -546,7 +546,7 @@ export default defineComponent({
     }
   },
   components: {
-    LightDarkSwtichBtn,
+    // LightDarkSwtichBtn,
   },
   data(){
     return{

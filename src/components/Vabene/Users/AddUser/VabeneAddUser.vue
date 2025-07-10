@@ -85,21 +85,21 @@
               />
             </div>
           </div>
-          <div class="col-md-6">
-            <div class="form-group mb-15 mb-sm-20 mb-md-25">
-              <label class="d-block text-black fw-semibold mb-10">
-                Date de naissance
-              </label>
-              <input
-                  type="date"
-                  class="form-control shadow-none rounded-0 text-black"
-                  placeholder="01-08-1996"
-                  v-model="userData.dateOfBirth"
-                  @change="(event) => handleInput(event, 'dateOfBirth')"
-                  :class="{ 'is-valid': validTextField(userData.dateOfBirth) }"
-              />
-            </div>
-          </div>
+<!--          <div class="col-md-6">-->
+<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
+<!--              <label class="d-block text-black fw-semibold mb-10">-->
+<!--                Date de naissance-->
+<!--              </label>-->
+<!--              <input-->
+<!--                  type="date"-->
+<!--                  class="form-control shadow-none rounded-0 text-black"-->
+<!--                  placeholder="01-08-1996"-->
+<!--                  v-model="userData.dateOfBirth"-->
+<!--                  @change="(event) => handleInput(event, 'dateOfBirth')"-->
+<!--                  :class="{ 'is-valid': validTextField(userData.dateOfBirth) }"-->
+<!--              />-->
+<!--            </div>-->
+<!--          </div>-->
 
 
           <div class="col-md-6">
@@ -120,13 +120,22 @@
               <label class="d-block text-black fw-semibold mb-10">
                 Code postal *
               </label>
-              <v-select
+<!--              <v-select-->
+<!--                  v-model="userData.postalCode"-->
+<!--                  :options="allPostalCode"-->
+<!--                  @change="(event) => handleInput(event, 'postalCode')"-->
+<!--                  label="numeroPostal"-->
+<!--                  :reduce="postal => postal.numeroPostal"-->
+<!--                  placeholder="Selectionner le code postal"-->
+<!--                  :class="{ 'is-valid': validTextField(userData.postalCode) }"-->
+<!--                  :required="actionDetected === ActionCrud.ADD"-->
+<!--              />-->
+              <input
+                  type="text"
+                  class="form-control shadow-none rounded-0 text-black"
+                  placeholder="e.g. 1023"
                   v-model="userData.postalCode"
-                  :options="allPostalCode"
                   @change="(event) => handleInput(event, 'postalCode')"
-                  label="numeroPostal"
-                  :reduce="postal => postal.numeroPostal"
-                  placeholder="Selectionner le code postal"
                   :class="{ 'is-valid': validTextField(userData.postalCode) }"
                   :required="actionDetected === ActionCrud.ADD"
               />
@@ -136,15 +145,24 @@
           <div class="col-md-6">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
-                Ville
+                Localité
               </label>
-              <v-select
+<!--              <v-select-->
+<!--                  v-model="userData.city"-->
+<!--                  :options="allPostalCode"-->
+<!--                  @change="(event) => handleInput(event, 'city')"-->
+<!--                  label="ville"-->
+<!--                  :reduce="postal => postal.ville"-->
+<!--                  placeholder="Selectionner la ville"-->
+<!--                  :class="{ 'is-valid': validTextField(userData.city) }"-->
+<!--                  :required="actionDetected === ActionCrud.ADD"-->
+<!--              />-->
+              <input
+                  type="text"
+                  class="form-control shadow-none rounded-0 text-black"
+                  placeholder="e.g. Morges"
                   v-model="userData.city"
-                  :options="allPostalCode"
                   @change="(event) => handleInput(event, 'city')"
-                  label="ville"
-                  :reduce="postal => postal.ville"
-                  placeholder="Selectionner la ville"
                   :class="{ 'is-valid': validTextField(userData.city) }"
                   :required="actionDetected === ActionCrud.ADD"
               />
@@ -213,7 +231,7 @@
 <!--            </div>-->
 <!--          </div>-->
 
-          <div class="col-md-12">
+          <div class="col-md-6">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
                 Rôle
@@ -437,7 +455,7 @@ export default defineComponent({
           "firstName": this.userData.firstName,
           "lastName": this.userData.lastName,
           "phoneNumber": this.userData.phoneNumber,
-          "dateOfBirth": this.userData.dateOfBirth,
+          "dateOfBirth": '',
           "address": this.userData.numeroRue,
           "city": this.userData.city,
           "postalCode": this.userData.postalCode,
@@ -519,7 +537,7 @@ export default defineComponent({
         "firstName": this.userData.firstName,
         "lastName": this.userData.lastName,
         "phoneNumber": this.userData.phoneNumber,
-        "dateOfBirth": this.userData.dateOfBirth,
+        "dateOfBirth": '',
         "address": this.userData.numeroRue,
         "city": this.userData.city,
         "postalCode": this.userData.postalCode,

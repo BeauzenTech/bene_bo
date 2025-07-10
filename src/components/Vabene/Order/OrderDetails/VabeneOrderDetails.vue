@@ -18,8 +18,8 @@
             #{{ orderResponse.reference }} <span v-if="orderResponse.DeliveryPreference === 'immediat'" class="btn btn-success btn-sm ms-10" style="margin-left: 70px;" >
             TOUT DE SUITE
            </span>
-            <span  class="btn btn-warning btn-sm" style="margin-left: 70px;">
-            PRÉCOMMANDE
+            <span class="btn btn-warning btn-sm fs-14" style="margin-left: 70px;">
+            Précommande
           </span>
           </h5>
 
@@ -743,7 +743,7 @@
                   <div class="receipts-wrapper" >
                     <div class="receipts"  id="recu-pdf">
                       <div class="receipt">
-                        <img src="https://vabenepizza.ch/imgs/logo.svg" class="airliner-logo"/>
+                        <img src="@/assets/images/logo_update.svg" class="airliner-logo"/>
                           <div class="route">
                             <h2><strong>Livraison de pizzas {{orderResponse.restaurantID.name}}</strong></h2>
                             <h2><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'Va Bene pizza sàrl Morges' : 'Pizzeria Va Bene SA '}}</strong></h2>

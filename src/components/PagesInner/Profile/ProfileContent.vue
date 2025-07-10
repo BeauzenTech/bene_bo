@@ -113,6 +113,7 @@ import LoaderComponent from "@/components/Loading/Loader.vue";
 import {ActionCrud} from "@/enums/actionCrud.enum";
 import {RestaurantModel} from "@/models/restaurant.model";
 import {IngredientModel} from "@/models/ingredient.model";
+import {FranchiseEnum} from "@/enums/restaurant.enum";
 
 
 export default defineComponent({
@@ -137,9 +138,9 @@ export default defineComponent({
     },
     async fetchFranchises() {
       this.isLoading = true;
-      const franchiseID = localStorage.getItem(UserGeneralKey.USER_FRANCHISE_ID);
+
       try {
-        const response = await detailFranchise(franchiseID) as ApiResponse<FranchiseModel>;
+        const response = await detailFranchise(FranchiseEnum.id) as ApiResponse<FranchiseModel>;
         console.log(response)
         if (response.code === 200) {
           this.franchiseResponse = response.data as FranchiseModel;

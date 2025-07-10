@@ -13,13 +13,13 @@
       <div class="d-lg-flex justify-content-between" v-if="paiementResponse && paiementResponse.orderSelf">
         <div class="text-start">
           <img
-            src="https://vabenepizza.ch/imgs/logo.svg"
+            src="@/assets/images/logo_update.svg"
             class="black-logo"
             alt="logo"
             style="width: 140px; height: auto;"
           />
           <img
-            src="https://vabenepizza.ch/imgs/logo.svg"
+            src="@/assets/images/logo_update.svg"
             class="white-logo"
             alt="logo"
             style="width: 140px; height: auto;"
@@ -208,7 +208,7 @@
                 <div class="receipts-wrapper" >
                   <div class="receipts"  id="recu-pdf">
                     <div class="receipt" v-if="paiementResponse.orderSelf">
-                      <img src="https://vabenepizza.ch/imgs/logo.svg" class="airliner-logo"/>
+                      <img src="@/assets/images/logo_update.svg" class="airliner-logo"/>
                       <div class="route" v-if="paiementResponse.orderSelf.restaurantID">
                         <h2><strong>Livraison de pizzas {{paiementResponse.orderSelf.restaurantID.name}}</strong></h2>
                         <h2><strong>{{paiementResponse.orderSelf.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'Va Bene pizza sàrl Morges' : 'Pizzeria Va Bene SA '}}</strong></h2>
