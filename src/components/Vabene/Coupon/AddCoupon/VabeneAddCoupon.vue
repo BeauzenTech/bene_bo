@@ -217,24 +217,20 @@ export default defineComponent({
   },
   methods: {
     async toggleCategorieActivation(categorie, status){
+      console.log('tokk')
       const payload = {
         'status': status
       }
       try {
         const response = await disableCoupon(categorie.code, payload) as ApiResponse<any>;
-        //console.log(response)
+        console.log(response)
         if (response.code === 200) {
-          if (response.data) {
             const responseDecoded = response.data
             console.log(responseDecoded)
             this.toast.success(response.message);
-            setTimeout(() => {
-              window.location.reload();
-            }, 2000);
-          }
-
+            this.clearData()
         } else {
-          this.toast.error(response.message);
+          this.toast.error(response.message)
         }
       } catch (error) {
         this.toast.error("Erreur lors du chargement des categories");

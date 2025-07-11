@@ -1115,11 +1115,28 @@ export const detailCustomer = async (customerID): Promise<ApiResponse<CustomerMo
 };
 
 
-export const printTicketLocally = async (pdfFile: File): Promise<AxiosResponse<any>> => {
+export const printTicketLocally = async (
+    pdfFile: File
+): Promise<AxiosResponse<any>> => {
     try {
         const formData = new FormData();
         formData.append("fichier", pdfFile); // Clé "fichier" comme dans le curl
-        const response = await apiTicketLocalFormData.post("/print.php", formData);
+
+        // Using with fetch
+        const response = (await fetch("http://localhost:8080/print.php", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        })) as unknown as AxiosResponse<any>;
+
+        /* const response = await apiTicketLocalFormData.post("/print.php", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }); */
+
         return response;
     } catch (error) {
         console.error("Erreur lors de l'envoi du PDF", error);

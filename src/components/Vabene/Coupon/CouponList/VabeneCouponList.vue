@@ -181,6 +181,18 @@
               {{  convertDateCreate(categorie.created_at) }}
             </td>
 
+            <td>
+              <div class="form-check form-switch">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    v-model="categorie.is_active"
+                    @change="toggleCategorieActivation(categorie, categorie.is_active)"
+                />
+
+              </div>
+            </td>
+
 
 
             <td
