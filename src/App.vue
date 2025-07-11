@@ -629,12 +629,8 @@ export default defineComponent({
     async launchPrint(pdfFile: File) {
       console.log('impression launch')
       try {
-        const response = await printTicketLocally(pdfFile);
-        if (response.status === 200 && response.data.success) {
-          this.toast.success("🎉 Ticket imprimé avec succès");
-        } else {
-          this.toast.error(response.data.error || "Erreur d'impression.");
-        }
+        await printTicketLocally(pdfFile);
+        this.toast.success("🎉 Ticket imprimé avec succès");
       } catch (error) {
         this.toast.error("Erreur lors de l'impression du ticket.");
         console.error(error);
