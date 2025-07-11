@@ -28,6 +28,7 @@ import {RestaurantModel} from "@/models/restaurant.model";
 import {RatioModel} from "@/models/ratio.model";
 import {ProgrammeModel} from "@/models/programme.model";
 import {ImpressionModel} from "@/models/impression.model";
+import {CouponModel} from "@/models/coupon.model";
 
 const apiClient = axios.create({
     baseURL: apiConfig.baseURL,
@@ -1001,12 +1002,32 @@ export const createCoupon = async (couponData): Promise<ApiResponse<any>> =>{
     }
 };
 
-export const disableCoupon = async (code): Promise<ApiResponse<any>> =>{
+export const disableCoupon = async (code, couponData): Promise<ApiResponse<any>> =>{
     try {
-        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post(`/v1/coupon/order/disable/${code}`);
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/coupon/order/disable/${code}`, couponData);
         return response.data;
     } catch (error) {
         console.error("Erreur lors de la desactivation du coupon", error);
+        throw error;
+    }
+};
+
+export const detailCoupon = async (couponID): Promise<ApiResponse<CouponModel>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/v1/coupon/detail/${couponID}`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const updateCoupon = async (couponId, couponData): Promise<ApiResponse<any>> =>{
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/coupon/order/update/${couponId}`, couponData);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la creation de la categorie", error);
         throw error;
     }
 };

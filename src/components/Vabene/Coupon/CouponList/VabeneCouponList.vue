@@ -77,6 +77,7 @@
             >
               VALEUR
             </th>
+
             <th
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
@@ -88,7 +89,7 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
-              STATUS
+              ETAT
             </th>
 
             <th
@@ -157,6 +158,7 @@
               {{ categorie.discount_type === 'fixed' ? `${categorie.discount_value} CHF` : `${categorie.discount_value}%`  }}
             </td>
 
+
             <td class="shadow-none lh-1 fw-medium text-muted">
               {{  categorie.usage_limit }}
             </td>
@@ -193,20 +195,20 @@
                 >
                   <i class="flaticon-dots"></i>
                 </button>
-<!--                <ul class="dropdown-menu">-->
-<!--                  <li>-->
-<!--                    <a-->
-<!--                        class="dropdown-item d-flex align-items-center"-->
-<!--                        href="javascript:void(0);"-->
-<!--                        @click="selectForDetail(categorie)"-->
-<!--                    ><i-->
-<!--                        class="flaticon-view lh-1 me-8 position-relative top-1"-->
-<!--                    ></i>-->
-<!--                      Voir</a-->
-<!--                    >-->
-<!--                  </li>-->
+                <ul class="dropdown-menu">
+                  <li>
+                    <a
+                        class="dropdown-item d-flex align-items-center"
+                        href="javascript:void(0);"
+                        @click="selectForDetail(categorie)"
+                    ><i
+                        class="flaticon-view lh-1 me-8 position-relative top-1"
+                    ></i>
+                      Voir</a
+                    >
+                  </li>
 
-<!--                </ul>-->
+                </ul>
               </div>
             </td>
           </tr>
@@ -371,30 +373,7 @@ export default defineComponent({
     }
   },
   methods: {
-    async toggleCouponActivation(code){
-      //this.isLoading = true;
-      console.log(status)
-      const payload = {
-        'status': status
-      }
-      try {
-        const response = await disableCoupon(code) as ApiResponse<any>;
-        //console.log(response)
-        if (response.code === 201 || response.code === 200) {
-          this.toast.success(response.message);
 
-        } else {
-          this.toast.error(response.message);
-        }
-      } catch (error) {
-        this.toast.error("Erreur lors du chargement des coupons");
-        console.error(error);
-      } finally {
-        setTimeout(() =>  {
-          this.fetchCategories(1);
-        }, 2000);
-      }
-    },
     truncateDescription(description: string, maxCharsPerLine = 50): string {
       const maxLength = maxCharsPerLine * 2; // 2 lignes
 
@@ -424,8 +403,8 @@ export default defineComponent({
       this.categorieSelected = categorie;
       console.log(categorie)
       this.$router.push({
-        name: "VabeneAddNotificationPage",
-        params: { action: ActionCrud.EDIT, notificationID: categorie.id }
+        name: "VabeneAddCouponPage",
+        params: { action: ActionCrud.EDIT, couponID: categorie.id }
       });
     },
     selectForDelete(categorie){
@@ -477,35 +456,7 @@ export default defineComponent({
         }, 3000);
       }
     },
-    async toggleCategorieActivation(categorie, status){
-      //this.isLoading = true;
-      console.log(status)
-      const payload = {
-        'status': status
-      }
-      try {
-        const response = await toggleActivationCategorie(categorie.id, payload) as ApiResponse<any>;
-        //console.log(response)
-        if (response.code === 200) {
-          this.categorieResponse = response;
-          if (response.data) {
-            const responseDecoded = response.data
-            console.log(responseDecoded)
-            this.toast.success(response.message);
-          }
 
-        } else {
-          this.toast.error(response.message);
-        }
-      } catch (error) {
-        this.toast.error("Erreur lors du chargement des categories");
-        console.error(error);
-      } finally {
-        setTimeout(() =>  {
-          this.fetchCategories(1);
-        }, 2000);
-      }
-    },
     fetchRole(role: string): string {
       return UserGeneralKey.getRole(role);
     },
@@ -564,7 +515,7 @@ export default defineComponent({
     return { toast };
   },
   mounted() {
-   this.fetchCategories();
+  this.fetchCategories();
   }
 });
 </script>

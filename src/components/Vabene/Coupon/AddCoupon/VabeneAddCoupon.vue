@@ -3,7 +3,7 @@
     <div class="card-body p-15 p-sm-20 p-md-25 p-lg-30 letter-spacing">
       <form @submit.prevent="createNewCategorie">
         <div class="row">
-          <div class="col-md-12" v-if="actionDetected == ActionCrud.ADD">
+          <div class="col-md-12">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
               <label class="d-block text-black fw-semibold mb-10">
                 Type de coupon *
@@ -17,7 +17,22 @@
               />
 
             </div>
+          </div>
+          <div class="col-md-12" v-if="sendingType !== 'Fixe'">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+               Definissez le code coupon *
+              </label>
+              <input
+                  type="text"
+                  class="form-control shadow-none rounded-0 text-black"
+                  placeholder="e.g. 5"
+                  v-model="categorieData.couponCode"
+                  @change="(event) => handleInput(event, 'couponCode')"
+                  :class="{ 'is-valid': validTextField(categorieData.couponCode) }"
 
+              />
+            </div>
           </div>
           <div class="col-md-12">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
@@ -32,7 +47,7 @@
                   @change="(event) => handleInput(event, 'value')"
                   :class="{ 'is-valid': validTextField(categorieData.value) }"
                   required
-                  :disabled="actionDetected == ActionCrud.EDIT"
+
               />
             </div>
           </div>
@@ -50,15 +65,35 @@
                   v-model="categorieData.limite"
                   @change="(event) => handleInput(event, 'limite')"
                   :class="{ 'is-valid': validTextField(categorieData.limite) }"
-                  required
-                  :disabled="actionDetected == ActionCrud.EDIT"
+                  :required="actionDetected == ActionCrud.ADD"
               />
             </div>
           </div>
 
 
+          <div class="col-md-12" v-if="categorieResponse && actionDetected === ActionCrud.EDIT">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Activation *
+              </label>
+              <!-- Toggle switch -->
+              <div class="form-check form-switch">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    v-model="categorieResponse.is_active"
+                    @change="toggleCategorieActivation(categorieResponse, categorieResponse.is_active)"
+                />
 
-          <div class="col-md-12" v-if="actionDetected == ActionCrud.ADD">
+              </div>
+            </div>
+          </div>
+
+
+
+
+
+          <div class="col-md-12">
             <div class="d-flex align-items-center justify-content-between" v-if="actionDetected">
 
               <LoaderComponent
@@ -70,7 +105,7 @@
                       :disabled="!isFormValid"
                       :class="{ 'opacity-50 cursor-not-allowed': !isFormValid }"
               >
-                Créer coupon
+                {{ actionDetected === 'edit' ? 'Mettre à jour' : ' Créer un coupon'}}
               </button>
               <button
                   type="button"
@@ -84,6 +119,27 @@
               </button>
             </div>
           </div>
+
+          <div class="col-md-12 mt-30">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10 fs-16">
+                Liste des utilisateurs ayant utilisé le coupon
+              </label>
+
+              <ul class="list-unstyled" v-if="categorieResponse">
+                <li v-if="categorieResponse.eligibleUsers.length === 0">
+                  <span class="text-muted fst-italic">Aucun utilisateur trouvé</span>
+                </li>
+                <li  v-else v-for="(user, index) in categorieResponse?.eligibleUsers" :key="user">
+                  <span class="badge bg-light text-black fw-semibold fs-14">
+                   {{index + 1}} - {{ user }}
+                  </span>
+                </li>
+
+              </ul>
+            </div>
+          </div>
+
         </div>
       </form>
     </div>
@@ -100,7 +156,14 @@ import {
   updateCategorie,
   uploadFile,
   deleteFileUpload,
-  createCampagne, detailCampagne, listeUser, createNotification, listeCustomers, createCoupon
+  createCampagne,
+  detailCampagne,
+  listeUser,
+  createNotification,
+  listeCustomers,
+  createCoupon,
+  detailCoupon,
+  updateCoupon, disableCoupon
 } from "@/service/api";
 
 import {useToast} from "vue-toastification";
@@ -114,6 +177,7 @@ import {UserModel} from "@/models/user.model";
 import {OrderTypeModel} from "@/models/orderType.model";
 import {CustomerModel} from "@/models/customer.model";
 import {UserGeneralKey} from "@/models/user.generalkey";
+import {CouponModel} from "@/models/coupon.model";
 
 
 export default defineComponent({
@@ -138,10 +202,11 @@ export default defineComponent({
         type: '',
         value: '',
         limite: '',
+        couponCode: ''
       },
       isLoading: false,
       logoUpload: null,
-      categorieResponse: null as CampagneModel | null,
+      categorieResponse: null as CouponModel | null,
       actionDetected: null as string | null,
       originalUsers: [] as CustomerModel[], // Stockage des utilisateurs originaux
       userSelected: null,
@@ -151,6 +216,31 @@ export default defineComponent({
     }
   },
   methods: {
+    async toggleCategorieActivation(categorie, status){
+      const payload = {
+        'status': status
+      }
+      try {
+        const response = await disableCoupon(categorie.code, payload) as ApiResponse<any>;
+        //console.log(response)
+        if (response.code === 200) {
+          if (response.data) {
+            const responseDecoded = response.data
+            console.log(responseDecoded)
+            this.toast.success(response.message);
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+          }
+
+        } else {
+          this.toast.error(response.message);
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des categories");
+        console.error(error);
+      }
+    },
     stripHtmlTags(input: string): string {
       const div = document.createElement('div');
       div.innerHTML = input;
@@ -161,44 +251,47 @@ export default defineComponent({
         type: '',
         value: '',
         limite: '',
+        couponCode: ''
       }
-
-      // setTimeout(() => {
-      //   window.location.reload();
-      // }, 2000);
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     },
     goBack() {
       this.$router.back()
 
     },
     async createNewCategorie() {
-
-
-      this.isLoading = true;
-      const payload = {
-        "discount_type": this.sendingType === 'Fixe' ? 'fixed' : 'percent',
-        "discount_value": this.categorieData.value,
-        "usage_limit": this.categorieData.limite,
-      }
-      try {
-        const response = await createCoupon(payload);
-        console.log(response);
-        if (response.code === 200 || response.code === 201) {
-          this.toast.success(response.message)
-          this.clearData()
+      if(this.actionDetected === ActionCrud.ADD){
+        this.isLoading = true;
+        const payload = {
+          "discount_type": this.sendingType === 'Fixe' ? 'fixed' : 'percent',
+          "discount_value": this.categorieData.value,
+          "usage_limit": this.categorieData.limite,
+          "codeCoupon": this.categorieData.couponCode
         }
-      } catch (error) {
-        const axiosError = error as AxiosError;
-        if (axiosError.response && axiosError.response.data) {
-          const message = (axiosError.response.data as any).message;
-          this.toast.error(message);
-        } else {
-          this.toast.error("Une erreur est survenue");
+        try {
+          const response = await createCoupon(payload);
+          console.log(response);
+          if (response.code === 200 || response.code === 201) {
+            this.toast.success(response.message)
+            this.clearData()
+          }
+        } catch (error) {
+          const axiosError = error as AxiosError;
+          if (axiosError.response && axiosError.response.data) {
+            const message = (axiosError.response.data as any).message;
+            this.toast.error(message);
+          } else {
+            this.toast.error("Une erreur est survenue");
+          }
+        } finally {
+          this.isLoading = false;
         }
-      } finally {
-        this.isLoading = false;
       }
-
+      else{
+        await this.updateCategorie(this.categorieResponse?.id)
+      }
 
     },
     async fetchUsers(page = 1) {
@@ -230,14 +323,15 @@ export default defineComponent({
     async updateCategorie(categorieID) {
       this.isLoading = true;
       const payload = {
-        "discount_type": this.sendingType === 'Fixe' ? 'fixed' : 'percentage',
+        "discount_type": this.sendingType === 'Fixe' ? 'fixed' : 'percent',
         "discount_value": this.categorieData.value,
         "usage_limit": this.categorieData.limite,
+        "codeCoupon": this.categorieData.couponCode
       }
       try {
-        const response = await updateCategorie(categorieID, payload);
+        const response = await updateCoupon(categorieID, payload);
         console.log(response);
-        if (response.code === 200) {
+        if (response.code === 200 || response.code === 201) {
           this.toast.success(response.message)
           this.clearData()
         } else {
@@ -258,12 +352,16 @@ export default defineComponent({
     async fetchDetailCategorie(categorieID) {
       this.isLoading = true;
       try {
-        const response = await detailCampagne(categorieID) as ApiResponse<CampagneModel>;
+        const response = await detailCoupon(categorieID) as ApiResponse<CouponModel>;
         console.log(response)
         if (response.code === 200) {
           if(response.data){
             this.categorieResponse = response.data;
-
+            this.categorieData.couponCode = this.categorieResponse.code;
+            this.categorieData.value = this.categorieResponse.discount_value
+            this.categorieData.type = this.categorieResponse.discount_type === 'percent' ? 'Pourcentage' : 'Fixe';
+            this.sendingType = this.categorieResponse.discount_type === 'percent' ? 'Pourcentage' : 'Fixe';
+            this.categorieData.limite = this.categorieResponse.usage_limit
           }
         } else {
           this.toast.error(response.message);
@@ -319,6 +417,11 @@ export default defineComponent({
           break
         case 'limite':
           this.categorieData.limite = valueText
+          this.validTextField(valueText)
+          break
+
+        case 'couponCode':
+          this.categorieData.couponCode = valueText
           this.validTextField(valueText)
           break
 
@@ -395,6 +498,8 @@ export default defineComponent({
     sendingType(this: any, newVal){
       if (!newVal) return
       const newValue = newVal as string
+      this.sendingType = newVal as string
+      console.log(this.sendingType)
       if(newValue == 'Groupé'){
         for(let i=0; i<this.originalUsers.length; i++){
           this.categorieData.destination.push(this.originalUsers[i].user.deviceToken);

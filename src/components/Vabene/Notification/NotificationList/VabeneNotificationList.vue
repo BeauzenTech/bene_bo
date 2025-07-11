@@ -79,12 +79,6 @@
               STATUS
             </th>
 
-            <th
-                scope="col"
-                class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-            >
-              DESTINATAIRES
-            </th>
 
 
 
@@ -137,16 +131,16 @@
 
 
             <td class="shadow-none lh-1 fw-medium text-muted">
-              {{ categorie.message  }}
+              {{ truncateDescription(categorie.description)  }}
             </td>
 
-            <td class="shadow-none badge text-bg-warning fs-13 lh-1 fw-medium text-muted">
+            <td class="shadow-none badge text-bg-warning fs-13 lh-1 fw-medium text-black">
               {{  categorie.status ?? '-' }}
             </td>
 
-            <td class="shadow-none lh-1 fw-medium text-muted">
-              {{  categorie.destinationDevice }} destinataire(s)
-            </td>
+<!--            <td class="shadow-none lh-1 fw-medium text-muted">-->
+<!--              {{  categorie.destinationDevice }} destinataire(s)-->
+<!--            </td>-->
             <td class="shadow-none lh-1 fw-medium text-muted">
               {{  convertDateCreate(categorie.created_at) }}
             </td>
@@ -309,7 +303,7 @@ export default defineComponent({
             const query = this.searchQuery.toLowerCase();
             return (
                 categorie.title?.toLowerCase().includes(query) ||
-                categorie.message?.toLowerCase().includes(query)
+                categorie.description?.toLowerCase().includes(query)
             );
           })
           : categories;
@@ -341,21 +335,19 @@ export default defineComponent({
     }
   },
   methods: {
-    truncateDescription(description: string, maxCharsPerLine = 50): string {
-      const maxLength = maxCharsPerLine * 2; // 2 lignes
-
+    truncateDescription(description: string, maxChars = 20): string {
       // Supprime toutes les balises HTML
       const plainText = description.replace(/<[^>]+>/g, '').trim();
 
-      // Si le texte est déjà court, on le retourne tel quel
-      if (plainText.length <= maxLength) {
+      // Si le texte est court, on le retourne tel quel
+      if (plainText.length <= maxChars) {
         return plainText;
       }
 
-      // Coupe proprement à l'espace précédent
-      const truncated = plainText.slice(0, maxLength);
-      const lastSpace = truncated.lastIndexOf(" ");
-      return truncated.slice(0, lastSpace) + "…";
+      // Coupe le texte proprement à la limite
+      const truncated = plainText.slice(0, maxChars).trim();
+
+      return truncated + "…";
     },
     getShortUuid(uuid: string): string {
       return uuid.split('-')[0];
