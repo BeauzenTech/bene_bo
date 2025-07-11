@@ -1126,9 +1126,6 @@ export const printTicketLocally = async (
         const response = (await fetch("http://localhost:8080/print.php", {
             method: "POST",
             body: formData,
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
         })) as unknown as AxiosResponse<any>;
 
         /* const response = await apiTicketLocalFormData.post("/print.php", formData, {
