@@ -1071,6 +1071,25 @@ export const listeProgramme = async (page = 1): Promise<ApiResponse<PaginatedPro
     }
 };
 
+export const detailProgramme = async (programmeID): Promise<ApiResponse<ProgrammeModel>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/v1/programme/detail/${programmeID}`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+export const updateProgramme = async (programmeID, programmeData): Promise<ApiResponse<any>> =>{
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/programme/update/${programmeID}`, programmeData);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la creation de la categorie", error);
+        throw error;
+    }
+};
+
 export const toggleActivationProgramme = async (programmeData): Promise<ApiResponse<any>> => {
     try {
         const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/programme/active`, programmeData);

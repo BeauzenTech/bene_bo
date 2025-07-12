@@ -190,6 +190,7 @@ import MotPasseOubliePage from "@/pages/Authentication/MotPasseOubliePage.vue";
 import VabeneAddCouponPage from "@/pages/Vabene/Coupon/VabeneAddCouponPage.vue";
 import VaBeneCouponListPage from "@/pages/Vabene/Coupon/VaBeneCouponListPage.vue";
 import VaBeneProgrammeAffiliationListPage from "@/pages/Vabene/Programme/VaBeneProgrammeAffiliationListPage.vue";
+import VabeneAddProgrammePage from "@/pages/Vabene/Programme/VabeneAddProgrammePage.vue";
 
 const routes = [
     // DASHBOARD HOME
@@ -214,6 +215,15 @@ const routes = [
     path: "/affiliation-programmes",
     name: "VaBeneProgrammeAffiliationListPage",
     component: VaBeneProgrammeAffiliationListPage,
+  },
+  {
+    path: "/ajout-programme/:action/:categorieID?",
+    name: "VabeneAddProgrammePage",
+    component: VabeneAddProgrammePage,
+    props: route => ({
+      action: String(route.params.action),
+      categorieID: route.params.categorieID ? String(route.params.categorieID) : undefined
+    })
   },
 
 

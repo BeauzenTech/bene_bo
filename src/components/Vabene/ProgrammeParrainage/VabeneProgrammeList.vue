@@ -70,6 +70,13 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
+              NOMBRE DE POINTS
+            </th>
+
+            <th
+                scope="col"
+                class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
+            >
               STATUS
             </th>
 
@@ -108,7 +115,7 @@
                 <div
                     class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
                 >
-                  <a href="#">
+                  <a href="#" @click="selectForDetail(categorie)">
                     {{ index + 1}} - {{ getShortUuid(categorie.id) }}
                   </a>
 
@@ -117,7 +124,7 @@
               </div>
             </th>
             <td class="shadow-none lh-1 fw-medium text-black-emphasis">
-              {{ categorie.name }}
+              {{ categorie.name.toUpperCase() }}
             </td>
 
 
@@ -142,39 +149,41 @@
             </td>
 
             <td class="shadow-none lh-1 fw-medium text-muted">
+              {{  categorie.gain }}
+            </td>
+
+            <td class="shadow-none lh-1 fw-medium text-muted">
               {{  convertDateCreate(categorie.created_at) }}
             </td>
 
+            <td
+                class="shadow-none lh-1 fw-medium text-body-tertiary text-end pe-0"
+            >
+              <div class="dropdown">
+                <button
+                    class="dropdown-toggle lh-1 bg-transparent border-0 shadow-none p-0 transition"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                >
+                  <i class="flaticon-dots"></i>
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a
+                        class="dropdown-item d-flex align-items-center"
+                        href="javascript:void(0);"
+                        @click="selectForDetail(categorie)"
+                    ><i
+                        class="flaticon-view lh-1 me-8 position-relative top-1"
+                    ></i>
+                      Voir</a
+                    >
+                  </li>
 
-
-<!--            <td-->
-<!--                class="shadow-none lh-1 fw-medium text-body-tertiary text-end pe-0"-->
-<!--            >-->
-<!--              <div class="dropdown">-->
-<!--                <button-->
-<!--                    class="dropdown-toggle lh-1 bg-transparent border-0 shadow-none p-0 transition"-->
-<!--                    type="button"-->
-<!--                    data-bs-toggle="dropdown"-->
-<!--                    aria-expanded="false"-->
-<!--                >-->
-<!--                  <i class="flaticon-dots"></i>-->
-<!--                </button>-->
-<!--                <ul class="dropdown-menu">-->
-<!--                  <li>-->
-<!--                    <a-->
-<!--                        class="dropdown-item d-flex align-items-center"-->
-<!--                        href="javascript:void(0);"-->
-<!--                        @click="selectForDetail(categorie)"-->
-<!--                    ><i-->
-<!--                        class="flaticon-view lh-1 me-8 position-relative top-1"-->
-<!--                    ></i>-->
-<!--                      Voir</a-->
-<!--                    >-->
-<!--                  </li>-->
-
-<!--                </ul>-->
-<!--              </div>-->
-<!--            </td>-->
+                </ul>
+              </div>
+            </td>
           </tr>
           <tr v-else>
             <EmptyTable
@@ -392,8 +401,8 @@ export default defineComponent({
       this.categorieSelected = categorie;
       console.log(categorie)
       this.$router.push({
-        name: "VabeneAddNotificationPage",
-        params: { action: ActionCrud.EDIT, notificationID: categorie.id }
+        name: "VabeneAddProgrammePage",
+        params: { action: ActionCrud.EDIT, categorieID: categorie.id }
       });
     },
     selectForDelete(categorie){
