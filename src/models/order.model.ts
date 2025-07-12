@@ -42,5 +42,6 @@ export interface OrderModel {
     deliveryLocality: string
     npa: string
     localite: string
+    nif: number
 
 }

@@ -45,7 +45,7 @@
           <span v-if="paiementResponse.orderSelf" class="d-block fs-md-15 fs-md-16 text-muted">
             <span class="me-md-5 d-block d-md-inline-block">
               ref.commande :
-              <span class="text-paragraph">#{{getShortUuid(paiementResponse.orderSelf.reference)}}</span>
+              <span class="text-paragraph">#{{paiementResponse.orderSelf.restaurantID.id === RestaurantEnum.RESTO_PENTHAZ ? 'VBP'+ paiementResponse.orderSelf.nif : 'VBM'+ paiementResponse.orderSelf.nif}}</span>
             </span>
             <span class="ms-md-5 d-block d-md-inline-block">
               Date :
@@ -227,6 +227,8 @@
                         <h2><strong>{{paiementResponse.orderSelf.guest_email}}</strong></h2>
                       </div>
 
+<!--                      okkkk-->
+
                       <hr class="dashed-line" />
 
                       <div class="route" v-if="paiementResponse.orderSelf">
@@ -234,7 +236,7 @@
                         <h2><strong>{{convertDateCreate(paiementResponse.orderSelf.created_at)}}</strong></h2>
                         <h2><strong>{{paiementResponse.orderSelf.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'TOUT DE SUITE'}}</strong></h2>
                         <h2><strong>{{convertDateCreate(paiementResponse.orderSelf.timeOrder) ?? ''}} </strong></h2>
-                        <h2><strong>{{paiementResponse.orderSelf.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ paiementResponse.orderSelf.reference : 'VBP'+ paiementResponse.orderSelf.reference}}</strong></h2>
+                        <h2><strong>{{paiementResponse.orderSelf.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ paiementResponse.orderSelf.nif : 'VBP'+ paiementResponse.orderSelf.nif}}</strong></h2>
                         <h2><strong>{{getLast6Digits(paiementResponse.orderSelf.customer.id)}}</strong></h2>
 
                       </div>

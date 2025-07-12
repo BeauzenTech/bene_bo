@@ -121,13 +121,15 @@
               <a
                   href="#"
               >
-                #{{ getShortUuid(paiement.orderSelf.id) ?? '-'  }}
+                #{{paiement.orderSelf.restaurantID.id === RestaurantEnum.RESTO_PENTHAZ ? 'VBP'+ paiement.orderSelf.nif : 'VBM'+ paiement.orderSelf.nif}}
+
               </a>
               </div>
             </td>
 
             <td v-if="paiement.orderSelf"  class="shadow-none lh-1 fw-medium text-black-emphasis">
               {{ paiement.orderSelf.guest_first_name ?? '-' }} {{ paiement.orderSelf.guest_last_name  ?? '-' }}
+
             </td>
 
             <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">
@@ -303,6 +305,7 @@ import VabeneOrderDetailsPage from "@/pages/Vabene/Order/VabeneOrderDetailsPage.
 import {PaymentModel} from "@/models/payment.model";
 import {MethodePaiementModel} from "@/models/methodePaiement.model";
 import {OrderStatus} from "@/enums/orderStatut.enum";
+import {RestaurantEnum} from "../../../../enums/restaurant.enum";
 
 export default defineComponent({
   name: "VabeneTransactionList",
@@ -321,6 +324,9 @@ export default defineComponent({
     }
   },
   computed: {
+    RestaurantEnum() {
+      return RestaurantEnum
+    },
     allPayments(): PaymentModel[] {
       const payments = this.paiementResponse?.data?.items || this.originalPayment;
       if (!this.searchQuery) return payments;

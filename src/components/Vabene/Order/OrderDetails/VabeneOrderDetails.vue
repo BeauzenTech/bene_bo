@@ -15,13 +15,14 @@
         <div v-if="orderResponse" class="card-head bg-white d-flex align-items-center">
           <i class="flaticon-sterile-box text-primary"></i>
           <h5 class="mb-0 fw-bold text-black ms-10 ms-md-15">
-            #{{ orderResponse.reference }} <span v-if="orderResponse.DeliveryPreference === 'immediat'" class="btn btn-success btn-sm ms-10" style="margin-left: 70px;" >
+            #{{ orderResponse.reference }} <span v-if="orderResponse.DeliveryPreference === 'immediat'" class="badge text-bg-success fs-13 ms-10" style="margin-left: 70px;" >
             TOUT DE SUITE
            </span>
-            <span class="btn btn-warning btn-sm fs-14" style="margin-left: 70px;">
+            <span class="badge text-bg-warning fs-13" style="margin-left: 70px;">
             Précommande
           </span>
           </h5>
+
 
         </div>
         <div v-if="orderResponse" class="card-body">
@@ -76,9 +77,11 @@
                 <i class="flaticon-express-delivery"></i>
                 Type de commande:
               </div>
-              <span class="d-block text-paragraph fs-md-15 fs-lg-16">
-                  {{orderTypeSelected[0].libelle}}
-              </span>
+<!--              <span class="d-block text-paragraph fs-md-15 fs-lg-16">-->
+<!--                  {{orderTypeSelected[0].libelle}}-->
+<!--              </span>-->
+              <span  class="d-block badge text-bg-info fs-13">{{orderTypeSelected[0].libelle}}</span>
+
             </li>
           </ul>
         </div>
@@ -174,7 +177,7 @@
                 Facture:
               </div>
               <span @click="displayInvoire" class="d-block text-primary fs-md-15 fs-lg-16 cursor-pointer text-decoration-underline" data-bs-toggle="modal" data-bs-target="#contentModalScrollable_facture">
-                {{orderResponse.restaurantID.id === RestaurantEnum.RESTO_PENTHAZ ? 'VBP'+ orderResponse.reference : 'VBM'+ orderResponse.reference}}
+                {{orderResponse.restaurantID.id === RestaurantEnum.RESTO_PENTHAZ ? 'VBP'+ orderResponse.nif : 'VBM'+ orderResponse.nif}}
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
@@ -366,12 +369,12 @@
               </span>
             </li>
 
-            <li class="d-flex align-items-center justify-content-between" v-if="orderResponse.intructionOrder.cuisson">
-              <span class="d-block text-paragraph fw-medium"> Type de cuisson </span>
-              <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-                {{orderResponse.intructionOrder.cuisson|| '-'}}
-              </span>
-            </li>
+<!--            <li class="d-flex align-items-center justify-content-between" v-if="orderResponse.intructionOrder.cuisson">-->
+<!--              <span class="d-block text-paragraph fw-medium"> Type de cuisson </span>-->
+<!--              <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">-->
+<!--                {{orderResponse.intructionOrder.cuisson|| '-'}}-->
+<!--              </span>-->
+<!--            </li>-->
 
             <li class="d-flex align-items-center justify-content-between" v-if="orderResponse">
               <span class="d-block text-paragraph fw-medium"> Instruction du client </span>
@@ -769,7 +772,7 @@
                             <h2><strong>{{convertDateCreate(orderResponse.created_at)}}</strong></h2>
                             <h2><strong>{{orderResponse.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'TOUT DE SUITE'}}</strong></h2>
                             <h2><strong>{{convertDateCreate(orderResponse.timeOrder) ?? ''}} </strong></h2>
-                            <h2><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ orderResponse.reference : 'VBP'+ orderResponse.reference}}</strong></h2>
+                            <h2><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ orderResponse.nif : 'VBP'+ orderResponse.nif}}</strong></h2>
                             <h2><strong>{{getLast6Digits(orderResponse.customer.id)}}</strong></h2>
 
                           </div>

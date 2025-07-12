@@ -62,7 +62,7 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
-              NOM DU PRODUIT
+              TYPE
             </th>
             <th
                 scope="col"
@@ -130,28 +130,17 @@
                     class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
                 >
                   <a href="#" @click="selectionOrder(order)">
-                  #{{ order.reference  }}
+                    #{{order.restaurantID.id === RestaurantEnum.RESTO_PENTHAZ ? 'VBP'+ order.nif : 'VBM'+ order.nif}}
                   </a>
                 </div>
               </div>
             </th>
-            <td v-if="order.orderItems.length > 0 && order.orderItems[0].productID" class="shadow-none lh-1 fw-medium text-black-emphasis">
-              <a
-                  href="#"
-                  class="d-flex align-items-center text-decoration-none text-black fs-md-15 fs-lg-16"
-              >
-                <img
-                    :src="order.orderItems[0].productID.image_urls[0]"
-                    class="me-15"
-                    width="44"
-                    alt="product"
-                />
-                {{ order.orderItems[0].productID.name }}
-              </a>
+            <td class="shadow-none lh-1 fw-medium text-muted ">
+              <span v-if="order.order_type === 'click_collect'" class="badge text-bg-secondary fs-13">À emporter</span>
+              <span v-if="order.status === 'dine_in'" class="badge text-bg-info fs-13">Sur place</span>
+              <span v-if="order.order_type === 'delivery'" class="badge text-bg-success fs-13">À livrer</span>
             </td>
-            <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">
-              -
-            </td>
+
             <td v-if="order.guest_first_name" class="shadow-none lh-1 fw-medium text-black-emphasis">
               {{ order.guest_first_name.toUpperCase() || '-' }}
             </td>
@@ -333,6 +322,7 @@ import {ApiResponse} from "@/models/Apiresponse";
 import {PaginatedOrder} from "@/models/Apiresponse";
 import {OrderModel} from "@/models/order.model";
 import VabeneOrderDetailsPage from "@/pages/Vabene/Order/VabeneOrderDetailsPage.vue";
+import {RestaurantEnum} from "../../../../enums/restaurant.enum";
 
 export default defineComponent({
   name: "VabeneOrderList",
@@ -349,6 +339,9 @@ export default defineComponent({
     }
   },
   computed: {
+    RestaurantEnum() {
+      return RestaurantEnum
+    },
     allOrder(): OrderModel[] {
       const orders = this.orderResponse?.data?.items || this.originalOrder;
       if (!this.searchQuery) return orders;
