@@ -153,7 +153,7 @@ import {
   updateCategorie,
   uploadFile,
   deleteFileUpload,
-  listeRestaurantCategorie, listeCategorie, listeCategorieActive, addRestaurantCategorie
+  listeRestaurantCategorie, listeCategorie, listeCategorieActive, addRestaurantCategorie, disableCoupon
 } from "@/service/api";
 
 import {useToast} from "vue-toastification";
@@ -201,6 +201,7 @@ export default defineComponent({
     }
   },
   methods: {
+
     filtrerElementsExclus(a: CategorieModel[], b: RestaurantCategoryModel[]): CategorieModel[] {
       const resultat: CategorieModel[] = [];
 

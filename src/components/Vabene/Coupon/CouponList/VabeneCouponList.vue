@@ -100,9 +100,6 @@
             </th>
 
 
-
-
-
             <th
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
@@ -181,17 +178,17 @@
               {{  convertDateCreate(categorie.created_at) }}
             </td>
 
-            <td>
-              <div class="form-check form-switch">
-                <input
-                    class="form-check-input"
-                    type="checkbox"
-                    v-model="categorie.is_active"
-                    @change="toggleCategorieActivation(categorie, categorie.is_active)"
-                />
+<!--            <td>-->
+<!--              <div class="form-check form-switch">-->
+<!--                <input-->
+<!--                    class="form-check-input"-->
+<!--                    type="checkbox"-->
+<!--                    v-model="categorie.is_active"-->
+<!--                    @change="toggleCategorieActivation(categorie, categorie.is_active)"-->
+<!--                />-->
 
-              </div>
-            </td>
+<!--              </div>-->
+<!--            </td>-->
 
 
 
@@ -217,6 +214,18 @@
                         class="flaticon-view lh-1 me-8 position-relative top-1"
                     ></i>
                       Voir</a
+                    >
+                  </li>
+                  <li>
+                    <a
+                        class="dropdown-item d-flex align-items-center"
+                        data-bs-toggle="modal" data-bs-target="#confirmModal"
+                        href="#"
+                        @click="prepareDelete(categorie)"
+                    ><i
+                        class="flaticon-delete lh-1 me-8 position-relative top-1"
+                    ></i>
+                      Supprimer</a
                     >
                   </li>
 
@@ -297,7 +306,7 @@
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
             <i class="fas fa-times me-2"></i>Annuler
           </button>
-          <button type="button" class="btn btn-danger" @click="confirmationDeleteAction(categorieSelected)" data-bs-dismiss="modal">
+          <button type="button" class="btn btn-danger" @click="executeDeleteAction()"  data-bs-dismiss="modal">
             <i class="fas fa-trash-alt me-2"></i>Supprimer
           </button>
         </div>
@@ -314,7 +323,7 @@ import {
   toggleActivationCategorie,
   deleteCategorie,
   deleteFileUpload,
-  listeNotification, listeCoupon, toggleActivationUser, disableCoupon
+  listeNotification, listeCoupon, toggleActivationUser, disableCoupon, deleteCoupon
 } from "@/service/api";
 import {UserGeneralKey} from "@/models/user.generalkey";
 import {useToast} from "vue-toastification";
@@ -340,7 +349,7 @@ export default defineComponent({
       currentPage: 1 ,
       searchQuery: '', // Ajout du champ de recherche
       originalCategories: [] as CouponModel[], // Stockage des utilisateurs originaux
-      categorieSelected: null,
+      categorieSelected: null as CouponModel | null,
     }
   },
   computed: {
@@ -385,7 +394,33 @@ export default defineComponent({
     }
   },
   methods: {
-
+    prepareDelete(categorie) {
+      this.categorieSelected = categorie;
+      // The modal will open via data-bs-toggle="modal" in the template.
+    },
+    // async toggleCategorieActivation(categorie, status){
+    //   console.log('tokk')
+    //   const payload = {
+    //     'status': status
+    //   }
+    //   try {
+    //     const response = await disableCoupon(categorie.code, payload) as ApiResponse<any>;
+    //     console.log(response)
+    //     if (response.code === 200) {
+    //       const responseDecoded = response.data
+    //       console.log(responseDecoded)
+    //       this.toast.success(response.message);
+    //       setTimeout(() =>  {
+    //         this.fetchCategories(1);
+    //       }, 3000);
+    //     } else {
+    //       this.toast.error(response.message)
+    //     }
+    //   } catch (error) {
+    //     this.toast.error("Erreur lors du chargement des categories");
+    //     console.error(error);
+    //   }
+    // },
     truncateDescription(description: string, maxCharsPerLine = 50): string {
       const maxLength = maxCharsPerLine * 2; // 2 lignes
 
@@ -420,7 +455,9 @@ export default defineComponent({
       });
     },
     selectForDelete(categorie){
-      this.categorieSelected = categorie;
+      if(categorie.id){
+        this.categorieSelected = categorie
+      }
       console.log(categorie)
       // this.$router.push({
       //   name: "VabeneAddCategoriePage",
@@ -447,25 +484,26 @@ export default defineComponent({
         }
       }
     },
-    async confirmationDeleteAction(categorie){
-      const publicID = Commons.extractPublicId(categorie.icone)
-      console.log("publicID", publicID);
+    async executeDeleteAction(){
+      if (!this.categorieSelected) {
+        return;
+      }
       try {
-        const response = await deleteCategorie(categorie.id) as ApiResponse<any>;
-        await this.deleteFileUpload(publicID)
-        if (response.code === 201) {
-          this.categorieResponse = response;
+        const id = this.categorieSelected.id as string
+        const response = await deleteCoupon(id) as ApiResponse<any>;
+        if (response.code === 201 || response.code === 200) {
           this.toast.success(response.message);
+
+          // Re-fetch the list to update the data cleanly
+          await this.fetchCategories(this.currentPage);
         } else {
           this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des categories");
         console.error(error);
       } finally {
-        setTimeout(() =>  {
-          this.fetchCategories(1);
-        }, 3000);
+        this.categorieSelected = null;
+
       }
     },
 

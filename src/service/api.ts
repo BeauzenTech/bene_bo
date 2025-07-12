@@ -1047,6 +1047,16 @@ export const listeCoupon = async (page = 1): Promise<ApiResponse<PaginatedCoupon
     }
 };
 
+export const deleteCoupon = async (couponID: string): Promise<ApiResponse<void>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<void>> = await apiClient.delete(`/v1/coupon/order/remove/${couponID}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la suppression du coupon', error);
+        throw error;
+    }
+};
+
 export const listeProgramme = async (page = 1): Promise<ApiResponse<PaginatedProgramme>> => {
     // eslint-disable-next-line no-useless-catch
     try {
