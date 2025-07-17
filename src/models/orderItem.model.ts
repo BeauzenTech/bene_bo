@@ -8,6 +8,8 @@ export interface OrderItemModel {
     unit_price: number;
     total_price: number;
     notes: string;
+    optionSpecific: string;
+    size: string;
     ingredients: IngredientModel[]
     created_at: string;
 

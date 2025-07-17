@@ -746,21 +746,23 @@
                   <div class="receipts-wrapper" >
                     <div class="receipts"  id="recu-pdf">
                       <div class="receipt">
-                        <img src="@/assets/images/logo_update.svg" class="airliner-logo"/>
+                        <div class="logo-container">
+                          <img src="@/assets/images/logo_black.png" class="airliner-logo"/>
+                        </div>
                           <div class="route">
                             <h2><strong>Livraison de pizzas {{orderResponse.restaurantID.name}}</strong></h2>
                             <h2><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'Va Bene pizza sàrl Morges' : 'Pizzeria Va Bene SA '}}</strong></h2>
                             <h2><strong>{{orderResponse.restaurantID.address}}</strong></h2>
                             <h2><strong>{{orderResponse.restaurantID.codePostalID.numeroPostal}} {{orderResponse.restaurantID.name}}</strong> </h2>
-                            <h2><strong>+4121 {{orderResponse.restaurantID.phoneNumber}}</strong></h2>
+                            <h2><strong>{{orderResponse.restaurantID.phoneNumber}}</strong></h2>
                             <h2><strong>{{orderResponse.restaurantID.taxe}}</strong></h2>
                           </div>
                           <hr class="dashed-line" />
 
                           <div class="route">
                             <h2><strong>{{orderResponse.guest_first_name}} {{orderResponse.guest_last_name}}</strong></h2>
-                            <h2><strong>{{orderResponse.address}} - {{orderResponse.numberRue}}</strong></h2>
                             <h2><strong>{{orderResponse.npa ?? ''}} {{orderResponse.localite ?? ''}}</strong></h2>
+                            <h2><strong>{{orderResponse.rue }} - {{orderResponse.numberRue}}</strong></h2>
                             <h2><strong>{{orderResponse.guest_phone_number}}</strong></h2>
                             <h2><strong>{{orderResponse.guest_email}}</strong></h2>
                           </div>
@@ -772,8 +774,8 @@
                             <h2><strong>{{convertDateCreate(orderResponse.created_at)}}</strong></h2>
                             <h2><strong>{{orderResponse.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'TOUT DE SUITE'}}</strong></h2>
                             <h2><strong>{{convertDateCreate(orderResponse.timeOrder) ?? ''}} </strong></h2>
-                            <h2><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ orderResponse.nif : 'VBP'+ orderResponse.nif}}</strong></h2>
-                            <h2><strong>{{getLast6Digits(orderResponse.customer.id)}}</strong></h2>
+                            <h2><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ getLast6Digits(orderResponse.customer.id) : 'VBP'+ getLast6Digits(orderResponse.customer.id)}}</strong></h2>
+<!--                            <h2><strong>{{getLast6Digits(orderResponse.customer.id)}}</strong></h2>-->
 
                           </div>
                           <hr class="dashed-line" />
@@ -791,7 +793,7 @@
                               style="margin-bottom: 10px;"
                           >
                             <!-- 🏷️ Nom unique de la catégorie -->
-                            <div style="font-weight: 600; font-size: 12px; margin-bottom: 8px;">
+                            <div style="font-weight: 600; font-size: 18px; margin-bottom: 8px;">
                               {{ categoryName }}
                             </div>
 
@@ -801,19 +803,19 @@
                                 :key="item.id"
                                 style="display: flex; flex-direction: column; margin-bottom: 10px;"
                             >
-                              <div style="display: flex; justify-content: space-between; font-size: 11px;">
-                                <span><strong>{{ item.quantity }}x {{ item.productID.name }}</strong></span>
+                              <div style="display: flex; justify-content: space-between; font-size: 18px;">
+                                <span><strong>{{ item.quantity }}x {{ item.productID.name }} ({{item.optionSpecific}})</strong></span>
                                 <span><strong>{{ item.total_price }} CHF</strong></span>
                               </div>
 
                               <!-- 🧂 Ingrédients -->
-                              <ul v-if="item.ingredients && item.ingredients.length" style="margin: 2px 0 0 10px; font-size: 9px; color: #555;">
+                              <ul v-if="item.ingredients && item.ingredients.length" style="margin: 2px 0 0 10px; font-size: 18px; color: #555;">
                                 <li
                                     v-for="ingredient in item.ingredients"
                                     :key="ingredient.id"
                                     class="text-decoration-none list-unstyled"
                                 >
-                                  <strong>x{{ ingredient.quantite }} {{ ingredient.name }} ({{ingredient.size}})</strong>
+                                  <strong>x{{ ingredient.quantite }} {{ ingredient.name }} ({{extraireCmValeur(ingredient.size)}})</strong>
                                 </li>
                               </ul>
                             </div>
@@ -949,6 +951,10 @@ export default defineComponent({
   },
 
   methods: {
+    extraireCmValeur(texte: string): string | null {
+      const match = texte.match(/\b\d+cm\b/);
+      return match ? match[0] : null;
+    },
     getLast6Digits(uuid: string): string {
       const parts = uuid.split('-');
       const lastPart = parts[parts.length - 1];
@@ -960,244 +966,181 @@ export default defineComponent({
       const element = document.getElementById('recu-pdf');
       if (this.orderResponse && element) {
         const style = document.createElement('style');
-        // Appliquer largeur ticket
-        element.style.width = '102mm';
-        element.style.margin = '0 auto';
-        // Injecter les styles avec un scope sur #recu-pdf uniquement
+
+        // Sauvegarder les styles originaux pour les restaurer plus tard (bonne pratique)
+        const originalElementWidth = element.style.width;
+        const originalElementMargin = element.style.margin;
+        const originalElementTransform = element.style.transform; // Capture la transformation d'animation
+        // Capturez aussi les styles spécifiques des enfants qui pourraient être animés/déplacés
+        const receiptsElement = element.querySelector('.receipts') as HTMLElement;
+        let originalReceiptsTransform = '';
+        let originalReceiptsMarginTop = '';
+        if (receiptsElement) {
+          originalReceiptsTransform = receiptsElement.style.transform;
+          originalReceiptsMarginTop = receiptsElement.style.marginTop;
+        }
+
+
+        // Appliquer les styles spécifiques pour la génération de PDF
+        // IMPORTANT: Définir la largeur sur l'élément principal. Supprimer toute max-width ou largeur interne en conflit.
+        element.style.width = '102mm'; // Largeur physique cible du ticket
+        element.style.margin = '0'; // Pas de marge auto pour le PDF, il doit remplir la largeur de la page
+        element.style.transform = 'none'; // Désactiver toute trxansformation de translation des animations
+        if (receiptsElement) {
+          receiptsElement.style.transform = 'none'; // Désactiver les animations sur .receipts
+          receiptsElement.style.marginTop = '0'; // S'assurer qu'aucune marge supérieure ne pousse le contenu
+        }
+
+
         style.textContent = `
+      #recu-pdf {
+        box-sizing: border-box;
+        font-family: 'Ubuntu', sans-serif;
+        color: #1c1c1c;
+        padding: 0; /* Réinitialiser le padding pour éviter les problèmes de double padding */
+      }
+
       #recu-pdf * {
-  box-sizing: border-box;
-  font-family: 'Ubuntu', sans-serif;
-  color: #1c1c1c;
-}
-#recu-pdf {
-  max-width: 450px;
-  padding: 25px 30px;
-  margin-top: 50%;
-}
+        box-sizing: border-box;
+      }
 
-#recu-pdf .top {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-}
-#recu-pdf .top .title {
-  font-weight: normal;
-  font-size: 1.6em;
-  text-align: left;
-  margin-left: 20px;
-  margin-bottom: 50px;
-  color: #fff;
-}
-#recu-pdf .top .printer {
-  width: 90%;
-  height: 20px;
-  border: 5px solid #fff;
-  border-radius: 10px;
-  box-shadow: 1px 3px 3px 0 rgba(0, 0, 0, 0.2);
-}
+      #recu-pdf .receipts-wrapper {
+        overflow: hidden;
+        margin-top: 0; /* Réinitialiser ceci également, cela faisait partie de l'animation */
+        padding-bottom: 0; /* Réinitialiser ou ajuster au besoin */
+      }
 
-#recu-pdf .receipts-wrapper {
-  overflow: hidden;
-  margin-top: -10px;
-  padding-bottom: 10px;
-}
+      #recu-pdf .receipts {
+        width: 100%; /* Le faire prendre toute la largeur de #recu-pdf (102mm) */
+        display: flex;
+        align-items: center; /* Centrer horizontalement pour les éléments enfants */
+        flex-direction: column;
+        transform: none; /* Désactiver la transformation d'animation pour le PDF */
+        animation: none; /* Désactiver l'animation pour le PDF */
+      }
 
-#recu-pdf .receipts {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  transform: translateY(-510px);
-
-  animation-duration: 2.5s;
-  animation-delay: 500ms;
-  animation-name: print;
-  animation-fill-mode: forwards;
-}
-
-#recu-pdf .receipt {
-  padding: 25px 30px;
-  text-align: left;
-  min-height: 200px;
-  width: 88%;
-  background-color: #fff;
-  border-radius: 10px 10px 20px 20px;
-  box-shadow: 1px 3px 8px 3px rgba(0, 0, 0, 0.2);
+      #recu-pdf .receipt {
+        padding: 25px 15px; /* Padding réduit pour un ajustement plus serré sur un ticket, ajuster au besoin */
+        text-align: left;
+        min-height: 200px; /* Garder min-height ou ajuster */
+        width: 100%; /* Faire en sorte que le contenu réel du ticket prenne 100% de la largeur de #recu-pdf (102mm) */
+        background-color: #fff;
+        border-radius: 10px 10px 20px 20px;
+        box-shadow: none; /* Supprimer l'ombre portée pour un PDF plus propre, sauf si spécifiquement désiré */
+      }
+ /* NOUVEAUX STYLES FLEXBOX POUR LE CONTENEUR DU LOGO */
+#recu-pdf .logo-container {
+  max-width: 150px;
+  margin-bottom: 20px; /* Espace sous le logo, ajustez si besoin */
+  /* optionnel: background-color: #f0f0f0; pour voir les limites du conteneur si vous déboguez */
 }
 
 #recu-pdf .airliner-logo {
-  max-width: 70px;
+  max-width: 190px;
 }
 
-#recu-pdf .route {
-  display: flex;
-  flex-direction: column;
-  justify-content: start;
-  align-items: start;
-  margin: 5px 0;
-}
+      #recu-pdf .route {
+        display: flex;
+        flex-direction: column;
+        justify-content: start;
+        align-items: start;
+        margin: 5px 0;
+      }
 
-.dashed-line {
-  border: none;
-  border-top: 2px dashed #333; /* couleur personnalisable */
-  margin: 1rem 0;
-  width: 100%;
-}
+      .dashed-line {
+        border: none;
+        border-top: 2px dashed #333;
+        margin: 1rem 0;
+        width: 100%;
+      }
 
+      #recu-pdf .route h2 {
+        font-weight: 100;
+        font-size: 18px; /* Taille de police légèrement plus petite pour le ticket */
+        margin: 0;
+        line-height: 1.3; /* Ajuster la hauteur de ligne pour une meilleure lisibilité */
+      }
 
+      #recu-pdf .product-ticket {
+        width: 100%;
+      }
 
+      #recu-pdf .category-section {
+        margin-bottom: 8px; /* Marge ajustée */
+      }
 
-#recu-pdf .plane-icon {
-  width: 30px;
-  height: 30px;
-  transform: rotate(90deg);
-}
+      #recu-pdf .product-ticket .category-section div {
+         font-size: 18px; /* Taille de police cohérente pour les lignes de produits */
+      }
 
-#recu-pdf .route h2 {
-  font-weight: 100;
-  font-size: 12px;
-  margin: 0;
-}
+      #recu-pdf .product-ticket ul {
+        margin: 2px 0 0 5px; /* Ajustement de la marge de la liste d'ingrédients */
+        font-size: 18px; /* Taille de police plus petite pour les ingrédients */
+        color: #555;
+      }
 
-#recu-pdf .details {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-}
+      #recu-pdf .product-ticket ul li {
+         line-height: 1.2;
+      }
 
-#recu-pdf .details .item {
-  display: flex;
-  flex-direction: column;
-  min-width: 70px;
-}
+      #recu-pdf .product-list div {
+        font-size: 18px; /* Taille de police pour les lignes du résumé */
+        padding: 2px 0;
+      }
+      #recu-pdf .product-list span {
+        font-size: 18px; /* Assurer la cohérence */
+      }
 
-#recu-pdf .details .item span {
-  font-size: .8em;
-  color: rgba(28, 28, 28, .7);
-  font-weight: 500;
-}
+      #recu-pdf .barcode-footer {
+        text-align: center;
+        margin-top: 15px; /* Marge réduite */
+        padding-top: 10px;
+        border-top: 1px dashed #ccc;
+      }
 
-#recu-pdf .details .item h3 {
-  font-size: 18px !important;
-  margin-top: 0;
-  margin-bottom: 0;
-}
+      #recu-pdf .barcode-image {
+        height: 50px; /* Code-barres légèrement plus petit */
+        margin-bottom: 5px;
+      }
 
-#recu-pdf .receipt.qr-code {
-  height: 110px;
-  min-height: unset;
-  position: relative;
-  border-radius: 20px 20px 10px 10px;
-  display: flex;
-  align-items: center;
-}
+      #recu-pdf .barcode-label {
+        font-size: 18px; /* Étiquette du code-barres plus petite */
+      }
 
-#recu-pdf .receipt.qr-code::before {
-  content: '';
-  background: linear-gradient(to right, #fff 50%, #3a8d35 50%);
-  background-size: 22px 4px, 100% 4px;
-  height: 4px;
-  width: 90%;
-  display: block;
-  left: 0;
-  right: 0;
-  top: -1px;
-  position: absolute;
-  margin: auto;
-}
-
-#recu-pdf .qr {
-  width: 70px;
-  height: 70px;
-}
-
-#recu-pdf .description {
-  margin-left: 20px;
-}
-
-#recu-pdf .description h2 {
-  margin: 0 0 5px 0;
-  font-weight: 500;
-}
-
-#recu-pdf .description p {
-  margin: 0;
-  font-weight: 400;
-}
-
-#recu-pdf.product-list {
-  margin-top: 10px;
-  font-family: 'Arial', sans-serif;
-}
-
-#recu-pdf.product-list h2 {
-  font-size: 10px;
-  margin-bottom: 5px;
-  border-bottom: 1px dashed #ccc;
-  padding-bottom: 2px;
-}
-
-#recu-pdf.product-list div {
-  padding: 1px 0;
-  border-bottom: 1px dashed #ddd;
-}
-
-#recu-pdf.product-list span {
-  font-size: 10px;
-  line-height: 1.2;
-  display: inline-block;
-}
-
-#recu-pdf.product-list span:first-child {
-  font-weight: bold;
-  color: #333;
-}
-
-#recu-pdf.product-list span:last-child {
-  font-weight: 500;
-  color: #007bff;
-}
-#recu-pdf.barcode-footer {
-  text-align: center;
-  margin-top: 24px;
-  padding-top: 12px;
-  border-top: 1px dashed #ccc;
-}
-
-#recu-pdf.barcode-image {
-  height: 60px;
-  margin-bottom: 6px;
-}
-
-#recu-pdf.barcode-label {
-  font-size: 13px;
-  color: #444;
-  font-style: italic;
-}
-
-
+      /* Supprimer tous les styles liés à l'animation pour le PDF */
       @keyframes print {
-        0% { transform: translateY(-510px); }
-        35% { transform: translateY(-395px); }
-        70% { transform: translateY(-140px); }
-        100% { transform: translateY(0); }
+          from { transform: none; }
+          to { transform: none; }
       }
     `;
 
         document.head.appendChild(style);
 
+        // Un petit délai pour s'assurer que les styles sont appliqués avant la capture
         setTimeout(() => {
+          // Calculer la hauteur du contenu pour le format jsPDF si vous voulez une hauteur dynamique
+          // Vous pourriez avoir besoin de rendre l'élément hors écran d'abord pour obtenir sa vraie hauteur.
+          // Pour l'instant, utilisons une hauteur fixe suffisamment grande.
+          // Une hauteur typique pour un A4 est de 297mm. Si votre ticket peut être très long,
+          // une hauteur de 500mm ou plus pourrait être nécessaire, et jsPDF paginera si elle est dépassée.
+          // Si vous voulez une SEULE et très longue page, définissez une très grande hauteur.
+          const contentHeight = 280 + ((this.orderResponse?.orderItems.length ?? 1 )  * 50)
+          const desiredHeight = Math.max(200, contentHeight + 20); // Minimum 200mm, ou hauteur du contenu + un peu de marge
+
           const opt = {
-            margin: 1,
+            margin: [5, 0, 5, 0], // Marges (Haut, Gauche, Bas, Droite) en mm (ex: 5mm de chaque côté)
             filename: `Facture_${this.getShortUuid(this.orderResponse!.id)}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: {
-              scale: 2,
-              useCORS: true
+              scale: 2, // Augmentez la résolution pour une meilleure qualité
+              useCORS: true,
+              // Définir explicitement la largeur pour correspondre à la largeur du PDF afin d'éviter les problèmes de mise à l'échelle
+              width: element.offsetWidth, // Utiliser la largeur rendue de l'élément
+              windowWidth: element.offsetWidth, // Important pour une mise à l'échelle cohérente
             },
-            jsPDF: { unit: 'mm', format: [102, 200], orientation: 'portrait' }  // 102mm largeur, 200mm hauteur (à ajuster)
-
+            // IMPORTANT: Ajuster la hauteur ici.
+            // Si contentHeight est disponible et précis, utilisez-le. Sinon, utilisez une hauteur fixe généreuse.
+            jsPDF: { unit: 'mm', format: [102, desiredHeight], orientation: 'portrait' }
           };
 
           html2pdf()
@@ -1209,14 +1152,20 @@ export default defineComponent({
                 const blob = pdf.output('blob');
                 const url = URL.createObjectURL(blob);
                 window.open(url, '_blank');
-                // Remet à la taille normale après génération si besoin
-                element.style.width = '';
-                element.style.margin = '';
               })
               .finally(() => {
+                // Nettoyer les styles injectés
                 document.head.removeChild(style);
+                // Restaurer les styles originaux de l'élément
+                element.style.width = originalElementWidth;
+                element.style.margin = originalElementMargin;
+                element.style.transform = originalElementTransform;
+                if (receiptsElement) {
+                  receiptsElement.style.transform = originalReceiptsTransform;
+                  receiptsElement.style.marginTop = originalReceiptsMarginTop;
+                }
               });
-        }, 500);
+        }, 100); // Réduit le setTimeout pour une génération PDF plus rapide après l'application des styles
       }
     },
 
@@ -1447,7 +1396,7 @@ html, body {
   color: #1c1c1c;
 }
 #recu-pdf {
-  max-width: 450px;
+  max-width: 650px;
   padding: 25px 30px;
   margin-top: 50%;
 }
@@ -1459,7 +1408,7 @@ html, body {
 }
 #recu-pdf .top .title {
   font-weight: normal;
-  font-size: 1.6em;
+  font-size: 1.9em;
   text-align: left;
   margin-left: 20px;
   margin-bottom: 50px;
@@ -1493,7 +1442,7 @@ html, body {
 }
 
 #recu-pdf .receipt {
-  padding: 25px 30px;
+  padding: 25px 15px;
   text-align: left;
   min-height: 200px;
   width: 88%;
@@ -1502,13 +1451,16 @@ html, body {
   box-shadow: 1px 3px 8px 3px rgba(0, 0, 0, 0.2);
 }
 
-#recu-pdf .airliner-logo {
-  max-width: 120px;
-  position: relative;
-  left: 30%;
-  margin-bottom: 20px;
+/* NOUVEAUX STYLES FLEXBOX POUR LE CONTENEUR DU LOGO */
+#recu-pdf .logo-container {
+  max-width: 150px;
+  margin-bottom: 20px; /* Espace sous le logo, ajustez si besoin */
+  /* optionnel: background-color: #f0f0f0; pour voir les limites du conteneur si vous déboguez */
 }
 
+#recu-pdf .airliner-logo {
+  max-width: 190px;
+}
 #recu-pdf .route {
   display: flex;
   flex-direction: column;
@@ -1535,7 +1487,7 @@ html, body {
 
 #recu-pdf .route h2 {
   font-weight: 100;
-  font-size: 12px;
+  font-size: 18px;
   margin: 0;
 }
 
@@ -1552,13 +1504,13 @@ html, body {
 }
 
 #recu-pdf .details .item span {
-  font-size: .8em;
+  font-size: 1.9em;
   color: rgba(28, 28, 28, .7);
   font-weight: 500;
 }
 
 #recu-pdf .details .item h3 {
-  font-size: 18px !important;
+  font-size: 20px !important;
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -1611,7 +1563,7 @@ html, body {
 }
 
 #recu-pdf.product-list h2 {
-  font-size: 10px;
+  font-size: 18px;
   margin-bottom: 5px;
   border-bottom: 1px dashed #ccc;
   padding-bottom: 2px;
@@ -1623,7 +1575,7 @@ html, body {
 }
 
 #recu-pdf.product-list span {
-  font-size: 10px;
+  font-size: 18px;
   line-height: 1.2;
   display: inline-block;
 }
@@ -1650,7 +1602,7 @@ html, body {
 }
 
 #recu-pdf.barcode-label {
-  font-size: 13px;
+  font-size: 18px;
   color: #444;
   font-style: italic;
 }
