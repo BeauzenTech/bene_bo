@@ -804,7 +804,7 @@
                                 style="display: flex; flex-direction: column; margin-bottom: 10px;"
                             >
                               <div style="display: flex; justify-content: space-between; font-size: 18px;">
-                                <span><strong>{{ item.quantity }}x {{ item.productID.name }} ({{item.optionSpecific}})</strong></span>
+                                <span><strong>{{ item.quantity }}x {{ item.productID.name }} {{item.size}} ({{item.optionSpecific}})</strong></span>
                                 <span><strong>{{ item.total_price }} CHF</strong></span>
                               </div>
 
