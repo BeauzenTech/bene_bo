@@ -78,7 +78,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-defineEmits<{
+const emit = defineEmits<{
   'add-to-cart': [event: AddToCartEvent]
 }>()
 
@@ -297,7 +297,7 @@ const addToCart = (product: Product) => {
   }
   
   // Émettre l'événement vers le parent
-  // emit('add-to-cart', event)
+  emit('add-to-cart', event)
 }
 
 // Lifecycle

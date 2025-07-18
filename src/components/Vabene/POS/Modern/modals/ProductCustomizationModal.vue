@@ -95,7 +95,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-defineEmits<{
+const emit = defineEmits<{
   'close': []
   'add-to-cart': [event: AddToCartEvent]
 }>()
@@ -134,7 +134,7 @@ const addToCart = () => {
     notes: notes.value
   }
 
-  // emit('add-to-cart', event)
+  emit('add-to-cart', event)
 }
 
 // Watcher pour initialiser la première taille quand le produit change
