@@ -138,14 +138,14 @@ import { defineComponent } from "vue";
 
 import WhatHappening from "@/components/Dashboard/Ecommerce/WhatHappening.vue";
 
-import VabeneTopProduitReportSell from "@/components/Vabene/Order/OrderReportSells/VabeneTopProduitReportSell.vue";
+import VabeneTopProduitReportSell from "@/components/Vabene/POS/OrderReportSells/VabeneTopProduitReportSell.vue";
 import {RepportModelData} from "@/models/report.model";
 import {PeriodiqueCardReport} from "@/models/periodiqueCardReport.model";
 import {reportPeriodiqueCard, reportVenteAdmin, reportVenteRestaurant} from "@/service/api";
 import {ApiResponse} from "@/models/Apiresponse";
 import {SellModel} from "@/models/vente.model";
 import {useToast} from "vue-toastification";
-import VabeneNombreCommandeProductDate  from "@/components/Vabene/Order/OrderReportSells/VabeneNombreCommandeProductDate.vue";
+import VabeneNombreCommandeProductDate  from "@/components/Vabene/POS/OrderReportSells/VabeneNombreCommandeProductDate.vue";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 

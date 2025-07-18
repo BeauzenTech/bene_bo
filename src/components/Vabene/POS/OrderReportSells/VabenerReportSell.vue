@@ -173,11 +173,11 @@ import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import {RepportModelData} from "@/models/report.model";
 import {PeriodiqueCardReport} from "@/models/periodiqueCardReport.model";
-import VabeneTopProduitReportSell from "@/components/Vabene/Order/OrderReportSells/VabeneTopProduitReportSell.vue";
-import VabeneAverageReportSell from "@/components/Vabene/Order/OrderReportSells/VabeneAverageReportSell.vue";
-import VabeneTauxOrderCategorieDate from "@/components/Vabene/Order/OrderReportSells/VabeneTauxOrderCategorieDate.vue";
+import VabeneTopProduitReportSell from "@/components/Vabene/POS/OrderReportSells/VabeneTopProduitReportSell.vue";
+import VabeneAverageReportSell from "@/components/Vabene/POS/OrderReportSells/VabeneAverageReportSell.vue";
+import VabeneTauxOrderCategorieDate from "@/components/Vabene/POS/OrderReportSells/VabeneTauxOrderCategorieDate.vue";
 import VabeneNombreCommandeProductDate
-  from "@/components/Vabene/Order/OrderReportSells/VabeneNombreCommandeProductDate.vue";
+  from "@/components/Vabene/POS/OrderReportSells/VabeneNombreCommandeProductDate.vue";
 import {RestaurantModel} from "@/models/restaurant.model";
 import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 

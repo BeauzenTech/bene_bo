@@ -2066,7 +2066,7 @@ export default defineComponent({
     const isSticky = ref(false);
     onMounted(() => {
       window.addEventListener("scroll", () => {
-        let scrollPos = window.scrollY;
+        const scrollPos = window.scrollY;
         isSticky.value = scrollPos >= 100;
       });
     });
