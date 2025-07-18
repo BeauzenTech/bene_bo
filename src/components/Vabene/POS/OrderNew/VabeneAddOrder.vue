@@ -1,48 +1,26 @@
 <template>
 
-  <div  class="row">
+  <div class="row">
     <div class="col-xxl-8">
-      <div
-        class="card mb-25 border-0 rounded-0 bg-white checkout-box letter-spacing"
-      >
+      <div class="card mb-25 border-0 rounded-0 bg-white checkout-box letter-spacing">
         <div class="card-body">
-          <ul
-            class="nav nav-tabs bg-white border-0 rounded-0"
-            id="myTab"
-            role="tablist"
-          >
+          <ul class="nav nav-tabs bg-white border-0 rounded-0" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
               <button
                 class="nav-link fs-14 fs-md-15 fs-lg-16 fw-semibold position-relative border-0 rounded-0 d-block w-100 opacity-50"
-                :class="{'active opacity-100' : stepForm === 1}"
-                id="selected-order-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#selected-order-tab-pane"
-                type="button"
-                role="tab"
-                aria-controls="selected-order-tab-pane"
-                aria-selected="false"
-                @click="updateStepForm(1)"
-
-              >
+                :class="{ 'active opacity-100': stepForm === 1 }" id="selected-order-tab" data-bs-toggle="tab"
+                data-bs-target="#selected-order-tab-pane" type="button" role="tab"
+                aria-controls="selected-order-tab-pane" aria-selected="false" @click="updateStepForm(1)">
                 <i class="flaticon-shopping-cart"></i>
                 Panier
               </button>
             </li>
             <li class="nav-item" role="presentation">
               <button
-                  class="nav-link fs-14 fs-md-15 fs-lg-16 fw-semibold position-relative border-0 rounded-0 d-block w-100 opacity-50"
-                  :class="{'active opacity-100' : stepForm === 2}"
-                  id="selected-order-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#selected-order-tab-pane"
-                  type="button"
-                  role="tab"
-                  aria-controls="selected-order-tab-pane"
-                  aria-selected="false"
-                  @click="updateStepForm(2)"
-
-              >
+                class="nav-link fs-14 fs-md-15 fs-lg-16 fw-semibold position-relative border-0 rounded-0 d-block w-100 opacity-50"
+                :class="{ 'active opacity-100': stepForm === 2 }" id="selected-order-tab" data-bs-toggle="tab"
+                data-bs-target="#selected-order-tab-pane" type="button" role="tab"
+                aria-controls="selected-order-tab-pane" aria-selected="false" @click="updateStepForm(2)">
                 <i class="flaticon-user-3"></i>
                 Information générale
               </button>
@@ -50,166 +28,120 @@
 
 
           </ul>
-          <div
-            class="tab-content p-15 p-sm-20 p-md-25 p-lg-30"
-            id="myTabContent"
-          >
-            <div
-              class="tab-pane fade show"
-              :class="{'active' : stepForm === 1}"
-              id="selected-order-tab-pane"
-              role="tabpanel"
-              tabindex="0"
-            >
+          <div class="tab-content p-15 p-sm-20 p-md-25 p-lg-30" id="myTabContent">
+            <div class="tab-pane fade show" :class="{ 'active': stepForm === 1 }" id="selected-order-tab-pane"
+              role="tabpanel" tabindex="0">
               <form v-if="stepForm === 1">
                 <div>
-                    <div class="row" v-if="newOrderData.paniers.length > 0">
-                      <div class="col-12">
-                        <div
-                            class="card mb-25 border-0 rounded-0 bg-white order-summary-box letter-spacing"
-                        >
+                  <div class="row" v-if="newOrderData.paniers.length > 0">
+                    <div class="col-12">
+                      <div class="card mb-25 border-0 rounded-0 bg-white order-summary-box letter-spacing">
 
-                          <div class="card-body">
-                            <div class="table-responsive">
-                              <table class="table text-nowrap align-middle mb-0">
-                                <thead>
+                        <div class="card-body">
+                          <div class="table-responsive">
+                            <table class="table text-nowrap align-middle mb-0">
+                              <thead>
                                 <tr>
-                                  <th
-                                      scope="col"
-                                      class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
-                                  >
+                                  <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13">
                                     Nom du produit
                                   </th>
-                                  <th
-                                      scope="col"
-                                      class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
-                                  >
+                                  <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13">
                                     Quantité
                                   </th>
-                                  <th
-                                      scope="col"
-                                      class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
-                                  >
+                                  <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13">
                                     Prix
                                   </th>
 
-                                  <th
-                                      scope="col"
-                                      class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
-                                  >
+                                  <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13">
                                     Ingredient
                                   </th>
-                                  <th
-                                      scope="col"
-                                      class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
-                                  >
+                                  <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13">
                                     Montant total
                                   </th>
-                                  <th
-                                      scope="col"
-                                      class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 text-end"
-                                  ></th>
+                                  <th scope="col"
+                                    class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 text-end"></th>
                                 </tr>
-                                </thead>
-                                <tbody>
+                              </thead>
+                              <tbody>
                                 <template v-if="newOrderData.paniers.length > 0">
-                                  <tr
-                                      v-for="panier in newOrderData.paniers" :key="panier.product_id.id"
-                                  >
+                                  <tr v-for="panier in newOrderData.paniers" :key="panier.product_id.id">
                                     <th class="shadow-none fw-medium text-black product-title">
-                                <span
-
-                                    class="d-flex align-items-center text-decoration-none text-black fs-md-15 fs-lg-16"
-                                >
-                                  <img
-                                      :src="panier.product_id.image_urls[0]"
-                                      class="me-15"
-                                      width="44"
-                                      alt="product"
-                                  />
-                                  {{panier.product_id.name}}
-                                </span>
+                                      <span
+                                        class="d-flex align-items-center text-decoration-none text-black fs-md-15 fs-lg-16">
+                                        <img :src="panier.product_id.image_urls[0]" class="me-15" width="44"
+                                          alt="product" />
+                                        {{ panier.product_id.name }}
+                                      </span>
                                     </th>
                                     <td class="shadow-none lh-1">
                                       <div class="col-md-3 col-lg-3 col-xl-2 d-flex">
-                                        <button type="button" id="decrementBtn" class="px-2 text-success text-decoration-none border-0"
-                                                @click="decrementQuantity(panier)"
-                                        >
+                                        <button type="button" id="decrementBtn"
+                                          class="px-2 text-success text-decoration-none border-0"
+                                          @click="decrementQuantity(panier)">
                                           -
                                         </button>
 
-                                        <span class="text-success fs-15 mx-2">{{panier.quantity}}</span>
+                                        <span class="text-success fs-15 mx-2">{{ panier.quantity }}</span>
 
-                                        <button type="button" id="incrementBtn"  class="px-2 text-success text-decoration-none border-0"
-                                                @click="incrementQuantity(panier)">
+                                        <button type="button" id="incrementBtn"
+                                          class="px-2 text-success text-decoration-none border-0"
+                                          @click="incrementQuantity(panier)">
                                           +
                                         </button>
                                       </div>
                                     </td>
                                     <td class="shadow-none lh-1 fw-medium text-paragraph">
-                                      {{getTotalPrice(panier.specification_id, panier.quantity)}} CHF
+                                      {{ getTotalPrice(panier.specification_id, panier.quantity) }} CHF
                                     </td>
                                     <td class="shadow-none lh-1 fw-medium text-paragraph">
-                                      <button  @click="addIgredientToPanier(panier)" class="btn btn-success text-white fw-medium " type="button" data-bs-toggle="modal" data-bs-target="#contentModalScrollable_ingredient">
-                                        {{panier.ingredient.length > 0 ? panier.ingredient.length + ' Ingrédients' : 'Ajouter un ingrédient'}}
+                                      <button @click="addIgredientToPanier(panier)"
+                                        class="btn btn-success text-white fw-medium " type="button"
+                                        data-bs-toggle="modal" data-bs-target="#contentModalScrollable_ingredient">
+                                        {{ panier.ingredient.length > 0 ? panier.ingredient.length + ' Ingrédients' :
+                                        'Ajouter un ingrédient'}}
                                       </button>
                                     </td>
                                     <td class="shadow-none lh-1 fw-medium text-paragraph">
-                                      {{getTotalListeIngredientPrice(panier.ingredient) + getTotalPrice(panier.specification_id, panier.quantity)}} CHF
+                                      {{ getTotalListeIngredientPrice(panier.ingredient) +
+                                        getTotalPrice(panier.specification_id, panier.quantity)}} CHF
                                     </td>
                                     <td class="shadow-none lh-1">
-                                      <button
-                                          type="button"
-                                          class="bg-transparent p-0 border-0 text-paragraph fs-15 fs-md-16 fs-lg-18"
-                                          @click="removePanier(panier.product_id)"
-                                      >
+                                      <button type="button"
+                                        class="bg-transparent p-0 border-0 text-paragraph fs-15 fs-md-16 fs-lg-18"
+                                        @click="removePanier(panier.product_id)">
                                         <i class="ph-duotone ph-trash"></i>
                                       </button>
                                     </td>
                                   </tr>
                                 </template>
                                 <tr v-else>
-                                  <EmptyTable
-                                      message="Aucun produit ajouter au panier pour le moment"
-                                      :colspan="8"
-                                      textClass="text-muted"
-                                  />
+                                  <EmptyTable message="Aucun produit ajouter au panier pour le moment" :colspan="8"
+                                    textClass="text-muted" />
                                 </tr>
 
 
-                                </tbody>
-                              </table>
-                            </div>
-
+                              </tbody>
+                            </table>
                           </div>
+
                         </div>
                       </div>
-
                     </div>
+
+                  </div>
                 </div>
                 <div class="row">
                   <div class="col-md-4">
                     <div class="form-group  position-relative transition">
-                      <v-select
-                          v-model="categorieSelected"
-                          :options="originalCategories"
-                          label="name"
-                          :reduce="categorie => categorie.id"
-                          placeholder="Filtrer par categorie"
-
-                      />
+                      <v-select v-model="categorieSelected" :options="originalCategories" label="name"
+                        :reduce="categorie => categorie.id" placeholder="Filtrer par categorie" />
                     </div>
                   </div>
                   <div class="col-md-8">
                     <div class="border border-1 border-gray-200 rounded-0 bg-white checkout-box">
-                      <input
-                          v-model="searchQuery"
-                          type="text"
-                          class="form-control shadow-none text-black rounded-0 border-0"
-                          placeholder="Rechercher un produit"
-                          @input="currentPage = 1"
-
-                      />
+                      <input v-model="searchQuery" type="text"
+                        class="form-control shadow-none text-black rounded-0 border-0"
+                        placeholder="Rechercher un produit" @input="currentPage = 1" />
                     </div>
                   </div>
 
@@ -220,31 +152,29 @@
                     <div class="col-lg-3" v-for="(produit, i) in groupe" :key="i">
                       <!-- ✅ Ta carte produit ici -->
                       <div class="card mb-25 border-0 rounded-0 bg-white single-product-box">
-                        <div class="card-body p-0 letter-spacing flex justify-content-center items-center align-items-center">
+                        <div
+                          class="card-body p-0 letter-spacing flex justify-content-center items-center align-items-center">
                           <div class="image position-relative">
-                            <a href="#"  class="d-block">
-                              <img
-                                  :src="produit.image_urls[0]"
-                                  alt="product"
-                              />
+                            <a href="#" class="d-block">
+                              <img :src="produit.image_urls[0]" alt="product" />
                             </a>
 
                           </div>
                           <div class="content p-20">
                             <h4 class="text-center mb-10 fw-semibold fs-16 fs-lg-18">
                               <a href="#" class="text-decoration-none text-black">
-                               {{ produit.name}}
+                                {{ produit.name }}
                               </a>
                             </h4>
 
                             <div class="mt-10 text-center mb-10 fw-semibold fs-16 fs-lg-18">
-                  <span class="text-primary text-center fw-bold fs-md-15 fs-lg-16">Existe en {{produit.productSizes.length}} taille(s)</span>
+                              <span class="text-primary text-center fw-bold fs-md-15 fs-lg-16">Existe en
+                                {{ produit.productSizes.length }}
+                                taille(s)</span>
                             </div>
-                            <button
-                                type="button"
-                                class="add-to-cart-btn text-center d-block mt-15 fw-medium transition w-100 rounded-1 position-relative"
-                                @click="chooseProduct(produit)"
-                            >
+                            <button type="button"
+                              class="add-to-cart-btn text-center d-block mt-15 fw-medium transition w-100 rounded-1 position-relative"
+                              @click="chooseProduct(produit)">
                               Choisir
                               <i class="flaticon-shopping-cart-2 transition"></i>
                             </button>
@@ -257,19 +187,12 @@
               </form>
 
             </div>
-            <div
-                class="tab-pane fade show"
-                :class="{'active' : stepForm === 2}"
-                id="shipping-details-tab-pane"
-                role="tabpanel"
-                tabindex="0"
-            >
-              <form >
+            <div class="tab-pane fade show" :class="{ 'active': stepForm === 2 }" id="shipping-details-tab-pane"
+              role="tabpanel" tabindex="0">
+              <form>
                 <div class="row">
                   <div class="col-12">
-                    <div
-                        class="card mb-25 border-0 rounded-0 bg-white order-summary-box letter-spacing"
-                    >
+                    <div class="card mb-25 border-0 rounded-0 bg-white order-summary-box letter-spacing">
                       <div class="card-body">
                         <h5 class="mb-15 mb-md-25 fw-bold text-black">
                           Instructions de commande
@@ -280,13 +203,8 @@
                               <label class="d-block text-black fw-semibold mb-10">
                                 Type de commande *
                               </label>
-                              <v-select
-                                  v-model="orderTypeSelected"
-                                  :options="listeOrderType"
-                                  label="libelle"
-                                  placeholder="Selectionner type de commande"
-                                  required
-                              />
+                              <v-select v-model="orderTypeSelected" :options="listeOrderType" label="libelle"
+                                placeholder="Selectionner type de commande" required />
                             </div>
                           </div>
                           <div class="col-md-12">
@@ -294,28 +212,18 @@
                               <label class="d-block text-black fw-semibold mb-10">
                                 Quand souhaiteriez-vous votre commande ? *
                               </label>
-                              <v-select
-                                  v-model="whenOrderSelected"
-                                  :options="whenOrder"
-                                  label="libelle"
-                                  placeholder=""
-
-                              />
+                              <v-select v-model="whenOrderSelected" :options="whenOrder" label="libelle"
+                                placeholder="" />
                             </div>
                           </div>
                           <div class="row" v-if="whenOrderSelected === 'Date et heure souhaitées'">
-                            <div  class="col-md-6">
+                            <div class="col-md-6">
                               <div class="form-group mb-15 mb-sm-20 mb-md-25">
                                 <label class="d-block text-black fw-semibold mb-10">
                                   Date
                                 </label>
-                                <v-select
-                                    v-model="dateRecuperation"
-                                    :options="getDatesArray"
-                                    label="libelle"
-                                    placeholder=""
-
-                                />
+                                <v-select v-model="dateRecuperation" :options="getDatesArray" label="libelle"
+                                  placeholder="" />
                               </div>
                             </div>
                             <div class="col-md-6">
@@ -323,14 +231,8 @@
                                 <label class="d-block text-black fw-semibold mb-10">
                                   Heure
                                 </label>
-                                <v-select
-                                    v-model="orderHourRecuperation"
-                                    :options="availableTimes"
-                                    label="time"
-                                    :reduce="time => time"
-
-
-                                />
+                                <v-select v-model="orderHourRecuperation" :options="availableTimes" label="time"
+                                  :reduce="time => time" />
                               </div>
                             </div>
                           </div>
@@ -340,14 +242,10 @@
                                 À quoi devons-nous faire attention ? *
                               </label>
                               <div data-mdb-input-init class="form-outline">
-                                <textarea
-                                    v-model="remarqueOrder"
-                                    placeholder=""
-                                    class="form-control" id="textAreaExample3" rows="2"
-                                    @change="(event) => handleInput(event, 'remarqueOrder')"
-                                    :class="{ 'is-valid': validTextField(remarqueOrder) }"
-                                    required
-                                />
+                                <textarea v-model="remarqueOrder" placeholder="" class="form-control"
+                                  id="textAreaExample3" rows="2"
+                                  @change="(event) => handleInput(event, 'remarqueOrder')"
+                                  :class="{ 'is-valid': validTextField(remarqueOrder) }" required />
 
                               </div>
                             </div>
@@ -357,24 +255,26 @@
 
 
 
-<!--                          <div class="col-md-12">-->
-<!--                            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--                              <label class="d-block text-black fw-semibold mb-10">-->
-<!--                                Cuisson-->
-<!--                              </label>-->
-<!--                              <v-select-->
-<!--                                  v-model="orderCuissonTypeSelected"-->
-<!--                                  :options="listeTypeCuisson"-->
-<!--                                  label=""-->
-<!--                                  placeholder="Selectionner type de cuisson"-->
+                          <!--                          <div class="col-md-12">-->
+                          <!--                            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
+                          <!--                              <label class="d-block text-black fw-semibold mb-10">-->
+                          <!--                                Cuisson-->
+                          <!--                              </label>-->
+                          <!--                              <v-select-->
+                          <!--                                  v-model="orderCuissonTypeSelected"-->
+                          <!--                                  :options="listeTypeCuisson"-->
+                          <!--                                  label=""-->
+                          <!--                                  placeholder="Selectionner type de cuisson"-->
 
-<!--                              />-->
-<!--                            </div>-->
-<!--                          </div>-->
+                          <!--                              />-->
+                          <!--                            </div>-->
+                          <!--                          </div>-->
                           <div class="col-md-12">
                             <div class="form-check form-switch form-group mb-15 mb-sm-20 mb-md-25">
-                              <input class="form-check-input shadow-none me-8" type="checkbox" role="switch" id="flexSwitchCheckDefault" v-model="orderDemandeCouvert">
-                              <label class="form-check-label fw-medium" for="flexSwitchCheckDefault">Demande de couverts</label>
+                              <input class="form-check-input shadow-none me-8" type="checkbox" role="switch"
+                                id="flexSwitchCheckDefault" v-model="orderDemandeCouvert">
+                              <label class="form-check-label fw-medium" for="flexSwitchCheckDefault">Demande de
+                                couverts</label>
                             </div>
                           </div>
                           <div class="col-md-12" v-if="orderDemandeCouvert">
@@ -382,17 +282,14 @@
                               <label class="d-block text-black fw-semibold mb-10">
                                 Quantité de couverts
                               </label>
-                              <input
-                                  type="number"
-                                  class="form-control shadow-none rounded-0 text-black"
-                                  placeholder="1"
-                                  v-model="orderQuantityCouvert"
-                              />
+                              <input type="number" class="form-control shadow-none rounded-0 text-black" placeholder="1"
+                                v-model="orderQuantityCouvert" />
                             </div>
                           </div>
                           <div class="col-md-12">
                             <div class="form-check form-switch form-group mb-15 mb-sm-20 mb-md-25">
-                              <input class="form-check-input shadow-none me-8" type="checkbox" role="switch" id="flexSwitchCheckDefault" v-model="orderTrancher">
+                              <input class="form-check-input shadow-none me-8" type="checkbox" role="switch"
+                                id="flexSwitchCheckDefault" v-model="orderTrancher">
                               <label class="form-check-label fw-medium" for="flexSwitchCheckDefault">Trancher</label>
                             </div>
                           </div>
@@ -410,8 +307,11 @@
                   </h5>
                   <div class="col-md-12">
                     <div class="form-check form-switch form-group mb-15 mb-sm-20 mb-md-25">
-                      <input class="form-check-input shadow-none me-8" type="checkbox" role="switch" id="flexSwitchCheckDefault" v-model="useCustomerGenericInfos">
-                      <label class="form-check-label fw-medium" for="flexSwitchCheckDefault">Utiliser les informattions du client {{restaurantID === RestaurantEnum.RESTO_PENTHAZ ? 'Penthaz' : 'Morges'}}</label>
+                      <input class="form-check-input shadow-none me-8" type="checkbox" role="switch"
+                        id="flexSwitchCheckDefault" v-model="useCustomerGenericInfos">
+                      <label class="form-check-label fw-medium" for="flexSwitchCheckDefault">Utiliser les informattions
+                        du client
+                        {{ restaurantID === RestaurantEnum.RESTO_PENTHAZ ? 'Penthaz' : 'Morges' }}</label>
                     </div>
                   </div>
                   <div v-if="!useCustomerGenericInfos" class="row">
@@ -420,12 +320,8 @@
                         <label class="d-block text-black fw-semibold mb-10">
                           Civilité
                         </label>
-                        <v-select
-                            v-model="newOrderData.civilite"
-                            :options="allCivites"
-                            label=""
-                            placeholder="Civilité"
-                        />
+                        <v-select v-model="newOrderData.civilite" :options="allCivites" label=""
+                          placeholder="Civilité" />
                       </div>
                     </div>
                     <div class="col-md-6">
@@ -433,15 +329,10 @@
                         <label class="d-block text-black fw-semibold mb-10">
                           Nom
                         </label>
-                        <input
-                            type="text"
-                            class="form-control shadow-none rounded-0 text-black"
-                            placeholder="e.g. Ronan"
-                            v-model="newOrderData.guest_last_name"
-                            @change="(event) => handleInput(event, 'guest_last_name')"
-                            :class="{ 'is-valid': validTextField(newOrderData.guest_last_name) }"
-                            required
-                        />
+                        <input type="text" class="form-control shadow-none rounded-0 text-black"
+                          placeholder="e.g. Ronan" v-model="newOrderData.guest_last_name"
+                          @change="(event) => handleInput(event, 'guest_last_name')"
+                          :class="{ 'is-valid': validTextField(newOrderData.guest_last_name) }" required />
                       </div>
                     </div>
                     <div class="col-md-6">
@@ -449,15 +340,10 @@
                         <label class="d-block text-black fw-semibold mb-10">
                           Prenom
                         </label>
-                        <input
-                            type="text"
-                            class="form-control shadow-none rounded-0 text-black"
-                            placeholder="e.g. Jane"
-                            v-model="newOrderData.guest_first_name"
-                            @change="(event) => handleInput(event, 'guest_first_name')"
-                            :class="{ 'is-valid': validTextField(newOrderData.guest_first_name) }"
-                            required
-                        />
+                        <input type="text" class="form-control shadow-none rounded-0 text-black" placeholder="e.g. Jane"
+                          v-model="newOrderData.guest_first_name"
+                          @change="(event) => handleInput(event, 'guest_first_name')"
+                          :class="{ 'is-valid': validTextField(newOrderData.guest_first_name) }" required />
                       </div>
                     </div>
                     <div class="col-md-12">
@@ -465,15 +351,10 @@
                         <label class="d-block text-black fw-semibold mb-10">
                           Email
                         </label>
-                        <input
-                            type="email"
-                            class="form-control shadow-none rounded-0 text-black"
-                            placeholder="e.g. jane3602@gmail.com"
-                            v-model="newOrderData.guest_email"
-                            @change="(event) => handleInput(event, 'guest_email')"
-                            :class="{ 'is-valid': validTextField(newOrderData.guest_email) }"
-                            required
-                        />
+                        <input type="email" class="form-control shadow-none rounded-0 text-black"
+                          placeholder="e.g. jane3602@gmail.com" v-model="newOrderData.guest_email"
+                          @change="(event) => handleInput(event, 'guest_email')"
+                          :class="{ 'is-valid': validTextField(newOrderData.guest_email) }" required />
                       </div>
                     </div>
                     <div class="col-md-12">
@@ -481,15 +362,10 @@
                         <label class="d-block text-black fw-semibold mb-10">
                           Numéro téléphone
                         </label>
-                        <input
-                            type="text"
-                            class="form-control shadow-none rounded-0 text-black"
-                            placeholder="e.g. +1-829-3456"
-                            v-model="newOrderData.guest_phone_number"
-                            @change="(event) => handleInput(event, 'guest_phone_number')"
-                            :class="{ 'is-valid': validTextField(newOrderData.guest_phone_number) }"
-                            required
-                        />
+                        <input type="text" class="form-control shadow-none rounded-0 text-black"
+                          placeholder="e.g. +1-829-3456" v-model="newOrderData.guest_phone_number"
+                          @change="(event) => handleInput(event, 'guest_phone_number')"
+                          :class="{ 'is-valid': validTextField(newOrderData.guest_phone_number) }" required />
                       </div>
                     </div>
                   </div>
@@ -503,12 +379,7 @@
                       <label class="d-block text-black fw-semibold mb-10">
                         Organisation *
                       </label>
-                      <v-select
-                          v-model="organisationTypeSelected"
-                          :options="allTypeOrganisation"
-                          label=""
-
-                      />
+                      <v-select v-model="organisationTypeSelected" :options="allTypeOrganisation" label="" />
                     </div>
                   </div>
                   <div class="col-md-6" v-if="organisationTypeSelected === 'Société'">
@@ -516,14 +387,8 @@
                       <label class="d-block text-black fw-semibold mb-10">
                         Société
                       </label>
-                      <input
-                          type="text"
-                          class="form-control shadow-none rounded-0 text-black"
-                          placeholder="e.g."
-                          v-model="societySelected"
-                          :class="{ 'is-valid': validTextField(societySelected) }"
-                          required
-                      />
+                      <input type="text" class="form-control shadow-none rounded-0 text-black" placeholder="e.g."
+                        v-model="societySelected" :class="{ 'is-valid': validTextField(societySelected) }" required />
                     </div>
                   </div>
                   <div class="col-md-6" v-if="organisationTypeSelected === 'Société'">
@@ -531,14 +396,9 @@
                       <label class="d-block text-black fw-semibold mb-10">
                         Département
                       </label>
-                      <input
-                          type="text"
-                          class="form-control shadow-none rounded-0 text-black"
-                          placeholder="e.g. "
-                          v-model="departementSelected"
-                          :class="{ 'is-valid': validTextField(departementSelected) }"
-                          required
-                      />
+                      <input type="text" class="form-control shadow-none rounded-0 text-black" placeholder="e.g. "
+                        v-model="departementSelected" :class="{ 'is-valid': validTextField(departementSelected) }"
+                        required />
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -546,13 +406,8 @@
                       <label class="d-block text-black fw-semibold mb-10">
                         NPA *
                       </label>
-                      <v-select
-                          v-model="NPASelected"
-                          :options="allPostalCode"
-                          label="numeroPostal"
-                          :reduce="postal => postal.numeroPostal"
-
-                      />
+                      <v-select v-model="NPASelected" :options="allPostalCode" label="numeroPostal"
+                        :reduce="postal => postal.numeroPostal" />
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -560,13 +415,8 @@
                       <label class="d-block text-black fw-semibold mb-10">
                         Localité
                       </label>
-                      <v-select
-                          v-model="localitySelected"
-                          :options="allPostalCode"
-                          label="ville"
-                          :reduce="postal => postal.ville"
-
-                      />
+                      <v-select v-model="localitySelected" :options="allPostalCode" label="ville"
+                        :reduce="postal => postal.ville" />
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -574,15 +424,10 @@
                       <label class="d-block text-black fw-semibold mb-10">
                         Rue *
                       </label>
-                      <input
-                          type="text"
-                          class="form-control shadow-none rounded-0 text-black"
-                          placeholder="e.g. au 24eme"
-                          v-model="rueSelected"
-                          @change="(event) => handleInput(event, 'rueSelected')"
-                          :class="{ 'is-valid': validTextField(rueSelected) }"
-                          required
-                      />
+                      <input type="text" class="form-control shadow-none rounded-0 text-black"
+                        placeholder="e.g. au 24eme" v-model="rueSelected"
+                        @change="(event) => handleInput(event, 'rueSelected')"
+                        :class="{ 'is-valid': validTextField(rueSelected) }" required />
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -590,15 +435,10 @@
                       <label class="d-block text-black fw-semibold mb-10">
                         N *
                       </label>
-                      <input
-                          type="text"
-                          class="form-control shadow-none rounded-0 text-black"
-                          placeholder="e.g. au 24eme"
-                          v-model="numberRueSelected"
-                          @change="(event) => handleInput(event, 'numberRueSelected')"
-                          :class="{ 'is-valid': validTextField(numberRueSelected) }"
-                          required
-                      />
+                      <input type="text" class="form-control shadow-none rounded-0 text-black"
+                        placeholder="e.g. au 24eme" v-model="numberRueSelected"
+                        @change="(event) => handleInput(event, 'numberRueSelected')"
+                        :class="{ 'is-valid': validTextField(numberRueSelected) }" required />
                     </div>
                   </div>
                 </div>
@@ -611,12 +451,8 @@
                       <label class="d-block text-black fw-semibold mb-10">
                         Choisir la methode de paiement
                       </label>
-                      <v-select
-                          v-model="methodePaiementDefault"
-                          :options="listeMethode"
-                          label="libelle"
-                          :reduce="methode => methode.type"
-                      />
+                      <v-select v-model="methodePaiementDefault" :options="listeMethode" label="libelle"
+                        :reduce="methode => methode.type" />
                     </div>
                   </div>
 
@@ -624,23 +460,14 @@
               </form>
               <div class="d-sm-flex align-items-end justify-content-end">
 
-                <LoaderComponent
-                    v-if="isLoading"
-                />
+                <LoaderComponent v-if="isLoading" />
 
-                <button
-                    v-else
-                    type="button"
-                    class="default-btn transition border-0 fw-medium text-white pt-11 pb-11 ps-25 pe-25 pt-md-12 pb-md-12 ps-md-35 pe-md-35 rounded-1 fs-md-15 fs-lg-16 bg-success"
-                    @click="submitOrder"
-                    :disabled="!isFormValid"
-                    :class="{ 'opacity-50 cursor-not-allowed': !isFormValid }"
-
-                >
+                <button v-else type="button"
+                  class="default-btn transition border-0 fw-medium text-white pt-11 pb-11 ps-25 pe-25 pt-md-12 pb-md-12 ps-md-35 pe-md-35 rounded-1 fs-md-15 fs-lg-16 bg-success"
+                  @click="submitOrder" :disabled="!isFormValid"
+                  :class="{ 'opacity-50 cursor-not-allowed': !isFormValid }">
                   Valider la commande
-                  <i
-                      class="flaticon-right-arrow position-relative ms-5 top-2"
-                  ></i>
+                  <i class="flaticon-right-arrow position-relative ms-5 top-2"></i>
                 </button>
               </div>
             </div>
@@ -653,49 +480,33 @@
 
 
       <!--      RECAPITULATIF-->
-      <div
-        class="card mb-25 border-0 rounded-0 bg-white order-summary-box letter-spacing"
-      >
+      <div class="card mb-25 border-0 rounded-0 bg-white order-summary-box letter-spacing">
         <div class="card-head bg-white d-flex align-items-center">
           <i class="flaticon-document text-info"></i>
           <h5 class="mb-0 fw-bold text-black ms-10 ms-md-15">
-           Recapitulatif<span class="text-paragraph"> ({{newOrderData.paniers.length}} produit(s))</span>
+            Recapitulatif<span class="text-paragraph"> ({{ newOrderData.paniers.length }} produit(s))</span>
           </h5>
         </div>
         <div class="card-body">
           <div class="table-responsive">
             <table class="table text-nowrap align-middle mb-0">
               <tbody>
-              <template v-if="newOrderData.paniers.length > 0">
-                <tr
-                    v-for="panier in newOrderData.paniers" :key="panier.product_id.id"
-                >
-                  <th
-                    class="shadow-none fw-medium text-black product-title ps-0"
-                  >
-                    <span
-                      class="d-flex align-items-center text-decoration-none text-black fs-md-15 fs-lg-16"
-                    >
-                      <img
-                        :src="panier.product_id.image_urls[0]"
-                        class="me-15"
-                        width="44"
-                        alt="product"
-                      />
-                      <span
-                        >{{panier.product_id.name}}
-                        <span class="fs-12 fw-medium text-muted">x{{panier.quantity}}</span></span
-                      >
-                    </span>
-                  </th>
-                  <td
-                    class="shadow-none lh-1 fw-medium text-paragraph text-end pe-0"
-                  >
-                    {{getTotalListeIngredientPrice(panier.ingredient) + getTotalPrice(panier.specification_id, panier.quantity)}} CHF
-                  </td>
-                </tr>
+                <template v-if="newOrderData.paniers.length > 0">
+                  <tr v-for="panier in newOrderData.paniers" :key="panier.product_id.id">
+                    <th class="shadow-none fw-medium text-black product-title ps-0">
+                      <span class="d-flex align-items-center text-decoration-none text-black fs-md-15 fs-lg-16">
+                        <img :src="panier.product_id.image_urls[0]" class="me-15" width="44" alt="product" />
+                        <span>{{ panier.product_id.name }}
+                          <span class="fs-12 fw-medium text-muted">x{{ panier.quantity }}</span></span>
+                      </span>
+                    </th>
+                    <td class="shadow-none lh-1 fw-medium text-paragraph text-end pe-0">
+                      {{ getTotalListeIngredientPrice(panier.ingredient) + getTotalPrice(panier.specification_id,
+                      panier.quantity)}} CHF
+                    </td>
+                  </tr>
 
-              </template>
+                </template>
 
               </tbody>
             </table>
@@ -706,14 +517,14 @@
                 Total
               </span>
               <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-               {{getTotalPriceForAllPanier}} CHF
+                {{ getTotalPriceForAllPanier }} CHF
               </span>
             </li>
 
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> Remise </span>
               <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-                 0 CHF
+                0 CHF
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
@@ -727,7 +538,7 @@
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> Total </span>
               <span class="d-block text-primary fs-md-15 fs-lg-16 fw-bold">
-                {{getTotalPriceForAllPanier}} CHF
+                {{ getTotalPriceForAllPanier }} CHF
               </span>
             </li>
           </ul>
@@ -743,77 +554,53 @@
             <h1 class="modal-title fs-5">Choisissez la taille</h1>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div class="modal-body flex-row align-items-center justify-content-center d-flex justify-content-center align-items-center">
+          <div
+            class="modal-body flex-row align-items-center justify-content-center d-flex justify-content-center align-items-center">
             <div class="flex-column d-flex justify-content-center align-items-center">
               <div class="table-responsive">
                 <table class="table text-nowrap align-middle mb-0">
                   <thead class="bg-success text-white">
-                  <tr>
-                    <th
-                        scope="col"
-                        class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-                    >
-                      IMAGE
-                    </th>
-                    <th
-                        scope="col"
-                        class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-                    >
-                      TAILLE
-                    </th>
-                    <th
-                        scope="col"
-                        class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-                    >
-                      PRIX
-                    </th>
+                    <tr>
+                      <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0">
+                        IMAGE
+                      </th>
+                      <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0">
+                        TAILLE
+                      </th>
+                      <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0">
+                        PRIX
+                      </th>
 
-                    <th
-                        scope="col"
-                        class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-                    >
-                      ACTION
-                    </th>
+                      <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0">
+                        ACTION
+                      </th>
 
-                  </tr>
+                    </tr>
                   </thead>
                   <tbody v-if="productSelected && productSelected.productSizes.length > 0">
-                  <tr
-                      v-for="(productSize) in productSelected.productSizes" :key="productSize.id"
-                  >
-                    <th class="shadow-none lh-1 fw-bold ps-0">
-                    <span
-                        class="text-decoration-none text-black-emphasis"
-                    >
-                      <img
-                          :src="productSelected.image_urls[0]"
-                          class="me-15"
-                          width="80"
-                          alt="product"
-                      />
-                    </span>
-                    </th>
-                    <th class="shadow-none lh-1 fw-bold ps-0">
-                    <span
-                        class="text-decoration-none text-black-emphasis"
-                    >
-                      {{productSize.size}}
-                    </span>
-                    </th>
-                    <td  class="shadow-none lh-1 fw-medium">
-                      <span class="badge text-outline-danger">{{productSize.price}} CHF</span>
-                    </td>
+                    <tr v-for="(productSize) in productSelected.productSizes" :key="productSize.id">
+                      <th class="shadow-none lh-1 fw-bold ps-0">
+                        <span class="text-decoration-none text-black-emphasis">
+                          <img :src="productSelected.image_urls[0]" class="me-15" width="80" alt="product" />
+                        </span>
+                      </th>
+                      <th class="shadow-none lh-1 fw-bold ps-0">
+                        <span class="text-decoration-none text-black-emphasis">
+                          {{ productSize.size }}
+                        </span>
+                      </th>
+                      <td class="shadow-none lh-1 fw-medium">
+                        <span class="badge text-outline-danger">{{ productSize.price }} CHF</span>
+                      </td>
 
-                    <td class="shadow-none lh-1 fw-medium text-body-tertiary">
-                      <button @click="addPanier(productSelected, productSize)"
-                              class="btn btn-danger btn-sm " type="button"
-                             data-bs-dismiss="modal" aria-label="Close"
-                      >
-                        Choisir
-                      </button>
-                    </td>
+                      <td class="shadow-none lh-1 fw-medium text-body-tertiary">
+                        <button @click="addPanier(productSelected, productSize)" class="btn btn-danger btn-sm "
+                          type="button" data-bs-dismiss="modal" aria-label="Close">
+                          Choisir
+                        </button>
+                      </td>
 
-                  </tr>
+                    </tr>
 
                   </tbody>
                 </table>
@@ -836,121 +623,92 @@
               <div class="row">
                 <div class="col-md-12">
                   <div class="form-group mb-15 mb-sm-20 mb-md-25">
-                    <v-select
-                        v-model="ingredientSelected"
-                        :options="allIngredient"
-                        label="name"
-                        placeholder="Selectionner un ingredient"
-
-                    />
+                    <v-select v-model="ingredientSelected" :options="allIngredient" label="name"
+                      placeholder="Selectionner un ingredient" />
                   </div>
                 </div>
               </div>
               <div class="table-responsive">
                 <table class="table text-nowrap align-middle mb-0">
                   <thead class="bg-success text-white">
-                  <tr>
-                    <th
-                        scope="col"
-                        class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-                    >
-                      NOM
-                    </th>
-                    <th
-                        scope="col"
-                        class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-                    >
-                      TYPE
-                    </th>
+                    <tr>
+                      <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0">
+                        NOM
+                      </th>
+                      <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0">
+                        TYPE
+                      </th>
 
-                    <th
-                        scope="col"
-                        class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-                    >
-                      QUANTITE
-                    </th>
+                      <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0">
+                        QUANTITE
+                      </th>
 
-                    <th
-                        scope="col"
-                        class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-                    >
-                      PRIX
-                    </th>
+                      <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0">
+                        PRIX
+                      </th>
 
 
 
-                  </tr>
+                    </tr>
                   </thead>
                   <tbody v-if="panierSelected && panierSelected.ingredient.length > 0">
-                  <tr
-                      v-for="ingredient in panierSelected?.ingredient" :key="ingredient.id"
-                  >
-                    <th class="shadow-none lh-1 fw-bold ps-0">
-                    <span
-                        class="text-decoration-none text-black-emphasis"
-                    >
-                      <img
-                          :src="ingredient.imageUrl"
-                          class="me-15"
-                          width="44"
-                          alt=""
-                      />
-                      {{ingredient.name}}
-                    </span>
-                    </th>
-                    <td  class="shadow-none lh-1 fw-medium">
-                      <span class="badge text-outline-danger">{{ingredient.type ?? '-'}}</span>
-                    </td>
+                    <tr v-for="ingredient in panierSelected?.ingredient" :key="ingredient.id">
+                      <th class="shadow-none lh-1 fw-bold ps-0">
+                        <span class="text-decoration-none text-black-emphasis">
+                          <img :src="ingredient.imageUrl" class="me-15" width="44" alt="" />
+                          {{ ingredient.name }}
+                        </span>
+                      </th>
+                      <td class="shadow-none lh-1 fw-medium">
+                        <span class="badge text-outline-danger">{{ ingredient.type ?? '-' }}</span>
+                      </td>
 
-                    <td class="shadow-none lh-1">
-                      <div class="col-md-3 col-lg-3 col-xl-2 d-flex">
-                        <button type="button" id="decrementBtn" class="px-2 text-success text-decoration-none border-0"
-                                @click="decrementQuantityIngredient(panierSelected, ingredient)"
-                        >
-                          -
+                      <td class="shadow-none lh-1">
+                        <div class="col-md-3 col-lg-3 col-xl-2 d-flex">
+                          <button type="button" id="decrementBtn"
+                            class="px-2 text-success text-decoration-none border-0"
+                            @click="decrementQuantityIngredient(panierSelected, ingredient)">
+                            -
+                          </button>
+
+                          <span class="text-success fs-15 mx-2">{{ ingredient.quantite }}</span>
+
+                          <button type="button" id="incrementBtn"
+                            class="px-2 text-success text-decoration-none border-0"
+                            @click="incrementQuantityIngredient(panierSelected, ingredient)">
+                            +
+                          </button>
+                        </div>
+
+
+                      </td>
+
+                      <td class="shadow-none lh-1 fw-medium">
+                        <span class="badge text-outline-danger">{{ getTotalIngredientPrice(ingredient) ?? '-' }}
+                          CHF</span>
+                      </td>
+
+
+                      <td class="shadow-none lh-1 fw-medium text-body-tertiary">
+                        <button @click="removeIngredientFromCart(panierSelected, ingredient)"
+                          class="btn btn-danger btn-sm " type="button">
+                          Retirer
                         </button>
+                      </td>
 
-                        <span class="text-success fs-15 mx-2">{{ingredient.quantite}}</span>
-
-                        <button type="button" id="incrementBtn"  class="px-2 text-success text-decoration-none border-0"
-                                @click="incrementQuantityIngredient(panierSelected, ingredient)">
-                          +
-                        </button>
-                      </div>
-
-
-                    </td>
-
-                    <td  class="shadow-none lh-1 fw-medium">
-                      <span class="badge text-outline-danger">{{getTotalIngredientPrice(ingredient) ?? '-'}} CHF</span>
-                    </td>
-
-
-                    <td class="shadow-none lh-1 fw-medium text-body-tertiary">
-                      <button @click="removeIngredientFromCart(panierSelected, ingredient)"
-                              class="btn btn-danger btn-sm " type="button"
-
-                      >
-                        Retirer
-                      </button>
-                    </td>
-
-                  </tr>
+                    </tr>
                   </tbody>
                   <tbody v-else>
-                  <tr>
-                    <EmptyTable
-                        message="Aucun ingredient ajouter pour le moment"
-                        :colspan="8"
-                        textClass="text-muted"
-                    />
-                  </tr>
+                    <tr>
+                      <EmptyTable message="Aucun ingredient ajouter pour le moment" :colspan="8"
+                        textClass="text-muted" />
+                    </tr>
                   </tbody>
                 </table>
               </div>
               <div class="d-flex justify-content-center align-items-center mt-8">
-                <button @click="seeValue" class="btn btn-primary btn-sm" type="button"
-                        data-bs-dismiss="modal" aria-label="Close">
+                <button @click="seeValue" class="btn btn-primary btn-sm" type="button" data-bs-dismiss="modal"
+                  aria-label="Close">
                   Valider
                 </button>
               </div>
@@ -976,10 +734,10 @@ import {
   listeOrderType,
   listeProducts, listeRestaurantProduct
 } from "@/service/api";
-import {useToast} from "vue-toastification";
-import {CartModel} from "@/models/cart.model";
-import {InstructionOrderModel} from "@/models/intructionOrder.model";
-import {NewOrderModel} from "@/models/newOrder.model";
+import { useToast } from "vue-toastification";
+import { CartModel } from "@/models/cart.model";
+import { InstructionOrderModel } from "@/models/intructionOrder.model";
+import { NewOrderModel } from "@/models/newOrder.model";
 import {
   ApiResponse, PaginatedCategorie,
   PaginatedIngredient,
@@ -987,27 +745,27 @@ import {
   PaginatedOrderType,
   PaginatedProduct, PaginatedRestaurantProduct
 } from "@/models/Apiresponse";
-import {IngredientModel} from "@/models/ingredient.model";
-import {ProductModel} from "@/models/product.model";
+import { IngredientModel } from "@/models/ingredient.model";
+import { ProductModel } from "@/models/product.model";
 import EmptyTable from "@/components/Vabene/EmptyTable/EmptyTable.vue";
-import {Modal} from 'bootstrap';
-import {defineComponent} from "vue";
-import {ProductSizesModel} from "@/models/productSizes.model";
-import {OrderTypeModel} from "@/models/orderType.model";
-import {CodepostalModel} from "@/models/codepostal.model";
-import {MethodePaiementModel} from "@/models/methodePaiement.model";
-import {OrderModel} from "@/models/order.model";
-import {CategorieModel} from "@/models/categorie.model";
-import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
-import {RestaurantProductModel} from "@/models/RestaurantProduct.model";
-import {ProductSizeEnum} from "@/enums/productSize.enum";
-import {IngredientSizeEnum} from "@/enums/ingredientSize.enum";
-import {IngredientSizeModel} from "@/models/ingredientSize.model";
-import {UserModel} from "@/models/user.model";
-import {RestaurantModel} from "@/models/restaurant.model";
-import {RestaurantEnum} from "@/enums/restaurant.enum";
-import {ClientEnum} from "@/enums/client.enum";
-import {AxiosError} from "axios";
+import { Modal } from 'bootstrap';
+import { defineComponent } from "vue";
+import { ProductSizesModel } from "@/models/productSizes.model";
+import { OrderTypeModel } from "@/models/orderType.model";
+import { CodepostalModel } from "@/models/codepostal.model";
+import { MethodePaiementModel } from "@/models/methodePaiement.model";
+import { OrderModel } from "@/models/order.model";
+import { CategorieModel } from "@/models/categorie.model";
+import { UserGeneralKey, UserRole } from "@/models/user.generalkey";
+import { RestaurantProductModel } from "@/models/RestaurantProduct.model";
+import { ProductSizeEnum } from "@/enums/productSize.enum";
+import { IngredientSizeEnum } from "@/enums/ingredientSize.enum";
+import { IngredientSizeModel } from "@/models/ingredientSize.model";
+import { UserModel } from "@/models/user.model";
+import { RestaurantModel } from "@/models/restaurant.model";
+import { RestaurantEnum } from "@/enums/restaurant.enum";
+import { ClientEnum } from "@/enums/client.enum";
+import { AxiosError } from "axios";
 
 export default defineComponent({
   name: "VabeneAddOrder",
@@ -1016,8 +774,8 @@ export default defineComponent({
     LoaderComponent
     // ImageUpload,
   },
-  data(){
-    return{
+  data() {
+    return {
       customerRestauranInfo: null as UserModel | null,
       dateRecuperation: '',
       orderHourRecuperation: '',
@@ -1034,13 +792,13 @@ export default defineComponent({
       restaurantID: localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID),
       productRestaurantResponse: null as ApiResponse<PaginatedRestaurantProduct> | null,
       originalRestaurantProducts: [] as RestaurantProductModel[],
-      currentPage: 1 ,
+      currentPage: 1,
       searchQuery: '', // Ajout du champ de recherche
       whenOrder: ['Dès que possible', 'Date et heure souhaitées'],
       whenOrderSelected: 'Dès que possible',
       remarqueOrder: '',
       newOrderData: {
-        paniers : [] as CartModel[],
+        paniers: [] as CartModel[],
         userID: '',
         guest_first_name: '',
         guest_last_name: '',
@@ -1077,11 +835,11 @@ export default defineComponent({
       allPostalCode: [] as CodepostalModel[],
       listeMethode: [] as MethodePaiementModel[],
       methodePaiementDefault: null as MethodePaiementModel | null,
-      NPASelected: null as  string | null,
-      localitySelected: null as  string | null,
-      organisationTypeSelected: null as  string | null,
-      rueSelected: null as  string | null,
-      numberRueSelected: null as  string | null,
+      NPASelected: null as string | null,
+      localitySelected: null as string | null,
+      organisationTypeSelected: null as string | null,
+      rueSelected: null as string | null,
+      numberRueSelected: null as string | null,
       simplyPanier: []
     }
   },
@@ -1090,8 +848,8 @@ export default defineComponent({
       // On supprime tout ce qui suit la date, y compris le séparateur " - "
       return input.split(" - ")[0];
     },
-    getWhenOrderType(){
-      switch (this.whenOrderSelected){
+    getWhenOrderType() {
+      switch (this.whenOrderSelected) {
         case 'Dès que possible':
           return 'immediat'
         default:
@@ -1099,7 +857,7 @@ export default defineComponent({
 
       }
     },
-    getCivilite(){
+    getCivilite() {
       switch (this.newOrderData.civilite) {
         case "M.":
           return "Monsieur"
@@ -1153,10 +911,10 @@ export default defineComponent({
             this.originalCategories = response.data.items;
             this.categorieSelected = this.originalCategories[0];
             console.log("categorie default: ", this.categorieSelected)
-            if(this.userRole === UserRole.FRANCHISE){
-              await  this.fetchProduct(1, "existing", this.categorieSelected.id);
+            if (this.userRole === UserRole.FRANCHISE) {
+              await this.fetchProduct(1, "existing", this.categorieSelected.id);
             }
-            else{
+            else {
               await this.fetchRestaurantProduct(1, this.categorieSelected.id)
             }
           }
@@ -1174,7 +932,7 @@ export default defineComponent({
       }
       this.isLoading = true;
       try {
-        const response = await listeProducts(page, "0" ,filter, payload) as ApiResponse<PaginatedProduct>;
+        const response = await listeProducts(page, "0", filter, payload) as ApiResponse<PaginatedProduct>;
         console.log(response)
         if (response.code === 200) {
           this.productResponse = response;
@@ -1197,7 +955,7 @@ export default defineComponent({
     async fetchRestaurantProduct(page = 1, categoryId: string) {
       this.isLoading = true;
       try {
-        const response = await listeRestaurantProduct(page, "0" , categoryId as string) as ApiResponse<PaginatedRestaurantProduct>;
+        const response = await listeRestaurantProduct(page, "0", categoryId as string) as ApiResponse<PaginatedRestaurantProduct>;
         console.log(response)
         if (response.code === 200) {
           this.productRestaurantResponse = response;
@@ -1221,9 +979,9 @@ export default defineComponent({
       }
     },
     getMethodePaiementParType(
-        liste: MethodePaiementModel[],
-        type: string
-    ): MethodePaiementModel | undefined{
+      liste: MethodePaiementModel[],
+      type: string
+    ): MethodePaiementModel | undefined {
       console.log(liste)
       console.log(type)
       return liste.find(methode => methode.type === type);
@@ -1248,7 +1006,7 @@ export default defineComponent({
         // this.isLoading = false;
       }
     },
-    updateStepForm(value: number){
+    updateStepForm(value: number) {
       this.stepForm = value
       console.log('step:', this.stepForm)
     },
@@ -1273,11 +1031,11 @@ export default defineComponent({
     },
 
 
-    seeValue(){
+    seeValue() {
       console.log("potential payload: ", this.newOrderData)
     },
-    addIgredientToPanier(panier: CartModel){
-      if(!panier) return;
+    addIgredientToPanier(panier: CartModel) {
+      if (!panier) return;
       this.panierSelected = panier
     },
     incrementQuantity(panier: CartModel) {
@@ -1322,11 +1080,11 @@ export default defineComponent({
     removePanier(productToRemove: ProductModel) {
       if (!productToRemove) return;
       const index = this.newOrderData.paniers.findIndex(
-          panier => panier.product_id.id === productToRemove.id
+        panier => panier.product_id.id === productToRemove.id
       );
 
       const indexSimply = this.simplyPanier.findIndex(
-          (panier) => (panier as any).product_id === productToRemove.id
+        (panier) => (panier as any).product_id === productToRemove.id
       );
 
 
@@ -1375,13 +1133,13 @@ export default defineComponent({
 
     },
     decrementQuantityIngredient(panier: CartModel, ingredient: IngredientModel) {
-      let  index = ingredient.quantite
-      if (index> 1) {
+      let index = ingredient.quantite
+      if (index > 1) {
         index -= 1;
       }
       const cart = this.newOrderData.paniers.find(pan => pan.product_id.id === panier.product_id.id);
       const simplyCart = (this.simplyPanier as any[]).find(pan => pan.product_id === panier.product_id.id);
-      if(cart && simplyCart){
+      if (cart && simplyCart) {
         // Vérifie si l'ingrédient n'existe pas déjà (optionnel)
         const exists = cart.ingredient.some(ing => ing.name === ingredient.name);
         const existSimplyCart = simplyCart.ingredient.some(ing => ing.name === ingredient.name);
@@ -1392,8 +1150,8 @@ export default defineComponent({
           cart.ingredient.push(ingredient);
           simplyCart.ingredient.push(ingredient)
         }
-        else{
-          if(ingredientFinded){
+        else {
+          if (ingredientFinded) {
             ingredientFinded.quantite = index
             symplyIngredientFinded.quantite = index
           }
@@ -1401,7 +1159,7 @@ export default defineComponent({
         console.log("Ingredient deleted: ", symplyIngredientFinded)
 
       }
-      else{
+      else {
         console.warn(`Aucun panier trouvé avec le product_id: ${panier.product_id.id}`);
       }
 
@@ -1415,18 +1173,18 @@ export default defineComponent({
         simplyCart.ingredient = simplyCart.ingredient.filter(ing => ing.name !== ingredient.name);
       }
     },
-    clearData(){
+    clearData() {
       this.newOrderData = {} as NewOrderModel
     },
     goBack() {
       this.$router.back()
     },
-    submitOrder(){
+    submitOrder() {
       this.createNewOrder()
     },
     async createNewOrder() {
       this.isLoading = true;
-      if(this.newOrderData.intructionOrder.length === 0){
+      if (this.newOrderData.intructionOrder.length === 0) {
         const newInstructionOrder: InstructionOrderModel = {
           demandeCouverts: this.orderDemandeCouvert,
           quantityCouverts: `${this.orderQuantityCouvert}`,
@@ -1519,7 +1277,7 @@ export default defineComponent({
     handleInput(event, type) {
       console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
-      switch (type){
+      switch (type) {
         case 'remarqueOrder':
           this.remarqueOrder = valueText
           this.validTextField(valueText)
@@ -1561,25 +1319,25 @@ export default defineComponent({
       }
     },
     validEmail(email) {
-      if(email){
+      if (email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email.trim())
       }
     },
-    validPassword(password){
-      if (password){
+    validPassword(password) {
+      if (password) {
         return password.trim().length > 0
       }
     },
-    validTextField(text){
-      if (text){
+    validTextField(text) {
+      if (text) {
         return text.trim().length > 0
       }
     },
     getOrderTypeParType(
-        liste:  OrderTypeModel[],
-        type: string
-    ):  OrderTypeModel | undefined{
+      liste: OrderTypeModel[],
+      type: string
+    ): OrderTypeModel | undefined {
       console.log(liste)
       console.log(type)
       return liste.find(methode => methode.type === type);
@@ -1605,12 +1363,12 @@ export default defineComponent({
       }
     },
     async fetchDetailUser() {
-      let userID = this.restaurantID === RestaurantEnum.RESTO_MORGES ? ClientEnum.CLIENT_MORGES : ClientEnum.CLIENT_PENTHAZ
+      const userID = this.restaurantID === RestaurantEnum.RESTO_MORGES ? ClientEnum.CLIENT_MORGES : ClientEnum.CLIENT_PENTHAZ
       try {
         const response = await detailUser(userID) as ApiResponse<UserModel>;
         console.log(response)
         if (response.code === 200) {
-          if(response.data){
+          if (response.data) {
             this.customerRestauranInfo = response.data
           }
         } else {
@@ -1624,16 +1382,16 @@ export default defineComponent({
       }
     },
     getCodePostalByNumero(
-        liste:  CodepostalModel[],
-        numeroPostal: string
-    ):  CodepostalModel | undefined{
+      liste: CodepostalModel[],
+      numeroPostal: string
+    ): CodepostalModel | undefined {
       console.log(liste)
       return liste.find(postal => postal.numeroPostal === numeroPostal);
     },
     getCodePostalByVille(
-        liste:  CodepostalModel[],
-        city: string
-    ):  CodepostalModel | undefined{
+      liste: CodepostalModel[],
+      city: string
+    ): CodepostalModel | undefined {
       console.log(liste)
       return liste.find(postal => postal.numeroPostal === city);
     },
@@ -1642,7 +1400,7 @@ export default defineComponent({
         const response = await detailRestaurant(this.restaurantID) as ApiResponse<RestaurantModel>;
         console.log(response)
         if (response.code === 200) {
-          if(response.data){
+          if (response.data) {
             const dt = response.data
             this.NPASelected = dt.codePostalID.numeroPostal
             this.localitySelected = dt.codePostalID.ville
@@ -1683,8 +1441,8 @@ export default defineComponent({
         `${formatDate(tomorrow)} - demain`
       ];
     },
-    produitsParTrois(): ProductModel[][]{
-     return this.chunkArray(this.allProducts, 4)
+    produitsParTrois(): ProductModel[][] {
+      return this.chunkArray(this.allProducts, 4)
     },
     allIngredient(): IngredientModel[] {
       const ingredients = this.ingredientResponse?.data?.items || this.originalIngredients;
@@ -1692,14 +1450,14 @@ export default defineComponent({
       const query = this.searchIngredientQuery.toLowerCase();
       return ingredients.filter(ingredient => {
         return (
-            (ingredient.name?.toLowerCase().includes(query))
+          (ingredient.name?.toLowerCase().includes(query))
         );
       });
     },
-    getTotalPriceForAllPanier(){
+    getTotalPriceForAllPanier() {
       let totalPrice = 0
-      if(this.newOrderData.paniers.length > 0){
-        for(let i = 0; i < this.newOrderData.paniers.length; i++){
+      if (this.newOrderData.paniers.length > 0) {
+        for (let i = 0; i < this.newOrderData.paniers.length; i++) {
           totalPrice += this.getTotalListeIngredientPrice(this.newOrderData.paniers[i].ingredient) + this.getTotalPrice(this.newOrderData.paniers[i].specification_id, this.newOrderData.paniers[i].quantity)
         }
         return totalPrice
@@ -1749,26 +1507,26 @@ export default defineComponent({
       const query = this.searchQuery.toLowerCase();
       // Filtrer après le tri
       return sortedProducts.filter(product =>
-          product.name?.toLowerCase().includes(query)
+        product.name?.toLowerCase().includes(query)
       );
     },
     isFormValid() {
       return (
-          this.simplyPanier.length > 0 &&
-          this.validTextField(this.remarqueOrder) &&
-          this.validTextField(this.rueSelected) &&
-          this.validTextField(this.numberRueSelected)
+        this.simplyPanier.length > 0 &&
+        this.validTextField(this.remarqueOrder) &&
+        this.validTextField(this.rueSelected) &&
+        this.validTextField(this.numberRueSelected)
       );
     }
   },
   watch: {
-    useCustomerGenericInfos(newVal, oldVal){
+    useCustomerGenericInfos(newVal, oldVal) {
       if (typeof newVal === 'boolean' && newVal !== oldVal && newVal) {
         console.log("utilisation des information client generique:", newVal);
-        this.newOrderData.guest_first_name = this.customerRestauranInfo?.first_name as  string
-        this.newOrderData.guest_last_name = this.customerRestauranInfo?.last_name as  string
-        this.newOrderData.guest_phone_number = this.customerRestauranInfo?.phone_number as  string
-        this.newOrderData.guest_email = this.customerRestauranInfo?.email as  string
+        this.newOrderData.guest_first_name = this.customerRestauranInfo?.first_name as string
+        this.newOrderData.guest_last_name = this.customerRestauranInfo?.last_name as string
+        this.newOrderData.guest_phone_number = this.customerRestauranInfo?.phone_number as string
+        this.newOrderData.guest_email = this.customerRestauranInfo?.email as string
       }
     },
     // NPASelected(newVal, oldVal){
@@ -1789,19 +1547,19 @@ export default defineComponent({
       if (typeof newVal === 'string' && newVal !== oldVal) {
         console.log("Nouvelle catégorie sélectionnée :", newVal);
         this.categorieSelected = this.originalCategories.find(c => c.id === newVal) ?? null;
-        if(this.userRole === UserRole.FRANCHISE){
+        if (this.userRole === UserRole.FRANCHISE) {
           this.fetchProduct(1, "existing", newVal); // ou newVal.id selon le besoin
         }
-        else{
-          this.fetchRestaurantProduct(1,  newVal);
+        else {
+          this.fetchRestaurantProduct(1, newVal);
         }
 
       }
     },
-    orderTypeSelected(this: any, newVal){
+    orderTypeSelected(this: any, newVal) {
       if (!newVal) return
       this.orderTypeSelected = newVal as OrderTypeModel
-      console.log('ordertype selected: ',  this.orderTypeSelected)
+      console.log('ordertype selected: ', this.orderTypeSelected)
     },
     villeSelected(this: any, newVal) {
       if (!newVal) return
@@ -1821,7 +1579,7 @@ export default defineComponent({
       this.ingredientSelected = newVal
       const cart = this.newOrderData.paniers.find(pan => pan.product_id.id === this.panierSelected.product_id.id);
       const simplyCart = (this.simplyPanier as any[]).find(pan => pan.product_id === this.panierSelected.product_id.id);
-      if(simplyCart && this.ingredientSelected){
+      if (simplyCart && this.ingredientSelected) {
         // Vérifie si l'ingrédient n'existe pas déjà (optionnel)
         const exists = simplyCart.ingredient.some(ing => ing.id === this.ingredientSelected?.id);
         const smallSizeIngredient = this.ingredientSelected.ingredientSizes.find(ing => ing.size === IngredientSizeEnum.PETITE) as IngredientSizeModel;
@@ -1829,7 +1587,7 @@ export default defineComponent({
         const bigSizeIngredient = this.ingredientSelected.ingredientSizes.find(ing => ing.size === IngredientSizeEnum.GRANDE);
         let ing = {};
         if (!exists) {
-          switch (this.panierSelected.specification_id.size){
+          switch (this.panierSelected.specification_id.size) {
             case ProductSizeEnum.PETITE:
               ing = {
                 "name": this.ingredientSelected.name + " " + smallSizeIngredient.size,
@@ -1861,11 +1619,11 @@ export default defineComponent({
           simplyCart.ingredient.push(ing);
           console.log("Ingredient added: ", this.simplyCart)
         }
-        else{
+        else {
           console.warn(`Ce ingredient existe deja dans ce panier: ${this.ingredientSelected?.name}`);
         }
       }
-      if(cart && this.ingredientSelected){
+      if (cart && this.ingredientSelected) {
         // Vérifie si l'ingrédient n'existe pas déjà (optionnel)
         const exists = cart.ingredient.some(ing => ing.id === this.ingredientSelected?.id);
         const smallSizeIngredient = this.ingredientSelected.ingredientSizes.find(ing => ing.size === IngredientSizeEnum.PETITE) as IngredientSizeModel;
@@ -1873,7 +1631,7 @@ export default defineComponent({
         const bigSizeIngredient = this.ingredientSelected.ingredientSizes.find(ing => ing.size === IngredientSizeEnum.GRANDE);
         let ing = {};
         if (!exists) {
-          switch (this.panierSelected.specification_id.size){
+          switch (this.panierSelected.specification_id.size) {
             case ProductSizeEnum.PETITE:
               ing = {
                 "name": this.ingredientSelected.name + " " + smallSizeIngredient.size,
@@ -1905,11 +1663,11 @@ export default defineComponent({
           cart.ingredient.push(ing);
           this.ingredientSelected = null
         }
-        else{
+        else {
           console.warn(`Ce ingredient existe deja dans ce panier: ${this.ingredientSelected?.name}`);
         }
       }
-      else{
+      else {
         console.warn(`Aucun panier trouvé avec le product_id: ${this.panierSelected.product_id.id}`);
       }
     }

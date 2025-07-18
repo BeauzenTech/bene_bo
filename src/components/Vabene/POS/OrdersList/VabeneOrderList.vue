@@ -4,7 +4,23 @@
         class="card-head box-shadow bg-white d-lg-flex align-items-center justify-content-between p-15 p-sm-20 p-md-25"
     >
       <div class="d-sm-flex align-items-center">
+<!--        <Button-->
+<!--            @click="gotoCreate"-->
+<!--            class="default-btn position-relative transition border-0 fw-medium text-white pt-11 pb-11 ps-25 pe-25 pt-md-12 pb-md-12 ps-md-30 pe-md-30 rounded-1 bg-success fs-md-15 fs-lg-16 d-inline-block me-10 mb-10 mb-lg-0"-->
+<!--            type="button"-->
 
+<!--        >-->
+<!--             Ajouter une commande-->
+
+<!--          <i class="flaticon-plus position-relative ms-5 fs-12"></i>-->
+<!--        </Button>-->
+<!--        <button-->
+<!--            class="default-outline-btn position-relative transition fw-medium text-black pt-10 pb-10 ps-25 pe-25 pt-md-11 pb-md-11 ps-md-30 pe-md-30 rounded-1 bg-transparent fs-md-15 fs-lg-16 d-inline-block mb-10 mb-lg-0"-->
+<!--            type="button"-->
+<!--        >-->
+<!--          Export-->
+<!--          <i class="flaticon-file-1 position-relative ms-5 top-2 fs-15"></i>-->
+<!--        </button>-->
       </div>
       <div class="d-flex align-items-center">
         <form class="search-box position-relative me-15" @submit.prevent>
@@ -12,7 +28,7 @@
               v-model="searchQuery"
               type="text"
               class="form-control shadow-none text-black rounded-0 border-0"
-              placeholder="Rechercher une transaction"
+              placeholder="Rechercher une commande"
               @input="currentPage = 1"
 
           />
@@ -40,13 +56,13 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0 ps-0"
             >
-             TRANSACTION ID
+            REF
             </th>
             <th
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
-              COMMANDE ID
+              TYPE
             </th>
             <th
                 scope="col"
@@ -60,7 +76,12 @@
             >
               MONTANT
             </th>
-
+            <th
+                scope="col"
+                class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
+            >
+              CRÉER LE
+            </th>
             <th
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
@@ -77,7 +98,7 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
-              CREER LE
+              NUMERO TELEPHONE
             </th>
             <th
                 scope="col"
@@ -91,11 +112,11 @@
               <LoaderComponent/>
             </td>
           </tr>
-          <tr v-else-if="!isLoading && allPayments.length > 0"
-              v-for="paiement in allPayments" :key="paiement.id"
+          <tr v-else-if="!isLoading && allOrder.length > 0"
+              v-for="order in allOrder" :key="order.id"
           >
 
-            <th v-if="paiement"
+            <th
                 class="shadow-none lh-1 fw-medium text-black-emphasis title ps-0 text-capitalize"
             >
               <div class="d-flex align-items-center text-capitalize">
@@ -108,54 +129,53 @@
                 <div
                     class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
                 >
-                  <a href="#" @click="selectionPaiement(paiement)">
-                  #{{ getShortUuid(paiement.id)  }}
+                  <a href="#" @click="selectionOrder(order)">
+                    #{{order.restaurantID.id === RestaurantEnum.RESTO_PENTHAZ ? 'VBP'+ order.nif : 'VBM'+ order.nif}}
                   </a>
                 </div>
               </div>
             </th>
-            <td  class="shadow-none lh-1 fw-medium text-black-emphasis">
-              <div v-if="paiement.orderSelf"
-                  class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
-              >
-              <a
-                  href="#"
-              >
-                #{{paiement.orderSelf.restaurantID.id === RestaurantEnum.RESTO_PENTHAZ ? 'VBP'+ paiement.orderSelf.nif : 'VBM'+ paiement.orderSelf.nif}}
-
-              </a>
-              </div>
+            <td class="shadow-none lh-1 fw-medium text-muted ">
+              <span v-if="order.order_type === 'click_collect'" class="badge text-bg-secondary fs-13">À emporter</span>
+              <span v-if="order.status === 'dine_in'" class="badge text-bg-info fs-13">Sur place</span>
+              <span v-if="order.order_type === 'delivery'" class="badge text-bg-success fs-13">À livrer</span>
             </td>
 
-            <td v-if="paiement.orderSelf"  class="shadow-none lh-1 fw-medium text-black-emphasis">
-              {{ paiement.orderSelf.guest_first_name ?? '-' }} {{ paiement.orderSelf.guest_last_name  ?? '-' }}
-
+            <td v-if="order.guest_first_name" class="shadow-none lh-1 fw-medium text-black-emphasis">
+              {{ order.guest_first_name.toUpperCase() || '-' }}
             </td>
-
             <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">
-             -
+              {{ order.guest_first_name|| '-' }} {{ order.guest_last_name || '-' }}
             </td>
-
-
             <td class="shadow-none lh-1 fw-medium text-black-emphasis ">
-              {{ paiement.amount || '-' }} CHF
+              {{ order.total_price || '-' }} CHF
             </td>
+            <td v-if="order.orderItems.length > 0" class="shadow-none lh-1 fw-medium text-black-emphasis">
+              {{ convertDateCreate(order.created_at)  }}
 
-
-            <td class="shadow-none lh-1 fw-medium text-muted" v-if="paiement.orderSelf">
-              <span v-if="paiement.orderSelf.status === 'delivered'" class="badge text-bg-success">{{fetchStatusOrderFr(paiement.orderSelf.status)  ?? '-' }}</span>
-              <span v-else class="badge text-bg-warning">{{fetchStatusOrderFr(paiement.orderSelf.status)  ?? '-' }}</span>
             </td>
-            <td  v-if="paiement.orderSelf">
-              <span v-if="paiement.orderSelf.status === 'pending'" class="badge text-outline-danger">En attente de paiement</span>
-              <span v-if="paiement.status === 'paid'" class="badge text-outline-primary">Payé</span>
-              <span v-if="paiement.status === 'refunded'" class="badge text-outline-muted">A remboursé</span>
-              <span v-if="paiement.status === 'cancelled'" class="badge text-outline-warning">Annuler</span>
+            <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">
+              <span>-</span>
+            </td>
+            <td class="shadow-none lh-1 fw-medium text-muted ">
+              <span v-if="order.status === 'pending'" class="badge text-bg-warning fs-13">En attente</span>
+              <span v-if="order.status === 'processing'" class="badge text-bg-info fs-13">En cours de traitement</span>
+              <span v-if="order.status === 'ready_for_delivery'" class="badge text-bg-warning fs-13">Prêt pour livraison</span>
+              <span v-if="order.status === 'out_for_delivery'" class="badge text-bg-secondary fs-13">En cours de livraison</span>
+              <span v-if="order.status === 'delivered'" class="badge text-bg-primary fs-13">Livré</span>
+              <span v-if="order.status === 'cancelled'" class="badge text-bg-danger fs-13">Annulé</span>
+            </td>
+            <td class="shadow-none lh-1 fw-medium text-muted" v-if="order.paymentID" >
+              <span v-if="order.paymentID.status === 'pending'" class="badge text-outline-danger">En attente de paiement</span>
+              <span v-if="order.paymentID.status === 'paid'" class="badge text-outline-primary">Payé</span>
+              <span v-if="order.paymentID.status=== 'refunded'" class="badge text-outline-muted">A remboursé</span>
+              <span v-if="order.paymentID.status === 'cancelled'" class="badge text-outline-warning">Annuler</span>
+
             </td>
             <td>
-              {{convertDateCreate(paiement.created_at)  ?? '-' }}
+              <span v-if="order.guest_phone_number"  class="badge text-bg-secondary fs-13">{{order.guest_phone_number}}</span>
+              <span v-else  class="badge text-black-emphasis fs-13">-</span>
             </td>
-
             <td
                 class="shadow-none lh-1 fw-medium text-body-tertiary text-end pe-0"
             >
@@ -173,7 +193,7 @@
                     <a
                         class="dropdown-item d-flex align-items-center"
                         href="javascript:void(0);"
-                        @click="selectionPaiement(paiement)"
+                        @click="selectionOrder(order)"
                     ><i
                         class="flaticon-view lh-1 me-8 position-relative top-1"
                     ></i>
@@ -184,7 +204,7 @@
                     <a
                         class="dropdown-item d-flex align-items-center"
                         href="javascript:void(0);"
-                        @click="selectionPaiement(paiement)"
+                        @click="selectionOrder(order)"
                     ><i
                         class="flaticon-pen lh-1 me-8 position-relative top-1"
                     ></i>
@@ -196,7 +216,7 @@
                         class="dropdown-item d-flex align-items-center"
                         data-bs-toggle="modal" data-bs-target="#confirmModal"
                         href="javascript:void(0);"
-                        @click="selectionPaiement(paiement)"
+                        @click="selectionOrder(order)"
                     ><i
                         class="flaticon-delete lh-1 me-8 position-relative top-1"
                     ></i>
@@ -210,7 +230,7 @@
           </tr>
           <tr v-else>
             <EmptyTable
-                message="Aucune transaction pour le moment"
+                message="Aucune commande pour le moment"
                 :colspan="8"
                 textClass="text-muted"
             />
@@ -281,7 +301,7 @@
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
             <i class="fas fa-times me-2"></i>Annuler
           </button>
-          <button type="button" class="btn btn-danger" @click="confirmationDeleteAction(paymentSelected)" data-bs-dismiss="modal">
+          <button type="button" class="btn btn-danger" @click="confirmationDeleteAction(orderSelected)" data-bs-dismiss="modal">
             <i class="fas fa-trash-alt me-2"></i>Supprimer
           </button>
         </div>
@@ -293,55 +313,50 @@
 </template>
 <script lang="ts">
 import { defineComponent } from "vue";
-import {listePayment, toggleActivationUser, deleteUser, listeOrderType, listeMethodePaiement} from "@/service/api";
+import {listeOrder, toggleActivationUser, deleteUser, listeRestaurant} from "@/service/api";
 import {UserGeneralKey} from "@/models/user.generalkey";
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import EmptyTable from "@/components/Vabene/EmptyTable/EmptyTable.vue";
-import {ApiResponse, PaginatedMethodePaiement, PaginatedOrderType, PaginatedPayment} from "@/models/Apiresponse";
+import {ApiResponse} from "@/models/Apiresponse";
 import {PaginatedOrder} from "@/models/Apiresponse";
 import {OrderModel} from "@/models/order.model";
 import VabeneOrderDetailsPage from "@/pages/Vabene/Order/VabeneOrderDetailsPage.vue";
-import {PaymentModel} from "@/models/payment.model";
-import {MethodePaiementModel} from "@/models/methodePaiement.model";
-import {OrderStatus} from "@/enums/orderStatut.enum";
 import {RestaurantEnum} from "../../../../enums/restaurant.enum";
 
 export default defineComponent({
-  name: "VabeneTransactionList",
+  name: "VabeneOrderList",
   components: {LoaderComponent, EmptyTable},
   data(){
     return{
-      paiementResponse: null as ApiResponse<PaginatedPayment> | null,
+      orderResponse: null as ApiResponse<PaginatedOrder> | null,
       isLoading: false,
       currentPage: 1 ,
       searchQuery: '', // Ajout du champ de recherche
       // eslint-disable-next-line no-undef
-      originalPayment: [] as PaymentModel[], // Stockage des utilisateurs originaux
-      paymentSelected: null,
-      listeMethode: [] as MethodePaiementModel[],
-      methodePaiementSelected: null as MethodePaiementModel | null,
+      originalOrder: [] as OrderModel[], // Stockage des utilisateurs originaux
+      orderSelected: null,
     }
   },
   computed: {
     RestaurantEnum() {
       return RestaurantEnum
     },
-    allPayments(): PaymentModel[] {
-      const payments = this.paiementResponse?.data?.items || this.originalPayment;
-      if (!this.searchQuery) return payments;
+    allOrder(): OrderModel[] {
+      const orders = this.orderResponse?.data?.items || this.originalOrder;
+      if (!this.searchQuery) return orders;
       const query = this.searchQuery.toLowerCase();
-      return payments.filter(payment => {
+      return orders.filter(order => {
         return (
-            (payment.id?.toLowerCase().includes(query)) ||
-            (payment.status?.toLowerCase().includes(query)) ||
-            (payment.transaction_id?.toLowerCase().includes(query)) ||
-            (payment.paymentMethod?.includes(query)));
+            (order.id?.toLowerCase().includes(query)) ||
+            (order.status?.toLowerCase().includes(query)) ||
+            (order.address?.toLowerCase().includes(query)) ||
+            (order.rue?.includes(query)));
       });
     },
 
     pagination(): any {
-      return this.paiementResponse?.data?.pagination || {
+      return this.orderResponse?.data?.pagination || {
         current_page: 1,
         total_items: 0,
         total_pages: 1,
@@ -359,73 +374,26 @@ export default defineComponent({
     }
   },
   methods: {
-    fetchStatusOrderFr(status: string){
-      switch (status) {
-        case OrderStatus.PENDING:
-          return 'En attente';
-        case OrderStatus.PROCESSING:
-          return 'En cours de traitement';
-        case OrderStatus.READY_FOR_DELIVERY:
-          return 'Près pour livraison';
-        case OrderStatus.OUT_FOR_DELIVERY:
-          return 'En cours de livraison';
-        case OrderStatus.DELIVERED:
-          return 'Livré';
-        default:
-          return 'Annulé';
-      }
-    },
-    getMethodePaiementParType(
-        liste: MethodePaiementModel[],
-        type: string
-    ): MethodePaiementModel | undefined{
-      console.log(liste)
-      console.log(type)
-      return liste.find(methode => methode.type === type);
-    },
-    async fetchListeMethodePaiement(page = 1) {
-      // this.isLoading = true;
-      try {
-        const response = await listeMethodePaiement(page) as ApiResponse<PaginatedMethodePaiement>;
-        console.log(response)
-        if (response.code === 200) {
-          if (response.data?.items && this.paiementResponse) {
-            this.listeMethode = response.data.items;
-          }
-        } else {
-          this.toast.error(response.message);
-        }
-      } catch (error) {
-        this.toast.error("Erreur lors du chargement des methodes de paiement");
-        console.error(error);
-      } finally {
-        // this.isLoading = false;
-      }
-    },
      getShortUuid(uuid: string): string {
-      if(uuid){
         return uuid.split('-')[0];
-      }
-      return ''
-
      },
     gotoCreate(){
       this.$router.push("/ajout-commande");
     },
-    selectionPaiement(payment){
-      this.paymentSelected = payment;
-      console.log(payment)
+    selectionOrder(order){
+      this.orderSelected = order;
+      console.log(order)
       this.$router.push({
-        name: "VabeneTransactionDetailsPage",
-        params: { transactionID: payment.id }
+        name: "VabeneOrderDetailsPage",
+        params: { commandeID: order.id }
       });
     },
-    async confirmationDeleteAction(payment){
+    async confirmationDeleteAction(order){
       try {
-        const response = await deleteUser(payment.id) as ApiResponse<any>;
+        const response = await deleteUser(order.id) as ApiResponse<any>;
         //console.log(response)
         if (response.code === 201) {
-          this.paiementResponse = response;
+          this.orderResponse = response;
           this.toast.success(response.message);
 
         } else {
@@ -436,7 +404,7 @@ export default defineComponent({
         console.error(error);
       } finally {
         setTimeout(() =>  {
-          this.fetchPaiement(1);
+          this.fetchOrder(1);
         }, 2000);
       }
     },
@@ -450,7 +418,7 @@ export default defineComponent({
         const response = await toggleActivationUser(user.id, payload) as ApiResponse<any>;
         //console.log(response)
         if (response.code === 201) {
-          this.paiementResponse = response;
+          this.orderResponse = response;
           if (response.data) {
             const responseDecoded = response.data
             console.log(responseDecoded)
@@ -466,7 +434,7 @@ export default defineComponent({
         console.error(error);
       } finally {
         setTimeout(() =>  {
-          this.fetchPaiement(1);
+          this.fetchOrder(1);
         }, 2000);
       }
     },
@@ -476,15 +444,15 @@ export default defineComponent({
     convertDateCreate(date: string): string {
       return UserGeneralKey.formatDateToFrenchLocale(date);
     },
-    async fetchPaiement(page = 1) {
+    async fetchOrder(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listePayment(page) as ApiResponse<PaginatedPayment>;
+        const response = await listeOrder(page) as ApiResponse<PaginatedOrder>;
         console.log(response)
         if (response.code === 200) {
-          this.paiementResponse = response;
+          this.orderResponse = response;
           if (response.data?.items) {
-            this.originalPayment = response.data.items;
+            this.originalOrder = response.data.items;
           }
           if (response.data && response.data.pagination) {
             this.currentPage = response.data.pagination.current_page;
@@ -493,7 +461,7 @@ export default defineComponent({
           this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des operations");
+        this.toast.error("Erreur lors du chargement des restaurant");
         console.error(error);
       } finally {
         this.isLoading = false;
@@ -501,7 +469,7 @@ export default defineComponent({
     },
     changePage(page: number) {
       if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
-        this.fetchPaiement(page);
+        this.fetchOrder(page);
       }
     },
     generatePageNumbers(): number[] {
@@ -510,7 +478,7 @@ export default defineComponent({
       const { current_page, total_pages } = this.pagination;
 
       let startPage = Math.max(1, current_page - Math.floor(maxVisiblePages / 2));
-      let endPage = Math.min(total_pages, startPage + maxVisiblePages - 1);
+      const endPage = Math.min(total_pages, startPage + maxVisiblePages - 1);
 
       if (endPage - startPage + 1 < maxVisiblePages) {
         startPage = Math.max(1, endPage - maxVisiblePages + 1);
@@ -528,8 +496,7 @@ export default defineComponent({
     return { toast };
   },
   mounted() {
-    this.fetchPaiement();
-    this.fetchListeMethodePaiement()
+    this.fetchOrder();
   }
 });
 </script>
