@@ -3,6 +3,7 @@ import {IngredientSizeModel} from "@/models/ingredientSize.model";
 export interface IngredientModel {
     id: string;
     name: string;
+    size: string;
     imageUrl: string
     isAvailable: boolean;
     type: string;
