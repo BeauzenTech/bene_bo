@@ -1196,7 +1196,9 @@ export const tauxCommandeCategorie = async (
     categoryID: string,
     startDate?: string,
     endDate?: string,
-    restaurantID?: string
+    restaurantID?: string,
+    paymentMethode?: string,
+    orderType?: string,
 ): Promise<ApiResponse<RatioModel>> => {
 
 
@@ -1206,7 +1208,9 @@ export const tauxCommandeCategorie = async (
             categoryID,
             startDate,
             endDate,
-            restaurantID
+            restaurantID,
+            paymentMethode,
+            orderType,
         ]
             .filter(Boolean) // retire les undefined
             .join('/');
@@ -1228,7 +1232,9 @@ export const nombreCommandeParProduct = async (
     productID: string,
     startDate?: string,
     endDate?: string,
-    restaurantID?: string
+    restaurantID?: string,
+    paymentMethode?: string,
+    orderType?: string,
 ): Promise<ApiResponse<RatioModel>> => {
 
 
@@ -1238,7 +1244,9 @@ export const nombreCommandeParProduct = async (
             productID,
             startDate,
             endDate,
-            restaurantID
+            restaurantID,
+            paymentMethode,
+            orderType,
         ]
             .filter(Boolean) // retire les undefined
             .join('/');
