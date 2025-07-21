@@ -1,154 +1,221 @@
 // Types pour le système POS moderne VaBene
 
 export interface Category {
-  id: string
-  name: string
-  icon?: string
-  description?: string
-  isActive?: boolean
-  itemCount?: number
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  isActive: boolean;
+  ordered: number;
 }
 
 export interface ProductSize {
-  id: string
-  name: string
-  price: string
-  priceLivraison: string
+  id: string;
+  name: string;
+  size: string;
+  price: string;
+  priceLivraison: string;
+  created_at?: string;
 }
 
 export interface Ingredient {
-  id: string
-  name: string
-  price: number
-  isDefault: boolean
-  isAvailable: boolean
-  image?: string
+  id: string;
+  name: string;
+  price: number;
+  isDefault: boolean;
+  isAvailable: boolean;
+  image?: string;
 }
 
 export interface Supplement {
-  id: string
-  name: string
-  price: number
-  isAvailable: boolean
-  image?: string
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  extra_cost_price: number;
+  image_url?: string;
+  type?: string;
+  size?: string;
+  isDefault?: boolean;
+  isAvailable?: boolean;
 }
 
 export interface Product {
-  id: string
-  name: string
-  description: string
-  image: string
-  category: string
-  sizes: ProductSize[]
-  ingredients: Ingredient[]
-  supplements: Supplement[]
-  isAvailable: boolean
-  isPopular?: boolean
-  preparationTime?: number
-  allergens?: string[]
-}
-
-export interface CartIngredient extends Ingredient {
-  quantity: number
-  extra_cost_price: number
-}
-
-export interface CartSupplement extends Supplement {
-  quantity: number
-  extra_cost_price: number
+  id: string;
+  name: string;
+  description?: string;
+  image: string;
+  category: string;
+  sizes: ProductSize[];
+  ingredients: Ingredient[];
+  supplements: Supplement[];
+  isAvailable: boolean;
+  isPopular?: boolean;
+  type?: string;
+  withoutGluten?: boolean;
 }
 
 export interface CartItem {
-  id: string
-  productId: string
-  name: string
-  image: string
-  selectedSize: ProductSize
-  quantity: number
-  basePrice: number
-  totalPrice: number
-  ingredients: CartIngredient[]
-  supplements: CartSupplement[]
-  notes?: string
-  localProductId: string
+  id: string;
+  productId: string;
+  name: string;
+  image: string;
+  selectedSize: ProductSize;
+  quantity: number;
+  basePrice: number;
+  totalPrice: number;
+  ingredients: CartIngredient[];
+  supplements: CartSupplement[];
+  notes?: string;
+  localProductId: string;
 }
 
-export interface PaymentMethod {
-  id: string
-  name: string
-  icon: string
-  isActive: boolean
-  type: 'cash' | 'card' | 'digital'
+export interface CartIngredient {
+  id: string;
+  name: string;
+  extra_cost_price: number;
+  quantity: number;
+  isDefault: boolean;
+  size?: string;
+  type?: string;
+}
+
+export interface CartSupplement {
+  id: string;
+  name: string;
+  extra_cost_price: number;
+  quantity: number;
+  type?: string;
+  size?: string;
+}
+
+export interface AddToCartEvent {
+  product: Product;
+  size: ProductSize;
+  quantity: number;
+  ingredients: CartIngredient[];
+  supplements: CartSupplement[];
+  notes?: string;
 }
 
 export interface OrderSummary {
-  subtotal: number
-  tax: number
-  discount?: number
-  total: number
-  items: CartItem[]
+  subtotal: number;
+  tax: number;
+  total: number;
+  items: CartItem[];
 }
 
-export interface Customer {
-  id?: string
-  name?: string
-  phone?: string
-  email?: string
-  loyaltyPoints?: number
+export interface CustomerInfo {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address?: string;
+}
+
+export interface PaymentMethod {
+  id: string;
+  name: string;
+  icon: string;
+  isSelected: boolean;
 }
 
 export interface POSState {
-  selectedCategory: string
-  searchQuery: string
-  cart: CartItem[]
-  customer: Customer | null
-  paymentMethod: PaymentMethod | null
-  isProcessingOrder: boolean
-  orderType: 'dine-in' | 'takeaway' | 'delivery'
+  selectedCategory: string;
+  searchQuery: string;
+  cart: CartItem[];
+  customer: CustomerInfo | null;
+  paymentMethod: PaymentMethod | null;
+  isProcessingOrder: boolean;
+  orderType: "dine-in" | "takeaway" | "delivery";
 }
 
 // Types pour les modales
 export interface ProductModalData {
-  product: Product
-  selectedSize: ProductSize | null
-  quantity: number
-  ingredients: CartIngredient[]
-  supplements: CartSupplement[]
-  notes: string
+  product: Product;
+  selectedSize: ProductSize | null;
+  quantity: number;
+  ingredients: CartIngredient[];
+  supplements: CartSupplement[];
+  notes: string;
 }
 
 // Types pour les événements
-export interface AddToCartEvent {
-  product: Product
-  size: ProductSize
-  quantity: number
-  ingredients: CartIngredient[]
-  supplements: CartSupplement[]
-  notes?: string
-}
-
 export interface UpdateCartEvent {
-  itemId: string
-  quantity?: number
-  ingredients?: CartIngredient[]
-  supplements?: CartSupplement[]
-  notes?: string
+  itemId: string;
+  quantity?: number;
+  ingredients?: CartIngredient[];
+  supplements?: CartSupplement[];
+  notes?: string;
 }
 
 // Constants
-export const CATEGORIES: Category[] = [
-  { id: 'breakfast', name: 'Breakfast', itemCount: 12 },
-  { id: 'lunch', name: 'Lunch', itemCount: 12 },
-  { id: 'dinner', name: 'Dinner', itemCount: 12 },
-  { id: 'soup', name: 'Soup', itemCount: 12 },
-  { id: 'desserts', name: 'Desserts', itemCount: 12 },
-  { id: 'sidedish', name: 'Side Dish', itemCount: 12 },
-  { id: 'appetizer', name: 'Appetizer', itemCount: 12 },
-  { id: 'beverages', name: 'Beverages', itemCount: 12 }
-]
+export const CATEGORIES: Partial<Category>[] = [
+  {
+    id: "breakfast",
+    name: "Petit-déjeuner",
+    description: "Petit-déjeuner",
+    image: "/images/breakfast.jpg",
+    isActive: true,
+  },
+  {
+    id: "lunch",
+    name: "Déjeuner",
+    description: "Déjeuner",
+    image: "/images/lunch.jpg",
+    isActive: true,
+  },
+  {
+    id: "dinner",
+    name: "Dîner",
+    description: "Dîner",
+    image: "/images/dinner.jpg",
+    isActive: true,
+  },
+  {
+    id: "soup",
+    name: "Soupes",
+    description: "Soupes",
+    image: "/images/soup.jpg",
+    isActive: true,
+  },
+  {
+    id: "desserts",
+    name: "Desserts",
+    description: "Desserts",
+    image: "/images/desserts.jpg",
+    isActive: true,
+  },
+  {
+    id: "sidedish",
+    name: "Accompagnements",
+    description: "Accompagnements",
+    image: "/images/sidedish.jpg",
+    isActive: true,
+  },
+  {
+    id: "appetizer",
+    name: "Entrées",
+    description: "Entrées",
+    image: "/images/appetizer.jpg",
+    isActive: true,
+  },
+  {
+    id: "beverages",
+    name: "Boissons",
+    description: "Boissons",
+    image: "/images/beverages.jpg",
+    isActive: true,
+  },
+];
 
 export const PAYMENT_METHODS: PaymentMethod[] = [
-  { id: 'card', name: 'Credit Card', icon: 'credit-card', isActive: true, type: 'card' },
-  { id: 'paylater', name: 'Paylater', icon: 'clock', isActive: true, type: 'digital' },
-  { id: 'cash', name: 'Cash Payout', icon: 'banknote', isActive: true, type: 'cash' }
-] 
+  {
+    id: "card",
+    name: "Carte de crédit",
+    icon: "credit-card",
+    isSelected: false,
+  },
+  { id: "paylater", name: "Payer plus tard", icon: "clock", isSelected: false },
+  { id: "cash", name: "Espèces", icon: "banknote", isSelected: true },
+];

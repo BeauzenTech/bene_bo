@@ -69,7 +69,7 @@ const cart: Module<CartState, RootState> = {
         state.cart.push({
           ...item,
           quantity: item.quantity || 1,
-          totalPrice,
+          totalPrice: totalPrice,
           localProductId: generateLocalProductId(item)
         })
       }
@@ -102,6 +102,14 @@ const cart: Module<CartState, RootState> = {
       }
     },
     
+    UPDATE_QUANTITY(state, { itemId, quantity, totalPrice }: { itemId: string; quantity: number; totalPrice: number }) {
+      const item = state.cart.find(item => item.localProductId === itemId)
+      if (item) {
+        item.quantity = Math.max(1, quantity)
+        item.totalPrice = totalPrice * item.quantity
+      }
+    },
+    
     UPDATE_ITEM_INGREDIENTS(state, { itemId, ingredients, totalPrice }: { itemId: string; ingredients: ItemIngredient[]; totalPrice: number }) {
       const item = state.cart.find(item => item.localProductId === itemId)
       if (item) {
@@ -126,13 +134,15 @@ const cart: Module<CartState, RootState> = {
 
       // Prix de base selon le type de livraison
       const basePrice = typeOfDelivery === 'delivery'
-        ? Number(item.selectedSize.priceLivraison)
-        : Number(item.selectedSize.price)
+        ? Number(item.selectedSize.priceLivraison) || Number(item.selectedSize.price) || 0
+        : Number(item.selectedSize.price) || 0
 
       // Coût des ingrédients ajoutés (non par défaut)
-      const ingredientsPrice = (item.Ingredients || []).reduce((total, ingredient) => {
+      // Support pour les deux formats : Ingredients (store) et ingredients (POS moderne)
+      const ingredients = (item as any).Ingredients || (item as any).ingredients || []
+      const ingredientsPrice = ingredients.reduce((total: number, ingredient: any) => {
         if (!ingredient.isDefault && ingredient.quantity > 0) {
-          return total + ingredient.extra_cost_price * ingredient.quantity
+          return total + (Number(ingredient.extra_cost_price) || 0) * ingredient.quantity
         }
         return total
       }, 0)
@@ -149,38 +159,60 @@ const cart: Module<CartState, RootState> = {
       return basePrice + ingredientsPrice + supplementsPrice
     },
     
-    addToCart({ commit, dispatch }, { item, typeOfDelivery }: { item: CartItem; typeOfDelivery?: string }) {
-      const totalPrice = dispatch('calculateItemTotalPrice', { item, typeOfDelivery })
+    async addToCart({ commit, dispatch }, { item, typeOfDelivery }: { item: CartItem; typeOfDelivery?: string }) {
+      // Si l'item a déjà un totalPrice calculé (comme dans le POS moderne), on l'utilise
+      let totalPrice = item.totalPrice
+      
+      if (!totalPrice || totalPrice === 0) {
+        totalPrice = await dispatch('calculateItemTotalPrice', { item, typeOfDelivery })
+      }
+      
+
+      
       commit('ADD_TO_CART', { item, totalPrice })
-      dispatch('loadFromCookies')
+      dispatch('saveToStorage')
     },
     
     removeFromCart({ commit, dispatch }, item: CartItem) {
       commit('REMOVE_FROM_CART', item)
-      dispatch('loadFromCookies')
+      dispatch('saveToStorage')
     },
     
     clearCart({ commit }) {
       commit('CLEAR_CART')
-      // Supprimer des cookies
-      if (typeof document !== 'undefined') {
-        document.cookie = 'cart=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/'
+      // Supprimer du stockage
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('cart')
       }
     },
     
-    incrementQuantity({ commit, dispatch, getters }, itemId: string) {
+    async incrementQuantity({ commit, dispatch, getters }, itemId: string) {
       const item = getters.getItemById(itemId)
       if (item) {
-        const totalPrice = dispatch('calculateItemTotalPrice', { item })
+        const totalPrice = await dispatch('calculateItemTotalPrice', { item })
         commit('INCREMENT_QUANTITY', { itemId, totalPrice })
+        dispatch('saveToStorage')
       }
     },
     
-    decrementQuantity({ commit, dispatch, getters }, itemId: string) {
+    async decrementQuantity({ commit, dispatch, getters }, itemId: string) {
       const item = getters.getItemById(itemId)
       if (item) {
-        const totalPrice = dispatch('calculateItemTotalPrice', { item })
+        const totalPrice = await dispatch('calculateItemTotalPrice', { item })
         commit('DECREMENT_QUANTITY', { itemId, totalPrice })
+        dispatch('saveToStorage')
+      }
+    },
+    
+    async updateQuantity({ commit, dispatch, getters }, { itemId, quantity }: { itemId: string; quantity: number }) {
+      const item = getters.getItemById(itemId)
+      if (item && quantity > 0) {
+        const totalPrice = await dispatch('calculateItemTotalPrice', { item })
+        commit('UPDATE_QUANTITY', { itemId, quantity, totalPrice })
+        dispatch('saveToStorage')
+      } else if (item && quantity <= 0) {
+        commit('REMOVE_FROM_CART', item)
+        dispatch('saveToStorage')
       }
     },
     
@@ -265,25 +297,40 @@ const cart: Module<CartState, RootState> = {
       }
     },
     
-    // Action pour charger depuis les cookies
-    loadFromCookies({ commit }) {
-      if (typeof document === 'undefined') return
+    // Action pour charger depuis le stockage local
+    loadFromStorage({ commit }) {
+      if (typeof localStorage === 'undefined') return
       
-      const value = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('cart='))
-        ?.split('=')[1]
+      const value = localStorage.getItem('cart')
       
       if (value) {
         try {
-          const parsed = JSON.parse(decodeURIComponent(value))
+          const parsed = JSON.parse(value)
           if (parsed.state && Array.isArray(parsed.state.cart)) {
             commit('SET_CART', parsed.state.cart)
             commit('SET_TOTAL', parsed.state.total || 0)
           }
         } catch (error) {
-          console.error('Erreur lors du chargement du panier depuis les cookies:', error)
+          console.error('Erreur lors du chargement du panier depuis le stockage local:', error)
         }
+      }
+    },
+    
+    // Action pour sauvegarder dans le stockage local
+    saveToStorage({ state }) {
+      if (typeof localStorage === 'undefined') return
+      
+      try {
+        const cartData = {
+          state: {
+            cart: state.cart,
+            total: state.total
+          }
+        }
+        const value = JSON.stringify(cartData)
+        localStorage.setItem('cart', value)
+      } catch (error) {
+        console.error('Erreur lors de la sauvegarde du panier dans le stockage local:', error)
       }
     }
   },

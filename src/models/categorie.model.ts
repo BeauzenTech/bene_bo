@@ -7,5 +7,6 @@ export interface CategorieModel {
     description: string;
     icone: string;
     isActive: boolean;
-    created_at: string
+    created_at: string;
+    ordered: number;
 }

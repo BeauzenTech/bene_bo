@@ -1,554 +1,819 @@
-<template>
+@<template>
   <div class="product-menu">
-    <!-- En-tête avec titre de la catégorie -->
-    <div class="menu-header">
-      <h2 class="menu-title">{{ getCategoryTitle(category) }} Menu</h2>
+    <!-- Loading state -->
+    <div v-if="isLoading" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Chargement des produits...</p>
     </div>
 
-    <!-- Grille des produits -->
-    <div class="product-grid">
-      <div 
-        v-for="product in filteredProducts" 
-        :key="product.id"
-        class="product-card"
-      >
-        <!-- Image du produit -->
+    <!-- Products grid -->
+    <div v-else class="products-grid">
+      <!-- Regular products -->
+      <div v-for="product in filteredProducts" :key="product.id" class="product-card">
+        <!-- Product image -->
         <div class="product-image">
-          <img :src="product.image" :alt="product.name" />
-          <div v-if="product.isPopular" class="popular-badge">
-            <i class="fas fa-fire"></i>
+          <img :src="getProductImage(product)" :alt="product.name" class="product-img" />
+          <!-- Gluten-free badge -->
+          <div v-if="product.type && product.type.toLowerCase().includes('gluten')" class="gluten-badge">
+            🌾
+            <span>Sans gluten</span>
           </div>
         </div>
 
-        <!-- Informations du produit -->
+        <!-- Product info -->
         <div class="product-info">
           <h3 class="product-name">{{ product.name }}</h3>
-          <p class="product-description">{{ product.description }}</p>
-          
-          <!-- Prix et contrôles -->
-          <div class="product-footer">
-            <div class="product-price">
-              <span class="currency">$</span>
-              <span class="price">{{ getBasePrice(product) }}</span>
-            </div>
-            
-            <!-- Contrôles de quantité -->
-            <div class="quantity-controls">
-              <button 
-                class="quantity-btn decrease"
-                @click="decreaseQuantity(product.id)"
-                :disabled="getProductQuantity(product.id) === 0"
-              >
-                <i class="fas fa-minus"></i>
+          <div v-if="product.description" class="product-description">
+            {{ htmlToText(product.description) }}
+          </div>
+
+          <!-- Customize button for special products -->
+          <div v-if="shouldShowCustomizeButton(product)" class="customize-section">
+            <button @click="handleCustomize(product)" class="customize-btn">
+              ⚙️
+              <span>{{ getCustomizeButtonText(product) }}</span>
+            </button>
+          </div>
+
+          <!-- Debug temporaire -->
+          <!--  <div v-if="getSpecializedCategoryType(product) === 'salad'"
+            style="font-size: 9px; color: blue; margin: 2px 0;">
+            🥗 Salade détectée - Exception: {{ (product as any).exception }}
+          </div> -->
+
+
+
+          <!-- Size selection -->
+          <div v-if="hasMultipleSizes(product)" class="size-selection">
+            <div class="size-grid">
+              <button v-for="size in getSortedProductSizes(product)" :key="size.id"
+                @click="handleSizeSelection(product, size)" :class="[
+                  'size-btn',
+                  { 'selected': getSelectedSize(product)?.id === size.id }
+                ]">
+                <span class="size-name">{{ size.size }}</span>
               </button>
-              
-              <span class="quantity">{{ getProductQuantity(product.id) }}</span>
-              
-              <button 
-                class="quantity-btn increase"
-                @click="increaseQuantity(product)"
-              >
-                <i class="fas fa-plus"></i>
+            </div>
+          </div>
+
+          <!-- Price and add to cart -->
+          <div class="product-actions">
+            <div class="price-section">
+              <span class="price">{{ formatPrice(getCurrentPrice(product)) }}</span>
+            </div>
+            <div class="action-buttons">
+              <!-- Add to cart button -->
+              <button @click="handleAddToCart(product)" class="add-to-cart-btn">
+                🛒
+                <span>Ajouter</span>
               </button>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Loader ou message vide -->
-    <div v-if="filteredProducts.length === 0" class="empty-state">
-      <div class="empty-icon">
-        <i class="fas fa-search"></i>
+      <!-- Empty state -->
+      <div v-if="filteredProducts.length === 0 && !isPizzaCategory" class="empty-state">
+        <span class="empty-icon">🔍</span>
+        <h3>Aucun produit trouvé</h3>
+        <p>Essayez de changer votre recherche ou la catégorie sélectionnée.</p>
       </div>
-      <h3>Aucun produit trouvé</h3>
-      <p>Essayez de changer de catégorie ou de recherche</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import type { Product, AddToCartEvent, ProductSize } from '../types'
+import { ref, computed, watch } from 'vue'
+import type { Product, ProductSize, AddToCartEvent, CartIngredient, CartSupplement } from '../types'
+import type { ProductModel } from '@/models/product.model'
+import type { ProductSizesModel } from '@/models/productSizes.model'
+import htmlToText from '@/utils/html-to-text';
 
-interface Props {
+// Props
+const props = defineProps<{
   category: string
   searchQuery: string
-}
-
-const props = defineProps<Props>()
-
-const emit = defineEmits<{
-  'add-to-cart': [event: AddToCartEvent]
+  products: ProductModel[]
+  isLoading: boolean
 }>()
 
-// État local
-const products = ref<Product[]>([])
-const productQuantities = ref<Record<string, number>>({})
+// Events
+const emit = defineEmits<{
+  'add-to-cart': [event: AddToCartEvent]
+  'customize-product': [product: Product]
+}>()
 
-// Données mockées pour la démo (en production, ceci viendrait d'une API)
-const mockProducts: Product[] = [
-  {
-    id: '1',
-    name: 'Pasta Bolognese',
-    description: 'Delicious beef lasagna with double chili Delicious beef',
-    image: '/images/pasta-bolognese.jpg',
-    category: 'lunch',
-    sizes: [
-      { id: 's1', name: 'Small', price: '45.5', priceLivraison: '47.5' },
-      { id: 'm1', name: 'Medium', price: '50.5', priceLivraison: '52.5' },
-      { id: 'l1', name: 'Large', price: '55.5', priceLivraison: '57.5' }
-    ],
-    ingredients: [],
-    supplements: [],
-    isAvailable: true,
-    isPopular: true
-  },
-  {
-    id: '2',
-    name: 'Spicy Fried Chicken',
-    description: 'Delicious beef lasagna with double chili Delicious beef',
-    image: '/images/spicy-chicken.jpg',
-    category: 'lunch',
-    sizes: [
-      { id: 's2', name: 'Small', price: '40.7', priceLivraison: '42.7' },
-      { id: 'm2', name: 'Medium', price: '45.7', priceLivraison: '47.7' },
-      { id: 'l2', name: 'Large', price: '50.7', priceLivraison: '52.7' }
-    ],
-    ingredients: [],
-    supplements: [],
-    isAvailable: true
-  },
-  {
-    id: '3',
-    name: 'Grilled Steak',
-    description: 'Delicious beef lasagna with double chili Delicious beef',
-    image: '/images/grilled-steak.jpg',
-    category: 'lunch',
-    sizes: [
-      { id: 's3', name: 'Small', price: '75.0', priceLivraison: '77.0' },
-      { id: 'm3', name: 'Medium', price: '80.0', priceLivraison: '82.0' },
-      { id: 'l3', name: 'Large', price: '85.0', priceLivraison: '87.0' }
-    ],
-    ingredients: [],
-    supplements: [],
-    isAvailable: true
-  },
-  {
-    id: '4',
-    name: 'Fish And Chips',
-    description: 'Delicious beef lasagna with double chili Delicious beef',
-    image: '/images/fish-chips.jpg',
-    category: 'lunch',
-    sizes: [
-      { id: 's4', name: 'Small', price: '85.4', priceLivraison: '87.4' },
-      { id: 'm4', name: 'Medium', price: '90.4', priceLivraison: '92.4' },
-      { id: 'l4', name: 'Large', price: '95.4', priceLivraison: '97.4' }
-    ],
-    ingredients: [],
-    supplements: [],
-    isAvailable: true
-  },
-  {
-    id: '5',
-    name: 'Beef Bourguignon',
-    description: 'Delicious beef lasagna with double chili Delicious beef',
-    image: '/images/beef-bourguignon.jpg',
-    category: 'lunch',
-    sizes: [
-      { id: 's5', name: 'Small', price: '70.5', priceLivraison: '72.5' },
-      { id: 'm5', name: 'Medium', price: '75.5', priceLivraison: '77.5' },
-      { id: 'l5', name: 'Large', price: '80.5', priceLivraison: '82.5' }
-    ],
-    ingredients: [],
-    supplements: [],
-    isAvailable: true
-  },
-  {
-    id: '6',
-    name: 'Spaghetti Carbonara',
-    description: 'Delicious beef lasagna with double chili Delicious beef',
-    image: '/images/spaghetti-carbonara.jpg',
-    category: 'lunch',
-    sizes: [
-      { id: 's6', name: 'Small', price: '30.3', priceLivraison: '32.3' },
-      { id: 'm6', name: 'Medium', price: '35.3', priceLivraison: '37.3' },
-      { id: 'l6', name: 'Large', price: '40.3', priceLivraison: '42.3' }
-    ],
-    ingredients: [],
-    supplements: [],
-    isAvailable: true
-  },
-  {
-    id: '7',
-    name: 'Ratatouille',
-    description: 'Delicious beef lasagna with double chili Delicious beef',
-    image: '/images/ratatouille.jpg',
-    category: 'lunch',
-    sizes: [
-      { id: 's7', name: 'Small', price: '21.7', priceLivraison: '23.7' },
-      { id: 'm7', name: 'Medium', price: '26.7', priceLivraison: '28.7' },
-      { id: 'l7', name: 'Large', price: '31.7', priceLivraison: '33.7' }
-    ],
-    ingredients: [],
-    supplements: [],
-    isAvailable: true
-  },
-  {
-    id: '8',
-    name: 'Kimchi Jjigae',
-    description: 'Delicious beef lasagna with double chili Delicious beef',
-    image: '/images/kimchi-jjigae.jpg',
-    category: 'lunch',
-    sizes: [
-      { id: 's8', name: 'Small', price: '40.7', priceLivraison: '42.7' },
-      { id: 'm8', name: 'Medium', price: '45.7', priceLivraison: '47.7' },
-      { id: 'l8', name: 'Large', price: '50.7', priceLivraison: '52.7' }
-    ],
-    ingredients: [],
-    supplements: [],
-    isAvailable: true
-  },
-  {
-    id: '9',
-    name: 'Tofu Scramble',
-    description: 'Delicious beef lasagna with double chili Delicious beef',
-    image: '/images/tofu-scramble.jpg',
-    category: 'lunch',
-    sizes: [
-      { id: 's9', name: 'Small', price: '80.6', priceLivraison: '82.6' },
-      { id: 'm9', name: 'Medium', price: '85.6', priceLivraison: '87.6' },
-      { id: 'l9', name: 'Large', price: '90.6', priceLivraison: '92.6' }
-    ],
-    ingredients: [],
-    supplements: [],
-    isAvailable: true
-  }
-]
+// État local pour les tailles sélectionnées par produit
+const selectedSizes = ref<{ [productId: string]: ProductSize }>({})
+
+// IDs des catégories spécialisées
+const SPECIALIZED_CATEGORY_IDS = {
+  PASTA: "0f142654-3109-4dcb-89d3-6b89b8eca35e",
+  SALAD: "aa5474aa-578e-4d0a-81b1-de15166a8766",
+  PIZZA: "fddfda10-5cac-428b-9cb1-d6237258348c",
+} as const
+
+const CATS_IDS_DONT_SHOW_SIZE: string[] = [
+  // L'ID de la catégorie Pizza était ici, empêchant l'affichage des tailles.
+  // Supprimé pour correspondre à la logique du site web.
+  // Ajoutez d'autres catégories si nécessaire
+];
 
 // Computed
 const filteredProducts = computed(() => {
-  let filtered = products.value.filter(product => product.category === props.category)
-  
-  if (props.searchQuery) {
+  let filtered = props.products || []
+
+  // Filtrer par catégorie
+  if (props.category) {
     filtered = filtered.filter(product =>
-      product.name.toLowerCase().includes(props.searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(props.searchQuery.toLowerCase())
+      product.categorieID?.id === props.category
     )
   }
-  
+
+  // Filtrer par recherche
+  if (props.searchQuery.trim()) {
+    const query = props.searchQuery.toLowerCase().trim()
+    filtered = filtered.filter(product =>
+      product.name.toLowerCase().includes(query) ||
+      (product.description && product.description.toLowerCase().includes(query))
+    )
+  }
+
   return filtered
 })
 
-// Méthodes
-const getCategoryTitle = (category: string): string => {
-  const titles: Record<string, string> = {
-    breakfast: 'Breakfast',
-    lunch: 'Lunch',
-    dinner: 'Dinner',
-    soup: 'Soup',
-    desserts: 'Desserts',
-    sidedish: 'Side Dish',
-    appetizer: 'Appetizer',
-    beverages: 'Beverages'
-  }
-  return titles[category] || 'Menu'
-}
-
-const getBasePrice = (product: Product): string => {
-  if (product.sizes.length > 0) {
-    return product.sizes[0].price
-  }
-  return '0.00'
-}
-
-const getProductQuantity = (productId: string): number => {
-  return productQuantities.value[productId] || 0
-}
-
-const increaseQuantity = (product: Product) => {
-  const currentQuantity = getProductQuantity(product.id)
-  productQuantities.value[product.id] = currentQuantity + 1
-  
-  // Si c'est la première fois qu'on ajoute ce produit, l'ajouter au panier
-  if (currentQuantity === 0) {
-    addToCart(product)
-  }
-}
-
-const decreaseQuantity = (productId: string) => {
-  const currentQuantity = getProductQuantity(productId)
-  if (currentQuantity > 0) {
-    productQuantities.value[productId] = currentQuantity - 1
-  }
-}
-
-const addToCart = (product: Product) => {
-  // Pour la simplicité, on utilise la première taille disponible
-  const defaultSize = product.sizes[0]
-  
-  const event: AddToCartEvent = {
-    product,
-    size: defaultSize,
-    quantity: 1,
-    ingredients: [],
-    supplements: [],
-    notes: ''
-  }
-  
-  // Émettre l'événement vers le parent
-  emit('add-to-cart', event)
-}
-
-// Lifecycle
-onMounted(() => {
-  products.value = mockProducts
+const isPizzaCategory = computed(() => {
+  return props.category === SPECIALIZED_CATEGORY_IDS.PIZZA ||
+    props.searchQuery.toLowerCase().includes('pizza')
 })
+
+// Tailles de pizza disponibles
+const classicPizzaSizes = ref([
+  { id: 'classic-small', size: 'Petite', price: '14.00' },
+  { id: 'classic-medium', size: 'Normale', price: '16.00' },
+  { id: 'classic-large', size: 'Grande', price: '28.00' }
+])
+
+
+const glutenFreePizzaSizes = ref([
+  { id: 'gluten-free-medium', size: 'Normale', price: '18.00' }
+])
+
+// Fonctions de détection du type de produit
+const getSpecializedCategoryType = (product: ProductModel): 'pasta' | 'salad' | 'pizza' | 'none' => {
+  const categoryId = product.categorieID?.id
+
+  if (!categoryId) return 'none'
+
+  // CRUCIAL : Vérifier la clé exception comme dans le site web
+  if ((product as any).exception) return 'none'
+
+  switch (categoryId) {
+    case SPECIALIZED_CATEGORY_IDS.PASTA:
+      return 'pasta'
+    case SPECIALIZED_CATEGORY_IDS.SALAD:
+      return 'salad'
+    case SPECIALIZED_CATEGORY_IDS.PIZZA:
+      return 'pizza'
+    default:
+      // Vérification par type de produit
+      if (product.type === 'Pizza') return 'pizza'
+      return 'none'
+  }
+}
+
+const requiresSpecializedModal = (product: ProductModel): boolean => {
+  return getSpecializedCategoryType(product) !== 'none'
+}
+
+const requiresCustomization = (product: ProductModel): boolean => {
+  return requiresSpecializedModal(product) ||
+    (product.additionnal && product.additionnal.length > 0) ||
+    product.type === 'Pizza'
+}
+
+const shouldShowCustomizeButton = (product: ProductModel): boolean => {
+  return product.categorieID?.id === SPECIALIZED_CATEGORY_IDS.PIZZA;
+}
+
+const getCustomizeButtonText = (product: ProductModel): string => {
+  const categoryType = getSpecializedCategoryType(product)
+
+  switch (categoryType) {
+    case 'pizza':
+      return 'Personnaliser'
+    case 'pasta':
+      return 'Ajouter parmesan'
+    case 'salad':
+      return 'Ajouter sauces'
+    default:
+      return 'Personnaliser'
+  }
+}
+
+const getSortedProductSizes = (product: ProductModel): ProductSizesModel[] => {
+  if (!product.productSizes) return [];
+
+  return [...product.productSizes].sort((a, b) => {
+    const order = ["Petite", "Normale", "Grande"];
+    const secondOrder = ["33cl", "0.5l", "1.5l"];
+    const thirdOrder = ["24cm", "33cm", "40cm"];
+
+    const compareInOrder = (orderArr: string[]) => {
+      const aIndex = orderArr.indexOf(a.size);
+      const bIndex = orderArr.indexOf(b.size);
+
+      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+      return 0;
+    };
+
+    return compareInOrder(order) || compareInOrder(secondOrder) || compareInOrder(thirdOrder) || a.size.localeCompare(b.size);
+  });
+};
+
+// Fonctions utilitaires
+const getProductImage = (product: ProductModel): string => {
+  return product.image_urls?.[0] || '/imgs/products/default-product.png'
+}
+
+
+const formatPrice = (price: number): string => {
+  return `${price.toFixed(2)}€`
+}
+
+const hasMultipleSizes = (product: ProductModel): boolean => {
+  return product.productSizes && product.productSizes.length > 1 &&
+    !CATS_IDS_DONT_SHOW_SIZE.includes(product.categorieID?.id)
+}
+
+const getSelectedSize = (product: ProductModel): ProductSize | null => {
+  const selected = selectedSizes.value[product.id]
+  if (selected) return selected
+
+  // Taille par défaut
+  if (product.productSizes && product.productSizes.length > 0) {
+    const defaultSize = product.productSizes.find(s => s.size === 'Normale') || product.productSizes[0]
+    return transformProductSize(defaultSize)
+  }
+
+  return null
+}
+
+const getCurrentPrice = (product: ProductModel): number => {
+  const selectedSize = getSelectedSize(product)
+  if (selectedSize) {
+    return parseFloat(selectedSize.price) || 0
+  }
+
+  // Prix par défaut si pas de taille
+  if (product.productSizes && product.productSizes.length > 0) {
+    return parseFloat(product.productSizes[0].price) || 0
+  }
+
+  return 0
+}
+
+const transformProductSize = (size: ProductSizesModel): ProductSize => {
+  return {
+    id: size.id || '',
+    name: size.size,
+    size: size.size,
+    price: size.price,
+    priceLivraison: size.priceLivraison || size.price,
+    created_at: new Date().toISOString()
+  }
+}
+
+const transformProduct = (product: ProductModel): Product => {
+  return {
+    id: product.id,
+    name: product.name,
+    description: product.description,
+    image: getProductImage(product),
+    category: product.categorieID?.id || '',
+    sizes: product.productSizes?.map(transformProductSize) || [],
+    ingredients: product.Ingredients?.map(ing => ({
+      id: ing.id,
+      name: ing.name,
+      price: parseFloat(ing.extra_cost_price?.toString() || '0'),
+      isDefault: ing.isDefault,
+      isAvailable: ing.isAvailable,
+      image: ing.imageUrl
+    })) || [],
+    supplements: [],
+    isAvailable: product.isAvailable,
+    isPopular: product.isVedette,
+    type: product.type,
+    withoutGluten: product.isSelected // Assuming this field represents gluten-free
+  }
+}
+
+// Gestionnaires d'événements
+const handleSizeSelection = (product: ProductModel, size: ProductSizesModel) => {
+  selectedSizes.value[product.id] = transformProductSize(size)
+}
+
+const handleCustomize = (product: ProductModel) => {
+  const transformedProduct = transformProduct(product)
+  emit('customize-product', transformedProduct)
+}
+
+const handleQuickAdd = (product: ProductModel) => {
+  const transformedProduct = transformProduct(product)
+  const selectedSize = getSelectedSize(product)
+
+  if (selectedSize) {
+    // Créer l'événement AddToCartEvent
+    const addToCartEvent: AddToCartEvent = {
+      product: transformedProduct,
+      size: selectedSize,
+      quantity: 1,
+      ingredients: transformedProduct.ingredients.filter(ing => ing.isDefault).map(ing => ({
+        id: ing.id,
+        name: ing.name,
+        extra_cost_price: ing.price,
+        quantity: 1,
+        isDefault: ing.isDefault
+      })) as CartIngredient[],
+      supplements: [] as CartSupplement[],
+      notes: ''
+    }
+
+    emit('add-to-cart', addToCartEvent)
+  }
+}
+
+const handleAddToCart = (product: ProductModel) => {
+  const specializedType = getSpecializedCategoryType(product);
+  const isGlutenFreePizza = product.name.toLowerCase().includes('gluten');
+
+  if (specializedType === 'pizza' && !isGlutenFreePizza) {
+    handleCustomize(product);
+  } else if (specializedType === 'pasta' || specializedType === 'salad') {
+    handleCustomize(product);
+  } else {
+    handleQuickAdd(product);
+  }
+}
+
+const getSizeInCm = (size: string): string => {
+  const sizeMap: { [key: string]: string } = {
+    'Petite': '24cm',
+    'Normale': '33cm',
+    'Grande': '40cm'
+  }
+  return sizeMap[size] || '33cm'
+}
+
+// Initialiser les tailles sélectionnées pour chaque produit
+watch(() => props.products, (newProducts) => {
+  if (newProducts) {
+    newProducts.forEach(product => {
+      if (!selectedSizes.value[product.id] && product.productSizes && product.productSizes.length > 0) {
+        const defaultSize = product.productSizes.find(s => s.size === 'Normale') || product.productSizes[0]
+        selectedSizes.value[product.id] = transformProductSize(defaultSize)
+      }
+    })
+  }
+}, { immediate: true })
 </script>
 
 <style lang="scss" scoped>
 .product-menu {
-  .menu-header {
-    margin-bottom: 2rem;
-    
-    .menu-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: #1e293b;
-      margin: 0;
-    }
+  height: 100%;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  gap: 1rem;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #388D35;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
   }
 
-  .product-grid {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+}
+
+.pizza-creation-section {
+  grid-column: 1 / -1;
+  /* Span across all columns */
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  .pizza-creation-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  .pizza-types-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
   }
 
-  .product-card {
+  .pizza-creation-card {
     background: white;
-    border-radius: 16px;
+    border-radius: 12px;
     overflow: hidden;
-    border: 1px solid #e2e8f0;
-    transition: all 0.2s ease;
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
 
     &:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-      border-color: #3b82f6;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      transform: translateY(-5px);
     }
-  }
 
-  .product-image {
-    position: relative;
-    height: 200px;
-    overflow: hidden;
-
-    img {
+    .pizza-creation-image {
       width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.3s ease;
-    }
-
-    .popular-badge {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: #ef4444;
-      color: white;
-      padding: 6px 8px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 600;
+      height: 180px;
+      overflow: hidden;
       display: flex;
       align-items: center;
-      gap: 4px;
+      justify-content: center;
+      background-color: #f0f9eb;
+
+      .pizza-creation-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .gluten-free-badge-creation {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: #22c55e;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+    }
+
+    .pizza-creation-info {
+      padding: 1rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      .pizza-creation-name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+      }
+
+      .pizza-creation-description {
+        color: #64748b;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        line-height: 1.4;
+      }
+
+      .pizza-size-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .pizza-size-btn {
+        padding: 0.5rem 1rem;
+        background: #388D35;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: #2d7a2a;
+        }
+      }
     }
   }
+}
 
-  .product-card:hover .product-image img {
+.product-card {
+  background: white;
+  border-radius: 10px;
+  padding: 0.75rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+  }
+}
+
+.product-image {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  margin-bottom: 0.5rem;
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .product-img {
+    width: 80%;
+    height: 80%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover .product-img {
     transform: scale(1.05);
   }
 
-  .product-info {
-    padding: 1.5rem;
+  .gluten-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #22c55e;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+}
 
-    .product-name {
-      font-size: 18px;
-      font-weight: 600;
-      color: #1e293b;
-      margin: 0 0 8px 0;
-      line-height: 1.3;
+.product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.product-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: #1e293b;
+  line-height: 1.3;
+}
+
+.product-description {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin: 0;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.customize-section {
+  margin: 0.25rem 0;
+
+  .customize-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.4rem 0.6rem;
+    background: transparent;
+    border: 1px solid #388D35;
+    border-radius: 6px;
+    color: #388D35;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    justify-content: center;
+
+    &:hover {
+      background: #388D35;
+      color: white;
+    }
+  }
+}
+
+.size-selection {
+  .size-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .size-btn {
+    padding: 0.5rem 0.25rem;
+    border: 1px solid #d1d5db;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.75rem;
+    text-align: center;
+
+    &:hover {
+      border-color: #388D35;
+      color: #388D35;
     }
 
-    .product-description {
-      font-size: 14px;
-      color: #64748b;
-      margin: 0 0 1.5rem 0;
-      line-height: 1.4;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+    &.selected {
+      border-color: #388D35;
+      background: #388D35;
+      color: white;
     }
 
-    .product-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .size-name {
+      font-weight: 500;
+    }
+  }
+}
 
-      .product-price {
-        display: flex;
-        align-items: baseline;
-        gap: 2px;
+.product-actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
-        .currency {
-          font-size: 16px;
-          font-weight: 600;
-          color: #3b82f6;
-        }
+.price-section {
+  text-align: center;
 
-        .price {
-          font-size: 20px;
-          font-weight: 700;
-          color: #1e293b;
-        }
-      }
+  .price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #388D35;
+  }
+}
 
-      .quantity-controls {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        background: #f8fafc;
-        border-radius: 12px;
-        padding: 8px;
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 
-        .quantity-btn {
-          width: 32px;
-          height: 32px;
-          border: none;
-          border-radius: 8px;
-          background: white;
-          color: #64748b;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          font-size: 12px;
+  .quick-add-btn {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #388D35;
+    background: white;
+    color: #388D35;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
 
-          &:hover:not(:disabled) {
-            background: #3b82f6;
-            color: white;
-            transform: scale(1.1);
-          }
+    &:hover:not(:disabled) {
+      background: #388D35;
+      color: white;
+    }
 
-          &:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-          }
-
-          &.increase {
-            background: #3b82f6;
-            color: white;
-
-            &:hover {
-              background: #2563eb;
-            }
-          }
-        }
-
-        .quantity {
-          font-size: 16px;
-          font-weight: 600;
-          color: #1e293b;
-          min-width: 20px;
-          text-align: center;
-        }
-      }
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
 
-  .empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: #64748b;
+  .add-to-cart-btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: #388D35;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    font-size: 14px;
 
-    .empty-icon {
-      font-size: 48px;
-      margin-bottom: 1rem;
+    &:hover:not(:disabled) {
+      background: #2d7a2a;
+    }
+
+    &:disabled {
       opacity: 0.5;
+      cursor: not-allowed;
+      background: #9ca3af;
     }
+  }
+}
 
-    h3 {
-      font-size: 20px;
-      margin: 0 0 8px 0;
-      color: #1e293b;
-    }
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #64748b;
 
-    p {
-      margin: 0;
-      font-size: 14px;
-    }
+  i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    margin: 0 0 0.5rem 0;
+    color: #374151;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.875rem;
   }
 }
 
 @media (max-width: 768px) {
-  .product-menu {
-    .product-grid {
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1rem;
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+
+  .pizza-creation-section {
+    .pizza-types-grid {
+      grid-template-columns: 1fr;
     }
+  }
 
-    .product-card {
-      .product-image {
-        height: 160px;
-      }
+  .product-card {
+    padding: 0.75rem;
+  }
 
-      .product-info {
-        padding: 1rem;
-
-        .product-name {
-          font-size: 16px;
-        }
-
-        .product-description {
-          font-size: 13px;
-        }
-
-        .product-footer {
-          .product-price {
-            .price {
-              font-size: 18px;
-            }
-          }
-
-          .quantity-controls {
-            gap: 8px;
-            padding: 6px;
-
-            .quantity-btn {
-              width: 28px;
-              height: 28px;
-            }
-
-            .quantity {
-              font-size: 14px;
-            }
-          }
-        }
-      }
-    }
+  .product-image {
+    height: 150px;
   }
 }
 
 @media (max-width: 480px) {
-  .product-menu {
-    .product-grid {
-      grid-template-columns: 1fr;
-    }
+  .products-grid {
+    grid-template-columns: 1fr;
   }
 }
-</style> 
+
+.empty-state {
+  .empty-icon {
+    font-size: 3rem;
+    display: block;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+}
+</style>

@@ -8,29 +8,21 @@ interface PersistableModule {
   }
 }
 
-// Utilitaires pour la gestion des cookies
-const cookieStorage = {
+// Utilitaires pour la gestion du stockage
+const storage = {
   getItem: (name: string): string | null => {
-    if (typeof document === 'undefined') return null
-    const value = document.cookie
-      .split('; ')
-      .find((row) => row.startsWith(`${name}=`))
-      ?.split('=')[1]
-    return value ? decodeURIComponent(value) : null
+    if (typeof localStorage === 'undefined') return null
+    return localStorage.getItem(name)
   },
-  
+
   setItem: (name: string, value: string): void => {
-    if (typeof document === 'undefined') return
-    const expires = new Date()
-    expires.setTime(expires.getTime() + 7 * 24 * 60 * 60 * 1000) // 1 semaine
-    document.cookie = `${name}=${encodeURIComponent(
-      value
-    )}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`
+    if (typeof localStorage === 'undefined') return
+    localStorage.setItem(name, value)
   },
-  
+
   removeItem: (name: string): void => {
-    if (typeof document === 'undefined') return
-    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`
+    if (typeof localStorage === 'undefined') return
+    localStorage.removeItem(name)
   }
 }
 
@@ -46,8 +38,8 @@ const persistenceConfig = {
   }
 }
 
-export const cookiePersistencePlugin = (store: Store<any>) => {
-  // Charger les données initiales depuis les cookies
+export const persistencePlugin = (store: Store<any>) => {
+  // Charger les données initiales depuis le stockage
   store.subscribe((mutation, state) => {
     // Sauvegarder automatiquement certains modules lors des mutations
     if (mutation.type.startsWith('cart/')) {
@@ -58,9 +50,9 @@ export const cookiePersistencePlugin = (store: Store<any>) => {
           total: cartState.total
         }
       }
-      cookieStorage.setItem('cart', JSON.stringify(dataToSave))
+      storage.setItem('cart', JSON.stringify(dataToSave))
     }
-    
+
     if (mutation.type.startsWith('features/')) {
       const featuresState = state.features
       const dataToSave = {
@@ -68,7 +60,7 @@ export const cookiePersistencePlugin = (store: Store<any>) => {
           selectedFeatures: featuresState.selectedFeatures
         }
       }
-      cookieStorage.setItem('features-store', JSON.stringify(dataToSave))
+      storage.setItem('features-store', JSON.stringify(dataToSave))
     }
   })
 
@@ -77,8 +69,8 @@ export const cookiePersistencePlugin = (store: Store<any>) => {
     // Attendre que le DOM soit prêt
     setTimeout(() => {
       // Charger les données pour chaque module qui le supporte
-      store.dispatch('cart/loadFromCookies').catch(console.error)
-      store.dispatch('features/loadFromCookies').catch(console.error)
+      store.dispatch('cart/loadFromStorage').catch(console.error)
+      store.dispatch('features/loadFromStorage').catch(console.error)
     }, 100)
   }
 }
@@ -102,7 +94,7 @@ export const createPersistencePlugin = (config: Record<string, any>) => {
             }
           })
           
-          cookieStorage.setItem(moduleConfig.key, JSON.stringify(dataToSave))
+          storage.setItem(moduleConfig.key, JSON.stringify(dataToSave))
         }
       })
     })
@@ -111,11 +103,11 @@ export const createPersistencePlugin = (config: Record<string, any>) => {
     if (typeof window !== 'undefined') {
       setTimeout(() => {
         Object.keys(config).forEach(moduleName => {
-          store.dispatch(`${moduleName}/loadFromCookies`).catch(console.error)
+          store.dispatch(`${moduleName}/loadFromStorage`).catch(console.error)
         })
       }, 100)
     }
   }
 }
 
-export { cookieStorage } 
+export { storage } 

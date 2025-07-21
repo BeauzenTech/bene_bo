@@ -45,23 +45,20 @@ const features: Module<FeaturesState, RootState> = {
       commit('CLEAR_FEATURES')
     },
     
-    // Action pour charger depuis les cookies
-    loadFromCookies({ commit }) {
-      if (typeof document === 'undefined') return
+    // Action pour charger depuis le stockage local
+    loadFromStorage({ commit }) {
+      if (typeof localStorage === 'undefined') return
       
-      const value = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('features-store='))
-        ?.split('=')[1]
+      const value = localStorage.getItem('features-store')
       
       if (value) {
         try {
-          const parsed = JSON.parse(decodeURIComponent(value))
+          const parsed = JSON.parse(value)
           if (parsed.state && Array.isArray(parsed.state.selectedFeatures)) {
             commit('SET_SELECTED_FEATURES', parsed.state.selectedFeatures)
           }
         } catch (error) {
-          console.error('Erreur lors du chargement des features depuis les cookies:', error)
+          console.error('Erreur lors du chargement des features depuis le stockage local:', error)
         }
       }
     }

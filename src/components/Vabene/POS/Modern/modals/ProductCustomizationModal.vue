@@ -1,82 +1,134 @@
 <template>
-  <div class="modal-overlay" @click="$emit('close')">
-    <div class="modal-content" @click.stop>
+  <div v-if="isOpen" class="modal-overlay" @click="closeModal">
+    <div class="modal-container" @click.stop>
+      <!-- En-tête de la modale -->
       <div class="modal-header">
-        <h2 class="modal-title">Personnaliser votre commande</h2>
-        <button class="close-btn" @click="$emit('close')">
+        <h2 class="modal-title">Personnaliser votre produit</h2>
+        <button class="close-btn" @click="closeModal">
           <i class="fas fa-times"></i>
         </button>
       </div>
 
-      <div class="modal-body">
-        <div class="product-info" v-if="product">
+      <!-- Contenu principal -->
+      <div class="modal-content">
+        <!-- Image et informations du produit -->
+        <div class="product-section">
           <div class="product-image">
-            <img :src="product.image" :alt="product.name" />
+            <img :src="product?.image || '/images/default-product.jpg'" :alt="product?.name" />
           </div>
-          <div class="product-details">
-            <h3 class="product-name">{{ product.name }}</h3>
-            <p class="product-description">{{ product.description }}</p>
+
+          <div class="product-info">
+            <h3 class="product-name">{{ product?.name }}</h3>
+            <p v-if="product?.description" class="product-description">{{ product.description }}</p>
+
+            <!-- Sélection de taille -->
+            <div v-if="product?.sizes && product.sizes.length > 1" class="size-selection">
+              <h4 class="selection-title">Choisir la taille</h4>
+              <div class="size-options">
+                <button v-for="size in product.sizes" :key="size.id"
+                  :class="['size-btn', { active: selectedSize?.id === size.id }]" @click="selectSize(size)">
+                  <span class="size-name">{{ size.name }}</span>
+                  <span class="size-price">{{ formatPrice(size.price) }}€</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Sélection de taille -->
-        <div class="size-selection" v-if="product?.sizes.length">
-          <h4 class="section-title">Choisir la taille</h4>
-          <div class="size-options">
-            <button
-              v-for="size in product.sizes"
-              :key="size.id"
-              :class="['size-option', { active: selectedSize?.id === size.id }]"
-              @click="selectedSize = size"
-            >
-              <span class="size-name">{{ size.name }}</span>
-              <span class="size-price">${{ size.price }}</span>
-            </button>
-          </div>
-        </div>
+        <!-- Personnalisation des ingrédients (pour pizzas et plats) -->
+        <div v-if="showIngredients" class="ingredients-section">
+          <h4 class="selection-title">Personnaliser les ingrédients</h4>
 
-        <!-- Quantité -->
-        <div class="quantity-section">
-          <h4 class="section-title">Quantité</h4>
-          <div class="quantity-controls">
-            <button 
-              class="quantity-btn"
-              @click="decreaseQuantity"
-              :disabled="quantity <= 1"
-            >
-              <i class="fas fa-minus"></i>
-            </button>
-            <span class="quantity">{{ quantity }}</span>
-            <button 
-              class="quantity-btn"
-              @click="increaseQuantity"
-            >
+          <!-- Mode de personnalisation -->
+          <div class="customize-mode">
+            <button :class="['mode-btn', { active: customizeMode === 'add' }]" @click="customizeMode = 'add'">
               <i class="fas fa-plus"></i>
+              Ajouter
             </button>
+            <button :class="['mode-btn', { active: customizeMode === 'remove' }]" @click="customizeMode = 'remove'">
+              <i class="fas fa-minus"></i>
+              Retirer
+            </button>
+          </div>
+
+          <!-- Liste des ingrédients -->
+          <div class="ingredients-grid">
+            <div v-for="ingredient in availableIngredients" :key="ingredient.id" class="ingredient-item"
+              @click="toggleIngredient(ingredient)">
+              <div class="ingredient-image">
+                <img :src="ingredient.image || '/images/ingredients/default.png'" :alt="ingredient.name" />
+              </div>
+
+              <div class="ingredient-info">
+                <span class="ingredient-name">{{ ingredient.name }}</span>
+                <span v-if="ingredient.price > 0" class="ingredient-price">+{{ formatPrice(ingredient.price) }}€</span>
+              </div>
+
+              <div class="ingredient-controls">
+                <button v-if="getIngredientQuantity(ingredient.id) > 0" class="qty-btn decrease"
+                  @click.stop="decreaseIngredient(ingredient.id)">
+                  <i class="fas fa-minus"></i>
+                </button>
+
+                <span v-if="getIngredientQuantity(ingredient.id) > 0" class="quantity">
+                  {{ getIngredientQuantity(ingredient.id) }}
+                </span>
+
+                <button class="qty-btn increase" @click.stop="increaseIngredient(ingredient.id)">
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Notes spéciales -->
         <div class="notes-section">
-          <h4 class="section-title">Notes spéciales</h4>
-          <textarea
-            v-model="notes"
-            placeholder="Instructions spéciales pour votre commande..."
-            class="notes-input"
-          ></textarea>
+          <h4 class="selection-title">Instructions spéciales</h4>
+          <textarea v-model="notes" placeholder="Ajouter des instructions spéciales pour votre commande..."
+            class="notes-input" rows="3"></textarea>
+        </div>
+
+        <!-- Résumé des modifications -->
+        <div v-if="hasModifications" class="modifications-summary">
+          <h4 class="selection-title">Vos modifications</h4>
+          <div class="modifications-list">
+            <div v-for="ingredient in modifiedIngredients" :key="ingredient.id" class="modification-item">
+              <span class="modification-name">{{ ingredient.name }}</span>
+              <span class="modification-detail">x{{ ingredient.quantity }}</span>
+              <span class="modification-price">+{{ formatPrice(ingredient.price * ingredient.quantity) }}€</span>
+            </div>
+          </div>
         </div>
       </div>
 
+      <!-- Footer avec quantité et prix -->
       <div class="modal-footer">
-        <div class="total-price">
-          <span class="label">Total:</span>
-          <span class="price">${{ calculateTotal() }}</span>
+        <div class="quantity-section">
+          <span class="quantity-label">Quantité:</span>
+          <div class="quantity-controls">
+            <button class="qty-btn" @click="decreaseQuantity" :disabled="quantity <= 1">
+              <i class="fas fa-minus"></i>
+            </button>
+            <span class="quantity-display">{{ quantity }}</span>
+            <button class="qty-btn" @click="increaseQuantity">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
         </div>
-        <button 
-          class="add-to-cart-btn"
-          @click="addToCart"
-          :disabled="!selectedSize"
-        >
+
+        <div class="price-section">
+          <div class="price-breakdown">
+            <span class="price-label">Prix unitaire:</span>
+            <span class="unit-price">{{ formatPrice(unitPrice) }}€</span>
+          </div>
+          <div class="total-price">
+            <span class="total-label">Total:</span>
+            <span class="total-amount">{{ formatPrice(totalPrice) }}€</span>
+          </div>
+        </div>
+
+        <button class="add-to-cart-btn" @click="addToCart" :disabled="!canAddToCart">
           <i class="fas fa-shopping-cart"></i>
           Ajouter au panier
         </button>
@@ -87,7 +139,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { Product, ProductSize, AddToCartEvent } from '../types'
+import type { Product, ProductSize, Ingredient, AddToCartEvent } from '../types'
 
 interface Props {
   product: Product | null
@@ -96,16 +148,118 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  'close': []
+  close: []
   'add-to-cart': [event: AddToCartEvent]
 }>()
 
 // État local
+const isOpen = ref(true)
 const selectedSize = ref<ProductSize | null>(null)
-const quantity = ref(1)
+const customizeMode = ref<'add' | 'remove'>('add')
 const notes = ref('')
+const quantity = ref(1)
+const selectedIngredients = ref<Record<string, number>>({})
+
+// Données calculées
+const showIngredients = computed(() => {
+  return props.product?.type === 'Pizza' ||
+    props.product?.ingredients && props.product.ingredients.length > 0
+})
+
+const availableIngredients = computed(() => {
+  if (!props.product?.ingredients) return []
+  return props.product.ingredients.filter(ing => ing.isAvailable)
+})
+
+const modifiedIngredients = computed(() => {
+  return availableIngredients.value
+    .filter(ing => selectedIngredients.value[ing.id] > 0)
+    .map(ing => ({
+      ...ing,
+      quantity: selectedIngredients.value[ing.id]
+    }))
+})
+
+const hasModifications = computed(() => {
+  return modifiedIngredients.value.length > 0 || notes.value.trim() !== ''
+})
+
+const unitPrice = computed(() => {
+  if (!selectedSize.value) return 0
+
+  const basePrice = parseFloat(selectedSize.value.price)
+  const ingredientsPrice = modifiedIngredients.value.reduce((sum, ing) => {
+    return sum + (ing.price * ing.quantity)
+  }, 0)
+
+  return basePrice + ingredientsPrice
+})
+
+const totalPrice = computed(() => {
+  return unitPrice.value * quantity.value
+})
+
+const canAddToCart = computed(() => {
+  return props.product && selectedSize.value && quantity.value > 0
+})
+
+// Watchers
+watch(() => props.product, (newProduct) => {
+  if (newProduct) {
+    // Sélectionner la taille par défaut
+    if (newProduct.sizes && newProduct.sizes.length > 0) {
+      selectedSize.value = newProduct.sizes.find(s => s.name === 'Normale') || newProduct.sizes[0]
+    }
+
+    // Initialiser les ingrédients par défaut
+    if (newProduct.ingredients) {
+      const defaultIngredients: Record<string, number> = {}
+      newProduct.ingredients.forEach(ing => {
+        if (ing.isDefault) {
+          defaultIngredients[ing.id] = 1
+        }
+      })
+      selectedIngredients.value = defaultIngredients
+    }
+  }
+}, { immediate: true })
 
 // Méthodes
+const formatPrice = (price: number | string): string => {
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price
+  return isNaN(numPrice) ? '0.00' : numPrice.toFixed(2)
+}
+
+const selectSize = (size: ProductSize) => {
+  selectedSize.value = size
+}
+
+const getIngredientQuantity = (ingredientId: string): number => {
+  return selectedIngredients.value[ingredientId] || 0
+}
+
+const toggleIngredient = (ingredient: Ingredient) => {
+  const currentQty = selectedIngredients.value[ingredient.id] || 0
+
+  if (customizeMode.value === 'add') {
+    selectedIngredients.value[ingredient.id] = currentQty > 0 ? currentQty : 1
+  } else {
+    selectedIngredients.value[ingredient.id] = 0
+  }
+}
+
+const increaseIngredient = (ingredientId: string) => {
+  const currentQty = selectedIngredients.value[ingredientId] || 0
+  selectedIngredients.value[ingredientId] = currentQty + 1
+}
+
+const decreaseIngredient = (ingredientId: string) => {
+  const currentQty = selectedIngredients.value[ingredientId] || 0
+  if (currentQty > 0) {
+    selectedIngredients.value[ingredientId] = currentQty - 1
+  }
+}
+
 const increaseQuantity = () => {
   quantity.value++
 }
@@ -116,35 +270,36 @@ const decreaseQuantity = () => {
   }
 }
 
-const calculateTotal = (): string => {
-  if (!selectedSize.value) return '0.00'
-  const basePrice = parseFloat(selectedSize.value.price)
-  return (basePrice * quantity.value).toFixed(2)
+const closeModal = () => {
+  isOpen.value = false
+  emit('close')
 }
 
 const addToCart = () => {
   if (!props.product || !selectedSize.value) return
 
-  const event: AddToCartEvent = {
+  const cartIngredients = modifiedIngredients.value.map(ing => ({
+    id: ing.id,
+    name: ing.name,
+    extra_cost_price: ing.price,
+    quantity: ing.quantity,
+    isDefault: ing.isDefault,
+    size: selectedSize.value?.name || 'Normale',
+    type: 'ingredient'
+  }))
+
+  const addToCartEvent: AddToCartEvent = {
     product: props.product,
     size: selectedSize.value,
     quantity: quantity.value,
-    ingredients: [],
+    ingredients: cartIngredients,
     supplements: [],
     notes: notes.value
   }
 
-  emit('add-to-cart', event)
+  emit('add-to-cart', addToCartEvent)
+  closeModal()
 }
-
-// Watcher pour initialiser la première taille quand le produit change
-watch(() => props.product, (newProduct) => {
-  if (newProduct?.sizes.length) {
-    selectedSize.value = newProduct.sizes[0]
-  }
-  quantity.value = 1
-  notes.value = ''
-}, { immediate: true })
 </script>
 
 <style lang="scss" scoped>
@@ -159,78 +314,208 @@ watch(() => props.product, (newProduct) => {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 2rem;
+  padding: 1rem;
 }
 
-.modal-content {
+.modal-container {
   background: white;
-  border-radius: 20px;
-  max-width: 500px;
+  border-radius: 12px;
+  max-width: 800px;
   width: 100%;
   max-height: 90vh;
-  overflow-y: auto;
-  animation: modalSlideIn 0.3s ease;
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 2rem 2rem 1rem 2rem;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
 
   .modal-title {
     font-size: 20px;
-    font-weight: 700;
+    font-weight: 600;
     color: #1e293b;
     margin: 0;
   }
 
   .close-btn {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border: none;
-    background: #f1f5f9;
+    background: #f8fafc;
     border-radius: 50%;
+    color: #64748b;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    color: #64748b;
     transition: all 0.2s ease;
 
     &:hover {
-      background: #e2e8f0;
-      color: #1e293b;
+      background: #ef4444;
+      color: white;
     }
   }
 }
 
-.modal-body {
-  padding: 2rem;
+.modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.product-section {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+
+  .product-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
 
   .product-info {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
+    flex: 1;
 
-    .product-image {
-      width: 80px;
-      height: 80px;
-      border-radius: 12px;
+    .product-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1e293b;
+      margin: 0 0 8px 0;
+    }
+
+    .product-description {
+      font-size: 14px;
+      color: #64748b;
+      margin: 0 0 1rem 0;
+      line-height: 1.5;
+    }
+  }
+}
+
+.size-selection {
+  margin-bottom: 1.5rem;
+
+  .size-options {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    .size-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 16px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: #388D35;
+      }
+
+      &.active {
+        background: #388D35;
+        border-color: #388D35;
+        color: white;
+      }
+
+      .size-name {
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .size-price {
+        font-size: 14px;
+        font-weight: 600;
+        margin-top: 2px;
+      }
+    }
+  }
+}
+
+.selection-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 1rem 0;
+}
+
+.customize-mode {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1rem;
+
+  .mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #388D35;
+    }
+
+    &.active {
+      background: #388D35;
+      border-color: #388D35;
+      color: white;
+    }
+  }
+}
+
+.ingredients-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 1.5rem;
+
+  .ingredient-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #388D35;
+      background: #f8fafc;
+    }
+
+    .ingredient-image {
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
       overflow: hidden;
-      flex-shrink: 0;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
       img {
         width: 100%;
@@ -239,100 +524,168 @@ watch(() => props.product, (newProduct) => {
       }
     }
 
-    .product-details {
+    .ingredient-info {
       flex: 1;
 
-      .product-name {
-        font-size: 18px;
-        font-weight: 600;
+      .ingredient-name {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
         color: #1e293b;
-        margin: 0 0 8px 0;
+        line-height: 1.2;
       }
 
-      .product-description {
-        font-size: 14px;
-        color: #64748b;
-        margin: 0;
-        line-height: 1.4;
+      .ingredient-price {
+        display: block;
+        font-size: 11px;
+        color: #388D35;
+        font-weight: 500;
       }
     }
-  }
 
-  .section-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1e293b;
-    margin: 0 0 1rem 0;
-  }
-
-  .size-selection {
-    margin-bottom: 2rem;
-
-    .size-options {
+    .ingredient-controls {
       display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
 
-      .size-option {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        padding: 12px 16px;
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
-        background: white;
+      .qty-btn {
+        width: 24px;
+        height: 24px;
+        border: none;
+        border-radius: 4px;
+        background: #f8fafc;
+        color: #64748b;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
         transition: all 0.2s ease;
 
         &:hover {
-          border-color: #3b82f6;
+          background: #388D35;
+          color: white;
         }
 
-        &.active {
-          border-color: #3b82f6;
-          background: #eff6ff;
+        &.increase {
+          background: #388D35;
+          color: white;
         }
+      }
 
-        .size-name {
-          font-size: 14px;
-          font-weight: 600;
-          color: #1e293b;
-        }
-
-        .size-price {
-          font-size: 12px;
-          color: #3b82f6;
-          font-weight: 600;
-        }
+      .quantity {
+        font-size: 12px;
+        font-weight: 600;
+        color: #1e293b;
+        min-width: 16px;
+        text-align: center;
       }
     }
   }
+}
+
+.notes-section {
+  margin-bottom: 1.5rem;
+
+  .notes-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    resize: none;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #388D35;
+      box-shadow: 0 0 0 2px rgba(56, 141, 53, 0.1);
+    }
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+  }
+}
+
+.modifications-summary {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+
+  .modifications-list {
+    .modification-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+
+      .modification-name {
+        font-size: 13px;
+        color: #0369a1;
+        font-weight: 500;
+      }
+
+      .modification-detail {
+        font-size: 12px;
+        color: #64748b;
+      }
+
+      .modification-price {
+        font-size: 13px;
+        color: #388D35;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-top: 1px solid #f1f5f9;
+  background: #f8fafc;
 
   .quantity-section {
-    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .quantity-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+    }
 
     .quantity-controls {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 8px;
+      background: white;
+      border-radius: 6px;
+      padding: 4px;
 
-      .quantity-btn {
-        width: 40px;
-        height: 40px;
-        border: 1px solid #e2e8f0;
-        background: white;
-        border-radius: 8px;
+      .qty-btn {
+        width: 28px;
+        height: 28px;
+        border: none;
+        border-radius: 4px;
+        background: #f8fafc;
+        color: #64748b;
+        cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        cursor: pointer;
-        color: #64748b;
+        font-size: 10px;
         transition: all 0.2s ease;
 
         &:hover:not(:disabled) {
-          border-color: #3b82f6;
-          color: #3b82f6;
+          background: #388D35;
+          color: white;
         }
 
         &:disabled {
@@ -341,126 +694,102 @@ watch(() => props.product, (newProduct) => {
         }
       }
 
-      .quantity {
-        font-size: 18px;
+      .quantity-display {
+        font-size: 14px;
         font-weight: 600;
         color: #1e293b;
-        min-width: 30px;
+        min-width: 20px;
         text-align: center;
       }
     }
   }
 
-  .notes-section {
-    .notes-input {
-      width: 100%;
-      min-height: 80px;
-      padding: 12px;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 14px;
-      font-family: inherit;
-      resize: vertical;
+  .price-section {
+    text-align: right;
 
-      &:focus {
-        outline: none;
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-      }
-
-      &::placeholder {
-        color: #94a3b8;
-      }
-    }
-  }
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem 2rem 2rem;
-  border-top: 1px solid #e2e8f0;
-
-  .total-price {
-    .label {
-      font-size: 14px;
+    .price-breakdown {
+      font-size: 12px;
       color: #64748b;
-      margin-right: 8px;
+      margin-bottom: 4px;
+
+      .unit-price {
+        font-weight: 500;
+        color: #1e293b;
+      }
     }
 
-    .price {
-      font-size: 20px;
-      font-weight: 700;
-      color: #1e293b;
+    .total-price {
+      .total-label {
+        font-size: 14px;
+        color: #374151;
+      }
+
+      .total-amount {
+        font-size: 18px;
+        font-weight: 700;
+        color: #388D35;
+        margin-left: 8px;
+      }
     }
   }
 
   .add-to-cart-btn {
-    padding: 12px 24px;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 8px;
+    padding: 12px 24px;
+    background: #388D35;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover:not(:disabled) {
-      background: #2563eb;
+      background: #2f7d32;
+      transform: translateY(-1px);
     }
 
     &:disabled {
       background: #94a3b8;
       cursor: not-allowed;
+      transform: none;
     }
   }
 }
 
 @media (max-width: 768px) {
   .modal-overlay {
-    padding: 1rem;
+    padding: 0.5rem;
   }
 
-  .modal-header {
-    padding: 1.5rem 1.5rem 1rem 1.5rem;
+  .product-section {
+    flex-direction: column;
+    text-align: center;
+
+    .product-image {
+      align-self: center;
+    }
   }
 
-  .modal-body {
-    padding: 1.5rem;
-
-    .product-info {
-      flex-direction: column;
-      text-align: center;
-
-      .product-image {
-        align-self: center;
-      }
-    }
-
-    .size-selection {
-      .size-options {
-        .size-option {
-          flex: 1;
-          min-width: 80px;
-        }
-      }
-    }
+  .ingredients-grid {
+    grid-template-columns: 1fr;
   }
 
   .modal-footer {
-    padding: 1rem 1.5rem 1.5rem 1.5rem;
     flex-direction: column;
     gap: 1rem;
+    align-items: stretch;
+
+    .price-section {
+      text-align: center;
+    }
 
     .add-to-cart-btn {
-      width: 100%;
       justify-content: center;
     }
   }
 }
-</style> 
+</style>
