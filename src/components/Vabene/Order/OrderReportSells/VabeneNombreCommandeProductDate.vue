@@ -144,6 +144,16 @@ export default defineComponent({
   },
   data() {
     return {
+      fakeAllMethodePaiement: {
+        id: 'all',
+        type: 'all',
+        libelle: 'Toutes les methodes'
+      },
+      fakeAllOrderType: {
+        id: 'all',
+        type: 'all',
+        libelle: 'Tous les types'
+      },
       listeMethode: [] as MethodePaiementModel[],
       methodePaiementSelected: [] as MethodePaiementModel[],
       listeOrderType: [] as OrderTypeModel[],
@@ -231,8 +241,9 @@ export default defineComponent({
         console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
-            this.listeMethode = response.data.items;
-            this.methodePaiementSelected = this.getMethodePaiementParType(response.data.items, 'pay_delivery_cash')
+            this.listeMethode = [(this.fakeAllMethodePaiement as MethodePaiementModel), ...response.data.items];
+            console.log('methodes:', this.listeMethode)
+            this.methodePaiementSelected = this.getMethodePaiementParType(this.listeMethode, 'all')
             console.log('liste des methodes: ', this.listeMethode);
             console.log('methode Paiement selected: ', this.methodePaiementSelected);
           }
@@ -253,9 +264,9 @@ export default defineComponent({
         console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
-            this.listeOrderType = response.data.items;
-            console.log('data orderType retrieve: ', this.listeOrderType)
-            this.orderTypeSelected = this.getOrderTypeParType(response.data.items, 'click_collect')
+            this.listeOrderType = [(this.fakeAllOrderType as OrderTypeModel), ...response.data.items];
+            console.log('orderType: ', this.listeOrderType)
+            this.orderTypeSelected = this.getOrderTypeParType(this.listeOrderType, 'all')
             console.log('orderType selected: ', this.orderTypeSelected);
           }
         } else {
@@ -287,14 +298,14 @@ export default defineComponent({
           if(this.productSelected){
             if(this.userRole === UserRole.FRANCHISE){
               if(this.newRestaurantId !== 'all'){
-                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? undefined,  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? 'all',  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
               }
               else{
-                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate,  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, 'all' ,this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
               }
             }
             else{
-                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? undefined,  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? 'all',  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
             }
 
           }
@@ -304,14 +315,14 @@ export default defineComponent({
           if(this.productSelected){
             if(this.userRole === UserRole.FRANCHISE){
               if(this.newRestaurantId !== 'all'){
-                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? undefined,  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? 'all',  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
               }
               else{
-                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate,  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate,  'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
               }
             }
             else{
-                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? undefined,  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? 'all',  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
             }
           }
           break
@@ -343,7 +354,7 @@ export default defineComponent({
             this.startDate = this.getSameDayLastMonth()
             this.endDate = this.getTodayDate()
             if(this.userRole === UserRole.FRANCHISE){
-              await this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate,  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+              await this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate,  'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
             }
             else{
               console.log(this.restaurantIdStorage);
@@ -362,9 +373,9 @@ export default defineComponent({
       }
     },
 
-    async fetchNombreDeCommandeMoyenByProduct(productID: string, startDate?: string, endDate?: string, idRest?: string, methodePaiement?: string, orderType?: string) {
+    async fetchNombreDeCommandeMoyenByProduct(productID: string, startDate: string, endDate: string, idRest: string, methodePaiement: string, orderType: string) {
       try {
-        const response = await nombreCommandeParProduct(productID, startDate, endDate, idRest ?? undefined, methodePaiement ?? undefined, orderType ?? undefined) as ApiResponse<RatioModel>;
+        const response = await nombreCommandeParProduct(productID, startDate, endDate, idRest, methodePaiement, orderType) as ApiResponse<RatioModel>;
         console.log(response)
         if (response.code === 200) {
           this.tauxMoyenCommande = response.data as RatioModel;
@@ -401,7 +412,7 @@ export default defineComponent({
         }
         else{
           if(this.productSelected){
-            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.methodePaiementSelected[0].type, newVal);
+            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, 'all',this.methodePaiementSelected[0].type, newVal);
           }
         }
       }
@@ -417,7 +428,7 @@ export default defineComponent({
         }
         else{
           if(this.productSelected){
-            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, newVal, this.orderTypeSelected[0].type);
+            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, 'all', newVal, this.orderTypeSelected[0].type);
           }
         }
       }
@@ -433,7 +444,7 @@ export default defineComponent({
         }
         else{
           if(this.productSelected){
-            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
           }
         }
 
@@ -447,11 +458,11 @@ export default defineComponent({
         this.productSelected = this.originalProducts.find(c => c.id === newVal) ?? null;
 
         if(this.productSelected  && this.newRestaurantId !== 'all'){
-          this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? undefined, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+          this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
         }
         else{
           if(this.productSelected){
-            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, 'all' ,this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
           }
         }
       }
