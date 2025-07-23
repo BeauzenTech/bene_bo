@@ -106,12 +106,12 @@
         </li>
 
         <!-- GESTION -->
-        <li class="sub-title sidebar-nav-item"  v-if="userRole === UserRole.FRANCHISE">
+        <li class="sub-title sidebar-nav-item"  >
           <span class="d-block text-uppercase fw-medium">Gestion</span>
         </li>
         <li
             class="sidebar-nav-item accordion-item bg-transparent border-0 rounded-0"
-            v-if="userRole === UserRole.FRANCHISE"
+
         >
           <a
               href="#"
@@ -132,17 +132,17 @@
           >
             <div class="accordion-body">
               <ul class="sidebar-sub-menu ps-0 mb-0 list-unstyled">
-                <li class="sidebar-sub-menu-item"  v-if="userRole === UserRole.FRANCHISE">
+                <li class="sidebar-sub-menu-item"  >
                   <router-link to="/categorie-list" class="sidebar-sub-menu-link"
                   >Catégories</router-link
                   >
                 </li>
-                <li class="sidebar-sub-menu-item" v-if="userRole === UserRole.FRANCHISE">
+                <li class="sidebar-sub-menu-item">
                   <router-link to="/ingredient-list" class="sidebar-sub-menu-link">
                     Ingredients
                   </router-link>
                 </li>
-                <li class="sidebar-sub-menu-item"  v-if="userRole === UserRole.FRANCHISE">
+                <li class="sidebar-sub-menu-item"  >
                   <router-link to="/product-list" class="sidebar-sub-menu-link" >
                     Produits
                   </router-link>
