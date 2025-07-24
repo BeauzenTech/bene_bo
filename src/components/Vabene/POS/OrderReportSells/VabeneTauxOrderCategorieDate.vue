@@ -2,36 +2,70 @@
   <div class="card mb-25 border-0 rounded-0 bg-white stats-item">
     <div class="card-body p-15 p-sm-20 p-md-25 pt-lg-30 letter-spacing">
       <div class="row justify-content-between">
-        <div class="row">
-          <div class="col-md-4 mb-4">
-            <div>
-              <label class="d-block text-black fw-semibold mb-10">
-                Debut
-              </label>
-              <input
-                  type="date"
-                  class="form-control shadow-none rounded-0 text-black"
-                  placeholder="e.g. 2025-05-01"
-                  v-model="startDate"
-                  @change="(event) => handleInput(event, 'startDate')"
-              />
+        <div class="col-xxxl-12">
+          <div class="row">
+            <div class="col-md-4 mb-4">
+              <div>
+                <label class="d-block text-black fw-semibold mb-10">
+                  Debut
+                </label>
+                <input
+                    type="date"
+                    class="form-control shadow-none rounded-0 text-black"
+                    placeholder="e.g. 2025-05-01"
+                    v-model="startDate"
+                    @change="(event) => handleInput(event, 'startDate')"
+                />
+              </div>
+            </div>
+            <div class="col-md-4 mb-4">
+              <div>
+                <label class="d-block text-black fw-semibold mb-10">
+                  Fin
+                </label>
+                <input
+                    type="date"
+                    class="form-control shadow-none rounded-0 text-black"
+                    placeholder="e.g. 2025-05-01"
+                    v-model="endDate"
+                    @change="(event) => handleInput(event, 'endDate')"
+                />
+              </div>
             </div>
           </div>
-          <div class="col-md-4 mb-4">
-            <div>
-              <label class="d-block text-black fw-semibold mb-10">
-                Fin
-              </label>
-              <input
-                  type="date"
-                  class="form-control shadow-none rounded-0 text-black"
-                  placeholder="e.g. 2025-05-01"
-                  v-model="endDate"
-                  @change="(event) => handleInput(event, 'endDate')"
-              />
+          <div class="row">
+            <div class="col-md-7 mb-4">
+              <div class="form-group position-relative transition mt-2">
+                <label class="d-block text-black fw-semibold mb-10">
+                  Type de commande
+                </label>
+                <v-select
+                    v-model="orderTypeSelected"
+                    :options="listeOrderType"
+                    label="libelle"
+                    :reduce="orderType => orderType.type"
+                    placeholder="Type de commande"
+                />
+              </div>
+            </div>
+            <div class="col-md-7 mb-4">
+              <div class="form-group position-relative transition mt-2">
+                <label class="d-block text-black fw-semibold mb-10">
+                  Methode de paiement
+                </label>
+                <v-select
+                    v-model="methodePaiementSelected"
+                    :options="listeMethode"
+                    label="libelle"
+                    :reduce="methode => methode.type"
+                    placeholder="Methode de paiement"
+                />
+              </div>
             </div>
           </div>
+
         </div>
+
         <div class="col-lg-5 col-md-5">
           <div
               class="icon position-relative text-warning rounded-1 text-center"
@@ -80,12 +114,20 @@
 <script lang="ts">
 import {defineComponent, PropType} from "vue";
 import {CategorieModel} from "@/models/categorie.model";
-import {listeCategorieActive, tauxCommandeCategorie, topProductReportSell} from "@/service/api";
-import {ApiResponse, PaginatedCategorie} from "@/models/Apiresponse";
+import {
+  listeCategorieActive,
+  listeMethodePaiement,
+  listeOrderType,
+  tauxCommandeCategorie,
+  topProductReportSell
+} from "@/service/api";
+import {ApiResponse, PaginatedCategorie, PaginatedMethodePaiement, PaginatedOrderType} from "@/models/Apiresponse";
 import {TopProductSellModel} from "@/models/TopProductSell.model";
 import {useToast} from "vue-toastification";
 import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 import {RatioModel} from "@/models/ratio.model";
+import {MethodePaiementModel} from "@/models/methodePaiement.model";
+import {OrderTypeModel} from "@/models/orderType.model";
 
 export default defineComponent({
   name: "VabeneTauxOrderCategorieDate",
@@ -97,6 +139,10 @@ export default defineComponent({
   },
   data: function () {
     return {
+      listeMethode: [] as MethodePaiementModel[],
+      methodePaiementSelected: [] as MethodePaiementModel[],
+      listeOrderType: [] as OrderTypeModel[],
+      orderTypeSelected: [] as OrderTypeModel[],
       startDate: '' as string,
       endDate: '' as string,
       originalCategories: [] as CategorieModel[], // Stockage des utilisateurs originaux
@@ -155,6 +201,68 @@ export default defineComponent({
     };
   },
   methods: {
+    getMethodePaiementParType(
+        liste: MethodePaiementModel[],
+        type: string
+    ): MethodePaiementModel[] {
+      console.log(liste)
+      console.log(type)
+      return liste.filter(methode =>
+          methode.type === type
+      );
+    },
+    getOrderTypeParType(
+        liste: OrderTypeModel[],
+        type: string
+    ): OrderTypeModel[] {
+      return liste.filter(orderType =>
+          orderType.type === type
+      );
+    },
+    async fetchListeMethodePaiement(page = 1) {
+      // this.isLoading = true;
+      try {
+        const response = await listeMethodePaiement(page) as ApiResponse<PaginatedMethodePaiement>;
+        console.log(response)
+        if (response.code === 200) {
+          if (response.data?.items) {
+            this.listeMethode = response.data.items;
+            this.methodePaiementSelected = this.getMethodePaiementParType(response.data.items, 'pay_delivery_cash')
+            console.log('liste des methodes: ', this.listeMethode);
+            console.log('methode Paiement selected: ', this.methodePaiementSelected);
+          }
+        } else {
+          this.toast.error(response.message);
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des methodes de paiement");
+        console.error(error);
+      } finally {
+        // this.isLoading = false;
+      }
+    },
+    async fetchOrderType(page = 1) {
+      // this.isLoading = true;
+      try {
+        const response = await listeOrderType(page) as ApiResponse<PaginatedOrderType>;
+        console.log(response)
+        if (response.code === 200) {
+          if (response.data?.items) {
+            this.listeOrderType = response.data.items;
+            console.log('data orderType retrieve: ', this.listeOrderType)
+            this.orderTypeSelected = this.getOrderTypeParType(response.data.items, 'click_collect')
+            console.log('orderType selected: ', this.orderTypeSelected);
+          }
+        } else {
+          this.toast.error(response.message);
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des types de commandes");
+        console.error(error);
+      } finally {
+        // this.isLoading = false;
+      }
+    },
     getSameDayLastMonth(): string {
       const today = new Date();
       const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
@@ -174,14 +282,14 @@ export default defineComponent({
           if(this.categorieSelected){
             if(this.userRole === UserRole.FRANCHISE){
               if(this.newRestoId !== 'all'){
-                this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.newRestoId ?? undefined);
+                this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.newRestoId ?? undefined, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
               }
               else{
-                this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+                this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
               }
             }
             else{
-              this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? undefined);
+              this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? undefined, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
             }
 
           }
@@ -191,14 +299,14 @@ export default defineComponent({
             if(this.categorieSelected){
               if(this.userRole === UserRole.FRANCHISE){
                 if(this.newRestoId !== 'all'){
-                  this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.newRestoId ?? undefined);
+                  this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.newRestoId ?? undefined, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
                 }
                 else{
-                  this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+                  this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
                 }
               }
               else{
-                this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? undefined);
+                this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? undefined, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
               }
 
             }
@@ -221,15 +329,17 @@ export default defineComponent({
         console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
+            await this.fetchOrderType(1)
+            await this.fetchListeMethodePaiement(1)
             this.originalCategories = response.data.items;
             this.categorieSelected = this.originalCategories[0];
             this.startDate = this.getSameDayLastMonth()
             this.endDate = this.getTodayDate()
             if(this.userRole === UserRole.FRANCHISE){
-              await this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+              await this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
             }
             else{
-              await this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? undefined);
+              await this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? undefined, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
             }
 
           }
@@ -241,9 +351,9 @@ export default defineComponent({
         console.error(error);
       }
     },
-    async fetchTauxCommandeMoyenByCategorie(categoryID: string, startDate?: string, endDate?: string, idRest?: string) {
+    async fetchTauxCommandeMoyenByCategorie(categoryID: string, startDate?: string, endDate?: string, idRest?: string, methodePaiement?: string, orderType?: string) {
       try {
-        const response = await tauxCommandeCategorie(categoryID, startDate, endDate, idRest ?? undefined) as ApiResponse<RatioModel>;
+        const response = await tauxCommandeCategorie(categoryID, startDate, endDate, idRest ?? undefined, methodePaiement ?? undefined, orderType ?? undefined) as ApiResponse<RatioModel>;
         console.log(response)
         if (response.code === 200) {
           this.tauxMoyenCommande = response.data as RatioModel;
@@ -263,20 +373,53 @@ export default defineComponent({
   },
   mounted() {
     this.fetchCategories(1)
+
   },
   watch:{
+    orderTypeSelected(newVal, oldVal){
+      if (typeof newVal === 'string' && newVal !== oldVal){
+        this.orderTypeSelected = this.getOrderTypeParType(this.listeOrderType, newVal)
+        console.log("Nouvelle option orderType sélectionnée :", newVal);
+        if(this.newRestoId !== 'all' && this.newRestoId){
+          if(this.categorieSelected){
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.newRestoId, this.methodePaiementSelected[0].type, newVal);
+          }
+        }
+        else{
+          if(this.categorieSelected){
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.methodePaiementSelected[0].type, newVal);
+          }
+        }
+      }
+    },
+    methodePaiementSelected(newVal, oldVal){
+      if (typeof newVal === 'string' && newVal !== oldVal){
+        this.methodePaiementSelected = this.getMethodePaiementParType(this.listeMethode, newVal)
+        console.log("Nouvelle option methode sélectionnée :", newVal);
+        if(this.newRestoId !== 'all' && this.newRestoId){
+          if(this.categorieSelected){
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.newRestoId, newVal, this.orderTypeSelected[0].type);
+          }
+        }
+        else{
+          if(this.categorieSelected){
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, newVal, this.orderTypeSelected[0].type);
+          }
+        }
+      }
+    },
     restaurantId(newVal, oldVal){
       if (typeof newVal === 'string' && newVal !== oldVal) {
         console.log("Nouvelle option restaurant ID sélectionnée :", newVal);
         this.newRestoId = newVal;
         if(newVal !== 'all'){
           if(this.categorieSelected){
-            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, newVal);
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, newVal, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
           }
         }
         else{
           if(this.categorieSelected){
-            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
           }
         }
 
@@ -290,17 +433,17 @@ export default defineComponent({
         this.categorieSelected = this.originalCategories.find(c => c.id === newVal) ?? null;
         if(this.userRole === UserRole.FRANCHISE){
           if(this.categorieSelected && this.newRestoId !== 'all'){
-            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.newRestoId ?? undefined);
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.newRestoId ?? undefined, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
           }
           else{
             if(this.categorieSelected){
-              this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate);
+              this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
             }
           }
         }
         else{
           if(this.categorieSelected){
-            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? undefined);
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? undefined, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
           }
         }
       }

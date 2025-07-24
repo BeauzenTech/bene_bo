@@ -12,10 +12,14 @@
       <div
         class="card mb-25 border-0 rounded-0 bg-white order-details-box letter-spacing"
       >
-        <div v-if="orderResponse" class="card-head bg-white d-flex align-items-center">
-          <i class="flaticon-sterile-box text-primary"></i>
+        <div v-if="orderResponse" class="card-head bg-white d-flex align-items-center justify-content-between">
+          <div class="d-block">
+            <h5 class="mb-0 fw-bold text-black ms-10 ms-md-15">
+              #{{ orderResponse.nif }}
+            </h5>
+          </div>
           <h5 class="mb-0 fw-bold text-black ms-10 ms-md-15">
-            #{{ orderResponse.reference }} <span v-if="orderResponse.DeliveryPreference === 'immediat'" class="badge text-bg-success fs-13 ms-10" style="margin-left: 70px;" >
+            <span v-if="orderResponse.DeliveryPreference === 'immediat'" class="badge text-bg-success fs-13 ms-10" style="margin-left: 70px;" >
             TOUT DE SUITE
            </span>
             <span class="badge text-bg-warning fs-13" style="margin-left: 70px;">
@@ -180,26 +184,16 @@
                 {{orderResponse.restaurantID.id === RestaurantEnum.RESTO_PENTHAZ ? 'VBP'+ orderResponse.nif : 'VBM'+ orderResponse.nif}}
               </span>
             </li>
-            <li class="d-flex align-items-center justify-content-between">
-              <div
-                class="title text-black fs-md-15 fs-lg-16 fw-semibold position-relative"
-              >
-                <i class="flaticon-express-delivery"></i>
-                Adresse:
-              </div>
-              <span class="d-block text-primary fs-md-15 fs-lg-16 ">
-              {{orderResponse.address}}
-              </span>
-            </li>
-            <li class="d-flex align-items-center justify-content-between">
-              <div
-                class="title text-black fs-md-15 fs-lg-16 fw-semibold position-relative"
-              >
-                <i class="flaticon-shield"></i>
-                Recompense Points:
-              </div>
-              <span class="d-block text-paragraph fs-md-15 fs-lg-16">0</span>
-            </li>
+
+<!--            <li class="d-flex align-items-center justify-content-between">-->
+<!--              <div-->
+<!--                class="title text-black fs-md-15 fs-lg-16 fw-semibold position-relative"-->
+<!--              >-->
+<!--                <i class="flaticon-shield"></i>-->
+<!--                Recompense Points:-->
+<!--              </div>-->
+<!--              <span class="d-block text-paragraph fs-md-15 fs-lg-16">0</span>-->
+<!--            </li>-->
             <li class="d-flex align-items-center justify-content-between">
               <div
                   class="title text-black fs-md-15 fs-lg-16 fw-semibold position-relative"
@@ -207,7 +201,9 @@
                 <i class="flaticon-bookmark"></i>
                 Coupon:
               </div>
-              <span class="d-block text-paragraph fs-md-15 fs-lg-16">-</span>
+              <span v-if="orderResponse.coupon" class="d-block text-paragraph fs-md-15 fs-lg-16">{{orderResponse.coupon}}</span>
+              <span v-else class="d-block text-paragraph fs-md-15 fs-lg-16">-</span>
+
             </li>
           </ul>
         </div>
@@ -282,8 +278,8 @@
                       v-if="orderItems.productID"
                     class="shadow-none fw-medium text-black product-title ps-0"
                   >
-                    <router-link
-                      to="/product-details"
+                    <span
+
                       class="d-flex align-items-center text-decoration-none text-black fs-md-15 fs-lg-16"
                     >
                       <img
@@ -292,8 +288,8 @@
                         width="44"
                         alt="product"
                       />
-                      {{orderItems.productID.name}}
-                    </router-link>
+                      {{orderItems.productID.name}} {{orderItems.size}}
+                    </span>
                   </th>
                   <td class="shadow-none lh-1 fw-medium text-paragraph">
                     x{{orderItems.quantity}}
@@ -419,7 +415,7 @@
                   class="me-15"
                   width="44"
                   alt="product"
-              />{{ item.quantity }}x {{ item.productID.name }}</span>
+              />{{ item.quantity }}x {{ item.productID.name }}{{item.size}}</span>
               <span>{{ item.total_price }} CHF</span>
             </li>
 
@@ -588,57 +584,58 @@
         </div>
       </div>
     </div>
-    <div v-if="orderResponse" class="col-lg-4">
-      <div
-        class="card mb-25 border-0 rounded-0 bg-white order-details-box letter-spacing"
-      >
+    <div v-if="orderResponse" class="col-lg-4 flex-column">
+      <div v-if="orderResponse" >
         <div
-          class="card-head bg-white d-flex justify-content-between align-items-center"
+            class="card mb-25 border-0 rounded-0 bg-white order-details-box letter-spacing"
         >
-          <h5 class="mb-0 fw-bold text-black">Status de la commande</h5>
+          <div
+              class="card-head bg-white d-flex justify-content-between align-items-center"
+          >
+            <h5 class="mb-0 fw-bold text-black">Status de la commande</h5>
 
-          <div class="dropdown" v-if="allOrderStatus.length > 0">
-            <button v-if="orderResponse.status === 'pending'" class="btn btn-danger btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              {{ fetchStatusOrderFr(orderResponse.status) }}
-            </button>
-            <button v-if="orderResponse.status === 'processing'" class="btn btn-warning btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              {{ fetchStatusOrderFr(orderResponse.status) }}
-            </button>
-            <button v-if="orderResponse.status === 'paid'" class="btn btn-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              {{ fetchStatusOrderFr(orderResponse.status) }}
-            </button>
-            <button v-if="orderResponse.status === 'refunded'" class="btn btn-close btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              {{ fetchStatusOrderFr(orderResponse.status) }}
-            </button>
-            <button v-if="orderResponse.status === 'ready_for_delivery'" class="btn btn-info btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              {{ fetchStatusOrderFr(orderResponse.status) }}
-            </button>
-            <button v-if="orderResponse.status === 'out_for_delivery'" class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              {{ fetchStatusOrderFr(orderResponse.status) }}
-            </button>
-            <button v-if="orderResponse.status === 'delivered'" class="btn btn-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              {{ fetchStatusOrderFr(orderResponse.status) }}
-            </button>
-            <button v-if="orderResponse.status === 'cancelled'" class="btn btn-danger btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-              {{ fetchStatusOrderFr(orderResponse.status) }}
-            </button>
+            <div class="dropdown" v-if="allOrderStatus.length > 0">
+              <button v-if="orderResponse.status === 'pending'" class="btn btn-danger btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ fetchStatusOrderFr(orderResponse.status) }}
+              </button>
+              <button v-if="orderResponse.status === 'processing'" class="btn btn-warning btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ fetchStatusOrderFr(orderResponse.status) }}
+              </button>
+              <button v-if="orderResponse.status === 'paid'" class="btn btn-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ fetchStatusOrderFr(orderResponse.status) }}
+              </button>
+              <button v-if="orderResponse.status === 'refunded'" class="btn btn-close btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ fetchStatusOrderFr(orderResponse.status) }}
+              </button>
+              <button v-if="orderResponse.status === 'ready_for_delivery'" class="btn btn-info btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ fetchStatusOrderFr(orderResponse.status) }}
+              </button>
+              <button v-if="orderResponse.status === 'out_for_delivery'" class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ fetchStatusOrderFr(orderResponse.status) }}
+              </button>
+              <button v-if="orderResponse.status === 'delivered'" class="btn btn-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ fetchStatusOrderFr(orderResponse.status) }}
+              </button>
+              <button v-if="orderResponse.status === 'cancelled'" class="btn btn-danger btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ fetchStatusOrderFr(orderResponse.status) }}
+              </button>
 
-            <ul class="dropdown-menu">
-              <li v-for="status in allOrderStatus" :key="status">
-                <a @click="updateStatusOrder(status)" class="dropdown-item" href="#">{{ fetchStatusOrderFr(status)  }}</a>
-              </li>
-            </ul>
+              <ul class="dropdown-menu">
+                <li v-for="status in allOrderStatus" :key="status">
+                  <a @click="updateStatusOrder(status, methodePaiementSelected[0].type)" class="dropdown-item" href="#">{{ fetchStatusOrderFr(status)  }}</a>
+                </li>
+              </ul>
+            </div>
           </div>
-        </div>
-        <div class="card-body">
-          <ul class="order-summary-list ps-0 mb-0 list-unstyled">
+          <div class="card-body">
+            <ul class="order-summary-list ps-0 mb-0 list-unstyled">
 
-            <li class="d-flex align-items-center justify-content-between">
+              <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium">
                 Status de paiement
               </span>
 
-                 <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium" v-if="orderResponse.paymentID">
+                <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium" v-if="orderResponse.paymentID">
                    <span v-if="orderResponse.paymentID.status === 'pending'" class="badge text-outline-danger">  {{fetchStatusOrderPaiementFr(orderResponse.paymentID.status)}}</span>
               <span v-if="orderResponse.paymentID.status === 'paid'" class="badge text-outline-primary">  {{fetchStatusOrderPaiementFr(orderResponse.paymentID.status)}}</span>
               <span v-if="orderResponse.paymentID.status === 'refunded'" class="badge text-outline-muted">  {{fetchStatusOrderPaiementFr(orderResponse.paymentID.status)}}</span>
@@ -646,16 +643,51 @@
 
 
               </span>
-            </li>
+              </li>
 
 
-          </ul>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div v-if="orderResponse" >
+        <div
+            class="card mb-25 border-0 rounded-0 bg-white order-details-box letter-spacing"
+        >
+          <div
+              class="card-head bg-white d-flex justify-content-between align-items-center"
+          >
+            <h5 class="mb-0 fw-bold text-black">Methode de paiement</h5>
+
+            <div class="dropdown" v-if="listeMethode.length > 0">
+              <button v-if="orderResponse.paymentID.paymentMethod === 'pay_click_collect_cash'" class="btn btn-danger btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ fetchMethodePaiementOrderFr(orderResponse.paymentID.paymentMethod) }}
+              </button>
+              <button v-if="orderResponse.paymentID.paymentMethod === 'pay_click_collect_carte'" class="btn btn-warning btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ fetchMethodePaiementOrderFr(orderResponse.paymentID.paymentMethod) }}
+              </button>
+              <button v-if="orderResponse.paymentID.paymentMethod === 'pay_delivery_cash'" class="btn btn-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ fetchMethodePaiementOrderFr(orderResponse.paymentID.paymentMethod) }}
+              </button>
+              <button v-if="orderResponse.paymentID.paymentMethod === 'pay_delivery_carte'" class="btn btn-close btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ fetchMethodePaiementOrderFr(orderResponse.paymentID.paymentMethod) }}
+              </button>
+              <button v-if="orderResponse.paymentID.paymentMethod === 'on_line'" class="btn btn-info btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ fetchMethodePaiementOrderFr(orderResponse.paymentID.paymentMethod) }}
+              </button>
+
+
+              <ul class="dropdown-menu">
+                <li v-for="methode in listeMethode" :key="methode.id">
+                  <a @click="updateStatusOrder(orderResponse.status, methode.type)" class="dropdown-item" href="#">{{ methode.libelle }}</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
-
-
-
 
     <!-- Modal -->
     <div class="modal fade" id="contentModalScrollable_ingredient" tabindex="-1" aria-hidden="true">
@@ -706,7 +738,7 @@
                         to="/product-details"
                         class="text-decoration-none text-black-emphasis"
                     >
-                      {{ingredient.name}}
+                      {{ingredient.name}} - {{ingredient.size}}
                     </router-link>
                   </th>
                   <td  class="shadow-none lh-1 fw-medium">
@@ -774,7 +806,7 @@
                             <h2><strong>{{convertDateCreate(orderResponse.created_at)}}</strong></h2>
                             <h2><strong>{{orderResponse.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'TOUT DE SUITE'}}</strong></h2>
                             <h2><strong>{{convertDateCreate(orderResponse.timeOrder) ?? ''}} </strong></h2>
-                            <h2><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ getLast6Digits(orderResponse.customer.id) : 'VBP'+ getLast6Digits(orderResponse.customer.id)}}</strong></h2>
+                            <h2><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ orderResponse.nif : 'VBP'+ orderResponse.nif}}</strong></h2>
 <!--                            <h2><strong>{{getLast6Digits(orderResponse.customer.id)}}</strong></h2>-->
 
                           </div>
@@ -804,7 +836,7 @@
                                 style="display: flex; flex-direction: column; margin-bottom: 10px;"
                             >
                               <div style="display: flex; justify-content: space-between; font-size: 18px;">
-                                <span><strong>{{ item.quantity }}x {{ item.productID.name }} ({{item.optionSpecific}})</strong></span>
+                                <span><strong>{{ item.quantity }}x {{ item.productID.name }} {{item.size}} ({{item.optionSpecific}})</strong></span>
                                 <span><strong>{{ item.total_price }} CHF</strong></span>
                               </div>
 
@@ -896,12 +928,9 @@ import {OrderStatus} from "@/enums/orderStatut.enum";
 import {PaymentStatus} from "@/enums/orderPaiementMethode.enum";
 import {Modal} from "bootstrap";
 import {RestaurantEnum} from "../../../../enums/restaurant.enum";
+import {PaymentTypeEnum} from "@/enums/PaymentType.enum";
 
-document.addEventListener('hidden.bs.modal', function (event) {
-  document.body.classList.remove('modal-open'); // au cas où
-  const backdrops = document.querySelectorAll('.modal-backdrop');
-  backdrops.forEach(el => el.remove());
-});
+
 
 
 export default defineComponent({
@@ -940,8 +969,8 @@ export default defineComponent({
       orderResponse: null as OrderModel | null,
       isLoading: false,
       listeMethode: [] as MethodePaiementModel[],
-      listeOrderType: [] as OrderTypeModel[],
       methodePaiementSelected: [] as MethodePaiementModel[],
+      listeOrderType: [] as OrderTypeModel[],
       orderTypeSelected: [] as OrderTypeModel[],
       orderItemSelected: null as OrderItemModel | null,
       qrcode: null as string | null,
@@ -1295,9 +1324,10 @@ export default defineComponent({
         console.error(error);
       }
     },
-    async updateStatusOrder(status) {
+    async updateStatusOrder(status, methode) {
     const payload = {
-      "statusOrder": status
+      "statusOrder": status,
+      "payment_method": methode
     }
       try {
         const response = await updateOrder(this.orderResponse?.id, payload) as ApiResponse<OrderModel>;
@@ -1308,6 +1338,9 @@ export default defineComponent({
             this.orderResponse = response.data
             console.log('commande mise a jour: ',  this.orderResponse);
           }
+          setTimeout(() =>  {
+            window.location.reload()
+          }, 2000);
         } else {
           this.toast.error(response.message);
         }
@@ -1350,6 +1383,13 @@ export default defineComponent({
           return 'Annulé';
       }
     },
+    fetchMethodePaiementOrderFr(methode: string){
+      const dt = this.getMethodePaiementParType(this.listeMethode, methode);
+      if(dt.length > 0){
+        return dt[0].libelle
+      }
+      return ''
+    },
     fetchStatusOrderPaiementFr(status: string){
       switch (status) {
         case PaymentStatus.PENDING:
@@ -1377,6 +1417,11 @@ export default defineComponent({
     this.fetchAllStatusOrder()
     this.fetchAllPaiementStatusOrder()
     this.displayInvoire()
+    document.addEventListener('hidden.bs.modal', function (event) {
+      document.body.classList.remove('modal-open'); // au cas où
+      const backdrops = document.querySelectorAll('.modal-backdrop');
+      backdrops.forEach(el => el.remove());
+    });
   },
 })
 </script>

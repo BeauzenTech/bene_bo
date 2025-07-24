@@ -70,15 +70,17 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
-              NOMBRE DE POINTS
+              STATUS
             </th>
 
             <th
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
-              STATUS
+              GAIN OBTENU
             </th>
+
+
 
             <th
                 scope="col"
@@ -148,8 +150,11 @@
               </div>
             </td>
 
-            <td class="shadow-none lh-1 fw-medium text-muted">
-              {{  categorie.gain }}
+            <td v-if="categorie.type === 'ORDER'" class="shadow-none lh-1 fw-medium text-muted">
+              {{  categorie.gain }}%
+            </td>
+            <td v-else class="shadow-none lh-1 fw-medium text-muted">
+              {{  categorie.gain }} Points
             </td>
 
             <td class="shadow-none lh-1 fw-medium text-muted">
