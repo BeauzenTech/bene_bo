@@ -17,7 +17,7 @@
             >
                VENTES CETTE SEMAINE
               <span class="d-block fw-black lh-1 text-black mt-5 mt-md-10">
-                {{orderAmount}} CHF
+                {{Math.floor(parseFloat(orderAmount)) }} CHF
               </span>
             </li>
 

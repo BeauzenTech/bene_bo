@@ -14,7 +14,7 @@
       <div class="col-xxl-5 col-xxxl-6">
         <div class="row">
           <div class="col-lg-12">
-            <VabeneNombreCommandeProductDate id="nombreCommandeProductDate" :restaurantId="restaurantId" />
+            <VabeneNombreCommandeProductDate id="nombreCommandeProductDate" :restaurantId="restaurantId ?? 'all'" />
           </div>
 
         </div>
@@ -28,7 +28,7 @@
             <div class="d-flex align-items-center">
               <div v-if="periodiqueReportCard">
                 <p class="mb-0 text-secondary">Ventes cette semaine</p>
-                <h4 class="my-1 text-info">{{periodiqueReportCard.currentMonth.value}} CHF</h4>
+                <h4 class="my-1 text-info">{{Math.floor(periodiqueReportCard.currentMonth.value)}} CHF</h4>
                 <p v-if="periodiqueReportCard.currentMonth.ratio" class="mb-0 font-13">{{periodiqueReportCard.currentMonth.ratio ?? '0'}} cette semaine</p>
                 <p v-else  class="mb-0 font-13">0</p>
               </div>
@@ -44,7 +44,7 @@
             <div class="d-flex align-items-center">
               <div>
                 <p class="mb-0 text-secondary">Semaine passée</p>
-                <h4 class="my-1 text-danger">{{periodiqueReportCard.lastWeek.value}}</h4>
+                <h4 class="my-1 text-danger">{{ Math.floor(periodiqueReportCard.lastWeek.value) }}</h4>
                 <p v-if="periodiqueReportCard.lastWeek.ratio" class="mb-0 font-13">{{periodiqueReportCard.lastWeek.ratio}}%</p>
                 <p v-else class="mb-0 font-13">0%</p>
               </div>
@@ -60,7 +60,7 @@
             <div class="d-flex align-items-center">
               <div>
                 <p class="mb-0 text-secondary">Mois passée</p>
-                <h4 class="my-1 text-primary">{{periodiqueReportCard.lastMonth.value}}</h4>
+                <h4 class="my-1 text-primary">{{Math.floor(periodiqueReportCard.lastMonth.value)}}</h4>
                 <p v-if="periodiqueReportCard.lastMonth.ratio" class="mb-0 font-13">{{periodiqueReportCard.lastMonth.ratio}}%</p>
                 <p v-else class="mb-0 font-13">0%</p>
 
@@ -77,7 +77,7 @@
             <div class="d-flex align-items-center">
               <div>
                 <p class="mb-0 text-warning">Cette année</p>
-                <h4 class="my-1 text-warning">{{periodiqueReportCard.year.value}} CHF</h4>
+                <h4 class="my-1 text-warning">{{Math.floor(periodiqueReportCard.year.value)}} CHF</h4>
                 <p v-if="periodiqueReportCard.year.ratio" class="mb-0 font-13">{{periodiqueReportCard.year.ratio}}%</p>
                 <p v-else class="mb-0 font-13">0%</p>
               </div>
