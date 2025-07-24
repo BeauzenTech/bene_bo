@@ -195,12 +195,21 @@ const handleAddToCart = () => {
       const ingredientInfo = INGREDIENTS_WITH_PRICING.find(i => i.id === id)!;
       const originalIngredient = props.product!.ingredients.find(i => i.id === id);
 
+      // Mapping des tailles vers la notation en cm
+      const sizeMap: Record<string, '24cm' | '33cm' | '40cm'> = {
+        'Petite': '24cm',
+        'Normale': '33cm',
+        'Grande': '40cm'
+      };
+      const currentSizeInCm = sizeMap[selectedSize.value!.name] || '33cm';
+      
       return {
         id: ingredientInfo.id,
         name: ingredientInfo.name,
-        extra_cost_price: ingredientInfo.pricing[selectedSize.value!.name as '24cm' | '33cm' | '40cm'] || 0,
+        extra_cost_price: ingredientInfo.pricing[currentSizeInCm] || 0,
         quantity,
-        isDefault: originalIngredient?.isDefault || ingredientInfo.isDefault || false
+        isDefault: originalIngredient?.isDefault || ingredientInfo.isDefault || false,
+        size: currentSizeInCm
       };
     });
 

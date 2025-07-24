@@ -38,10 +38,11 @@
             <span class="banner-title">Client enregistré sélectionné</span>
             <span class="banner-subtitle">{{ selectedCustomer.firstName }} {{ selectedCustomer.lastName }}</span>
           </div>
-          <button @click="clearSelectedCustomer" class="banner-clear">
-            <i class="fas fa-times"></i>
-          </button>
         </div>
+        <button @click="clearSelectedCustomer" class="banner-clear-btn">
+          <i class="fas fa-times"></i>
+          Désélectionner
+        </button>
       </div>
       <div class="customer-form">
         <div class="form-group">
@@ -252,9 +253,11 @@ const emit = defineEmits<{
 
 // État local
 const customerInfo = ref({
+  id: '',
   firstName: '',
   lastName: '',
-  phone: ''
+  phone: '',
+  email: ''
 })
 
 // État pour la recherche de clients
@@ -365,6 +368,7 @@ const searchCustomers = () => {
   const firstName = customerInfo.value.firstName.toLowerCase().trim()
   const lastName = customerInfo.value.lastName.toLowerCase().trim()
   const phone = customerInfo.value.phone.trim()
+  const email = customerInfo.value.email.trim()
 
   // Si le client est déjà sélectionné, ne pas afficher les suggestions
   if (selectedCustomer.value) {
@@ -396,6 +400,11 @@ const searchCustomers = () => {
       matches = matches || customer.phoneNumber.includes(phone)
     }
 
+    // Recherche par email
+    if (email.length >= 3) {
+      matches = matches || customer.email.includes(email)
+    }
+
     return matches
   }).slice(0, 5) // Limiter à 5 suggestions
 
@@ -405,16 +414,18 @@ const searchCustomers = () => {
 // Sélectionner un client depuis les suggestions
 const selectCustomer = (customer: CustomerModel) => {
   selectedCustomer.value = customer
+  customerInfo.value.id = customer.id
   customerInfo.value.firstName = customer.firstName
   customerInfo.value.lastName = customer.lastName
   customerInfo.value.phone = customer.phoneNumber
+  customerInfo.value.email = customer.email
   customerSuggestions.value = []
 }
 
 // Supprimer la sélection du client
 const clearSelectedCustomer = () => {
   selectedCustomer.value = null
-  customerInfo.value = { firstName: '', lastName: '', phone: '' }
+  customerInfo.value = { id: '', firstName: '', lastName: '', phone: '', email: '' }
   customerSuggestions.value = []
 }
 
@@ -459,12 +470,12 @@ const transformCartForAPI = (cart: CartItem[]) => {
   return cart.map(item => {
     // Collecter toutes les options pour ce produit
     const options: string[] = []
-    
+
     // Ajouter les options additionnelles
     if (item.additionnal && item.additionnal.length > 0) {
       options.push(...item.additionnal)
     }
-    
+
     // Ajouter les suppléments comme options
     if (item.supplements && item.supplements.length > 0) {
       item.supplements.forEach(supp => {
@@ -473,7 +484,7 @@ const transformCartForAPI = (cart: CartItem[]) => {
         }
       })
     }
-    
+
     return {
       product_id: item.productId,
       specification_id: item.selectedSize.id,
@@ -541,6 +552,9 @@ const handlePlaceOrder = async () => {
     // Extraire les features du panier
     const cartFeatures = extractFeaturesFromCart(props.cart)
 
+    // ID du client
+    const customerID = selectedCustomer.value?.id || customerInfo.value.id
+
     // Préparer les données de commande selon le format de l'API
     const orderData = {
       coupon: "",
@@ -599,14 +613,14 @@ const handlePlaceOrder = async () => {
         store.dispatch('features/clearFeatures')
       }
 
-              // Réinitialiser les informations client
-        customerInfo.value = { firstName: '', lastName: '', phone: '' }
-        
-        // Vider le client sélectionné
-        selectedCustomer.value = null
-        customerSuggestions.value = []
-        
-        // Émettre l'événement de succès
+      // Réinitialiser les informations client
+      customerInfo.value = { id: '', firstName: '', lastName: '', phone: '', email: '' }
+
+      // Vider le client sélectionné
+      selectedCustomer.value = null
+      customerSuggestions.value = []
+
+      // Émettre l'événement de succès
       emit('place-order', { success: true, orderData: response.data })
     } else {
       toast.error(response.message || 'Erreur lors de la création de la commande')
@@ -857,6 +871,7 @@ const selectPaymentMethod = (methodId: string) => {
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
   color: #388D35;
   font-size: 14px;
@@ -866,6 +881,7 @@ const selectPaymentMethod = (methodId: string) => {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex: 1;
   }
 
   .banner-icon {
@@ -888,18 +904,27 @@ const selectPaymentMethod = (methodId: string) => {
     font-weight: 600;
   }
 
-  .banner-clear {
-    background: none;
+  .banner-clear-btn {
+    background: #dc2626;
     border: none;
-    color: #64748b;
+    color: white;
     cursor: pointer;
-    font-size: 16px;
-    padding: 0;
-    margin-left: 10px;
-    transition: color 0.2s ease;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
 
     &:hover {
-      color: #dc2626;
+      background: #b91c1c;
+      transform: translateY(-1px);
+    }
+
+    i {
+      font-size: 10px;
     }
   }
 }

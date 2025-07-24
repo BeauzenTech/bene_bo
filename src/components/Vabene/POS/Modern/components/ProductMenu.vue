@@ -371,11 +371,8 @@ const additionalModalProduct = ref<any>(null)
 const additionalModalSize = ref<any>(null)
 
 const showCreatePizzaModal = ref(false)
-const createPizzaSizes = ref([
-  { id: 'classic-small', name: 'Petite', size: 'Petite', price: '14.00', priceLivraison: '16.00' },
-  { id: 'classic-medium', name: 'Normale', size: 'Normale', price: '16.00', priceLivraison: '19.00' },
-  { id: 'classic-large', name: 'Grande', size: 'Grande', price: '28.00', priceLivraison: '31.00' }
-])
+// Tailles de pizza récupérées dynamiquement des produits pizza existants
+const createPizzaSizes = ref<ProductSize[]>([])
 const createPizzaIngredients = ref(INGREDIENTS_WITH_PRICING.map(ing => ({
   id: ing.id,
   name: ing.name,
@@ -468,9 +465,27 @@ const getSizeInCm = (size: string): string => {
   return sizeMap[size] || '33cm'
 }
 
+// Extraire les tailles de pizza des produits existants
+const extractPizzaSizesFromProducts = (products: ProductModel[]) => {
+  // Chercher un produit pizza avec des tailles
+  const pizzaProduct = products.find(product => 
+    product.categorieID?.id === SPECIALIZED_CATEGORY_IDS.PIZZA && 
+    product.productSizes && 
+    product.productSizes.length > 0
+  )
+  
+  if (pizzaProduct && pizzaProduct.productSizes) {
+    createPizzaSizes.value = pizzaProduct.productSizes.map(transformProductSize)
+  }
+}
+
 // Initialiser les tailles sélectionnées pour chaque produit
 watch(() => props.products, (newProducts) => {
   if (newProducts) {
+    // Extraire les tailles de pizza
+    extractPizzaSizesFromProducts(newProducts)
+    
+    // Initialiser les tailles sélectionnées
     newProducts.forEach(product => {
       if (!selectedSizes.value[product.id] && product.productSizes && product.productSizes.length > 0) {
         const defaultSize = product.productSizes.find(s => s.size === 'Normale') || product.productSizes[0]

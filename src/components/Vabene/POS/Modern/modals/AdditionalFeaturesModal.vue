@@ -163,7 +163,8 @@ const handleAddToCart = () => {
     name: ing.name,
     extra_cost_price: ing.price || 0,
     quantity: ing.isDefault ? 1 : 0,
-    isDefault: ing.isDefault
+    isDefault: ing.isDefault,
+    size: props.selectedSize?.name || props.selectedSize?.size || ''
   }))
   
   const event: AddToCartEvent = {

@@ -104,6 +104,7 @@ import { ref, computed, watch } from 'vue'
 import type { ProductSize, CartIngredient, AddToCartEvent } from '../types'
 import CustomPizzaImage from '@/assets/images/products/pate.png'
 import { useStore } from 'vuex'
+import { INGREDIENTS_WITH_PRICING } from '../ingredients'
 
 const store = useStore()
 
@@ -229,13 +230,50 @@ const handleAddToCart = () => {
     store.dispatch('features/toggleFeature', featureName)
   })
 
-  const cartIngredients: CartIngredient[] = selectedIngredients.value.map(ing => ({
-    id: ing.id,
-    name: ing.name,
-    extra_cost_price: ing.price,
-    quantity: 1,
-    isDefault: false
-  }))
+  // Mapping des tailles vers la notation en cm
+  const sizeMap: Record<string, string> = {
+    'Petite': '24cm',
+    'Normale': '33cm',
+    'Grande': '40cm'
+  }
+  
+  const sizeInCm = selectedSize.value?.name ? sizeMap[selectedSize.value.name] || selectedSize.value.name : ''
+
+  // Combiner les ingrédients sélectionnés + les ingrédients par défaut
+  const allCartIngredients: CartIngredient[] = []
+  
+  // Ajouter les ingrédients par défaut automatiquement
+  INGREDIENTS_WITH_PRICING.forEach(ing => {
+    if (ing.isDefault) {
+      allCartIngredients.push({
+        id: ing.id,
+        name: ing.name,
+        extra_cost_price: 0, // Ingrédients par défaut gratuits
+        quantity: 1,
+        isDefault: true,
+        size: sizeInCm
+      })
+    }
+  })
+  
+  // Ajouter les ingrédients sélectionnés manuellement
+  selectedIngredients.value.forEach(ing => {
+    const ingredientInfo = INGREDIENTS_WITH_PRICING.find(i => i.id === ing.id)
+    
+    // Ne pas dupliquer les ingrédients par défaut
+    if (!ingredientInfo?.isDefault) {
+      allCartIngredients.push({
+        id: ing.id,
+        name: ing.name,
+        extra_cost_price: ing.price,
+        quantity: 1,
+        isDefault: false,
+        size: sizeInCm
+      })
+    }
+  })
+  
+  const cartIngredients = allCartIngredients
 
   const event: AddToCartEvent = {
     product: {
