@@ -82,6 +82,9 @@
 import { ref, computed, watch } from 'vue'
 import type { Product, ProductSize, Supplement, AddToCartEvent, CartSupplement } from '../types'
 import htmlToText from '@/utils/html-to-text';
+import { useStore } from 'vuex'
+
+const store = useStore()
 
 // Props
 const props = defineProps<{
@@ -198,6 +201,15 @@ const closeModal = () => {
 
 const handleAddToCart = () => {
   if (!props.product || !props.selectedSize) return
+
+  // Ajouter les sauces sélectionnées au store features
+  const selectedSauceNames = availableSauces
+    .filter(sauce => selectedSauces.value[sauce.name])
+    .map(sauce => sauce.name)
+  
+  selectedSauceNames.forEach(sauceName => {
+    store.dispatch('features/toggleFeature', sauceName)
+  })
 
   // Préparer les suppléments sélectionnés
   const selectedSupplements: CartSupplement[] = availableSauces

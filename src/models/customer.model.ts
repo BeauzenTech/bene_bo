@@ -1,29 +1,42 @@
 import {UserModel} from "@/models/user.model";
 
-export interface CustomerModel{
-    id: string
-    firstName: string
-    lastName: string
-    phoneNumber: string
-    address: string
-    email: string
-    city: string
-    codePostal: string
-    batiment: string
-    rue: string
-    created_at: string
-    user: UserModel
-    civilite: string
-    npa: string
-    localite: string
-    numeroRue: string
-    remarqueCommande: string[],
-    typesCommandes: string[],
-    demandeCouverts: number[],
-    moyenPaiements: string[],
-    type: string,
-    listeCuisson: string[]
-    promotions: boolean
-    newsletter: boolean
+export interface CustomerUser {
+  created_at: string;
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
+  deviceToken: string;
+  enableNotification: boolean;
+}
+
+export interface CustomerModel {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  address: string;
+  city: string;
+  codePostal: string | null;
+  batiment: string;
+  rue: string;
+  user: CustomerUser;
+  civilite: string;
+  npa: string;
+  localite: string;
+  numeroRue: string | null;
+  remarqueCommande: (string | null)[];
+}
+
+export interface PaginatedCustomers {
+  items: CustomerModel[];
+  pagination?: {
+    current_page: number;
+    total_items: number;
+    total_pages: number;
+    items_per_page: number;
+  };
 }
 

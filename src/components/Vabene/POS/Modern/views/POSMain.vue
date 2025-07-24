@@ -251,8 +251,9 @@ const handleAddToCart = (event: AddToCartEvent) => {
     quantity: event.quantity,
     basePrice: parseFloat(event.size.price),
     totalPrice: calculateItemTotal(event),
-    ingredients: event.ingredients,
-    supplements: event.supplements,
+    ingredients: event.ingredients || [],
+    supplements: event.supplements || [],
+    additionnal: (event as any).additionnal || [],
     notes: event.notes || '',
     localProductId: generateLocalProductId(event)
   }
@@ -471,6 +472,7 @@ onMounted(async () => {
   // Charger les données initiales depuis les stores
   if (store) {
     store.dispatch('cart/loadFromStorage')
+    store.dispatch('features/loadFromStorage')
   }
 
   // Charger les données depuis l'API

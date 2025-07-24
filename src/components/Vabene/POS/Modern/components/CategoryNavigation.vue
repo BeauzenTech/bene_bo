@@ -2,7 +2,7 @@
   <div class="category-navigation">
     <h2 class="categories-title">Liste des catégories</h2>
     <div class="category-grid">
-      <button v-for="category in categories" :key="category.id"
+      <button v-for="category in sortedCategories" :key="category.id"
         :class="['category-card', { active: selectedCategory === category.id }]"
         @click="$emit('category-change', category.id)">
         <div class="category-icon">
@@ -17,6 +17,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { Category } from '../types'
 
 interface Props {
@@ -24,11 +25,15 @@ interface Props {
   selectedCategory: string
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 defineEmits<{
   'category-change': [categoryId: string]
 }>()
+
+const sortedCategories = computed(() => {
+  return [...(props.categories || [])].sort((a, b) => Number(a.ordered) - Number(b.ordered))
+})
 
 const getCategoryIcon = (categoryId: string): string => {
   // Utiliser des emojis au lieu d'icônes FontAwesome pour éviter les dépendances
@@ -72,7 +77,7 @@ const getCategoryIcon = (categoryId: string): string => {
 
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(5, 1fr);
   gap: 0.85rem;
 }
 

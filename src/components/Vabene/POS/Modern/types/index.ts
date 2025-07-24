@@ -53,6 +53,7 @@ export interface Product {
   isPopular?: boolean;
   type?: string;
   withoutGluten?: boolean;
+  additionnal?: string[];
 }
 
 export interface CartItem {
@@ -68,6 +69,7 @@ export interface CartItem {
   supplements: CartSupplement[];
   notes?: string;
   localProductId: string;
+  additionnal?: string[];
 }
 
 export interface CartIngredient {
@@ -96,6 +98,7 @@ export interface AddToCartEvent {
   ingredients: CartIngredient[];
   supplements: CartSupplement[];
   notes?: string;
+  additionnal?: string[];
 }
 
 export interface OrderSummary {

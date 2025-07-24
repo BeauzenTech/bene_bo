@@ -79,6 +79,23 @@
         <p>Essayez de changer votre recherche ou la catégorie sélectionnée.</p>
       </div>
     </div>
+    <AdditionalFeaturesModal
+      v-if="showAdditionalModal"
+      :visible="showAdditionalModal"
+      :product="additionalModalProduct"
+      :selectedSize="additionalModalSize"
+      @close="handleAdditionalModalClose"
+      @add-to-cart="handleAdditionalAddToCart"
+    />
+    <CreatePizzaModal
+      v-if="showCreatePizzaModal"
+      :visible="showCreatePizzaModal"
+      :sizes="createPizzaSizes"
+      :ingredients="createPizzaIngredients"
+      :productId="currentPizzaProductId"
+      @close="handleCreatePizzaClose"
+      @add-to-cart="handleCreatePizzaAddToCart"
+    />
   </div>
 </template>
 
@@ -88,6 +105,9 @@ import type { Product, ProductSize, AddToCartEvent, CartIngredient, CartSuppleme
 import type { ProductModel } from '@/models/product.model'
 import type { ProductSizesModel } from '@/models/productSizes.model'
 import htmlToText from '@/utils/html-to-text';
+import AdditionalFeaturesModal from '../modals/AdditionalFeaturesModal.vue'
+import CreatePizzaModal from '../modals/CreatePizzaModal.vue'
+import { INGREDIENTS_WITH_PRICING } from '../ingredients'
 
 // Props
 const props = defineProps<{
@@ -306,7 +326,8 @@ const transformProduct = (product: ProductModel): Product => {
     isAvailable: product.isAvailable,
     isPopular: product.isVedette,
     type: product.type,
-    withoutGluten: product.isSelected // Assuming this field represents gluten-free
+    withoutGluten: product.isSelected, // Assuming this field represents gluten-free
+    additionnal: product.additionnal
   }
 }
 
@@ -345,9 +366,56 @@ const handleQuickAdd = (product: ProductModel) => {
   }
 }
 
-const handleAddToCart = (product: ProductModel) => {
+const showAdditionalModal = ref(false)
+const additionalModalProduct = ref<any>(null)
+const additionalModalSize = ref<any>(null)
+
+const showCreatePizzaModal = ref(false)
+const createPizzaSizes = ref([
+  { id: 'classic-small', name: 'Petite', size: 'Petite', price: '14.00', priceLivraison: '16.00' },
+  { id: 'classic-medium', name: 'Normale', size: 'Normale', price: '16.00', priceLivraison: '19.00' },
+  { id: 'classic-large', name: 'Grande', size: 'Grande', price: '28.00', priceLivraison: '31.00' }
+])
+const createPizzaIngredients = ref(INGREDIENTS_WITH_PRICING.map(ing => ({
+  id: ing.id,
+  name: ing.name,
+  price: ing.pricing['33cm'] || 0,
+  image: ing.imageUrl,
+  selected: !!ing.isDefault
+})))
+
+// Ajouter ref pour l'ID du produit Pizza sélectionné
+const currentPizzaProductId = ref('')
+
+// IDs des produits pizza - doivent correspondre aux constantes React
+
+function handleAddToCart(product: ProductModel) {
   const specializedType = getSpecializedCategoryType(product);
   const isGlutenFreePizza = product.name.toLowerCase().includes('gluten');
+  const selectedSize = getSelectedSize(product)
+
+  // Détection stricte par id de catégorie pour la pizza personnalisée
+  if (product.categorieID?.id === 'fd4a2c4e-49ef-48a5-9937-6f3a51122f9e') {
+    showCreatePizzaModal.value = true
+    currentPizzaProductId.value = product.id // stocker l'id du produit cliqué (classic ou sans gluten)
+    // Reset ingrédients sélectionnés à chaque ouverture
+    createPizzaIngredients.value = INGREDIENTS_WITH_PRICING.map(ing => ({
+      id: ing.id,
+      name: ing.name,
+      price: ing.pricing['33cm'] || 0,
+      image: ing.imageUrl,
+      selected: !!ing.isDefault
+    }))
+    return
+  }
+
+  // Si le produit a des options additionnelles
+  if (product.additionnal && product.additionnal.length > 0) {
+    additionalModalProduct.value = transformProduct(product)
+    additionalModalSize.value = selectedSize
+    showAdditionalModal.value = true
+    return
+  }
 
   if (specializedType === 'pizza' && !isGlutenFreePizza) {
     handleCustomize(product);
@@ -356,6 +424,39 @@ const handleAddToCart = (product: ProductModel) => {
   } else {
     handleQuickAdd(product);
   }
+}
+
+function handleAdditionalModalClose() {
+  showAdditionalModal.value = false
+  additionalModalProduct.value = null
+  additionalModalSize.value = null
+}
+
+function handleAdditionalAddToCart(event: any) {
+  emit('add-to-cart', {
+    product: event.product,
+    size: event.size,
+    quantity: event.quantity,
+    ingredients: event.product.ingredients?.filter(ing => ing.isDefault).map(ing => ({
+      id: ing.id,
+      name: ing.name,
+      extra_cost_price: ing.price,
+      quantity: 1,
+      isDefault: ing.isDefault
+    })) || [],
+    supplements: [],
+    additionnal: event.additionnal, // <-- Ajout de la clé
+    notes: event.notes || ''
+  })
+  handleAdditionalModalClose()
+}
+
+function handleCreatePizzaAddToCart(event: AddToCartEvent) {
+  emit('add-to-cart', event)
+  showCreatePizzaModal.value = false
+}
+function handleCreatePizzaClose() {
+  showCreatePizzaModal.value = false
 }
 
 const getSizeInCm = (size: string): string => {
@@ -423,8 +524,8 @@ watch(() => props.products, (newProducts) => {
 
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
   padding-bottom: 1rem;
 }
 

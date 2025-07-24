@@ -1,6 +1,6 @@
 import { Module } from 'vuex'
 import { RootState } from '../index'
-import { CartItem, ProductSize } from './additional-features-modal'
+import { CartItem, ProductSize } from '@/components/Vabene/POS/Modern/types'
 
 export interface ItemIngredient {
   id: string
@@ -26,7 +26,7 @@ interface CartState {
 // Utilitaires pour générer un ID local de produit
 const generateLocalProductId = (item: CartItem): string => {
   const baseId = `${item.id}_${item.selectedSize?.id || 'no-size'}`
-  const ingredientsHash = (item.Ingredients || [])
+  const ingredientsHash = (item.ingredients || [])
     .filter(ing => !ing.isDefault && ing.quantity > 0)
     .map(ing => `${ing.id}_${ing.quantity}`)
     .sort()
@@ -113,7 +113,7 @@ const cart: Module<CartState, RootState> = {
     UPDATE_ITEM_INGREDIENTS(state, { itemId, ingredients, totalPrice }: { itemId: string; ingredients: ItemIngredient[]; totalPrice: number }) {
       const item = state.cart.find(item => item.localProductId === itemId)
       if (item) {
-        item.Ingredients = ingredients
+        item.ingredients = ingredients
         item.totalPrice = totalPrice * item.quantity
       }
     },
@@ -219,13 +219,13 @@ const cart: Module<CartState, RootState> = {
     addIngredient({ commit, dispatch, getters }, { itemId, ingredient }: { itemId: string; ingredient: ItemIngredient }) {
       const item = getters.getItemById(itemId)
       if (item) {
-        const updatedIngredients = item.Ingredients.some((i: ItemIngredient) => i.name === ingredient.name)
-          ? item.Ingredients.map((i: ItemIngredient) =>
+        const updatedIngredients = item.ingredients.some((i: ItemIngredient) => i.name === ingredient.name)
+          ? item.ingredients.map((i: ItemIngredient) =>
               i.name === ingredient.name ? { ...i, quantity: ingredient.quantity } : i
             )
-          : [...item.Ingredients, ingredient]
+          : [...item.ingredients, ingredient]
         
-        const updatedItem = { ...item, Ingredients: updatedIngredients }
+        const updatedItem = { ...item, ingredients: updatedIngredients }
         const totalPrice = dispatch('calculateItemTotalPrice', { item: updatedItem })
         commit('UPDATE_ITEM_INGREDIENTS', { itemId, ingredients: updatedIngredients, totalPrice })
       }
@@ -235,12 +235,12 @@ const cart: Module<CartState, RootState> = {
       const item = getters.getItemById(itemId)
       if (item) {
         const updatedIngredients = ingredient.quantity <= 0
-          ? item.Ingredients.filter((i: ItemIngredient) => i.name !== ingredient.name)
-          : item.Ingredients.map((i: ItemIngredient) =>
+          ? item.ingredients.filter((i: ItemIngredient) => i.name !== ingredient.name)
+          : item.ingredients.map((i: ItemIngredient) =>
               i.name === ingredient.name ? { ...i, quantity: ingredient.quantity } : i
             )
         
-        const updatedItem = { ...item, Ingredients: updatedIngredients }
+        const updatedItem = { ...item, ingredients: updatedIngredients }
         const totalPrice = dispatch('calculateItemTotalPrice', { item: updatedItem })
         commit('UPDATE_ITEM_INGREDIENTS', { itemId, ingredients: updatedIngredients, totalPrice })
       }
@@ -249,8 +249,8 @@ const cart: Module<CartState, RootState> = {
     clearIngredients({ commit, dispatch, getters }, itemId: string) {
       const item = getters.getItemById(itemId)
       if (item) {
-        const updatedIngredients = item.Ingredients.filter((i: ItemIngredient) => i.isDefault)
-        const updatedItem = { ...item, Ingredients: updatedIngredients }
+        const updatedIngredients = item.ingredients.filter((i: ItemIngredient) => i.isDefault)
+        const updatedItem = { ...item, ingredients: updatedIngredients }
         const totalPrice = dispatch('calculateItemTotalPrice', { item: updatedItem })
         commit('UPDATE_ITEM_INGREDIENTS', { itemId, ingredients: updatedIngredients, totalPrice })
       }

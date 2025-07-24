@@ -1,9 +1,9 @@
 <template>
-  <div v-if="product" class="modal-overlay" @click="closeModal">
+  <div v-if="visible && product" class="modal-overlay" @click="closeModal">
     <div class="modal-content" @click.stop>
       <!-- Header -->
       <div class="modal-header">
-        <h2 class="modal-title">Personnaliser les pâtes</h2>
+        <h2 class="modal-title">Personnaliser les options</h2>
         <button @click="closeModal" class="close-button">
           <i class="fas fa-times"></i>
         </button>
@@ -14,7 +14,7 @@
         <!-- Image et informations du produit -->
         <div class="product-info">
           <div class="product-image">
-            <img :src="product.image || '/imgs/pasta-placeholder.jpg'" :alt="product.name" class="product-img" />
+            <img :src="product.image || '/imgs/product-placeholder.jpg'" :alt="product.name" class="product-img" />
           </div>
           <div class="product-details">
             <h3 class="product-name">{{ product.name }}</h3>
@@ -22,26 +22,32 @@
           </div>
         </div>
 
-        <!-- Description du parmesan -->
+        <!-- Sélection des options additionnelles -->
         <div class="options-section">
-          <p class="options-description">
-            Ajoutez du parmesan râpé pour encore plus de saveur (1.00€) :
-          </p>
-
-          <!-- Option parmesan -->
-          <div class="parmesan-option">
-            <div class="supplement-card" :class="{ 'selected': withParmesan }" @click="toggleParmesan">
-              <div class="supplement-image">
-                <img :src="parmesanSupplement.image_url" :alt="parmesanSupplement.name" class="supplement-img" />
-              </div>
+          <h4 class="options-title">
+            Choisissez une option
+          </h4>
+          <div class="options-list">
+            <div v-for="option in product.additionnal" :key="option" class="supplement-card"
+              :class="{ 'selected': isSelected(option) }"
+              @click="selectFeature(option)">
               <div class="supplement-info">
-                <span class="supplement-name">{{ parmesanSupplement.name }}</span>
-                <span class="supplement-price">+{{ formatPrice(parmesanSupplement.extra_cost_price) }}</span>
+                <span class="supplement-name">{{ option }}</span>
               </div>
               <div class="supplement-checkbox">
-                <i :class="withParmesan ? 'fas fa-check-circle' : 'far fa-circle'"></i>
+                <i :class="selectedFeature === option ? 'fas fa-dot-circle' : 'far fa-circle'"></i>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Options sélectionnées -->
+        <div v-if="hasSelectedOptions" class="selected-options-section">
+          <h4 class="selected-options-title">
+            Option sélectionnée
+          </h4>
+          <div class="selected-option">
+            <span class="selected-option-name">{{ selectedFeature }}</span>
           </div>
         </div>
 
@@ -49,13 +55,9 @@
         <div class="quantity-section">
           <label class="quantity-label">Quantité :</label>
           <div class="quantity-controls">
-            <button @click="decrementQuantity" :disabled="quantity <= 1" class="quantity-btn">
-              ➖
-            </button>
+            <button @click="decrementQuantity" :disabled="quantity <= 1" class="quantity-btn">-</button>
             <span class="quantity-display">{{ quantity }}</span>
-            <button @click="incrementQuantity" class="quantity-btn">
-              ➕
-            </button>
+            <button @click="incrementQuantity" class="quantity-btn">+</button>
           </div>
         </div>
       </div>
@@ -67,9 +69,7 @@
           <span class="price-value">{{ formatPrice(calculateTotal()) }}</span>
         </div>
         <div class="action-buttons">
-          <button @click="closeModal" class="cancel-btn">
-            Annuler
-          </button>
+          <button @click="closeModal" class="cancel-btn">Annuler</button>
           <button @click="handleAddToCart" class="add-to-cart-btn">
             <i class="fas fa-shopping-cart"></i>
             Ajouter au panier
@@ -81,97 +81,82 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { Product, ProductSize, Supplement, AddToCartEvent, CartSupplement } from '../types'
+import { ref, computed, watch } from 'vue'
 import htmlToText from '@/utils/html-to-text';
+import type { Product, ProductSize, AddToCartEvent, CartSupplement, CartIngredient } from '../types'
 import { useStore } from 'vuex'
 
 const store = useStore()
 
-// Props
 const props = defineProps<{
-  product: Product | null
-  selectedSize: ProductSize | null
+  product: any // Product type, doit contenir additionnal: string[]
+  selectedSize: any // ProductSize type
+  visible: boolean
 }>()
 
-// Events
 const emit = defineEmits<{
   close: []
-  'add-to-cart': [event: AddToCartEvent]
+  'add-to-cart': [event: any]
 }>()
 
-// Supplément parmesan pour les pâtes
-const parmesanSupplement: Supplement = {
-  id: "parmesan",
-  name: "Parmesan",
-  price: 1.0,
-  extra_cost_price: 1.0,
-  image_url: "/images/supplements/default-parmesan.png",
-  quantity: 0,
-  type: "pasta",
-  size: "Normale",
-  isDefault: false,
-  isAvailable: true
-}
-
-// État local
-const withParmesan = ref(false)
+const selectedFeature = ref('')
 const quantity = ref(1)
 
-// Fonctions utilitaires
-const formatPrice = (price: number): string => {
-  return `${price.toFixed(2)}€`
+const selectedOptions = computed(() => {
+  return selectedFeature.value ? [selectedFeature.value] : []
+})
+
+const hasSelectedOptions = computed(() => selectedOptions.value.length > 0)
+
+watch(() => props.product, (newProduct) => {
+  // Réinitialiser à chaque ouverture, sans pré-sélection
+  selectedFeature.value = ''
+  quantity.value = 1
+}, { immediate: true })
+
+const isSelected = (option: string) => {
+  return selectedFeature.value === option
 }
 
-const toggleParmesan = () => {
-  withParmesan.value = !withParmesan.value
+const selectFeature = (option: string) => {
+  if (selectedFeature.value === option) {
+    // Si on clique sur l'option déjà sélectionnée, on la désélectionne
+    selectedFeature.value = ''
+  } else {
+    // Sinon, on la sélectionne
+    selectedFeature.value = option
+  }
 }
 
 const incrementQuantity = () => {
   quantity.value++
 }
-
 const decrementQuantity = () => {
-  if (quantity.value > 1) {
-    quantity.value--
-  }
+  if (quantity.value > 1) quantity.value--
 }
+
+const formatPrice = (price: number): string => `${price.toFixed(2)}€`
 
 const calculateTotal = (): number => {
   if (!props.selectedSize) return 0
-
   const basePrice = parseFloat(props.selectedSize.price) || 0
-  const parmesanPrice = withParmesan.value ? parmesanSupplement.extra_cost_price : 0
-
-  return (basePrice + parmesanPrice) * quantity.value
+  return basePrice * quantity.value
 }
 
 const closeModal = () => {
-  // Réinitialiser l'état
-  withParmesan.value = false
+  selectedFeature.value = ''
   quantity.value = 1
   emit('close')
 }
 
-
 const handleAddToCart = () => {
   if (!props.product || !props.selectedSize) return
-
-  // Ajouter le parmesan au store features s'il est sélectionné
-  if (withParmesan.value) {
-    store.dispatch('features/toggleFeature', parmesanSupplement.name)
+  
+  // Ajouter l'option sélectionnée au store features
+  if (selectedFeature.value) {
+    store.dispatch('features/toggleFeature', selectedFeature.value)
   }
-
-  // Préparer les suppléments sélectionnés
-  const selectedSupplements: CartSupplement[] = withParmesan.value ? [{
-    id: parmesanSupplement.id,
-    name: parmesanSupplement.name,
-    extra_cost_price: parmesanSupplement.extra_cost_price,
-    quantity: 1,
-    type: parmesanSupplement.type,
-    size: parmesanSupplement.size
-  }] : []
-
+  
   // Convertir les ingrédients en CartIngredient[]
   const cartIngredients = (props.product.ingredients || []).map(ing => ({
     id: ing.id,
@@ -180,22 +165,23 @@ const handleAddToCart = () => {
     quantity: ing.isDefault ? 1 : 0,
     isDefault: ing.isDefault
   }))
-
+  
   const event: AddToCartEvent = {
     product: props.product,
     size: props.selectedSize,
     quantity: quantity.value,
     ingredients: cartIngredients,
-    supplements: selectedSupplements,
+    supplements: [],
+    additionnal: selectedOptions.value,
     notes: ''
   }
-
   emit('add-to-cart', event)
   closeModal()
 }
 </script>
 
 <style lang="scss" scoped>
+// Copied from PastaCustomizationModal.vue for consistency
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -289,73 +275,6 @@ const handleAddToCart = () => {
       margin: 0;
       font-size: 0.875rem;
       line-height: 1.4;
-    }
-  }
-}
-
-.options-section {
-  margin-bottom: 1.5rem;
-
-  .options-description {
-    color: #64748b;
-    margin-bottom: 1rem;
-    font-size: 0.875rem;
-  }
-}
-
-.parmesan-option {
-  .supplement-card {
-    display: flex;
-    align-items: center;
-    max-width: 100%;
-    gap: 0.75rem;
-    padding: 1rem;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    &:hover {
-      border-color: #388D35;
-      background: #f0f9ff;
-    }
-
-    &.selected {
-      border-color: #388D35;
-      background: #f0fdf4;
-    }
-
-    .supplement-image {
-      .supplement-img {
-        width: 50px;
-        height: 50px;
-        object-fit: cover;
-        border-radius: 6px;
-      }
-    }
-
-    .supplement-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-
-      .supplement-name {
-        font-weight: 600;
-        color: #1e293b;
-        font-size: 1rem;
-      }
-
-      .supplement-price {
-        color: #388D35;
-        font-weight: 600;
-        font-size: 0.875rem;
-      }
-    }
-
-    .supplement-checkbox {
-      color: #388D35;
-      font-size: 1.5rem;
     }
   }
 }
@@ -478,6 +397,75 @@ const handleAddToCart = () => {
   }
 }
 
+// Styles specific to AdditionalFeaturesModal
+.options-section {
+  margin-bottom: 1.5rem;
+  .options-title {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    color: #374151;
+  }
+}
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.supplement-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  &:hover {
+    border-color: #388D35;
+    background: #f0f9ff;
+  }
+  &.selected {
+    border-color: #388D35;
+    background: #f0fdf4;
+  }
+  .supplement-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    .supplement-name {
+      font-weight: 600;
+      color: #1e293b;
+      font-size: 1rem;
+    }
+  }
+  .supplement-checkbox {
+    color: #388D35;
+    font-size: 1.5rem;
+  }
+}
+.selected-options-section {
+  margin-bottom: 1.5rem;
+  .selected-options-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #388D35;
+    margin-bottom: 0.5rem;
+  }
+  .selected-option-name {
+    display: inline-block;
+    background: #f0fdf4;
+    color: #388D35;
+    border-radius: 6px;
+    padding: 0.25rem 0.75rem;
+    margin-right: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+}
+
 @media (max-width: 640px) {
   .modal-content {
     margin: 0;
@@ -512,4 +500,4 @@ const handleAddToCart = () => {
     }
   }
 }
-</style>
+</style> 
