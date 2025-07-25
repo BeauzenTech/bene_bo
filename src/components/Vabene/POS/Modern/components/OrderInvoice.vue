@@ -60,7 +60,7 @@
                 <span class="suggestion-name">{{ customer.firstName }} {{ customer.lastName }}</span>
                 <span class="suggestion-phone">{{ customer.phoneNumber }}</span>
               </div>
-              <div class="suggestion-address">{{ customer.address }}, {{ customer.city }}</div>
+              <div class="suggestion-address">{{ customer.email }}</div>
             </div>
           </div>
         </div>
@@ -74,14 +74,14 @@
           <input v-model="customerInfo.phone" type="tel" placeholder="Numéro de téléphone"
             :class="['form-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
         </div>
-        <div class="form-group">
+        <!-- <div class="form-group">
           <label>Type de commande</label>
           <select v-model="orderType" class="form-select">
             <option value="dine-in">Sur place</option>
             <option value="takeaway">À emporter</option>
             <option value="delivery">Livraison</option>
           </select>
-        </div>
+        </div> -->
       </div>
     </div>
 
@@ -148,7 +148,7 @@
             </div>
 
             <div class="item-price">
-              <span class="price">{{ formatPrice(item.totalPrice) }}€</span>
+              <span class="price">{{ formatPrice(item.totalPrice) }} CHF</span>
             </div>
 
             <button class="remove-btn" @click="removeItem(item.localProductId)">
@@ -185,17 +185,17 @@
       <div class="summary-lines">
         <div class="summary-row">
           <span class="label">Sous-total</span>
-          <span class="value">{{ formatPrice(orderSummary.subtotal) }}€</span>
+          <span class="value">{{ formatPrice(orderSummary.subtotal) }} CHF</span>
         </div>
 
         <div class="summary-row">
           <span class="label">TVA ({{ taxRate }}%)</span>
-          <span class="value">{{ formatPrice(orderSummary.tax) }}€</span>
+          <span class="value">{{ formatPrice(orderSummary.tax) }} CHF</span>
         </div>
 
         <div class="summary-row total">
           <span class="label">Total</span>
-          <span class="value">{{ formatPrice(orderSummary.total) }}€</span>
+          <span class="value">{{ formatPrice(orderSummary.total) }} CHF</span>
         </div>
       </div>
     </div>
@@ -220,7 +220,7 @@
       <button @click="handlePlaceOrder" :disabled="!canPlaceOrder || isProcessingOrder" class="place-order-btn">
         <i :class="isProcessingOrder ? 'fas fa-spinner fa-spin' : 'fas fa-receipt'"></i>
         {{ isProcessingOrder ? 'Traitement...' : 'Valider la commande' }}
-        <span class="order-total">{{ formatPrice(orderSummary.total) }}€</span>
+        <span class="order-total">{{ formatPrice(orderSummary.total) }} CHF</span>
       </button>
     </div>
   </div>
@@ -490,13 +490,19 @@ const transformCartForAPI = (cart: CartItem[]) => {
       specification_id: item.selectedSize.id,
       quantity: item.quantity,
       optionSpecific: options.join(', ') || "",
-      ingredient: item.ingredients.map(ing => ({
+      ingredient: [...item.ingredients.map(ing => ({
         name: ing.name,
         extra_cost_price: String(ing.extra_cost_price),
         isDefault: ing.isDefault,
         size: ing.size || "",
         quantite: ing.quantity,
-      })),
+      })), ...item.supplements.map(supp => ({
+        name: supp.name,
+        extra_cost_price: String(supp.extra_cost_price),
+        isDefault: false,
+        size: supp.size || "",
+        quantite: supp.quantity,
+      }))],
     }
   })
 }
@@ -553,7 +559,8 @@ const handlePlaceOrder = async () => {
     const cartFeatures = extractFeaturesFromCart(props.cart)
 
     // ID du client
-    const customerID = selectedCustomer.value?.id || customerInfo.value.id
+    const customerID = /* selectedCustomer.value?.id ||  */customerInfo.value.id;
+    console.log('Customer ID:', customerID)
 
     // Préparer les données de commande selon le format de l'API
     const orderData = {
@@ -599,7 +606,8 @@ const handlePlaceOrder = async () => {
       numeroRue: restaurantInfo.value.numeroRue,
       batiment: restaurantInfo.value.batiment
     })
-    console.log('Payload de commande final:', orderData)
+    console.log('Payload de commande final:', orderData);
+    console.log("Supplements:", props.cart.map(item => item.supplements))
 
     const response = await createPOSOrder(orderData)
 

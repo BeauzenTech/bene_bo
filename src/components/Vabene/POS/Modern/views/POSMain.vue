@@ -133,10 +133,11 @@ const cartCount = computed(() => store?.getters?.['cart/cartCount'] || 0)
 const orderSummary = computed((): OrderSummary => {
   const subtotal = cart.value.reduce((sum: number, item: CartItem) => sum + (item.totalPrice || 0), 0)
   const tax = subtotal * 0.026 // 2.6% de taxe suisse
-  const total = subtotal + tax
+  const subtotalFinal = subtotal - tax;
+  const total = subtotalFinal + tax
 
   return {
-    subtotal,
+    subtotal: subtotalFinal,
     tax,
     total,
     items: cart.value

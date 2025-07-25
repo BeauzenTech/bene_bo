@@ -135,7 +135,7 @@ const decrementQuantity = () => {
   if (quantity.value > 1) quantity.value--
 }
 
-const formatPrice = (price: number): string => `${price.toFixed(2)}€`
+const formatPrice = (price: number): string => `${price.toFixed(2)} CHF`
 
 const calculateTotal = (): number => {
   if (!props.selectedSize) return 0

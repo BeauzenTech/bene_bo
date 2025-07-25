@@ -93,6 +93,7 @@
       :sizes="createPizzaSizes"
       :ingredients="createPizzaIngredients"
       :productId="currentPizzaProductId"
+      :product="currentPizzaProduct"
       @close="handleCreatePizzaClose"
       @add-to-cart="handleCreatePizzaAddToCart"
     />
@@ -260,7 +261,7 @@ const getProductImage = (product: ProductModel): string => {
 
 
 const formatPrice = (price: number): string => {
-  return `${price.toFixed(2)}€`
+  return `${price.toFixed(2)} CHF`
 }
 
 const hasMultipleSizes = (product: ProductModel): boolean => {
@@ -384,7 +385,9 @@ const createPizzaIngredients = ref(INGREDIENTS_WITH_PRICING.map(ing => ({
 // Ajouter ref pour l'ID du produit Pizza sélectionné
 const currentPizzaProductId = ref('')
 
-// IDs des produits pizza - doivent correspondre aux constantes React
+// Produit Pizza sélectionné
+const currentPizzaProduct = ref<ProductModel | null>(null)
+
 
 function handleAddToCart(product: ProductModel) {
   const specializedType = getSpecializedCategoryType(product);
@@ -403,6 +406,7 @@ function handleAddToCart(product: ProductModel) {
       image: ing.imageUrl,
       selected: !!ing.isDefault
     }))
+    currentPizzaProduct.value = product
     return
   }
 

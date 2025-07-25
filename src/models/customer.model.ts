@@ -28,6 +28,9 @@ export interface CustomerModel {
   localite: string;
   numeroRue: string | null;
   remarqueCommande: (string | null)[];
+  promotions: boolean;
+  newsletter: boolean;
+  created_at: string;
 }
 
 export interface PaginatedCustomers {

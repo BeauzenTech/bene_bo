@@ -28,7 +28,7 @@
                 <button v-for="size in product.sizes" :key="size.id"
                   :class="['size-btn', { active: selectedSize?.id === size.id }]" @click="selectSize(size)">
                   <span class="size-name">{{ size.name }}</span>
-                  <span class="size-price">{{ formatPrice(size.price) }}€</span>
+                  <span class="size-price">{{ formatPrice(size.price) }} CHF</span>
                 </button>
               </div>
             </div>
@@ -61,7 +61,7 @@
 
               <div class="ingredient-info">
                 <span class="ingredient-name">{{ ingredient.name }}</span>
-                <span v-if="ingredient.price > 0" class="ingredient-price">+{{ formatPrice(ingredient.price) }}€</span>
+                <span v-if="ingredient.price > 0" class="ingredient-price">+{{ formatPrice(ingredient.price) }} CHF</span>
               </div>
 
               <div class="ingredient-controls">
@@ -96,7 +96,7 @@
             <div v-for="ingredient in modifiedIngredients" :key="ingredient.id" class="modification-item">
               <span class="modification-name">{{ ingredient.name }}</span>
               <span class="modification-detail">x{{ ingredient.quantity }}</span>
-              <span class="modification-price">+{{ formatPrice(ingredient.price * ingredient.quantity) }}€</span>
+              <span class="modification-price">+{{ formatPrice(ingredient.price * ingredient.quantity) }} CHF</span>
             </div>
           </div>
         </div>
@@ -120,11 +120,11 @@
         <div class="price-section">
           <div class="price-breakdown">
             <span class="price-label">Prix unitaire:</span>
-            <span class="unit-price">{{ formatPrice(unitPrice) }}€</span>
+            <span class="unit-price">{{ formatPrice(unitPrice) }} CHF</span>
           </div>
           <div class="total-price">
             <span class="total-label">Total:</span>
-            <span class="total-amount">{{ formatPrice(totalPrice) }}€</span>
+            <span class="total-amount">{{ formatPrice(totalPrice) }} CHF</span>
           </div>
         </div>
 

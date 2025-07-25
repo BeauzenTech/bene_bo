@@ -25,7 +25,7 @@
         <!-- Description du parmesan -->
         <div class="options-section">
           <p class="options-description">
-            Ajoutez du parmesan râpé pour encore plus de saveur (1.00€) :
+            Ajoutez du parmesan râpé pour encore plus de saveur (1.00 CHF) :
           </p>
 
           <!-- Option parmesan -->
@@ -120,7 +120,7 @@ const quantity = ref(1)
 
 // Fonctions utilitaires
 const formatPrice = (price: number): string => {
-  return `${price.toFixed(2)}€`
+  return `${price.toFixed(2)} CHF`
 }
 
 const toggleParmesan = () => {

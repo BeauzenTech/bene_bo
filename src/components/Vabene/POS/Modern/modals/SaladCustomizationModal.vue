@@ -163,7 +163,7 @@ const selectedSauceItems = computed(() => {
 
 // Fonctions utilitaires
 const formatPrice = (price: number): string => {
-  return `${price.toFixed(2)}€`
+  return `${price.toFixed(2)} CHF`
 }
 
 const toggleSauce = (sauceName: string) => {

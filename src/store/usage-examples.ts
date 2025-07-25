@@ -11,12 +11,12 @@ Dans un composant Vue, voici comment utiliser le store cart:
   <div>
     <h2>Panier ({{ cartCount }} articles)</h2>
     <div v-for="item in cart" :key="item.localProductId">
-      <p>{{ item.name }} - {{ item.quantity }}x {{ item.totalPrice }}€</p>
+      <p>{{ item.name }} - {{ item.quantity }}x {{ item.totalPrice }} CHF</p>
       <button @click="incrementQuantity(item.localProductId)">+</button>
       <button @click="decrementQuantity(item.localProductId)">-</button>
       <button @click="removeFromCart(item)">Supprimer</button>
     </div>
-    <p>Total: {{ cartTotal }}€</p>
+          <p>Total: {{ cartTotal }} CHF</p>
     <button @click="clearCart">Vider le panier</button>
   </div>
 </template>

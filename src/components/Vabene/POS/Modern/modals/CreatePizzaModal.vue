@@ -15,7 +15,8 @@
         <div class="modal-left">
           <!-- Sélection de la taille -->
           <div class="size-section">
-            <label v-for="size in sizes" :key="size.id" class="size-option" :class="{ selected: selectedSize?.id === size.id }">
+            <label v-for="size in availableSizes" :key="size.id" class="size-option"
+              :class="{ selected: selectedSize?.id === size.id }">
               <input type="radio" :value="size.id" v-model="selectedSizeId" @change="selectSize(size)" />
               <span>{{ size.name }} - {{ formatPrice(parseFloat(size.price)) }}</span>
             </label>
@@ -27,28 +28,14 @@
             <!-- Champ de recherche -->
             <div class="search-box">
               <i class="fas fa-search search-icon"></i>
-              <input 
-                type="text"
-                v-model="searchQuery"
-                placeholder="Rechercher un ingrédient..."
-                class="search-input"
-              />
-              <button 
-                v-if="searchQuery" 
-                @click="searchQuery = ''" 
-                class="clear-search"
-              >
+              <input type="text" v-model="searchQuery" placeholder="Rechercher un ingrédient..." class="search-input" />
+              <button v-if="searchQuery" @click="searchQuery = ''" class="clear-search">
                 <i class="fas fa-times"></i>
               </button>
             </div>
             <div class="ingredients-list">
-              <div 
-                v-for="(ingredient, index) in filteredIngredients" 
-                :key="ingredient.id" 
-                class="ingredient-card" 
-                :class="{ selected: ingredient.selected }"
-                @click="toggleIngredient(index)"
-              >
+              <div v-for="(ingredient, index) in filteredIngredients" :key="ingredient.id" class="ingredient-card"
+                :class="{ selected: ingredient.selected }" @click="toggleIngredient(index)">
                 <img :src="ingredient.image" :alt="ingredient.name" class="ingredient-img" />
                 <span class="ingredient-name">{{ ingredient.name }}</span>
                 <span class="ingredient-price">+{{ formatPrice(ingredient.price) }}</span>
@@ -105,6 +92,7 @@ import type { ProductSize, CartIngredient, AddToCartEvent } from '../types'
 import CustomPizzaImage from '@/assets/images/products/pate.png'
 import { useStore } from 'vuex'
 import { INGREDIENTS_WITH_PRICING } from '../ingredients'
+import { ProductModel } from '@/models/product.model'
 
 const store = useStore()
 
@@ -127,12 +115,15 @@ const props = defineProps<{
   sizes: ProductSize[]
   ingredients: Array<{ id: string, name: string, price: number, image: string, selected: boolean }>
   productId: string
+  product: ProductModel | null
 }>()
 
 const emit = defineEmits<{
   close: []
   'add-to-cart': [event: AddToCartEvent]
 }>()
+
+console.log('Product:', props.product)
 
 // État local - SIMPLE ET DIRECT
 const selectedSizeId = ref('')
@@ -152,20 +143,55 @@ const searchQuery = ref('')
 const filteredIngredients = computed(() => {
   const query = searchQuery.value.toLowerCase().trim()
   if (!query) return localIngredients.value
-  
-  return localIngredients.value.filter(ingredient => 
+
+  return localIngredients.value.filter(ingredient =>
     ingredient.name.toLowerCase().includes(query)
   )
+})
+
+// Computed pour les tailles disponibles
+const availableSizes = computed(() => {
+  if (props.product?.productSizes) {
+    return props.product.productSizes
+      .filter(size => size.id) // Filtrer les tailles avec un ID valide
+      .map(size => ({
+        id: size.id!,
+        name: size.size,
+        price: size.price,
+        size: size.size,
+        priceLivraison: size.priceLivraison || size.price
+      }))
+      .sort((a, b) => {
+        // Ordre des tailles de pizza
+        const order = ["Petite", "Normale", "Grande"]
+        const aIndex = order.indexOf(a.size)
+        const bIndex = order.indexOf(b.size)
+        
+        // Si les deux tailles sont dans l'ordre défini
+        if (aIndex !== -1 && bIndex !== -1) {
+          return aIndex - bIndex
+        }
+        
+        // Si une seule taille est dans l'ordre défini, elle vient en premier
+        if (aIndex !== -1) return -1
+        if (bIndex !== -1) return 1
+        
+        // Sinon tri alphabétique
+        return a.size.localeCompare(b.size)
+      })
+  }
+  return props.sizes || []
 })
 
 // Initialiser quand la modale s'ouvre
 watch(() => props.visible, (isVisible) => {
   if (isVisible) {
-    // Réinitialiser la taille
-    selectedSize.value = props.sizes[0] || null
-    selectedSizeId.value = props.sizes[0]?.id || ''
+    // Réinitialiser la taille avec les vraies tailles du produit
+    const firstSize = availableSizes.value[0]
+    selectedSize.value = firstSize || null
+    selectedSizeId.value = firstSize?.id || ''
     quantity.value = 1
-    
+
     // Créer une copie locale des ingrédients
     localIngredients.value = props.ingredients.map(ing => ({
       id: ing.id,
@@ -186,23 +212,23 @@ const selectSize = (size: ProductSize) => {
 const toggleIngredient = (index: number) => {
   console.log('Toggle ingredient called for index:', index)
   console.log('Before toggle:', localIngredients.value[index].selected)
-  
+
   // Modification directe de l'élément dans le tableau
   localIngredients.value[index].selected = !localIngredients.value[index].selected
-  
+
   console.log('After toggle:', localIngredients.value[index].selected)
   console.log('Current localIngredients:', localIngredients.value.map(i => ({ name: i.name, selected: i.selected })))
 }
 
-const incrementQuantity = () => { 
-  quantity.value++ 
+const incrementQuantity = () => {
+  quantity.value++
 }
 
-const decrementQuantity = () => { 
-  if (quantity.value > 1) quantity.value-- 
+const decrementQuantity = () => {
+  if (quantity.value > 1) quantity.value--
 }
 
-const formatPrice = (price: number): string => `${price.toFixed(2)}€`
+const formatPrice = (price: number): string => `${price.toFixed(2)} CHF`
 
 const calculateTotal = (): number => {
   if (!selectedSize.value) return 0
@@ -236,12 +262,12 @@ const handleAddToCart = () => {
     'Normale': '33cm',
     'Grande': '40cm'
   }
-  
+
   const sizeInCm = selectedSize.value?.name ? sizeMap[selectedSize.value.name] || selectedSize.value.name : ''
 
   // Combiner les ingrédients sélectionnés + les ingrédients par défaut
   const allCartIngredients: CartIngredient[] = []
-  
+
   // Ajouter les ingrédients par défaut automatiquement
   INGREDIENTS_WITH_PRICING.forEach(ing => {
     if (ing.isDefault) {
@@ -255,11 +281,11 @@ const handleAddToCart = () => {
       })
     }
   })
-  
+
   // Ajouter les ingrédients sélectionnés manuellement
   selectedIngredients.value.forEach(ing => {
     const ingredientInfo = INGREDIENTS_WITH_PRICING.find(i => i.id === ing.id)
-    
+
     // Ne pas dupliquer les ingrédients par défaut
     if (!ingredientInfo?.isDefault) {
       allCartIngredients.push({
@@ -272,7 +298,7 @@ const handleAddToCart = () => {
       })
     }
   })
-  
+
   const cartIngredients = allCartIngredients
 
   const event: AddToCartEvent = {
@@ -282,7 +308,7 @@ const handleAddToCart = () => {
       description: '',
       image: CUSTOM_PIZZA_IMAGE,
       category: 'pizza',
-      sizes: props.sizes,
+      sizes: availableSizes.value,
       ingredients: [],
       supplements: [],
       isAvailable: true
@@ -291,7 +317,8 @@ const handleAddToCart = () => {
     quantity: quantity.value,
     ingredients: cartIngredients,
     supplements: [],
-    notes: ''
+    notes: '',
+    specification_id: props.product?.id
   }
   emit('add-to-cart', event)
   closeModal()
@@ -383,7 +410,7 @@ const handleAddToCart = () => {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .summary-section {
@@ -399,7 +426,7 @@ const handleAddToCart = () => {
   margin: 0 0 1rem 0;
   padding: 0 0 0 1.2em;
   font-size: 0.95rem;
-  
+
   .no-ingredients {
     color: #64748b;
     font-style: italic;
@@ -429,7 +456,7 @@ const handleAddToCart = () => {
   transition: all 0.2s ease;
   font-size: 1rem;
   margin-bottom: 0.5rem;
-  
+
   &:hover {
     background: #2d7a2a;
   }
@@ -446,7 +473,7 @@ const handleAddToCart = () => {
   font-weight: 500;
   transition: all 0.2s ease;
   font-size: 1rem;
-  
+
   &:hover {
     background: #f9fafb;
     border-color: #9ca3af;
@@ -468,18 +495,18 @@ const handleAddToCart = () => {
     border-radius: 20px;
     cursor: pointer;
     transition: all 0.2s ease;
-    
+
     &.selected {
       background-color: #388D35;
       color: white;
       border-color: #388D35;
     }
-    
+
     &:hover:not(.selected) {
       border-color: #388D35;
       background: #f0fdf4;
     }
-    
+
     input {
       display: none;
     }
@@ -488,7 +515,7 @@ const handleAddToCart = () => {
 
 .ingredients-section {
   margin-bottom: 1.5rem;
-  
+
   h4 {
     font-size: 1rem;
     font-weight: 500;
@@ -499,7 +526,7 @@ const handleAddToCart = () => {
   .search-box {
     position: relative;
     margin-bottom: 1rem;
-    
+
     .search-icon {
       position: absolute;
       left: 1rem;
@@ -508,7 +535,7 @@ const handleAddToCart = () => {
       color: #64748b;
       font-size: 0.9rem;
     }
-    
+
     .search-input {
       width: 100%;
       padding: 0.75rem 2.5rem;
@@ -517,18 +544,18 @@ const handleAddToCart = () => {
       font-size: 0.95rem;
       transition: all 0.2s ease;
       background: white;
-      
+
       &:focus {
         outline: none;
         border-color: #388D35;
         box-shadow: 0 0 0 3px rgba(56, 141, 53, 0.1);
       }
-      
+
       &::placeholder {
         color: #94a3b8;
       }
     }
-    
+
     .clear-search {
       position: absolute;
       right: 1rem;
@@ -540,14 +567,14 @@ const handleAddToCart = () => {
       cursor: pointer;
       padding: 0.25rem;
       border-radius: 4px;
-      
+
       &:hover {
         background: #f1f5f9;
         color: #1e293b;
       }
     }
   }
-  
+
   .ingredients-list {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -558,7 +585,7 @@ const handleAddToCart = () => {
     background: #f6f8fa;
     border-radius: 12px;
   }
-  
+
   .ingredient-card {
     display: flex;
     flex-direction: column;
@@ -573,25 +600,25 @@ const handleAddToCart = () => {
     max-width: 120px;
     min-height: 150px;
     max-height: 150px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     transition: all 0.2s ease;
     border: 2px solid transparent;
     cursor: pointer;
-    
+
     &:hover {
-      box-shadow: 0 4px 16px rgba(56,141,53,0.10);
+      box-shadow: 0 4px 16px rgba(56, 141, 53, 0.10);
       background: #f0fdf4;
       border-color: #b6e7c9;
       transform: translateY(-2px);
     }
-    
+
     &.selected {
       border: 2px solid #388D35;
       background: #e6fbe9;
-      box-shadow: 0 4px 16px rgba(56,141,53,0.15);
+      box-shadow: 0 4px 16px rgba(56, 141, 53, 0.15);
       transform: translateY(-2px);
     }
-    
+
     .ingredient-img {
       width: 56px;
       height: 56px;
@@ -599,9 +626,9 @@ const handleAddToCart = () => {
       object-fit: cover;
       margin-bottom: 0.5rem;
       background: white;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
     }
-    
+
     .ingredient-name {
       font-weight: 600;
       color: #1e293b;
@@ -610,7 +637,7 @@ const handleAddToCart = () => {
       margin-bottom: 0.25rem;
       line-height: 1.2;
     }
-    
+
     .ingredient-price {
       color: #388D35;
       font-weight: 600;
@@ -618,7 +645,7 @@ const handleAddToCart = () => {
       text-align: center;
       margin-bottom: 0.25rem;
     }
-    
+
     .ingredient-toggle {
       background: none;
       border: none;
@@ -627,7 +654,7 @@ const handleAddToCart = () => {
       cursor: pointer;
       margin-top: 0.25rem;
       transition: color 0.2s;
-      
+
       &:hover {
         color: #2d7a2a;
       }
@@ -639,7 +666,7 @@ const handleAddToCart = () => {
   .ingredients-list {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .modal-body.two-columns {
     flex-direction: column;
   }
@@ -650,17 +677,17 @@ const handleAddToCart = () => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 1.5rem;
-  
+
   label {
     font-weight: 500;
     color: #1e293b;
   }
-  
+
   .quantity-controls {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    
+
     .quantity-btn {
       width: 32px;
       height: 32px;
@@ -674,19 +701,19 @@ const handleAddToCart = () => {
       color: #374151;
       transition: all 0.2s ease;
       font-weight: 600;
-      
+
       &:hover:not(:disabled) {
         border-color: #388D35;
         color: #388D35;
         background: #f9fafb;
       }
-      
+
       &:disabled {
         opacity: 0.5;
         cursor: not-allowed;
       }
     }
-    
+
     .quantity-display {
       min-width: 40px;
       text-align: center;
@@ -696,4 +723,4 @@ const handleAddToCart = () => {
     }
   }
 }
-</style> 
+</style>

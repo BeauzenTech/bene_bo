@@ -99,6 +99,7 @@ export interface AddToCartEvent {
   supplements: CartSupplement[];
   notes?: string;
   additionnal?: string[];
+  specification_id?: string;
 }
 
 export interface OrderSummary {
