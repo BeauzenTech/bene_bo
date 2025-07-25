@@ -87,17 +87,34 @@
                   <div class="col-sm-4 fw-bold">Demande de couvert lors des commandes:</div>
                   <div class="col-sm-8">{{ analyserDemandeCouverts(categorieResponse.demandeCouverts) }}</div>
                 </div>
-                <div class="row mb-2">
-                  <div class="col-sm-4 fw-bold">Type de cuisson préféré:</div>
-                  <div class="col-sm-8">{{ analyserListeCuisson(categorieResponse.listeCuisson) }}</div>
-                </div>
+<!--                <div class="row mb-2">-->
+<!--                  <div class="col-sm-4 fw-bold">Type de cuisson préféré:</div>-->
+<!--                  <div class="col-sm-8">{{ analyserListeCuisson(categorieResponse.listeCuisson) }}</div>-->
+<!--                </div>-->
                 <div class="row mb-2">
                   <div class="col-sm-4 fw-bold">Habitudes de paiement du client:</div>
                   <div class="col-sm-8">{{ analyserMoyensPaiement(categorieResponse.moyenPaiements) }}</div>
                 </div>
               </div>
             </div>
-
+            <div class="card mb-3" v-if="categorieResponse">
+              <div class="card-header bg-danger text-white">
+                Historique de commandes
+              </div>
+              <div class="card-body p-3" v-if="categorieResponse.user.orders && categorieResponse.user.orders.length > 0">
+                <div v-for="commande in categorieResponse.user.orders" :key="commande.id" class="mb-3 border-bottom pb-2">
+                  <h5 class="mb-1" v-if="getOrderTypeParType(listeOrderType, commande.order_type).length > 0">{{ getOrderTypeParType(listeOrderType, commande.order_type)[0].libelle }}</h5>
+                  <p class="mb-1 text-muted">
+                    📅 {{ convertDateCreate(commande.created_at)}} <br>
+                    📦 Statut :
+                    <span class="text-warning">
+                     {{ fetchStatusOrderFr(commande.status)  }}
+                </span>
+                  </p>
+                  <p class="fw-bold">Total : {{ commande.total_price }} CHF</p>
+                </div>
+              </div>
+            </div>
           </div>
 
 
@@ -260,17 +277,20 @@ import {
   updateCategorie,
   uploadFile,
   deleteFileUpload,
-  detailCustomer
+  detailCustomer, listeOrderType
 } from "@/service/api";
 
 import { useToast } from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import { AxiosError } from 'axios';
-import { ApiResponse, PaginatedCategorie } from "@/models/Apiresponse";
+import {ApiResponse, PaginatedCategorie, PaginatedOrderType} from "@/models/Apiresponse";
 import { CategorieModel } from "@/models/categorie.model";
 import { ActionCrud } from "@/enums/actionCrud.enum";
 import { CustomerModel } from "@/models/customer.model";
 import LeadsInformation from "@/components/CRM/LeadDetails/LeadsInformation.vue";
+import {OrderStatus} from "@/enums/orderStatut.enum";
+import {OrderTypeModel} from "@/models/orderType.model";
+import {UserGeneralKey} from "@/models/user.generalkey";
 
 
 export default defineComponent({
@@ -292,6 +312,8 @@ export default defineComponent({
   },
   data() {
     return {
+      orderTypeSelected: [] as OrderTypeModel[],
+      listeOrderType: [] as OrderTypeModel[],
       categorieData: {
         email: '',
         firstName: '',
@@ -311,6 +333,52 @@ export default defineComponent({
     }
   },
   methods: {
+    getOrderTypeParType(
+        liste: OrderTypeModel[],
+        type: string
+    ): OrderTypeModel[] {
+      return liste.filter(orderType =>
+          orderType.type === type
+      );
+    },
+    async fetchOrderType(page = 1) {
+      // this.isLoading = true;
+      try {
+        const response = await listeOrderType(page) as ApiResponse<PaginatedOrderType>;
+        console.log(response)
+        if (response.code === 200) {
+          if (response.data?.items) {
+            this.listeOrderType = response.data.items;
+          }
+        } else {
+          this.toast.error(response.message);
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des types de commandes");
+        console.error(error);
+      } finally {
+        // this.isLoading = false;
+      }
+    },
+    convertDateCreate(date: string): string {
+      return UserGeneralKey.formatDateToFrenchLocale(date);
+    },
+    fetchStatusOrderFr(status: string){
+      switch (status) {
+        case OrderStatus.PENDING:
+          return 'En attente';
+        case OrderStatus.PROCESSING:
+          return 'En cours de traitement';
+        case OrderStatus.READY_FOR_DELIVERY:
+          return 'Près pour livraison';
+        case OrderStatus.OUT_FOR_DELIVERY:
+          return 'En cours de livraison';
+        case OrderStatus.DELIVERED:
+          return 'Livré';
+        default:
+          return 'Annulé';
+      }
+    },
     loaded() {
       setTimeout(() => {
         this.isLoading = true
@@ -673,6 +741,7 @@ export default defineComponent({
     this.actionDetected = (this as any).$route.params.action
     if ((this as any).$route.params.action == ActionCrud.EDIT) {
       this.fetchDetailCategorie((this as any).$route.params.customerID)
+      this.fetchOrderType(1)
     }
     // const action = (this as any).$route.params.action
   }

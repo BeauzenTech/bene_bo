@@ -1,4 +1,5 @@
 import {UserModel} from "@/models/user.model";
+import {OrderModel} from "@/models/order.model";
 
 export interface CustomerUser {
   created_at: string;
@@ -9,6 +10,7 @@ export interface CustomerUser {
   phone_number: string;
   deviceToken: string;
   enableNotification: boolean;
+  orders: OrderModel[]
 }
 
 export interface CustomerModel {

@@ -804,9 +804,8 @@
 
                           <div class="route">
                             <h2><strong>{{orderTypeSelected[0].libelle}}</strong></h2>
-                            <h2><strong>{{convertDateCreate(orderResponse.created_at)}}</strong></h2>
                             <h2><strong>{{orderResponse.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'TOUT DE SUITE'}}</strong></h2>
-                            <h2><strong>{{convertDateCreate(orderResponse.timeOrder) ?? ''}} </strong></h2>
+                            <h2 v-if="orderResponse.DeliveryPreference != 'immediat'"><strong>{{convertDateCreate(orderResponse.timeOrder) ?? ''}} </strong></h2>
                             <h2><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ orderResponse.nif : 'VBP'+ orderResponse.nif}}</strong></h2>
 <!--                            <h2><strong>{{getLast6Digits(orderResponse.customer.id)}}</strong></h2>-->
 
@@ -823,10 +822,10 @@
                               v-for="(items, categoryName) in groupedByCategory"
                               :key="categoryName"
                               class="category-section"
-                              style="margin-bottom: 10px;"
+                              style="margin-bottom: 10px; "
                           >
                             <!-- 🏷️ Nom unique de la catégorie -->
-                            <div style="font-weight: 600; font-size: 18px; margin-bottom: 8px;">
+                            <div style="font-weight: 600; font-size: 18px; margin-bottom: 8px; text-decoration: underline;">
                               {{ categoryName }}
                             </div>
 
@@ -837,7 +836,7 @@
                                 style="display: flex; flex-direction: column; margin-bottom: 10px;"
                             >
                               <div style="display: flex; justify-content: space-between; font-size: 18px;">
-                                <span><strong>{{ item.quantity }}x {{ item.productID.name }} {{item.size}} ({{item.optionSpecific}})</strong></span>
+                                <span><strong>{{ item.quantity }}x {{ item.productID.name }} {{item.size}} {{item.optionSpecific}}</strong></span>
                                 <span><strong>{{ item.total_price }} CHF</strong></span>
                               </div>
 
@@ -1297,7 +1296,6 @@ export default defineComponent({
         console.log(response)
         if (response.code === 200) {
           if (response.data) {
-
             this.allOrderStatus = response.data
             console.log('all orders status: ', this.allOrderStatus);
           }

@@ -87,12 +87,12 @@
           </div>
         </div>
         <div class="buttons-list mt-15 mt-md-20 mt-lg-0">
-          <button
-            class="default-btn position-relative transition border-0 fw-medium text-white pt-12 pb-12 ps-25 pe-25 pt-md-11 pb-md-11 ps-md-30 pe-md-30 rounded-1 fs-md-15 fs-lg-16 d-inline-block me-10"
-            type="button" data-bs-toggle="modal" data-bs-target="#contentModalScrollable_facture"
-          >
-            Imprimer <i class="flaticon-printer position-relative ms-5 fs-12"></i>
-          </button>
+<!--          <button-->
+<!--            class="default-btn position-relative transition border-0 fw-medium text-white pt-12 pb-12 ps-25 pe-25 pt-md-11 pb-md-11 ps-md-30 pe-md-30 rounded-1 fs-md-15 fs-lg-16 d-inline-block me-10"-->
+<!--            type="button" data-bs-toggle="modal" data-bs-target="#contentModalScrollable_facture"-->
+<!--          >-->
+<!--            Imprimer <i class="flaticon-printer position-relative ms-5 fs-12"></i>-->
+<!--          </button>-->
         </div>
       </div>
       <span class="d-block text-black fs-md-15 fw-bold mb-15 mb-md-20 mb-lg-25">
