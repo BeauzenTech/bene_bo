@@ -169,6 +169,7 @@ import VabeneAddRestaurantPage from "@/pages/Vabene/Restaurant/VabeneAddRestaura
 import VabeneOrderListPage from "@/pages/Vabene/Order/VabeneOrderListPage.vue";
 import VabeneAddOrderPage from "@/pages/Vabene/Order/VabeneAddOrderPage.vue";
 import VabeneOrderDetailsPage from "@/pages/Vabene/Order/VabeneOrderDetailsPage.vue";
+import POSMain from "@/components/Vabene/POS/Modern/views/POSMain.vue";
 import VabeneTransactionListPage from "@/pages/Vabene/Order/VabeneTransactionListPage.vue";
 import VabeneTransactionDetailsPage from "@/pages/Vabene/Order/VabeneTransactionDetailsPage.vue";
 import VabeneDashPage from "@/pages/Vabene/Dashboard/VabeneDashPage.vue";
@@ -293,6 +294,11 @@ const routes = [
     path: "/ajout-commande",
     name: "VabeneAddOrderPage",
     component: VabeneAddOrderPage,
+  },
+  {
+    path: "/pos",
+    name: "POSModern",
+    component: POSMain,
   },
   {
     path: "/rapport-vente",

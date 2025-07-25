@@ -7,7 +7,7 @@
 import { defineComponent } from "vue";
 
 import BreadCrumb from "@/components/Common/BreadCrumb.vue";
-import VabenerReportSell from "@/components/Vabene/Order/OrderReportSells/VabenerReportSell.vue";
+import VabenerReportSell from "@/components/Vabene/POS/OrderReportSells/VabenerReportSell.vue";
 
 export default defineComponent({
   name: "VabeneOrderReportSellPage",

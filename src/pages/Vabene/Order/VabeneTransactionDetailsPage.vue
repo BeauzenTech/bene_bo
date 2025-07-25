@@ -7,7 +7,7 @@
 import {defineComponent, PropType} from "vue";
 
 import BreadCrumb from "@/components/Common/BreadCrumb.vue";
-import TransactionDetails from "@/components/Vabene/Order/TransactionDetails/TransactionDetails.vue";
+import TransactionDetails from "@/components/Vabene/POS/TransactionDetails/TransactionDetails.vue";
 export default defineComponent({
   name: "VabeneTransactionDetailsPage",
   components: {

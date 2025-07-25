@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
+import store from "./store";
 import BootstrapVueNext from "bootstrap-vue-next";
 import VueApexCharts from "vue3-apexcharts";
 import { QuillEditor } from "@vueup/vue-quill";
@@ -22,7 +23,7 @@ import "vue-select/dist/vue-select.css";
 import Toast, { PluginOptions } from "vue-toastification";
 import "vue-toastification/dist/index.css";
 
-const app = createApp(App).use(router);
+const app = createApp(App).use(router).use(store);
 app.component("v-select", vSelect);
 app.use(BootstrapVueNext);
 app.use(VueApexCharts);

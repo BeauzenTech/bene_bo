@@ -1,9 +1,7 @@
 <template>
-  <div
-      v-if="isLoading"
-      class="d-flex justify-content-center align-items-center position-fixed top-0 start-0 w-100 h-100"
-      style="z-index: 9999;"
-  >
+  <div v-if="isLoading"
+    class="d-flex justify-content-center align-items-center position-fixed top-0 start-0 w-100 h-100"
+    style="z-index: 9999;">
     <LoaderComponent />
   </div>
 
@@ -15,16 +13,9 @@
       <div class="leads-details-tabs">
         <ul class="nav nav-tabs border-0 mb-25" id="myTab" role="tablist">
           <li class="nav-item" role="presentation">
-            <button
-                class="nav-link fs-md-15 fs-lg-16 fw-medium border-0 rounded-0 d-block text-center w-100 active"
-                id="tasks-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#tasks-tab-pane"
-                type="button"
-                role="tab"
-                aria-controls="tasks-tab-pane"
-                aria-selected="true"
-            >
+            <button class="nav-link fs-md-15 fs-lg-16 fw-medium border-0 rounded-0 d-block text-center w-100 active"
+              id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks-tab-pane" type="button" role="tab"
+              aria-controls="tasks-tab-pane" aria-selected="true">
               SPECIFICATION DU CLIENT
             </button>
           </li>
@@ -32,12 +23,7 @@
 
         </ul>
         <div class="tab-content" id="myTabContent">
-          <div
-              class="tab-pane fade show active"
-              id="tasks-tab-pane"
-              role="tabpanel"
-              tabindex="0"
-          >
+          <div class="tab-pane fade show active" id="tasks-tab-pane" role="tabpanel" tabindex="0">
             <div class="card mb-3" v-if="categorieResponse">
               <div class="card-header bg-primary text-white">
                 Adresse de livraison
@@ -49,7 +35,7 @@
                 </div>
                 <div class="row mb-2">
                   <div class="col-sm-4 fw-bold">Ville :</div>
-                  <div class="col-sm-8">{{categorieResponse.city ?? '-'}}</div>
+                  <div class="col-sm-8">{{ categorieResponse.city ?? '-' }}</div>
                 </div>
                 <div class="row mb-2">
                   <div class="col-sm-4 fw-bold">Rue :</div>
@@ -72,7 +58,7 @@
                 </div>
                 <div class="row mb-2">
                   <div class="col-sm-4 fw-bold">Ville :</div>
-                  <div class="col-sm-8">{{categorieResponse.city ?? '-'}}</div>
+                  <div class="col-sm-8">{{ categorieResponse.city ?? '-' }}</div>
                 </div>
                 <div class="row mb-2">
                   <div class="col-sm-4 fw-bold">Rue :</div>
@@ -95,19 +81,19 @@
                 </div>
                 <div class="row mb-2">
                   <div class="col-sm-4 fw-bold">Historique des types de commandes :</div>
-                  <div class="col-sm-8">{{analyserTypesCommandes(categorieResponse.typesCommandes)}}</div>
+                  <div class="col-sm-8">{{ analyserTypesCommandes(categorieResponse.typesCommandes) }}</div>
                 </div>
                 <div class="row mb-2">
                   <div class="col-sm-4 fw-bold">Demande de couvert lors des commandes:</div>
-                  <div class="col-sm-8">{{analyserDemandeCouverts(categorieResponse.demandeCouverts)}}</div>
+                  <div class="col-sm-8">{{ analyserDemandeCouverts(categorieResponse.demandeCouverts) }}</div>
                 </div>
                 <div class="row mb-2">
                   <div class="col-sm-4 fw-bold">Type de cuisson préféré:</div>
-                  <div class="col-sm-8">{{analyserListeCuisson(categorieResponse.listeCuisson)}}</div>
+                  <div class="col-sm-8">{{ analyserListeCuisson(categorieResponse.listeCuisson) }}</div>
                 </div>
                 <div class="row mb-2">
                   <div class="col-sm-4 fw-bold">Habitudes de paiement du client:</div>
-                  <div class="col-sm-8">{{analyserMoyensPaiement(categorieResponse.moyenPaiements)}}</div>
+                  <div class="col-sm-8">{{ analyserMoyensPaiement(categorieResponse.moyenPaiements) }}</div>
                 </div>
               </div>
             </div>
@@ -124,148 +110,148 @@
 
 
   <!--  <div class="card mb-25 border-0 rounded-0 bg-white add-user-card">-->
-<!--    <div class="card-body p-15 p-sm-20 p-md-25 p-lg-30 letter-spacing">-->
-<!--      <form @submit.prevent="">-->
-<!--        <div class="row">-->
-<!--          <div class="col-md-6">-->
-<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--              <label class="d-block text-black fw-semibold mb-10">-->
-<!--                Nom *-->
-<!--              </label>-->
-<!--              <input-->
-<!--                type="text"-->
-<!--                class="form-control shadow-none rounded-0 text-black"-->
-<!--                placeholder="e.g. "-->
-<!--                v-model="categorieData.firstName"-->
-<!--                @change="(event) => handleInput(event, 'firstName')"-->
-<!--                :class="{ 'is-valid': validTextField(categorieData.firstName) }"-->
-<!--                required-->
-<!--                disabled-->
-<!--              />-->
-<!--            </div>-->
-<!--          </div>-->
+  <!--    <div class="card-body p-15 p-sm-20 p-md-25 p-lg-30 letter-spacing">-->
+  <!--      <form @submit.prevent="">-->
+  <!--        <div class="row">-->
+  <!--          <div class="col-md-6">-->
+  <!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
+  <!--              <label class="d-block text-black fw-semibold mb-10">-->
+  <!--                Nom *-->
+  <!--              </label>-->
+  <!--              <input-->
+  <!--                type="text"-->
+  <!--                class="form-control shadow-none rounded-0 text-black"-->
+  <!--                placeholder="e.g. "-->
+  <!--                v-model="categorieData.firstName"-->
+  <!--                @change="(event) => handleInput(event, 'firstName')"-->
+  <!--                :class="{ 'is-valid': validTextField(categorieData.firstName) }"-->
+  <!--                required-->
+  <!--                disabled-->
+  <!--              />-->
+  <!--            </div>-->
+  <!--          </div>-->
 
-<!--          <div class="col-md-6">-->
-<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--              <label class="d-block text-black fw-semibold mb-10">-->
-<!--                prenom *-->
-<!--              </label>-->
-<!--              <input-->
-<!--                  type="text"-->
-<!--                  class="form-control shadow-none rounded-0 text-black"-->
-<!--                  placeholder="e.g. "-->
-<!--                  v-model="categorieData.lastName"-->
-<!--                  @change="(event) => handleInput(event, 'firstName')"-->
-<!--                  :class="{ 'is-valid': validTextField(categorieData.firstName) }"-->
-<!--                  required-->
-<!--                  disabled-->
-<!--              />-->
-<!--            </div>-->
-<!--          </div>-->
+  <!--          <div class="col-md-6">-->
+  <!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
+  <!--              <label class="d-block text-black fw-semibold mb-10">-->
+  <!--                prenom *-->
+  <!--              </label>-->
+  <!--              <input-->
+  <!--                  type="text"-->
+  <!--                  class="form-control shadow-none rounded-0 text-black"-->
+  <!--                  placeholder="e.g. "-->
+  <!--                  v-model="categorieData.lastName"-->
+  <!--                  @change="(event) => handleInput(event, 'firstName')"-->
+  <!--                  :class="{ 'is-valid': validTextField(categorieData.firstName) }"-->
+  <!--                  required-->
+  <!--                  disabled-->
+  <!--              />-->
+  <!--            </div>-->
+  <!--          </div>-->
 
-<!--          <div class="col-md-6">-->
-<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--              <label class="d-block text-black fw-semibold mb-10">-->
-<!--                email *-->
-<!--              </label>-->
-<!--              <input-->
-<!--                  type="text"-->
-<!--                  class="form-control shadow-none rounded-0 text-black"-->
-<!--                  placeholder="e.g. "-->
-<!--                  v-model="categorieData.email"-->
-<!--                  @change="(event) => handleInput(event, 'email')"-->
-<!--                  :class="{ 'is-valid': validTextField(categorieData.email) }"-->
-<!--                  required-->
-<!--                  disabled-->
-<!--              />-->
-<!--            </div>-->
-<!--          </div>-->
-<!--          <div class="col-md-6">-->
-<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--              <label class="d-block text-black fw-semibold mb-10">-->
-<!--                Numero telephone *-->
-<!--              </label>-->
-<!--              <input-->
-<!--                  type="text"-->
-<!--                  class="form-control shadow-none rounded-0 text-black"-->
-<!--                  placeholder="e.g. "-->
-<!--                  v-model="categorieData.phoneNumber"-->
-<!--                  @change="(event) => handleInput(event, 'phoneNumber')"-->
-<!--                  :class="{ 'is-valid': validTextField(categorieData.phoneNumber) }"-->
-<!--                  required-->
-<!--                  disabled-->
-<!--              />-->
-<!--            </div>-->
-<!--          </div>-->
+  <!--          <div class="col-md-6">-->
+  <!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
+  <!--              <label class="d-block text-black fw-semibold mb-10">-->
+  <!--                email *-->
+  <!--              </label>-->
+  <!--              <input-->
+  <!--                  type="text"-->
+  <!--                  class="form-control shadow-none rounded-0 text-black"-->
+  <!--                  placeholder="e.g. "-->
+  <!--                  v-model="categorieData.email"-->
+  <!--                  @change="(event) => handleInput(event, 'email')"-->
+  <!--                  :class="{ 'is-valid': validTextField(categorieData.email) }"-->
+  <!--                  required-->
+  <!--                  disabled-->
+  <!--              />-->
+  <!--            </div>-->
+  <!--          </div>-->
+  <!--          <div class="col-md-6">-->
+  <!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
+  <!--              <label class="d-block text-black fw-semibold mb-10">-->
+  <!--                Numero telephone *-->
+  <!--              </label>-->
+  <!--              <input-->
+  <!--                  type="text"-->
+  <!--                  class="form-control shadow-none rounded-0 text-black"-->
+  <!--                  placeholder="e.g. "-->
+  <!--                  v-model="categorieData.phoneNumber"-->
+  <!--                  @change="(event) => handleInput(event, 'phoneNumber')"-->
+  <!--                  :class="{ 'is-valid': validTextField(categorieData.phoneNumber) }"-->
+  <!--                  required-->
+  <!--                  disabled-->
+  <!--              />-->
+  <!--            </div>-->
+  <!--          </div>-->
 
-<!--          <div class="col-md-6">-->
-<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--              <label class="d-block text-black fw-semibold mb-10">-->
-<!--                adresse *-->
-<!--              </label>-->
-<!--              <input-->
-<!--                  type="text"-->
-<!--                  class="form-control shadow-none rounded-0 text-black"-->
-<!--                  placeholder="e.g. "-->
-<!--                  v-model="categorieData.address"-->
-<!--                  @change="(event) => handleInput(event, 'address')"-->
-<!--                  :class="{ 'is-valid': validTextField(categorieData.address) }"-->
-<!--                  required-->
-<!--                  disabled-->
-<!--              />-->
-<!--            </div>-->
-<!--          </div>-->
-
-
-<!--          <div class="col-md-6">-->
-<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--              <label class="d-block text-black fw-semibold mb-10">-->
-<!--                Ville *-->
-<!--              </label>-->
-<!--              <input-->
-<!--                  type="text"-->
-<!--                  class="form-control shadow-none rounded-0 text-black"-->
-<!--                  placeholder="e.g. "-->
-<!--                  v-model="categorieData.city"-->
-<!--                  @change="(event) => handleInput(event, 'city')"-->
-<!--                  :class="{ 'is-valid': validTextField(categorieData.city) }"-->
-<!--                  required-->
-<!--                  disabled-->
-<!--              />-->
-<!--            </div>-->
-<!--          </div>-->
+  <!--          <div class="col-md-6">-->
+  <!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
+  <!--              <label class="d-block text-black fw-semibold mb-10">-->
+  <!--                adresse *-->
+  <!--              </label>-->
+  <!--              <input-->
+  <!--                  type="text"-->
+  <!--                  class="form-control shadow-none rounded-0 text-black"-->
+  <!--                  placeholder="e.g. "-->
+  <!--                  v-model="categorieData.address"-->
+  <!--                  @change="(event) => handleInput(event, 'address')"-->
+  <!--                  :class="{ 'is-valid': validTextField(categorieData.address) }"-->
+  <!--                  required-->
+  <!--                  disabled-->
+  <!--              />-->
+  <!--            </div>-->
+  <!--          </div>-->
 
 
-<!--          <div class="col-md-12">-->
-<!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
-<!--              <label class="d-block text-black fw-semibold mb-10">-->
-<!--                Ville *-->
-<!--              </label>-->
-<!--              <input-->
-<!--                  type="text"-->
-<!--                  class="form-control shadow-none rounded-0 text-black"-->
-<!--                  placeholder="e.g. "-->
-<!--                  v-model="categorieData.codePostal"-->
-<!--                  @change="(event) => handleInput(event, 'codePostal')"-->
-<!--                  :class="{ 'is-valid': validTextField(categorieData.codePostal) }"-->
-<!--                  required-->
-<!--                  disabled-->
-<!--              />-->
-<!--            </div>-->
-<!--          </div>-->
+  <!--          <div class="col-md-6">-->
+  <!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
+  <!--              <label class="d-block text-black fw-semibold mb-10">-->
+  <!--                Ville *-->
+  <!--              </label>-->
+  <!--              <input-->
+  <!--                  type="text"-->
+  <!--                  class="form-control shadow-none rounded-0 text-black"-->
+  <!--                  placeholder="e.g. "-->
+  <!--                  v-model="categorieData.city"-->
+  <!--                  @change="(event) => handleInput(event, 'city')"-->
+  <!--                  :class="{ 'is-valid': validTextField(categorieData.city) }"-->
+  <!--                  required-->
+  <!--                  disabled-->
+  <!--              />-->
+  <!--            </div>-->
+  <!--          </div>-->
 
 
+  <!--          <div class="col-md-12">-->
+  <!--            <div class="form-group mb-15 mb-sm-20 mb-md-25">-->
+  <!--              <label class="d-block text-black fw-semibold mb-10">-->
+  <!--                Ville *-->
+  <!--              </label>-->
+  <!--              <input-->
+  <!--                  type="text"-->
+  <!--                  class="form-control shadow-none rounded-0 text-black"-->
+  <!--                  placeholder="e.g. "-->
+  <!--                  v-model="categorieData.codePostal"-->
+  <!--                  @change="(event) => handleInput(event, 'codePostal')"-->
+  <!--                  :class="{ 'is-valid': validTextField(categorieData.codePostal) }"-->
+  <!--                  required-->
+  <!--                  disabled-->
+  <!--              />-->
+  <!--            </div>-->
+  <!--          </div>-->
 
 
 
-<!--        </div>-->
-<!--      </form>-->
-<!--    </div>-->
-<!--  </div>-->
+
+
+  <!--        </div>-->
+  <!--      </form>-->
+  <!--    </div>-->
+  <!--  </div>-->
 </template>
 
 <script lang="ts">
-import {defineComponent, PropType} from "vue";
+import { defineComponent, PropType } from "vue";
 
 
 import {
@@ -277,13 +263,13 @@ import {
   detailCustomer
 } from "@/service/api";
 
-import {useToast} from "vue-toastification";
+import { useToast } from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import { AxiosError } from 'axios';
-import {ApiResponse, PaginatedCategorie} from "@/models/Apiresponse";
-import {CategorieModel} from "@/models/categorie.model";
-import {ActionCrud} from "@/enums/actionCrud.enum";
-import {CustomerModel} from "@/models/customer.model";
+import { ApiResponse, PaginatedCategorie } from "@/models/Apiresponse";
+import { CategorieModel } from "@/models/categorie.model";
+import { ActionCrud } from "@/enums/actionCrud.enum";
+import { CustomerModel } from "@/models/customer.model";
 import LeadsInformation from "@/components/CRM/LeadDetails/LeadsInformation.vue";
 
 
@@ -304,8 +290,8 @@ export default defineComponent({
       required: false
     },
   },
-  data(){
-    return{
+  data() {
+    return {
       categorieData: {
         email: '',
         firstName: '',
@@ -325,7 +311,7 @@ export default defineComponent({
     }
   },
   methods: {
-    loaded(){
+    loaded() {
       setTimeout(() => {
         this.isLoading = true
       }, 1500)
@@ -358,8 +344,8 @@ export default defineComponent({
         return `Les préférences de cuisson du client sont variées. Cuisson la plus fréquente : "${topCuisson}" (${topCount}/${total}).`;
       }
     },
-    getMoyenPaiementName(paiement){
-      switch (paiement){
+    getMoyenPaiementName(paiement) {
+      switch (paiement) {
         case 'Cash_livraison':
           return 'A la livraison'
         default:
@@ -417,8 +403,8 @@ export default defineComponent({
         return "Le client ne demande que rarement des couverts.";
       }
     },
-    getTypeOrderName(orderType){
-      switch (orderType){
+    getTypeOrderName(orderType) {
+      switch (orderType) {
         case 'delivery':
           return 'A livrer'
         default:
@@ -472,7 +458,7 @@ export default defineComponent({
       }
     },
 
-    clearData(){
+    clearData() {
       this.categorieData = {
         email: '',
         firstName: '',
@@ -558,7 +544,7 @@ export default defineComponent({
         const response = await detailCustomer(categorieID) as ApiResponse<CustomerModel>;
         console.log(response)
         if (response.code === 200) {
-          if(response.data){
+          if (response.data) {
             this.categorieResponse = response.data;
             this.categorieData.firstName = this.categorieResponse.firstName;
             this.categorieData.lastName = this.categorieResponse.lastName;
@@ -568,7 +554,7 @@ export default defineComponent({
             this.categorieData.rue = this.categorieResponse.rue;
             this.categorieData.created_at = this.categorieResponse.created_at;
             this.categorieData.city = this.categorieResponse.city;
-            this.categorieData.codePostal = this.categorieResponse.codePostal;
+            this.categorieData.codePostal = this.categorieResponse.codePostal ?? '';
             this.categorieData.address = this.categorieResponse.address;
           }
         } else {
@@ -619,7 +605,7 @@ export default defineComponent({
     handleInput(event, type) {
       console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
-      switch (type){
+      switch (type) {
         case 'firstName':
           this.categorieData.firstName = valueText
           this.validTextField(valueText)
@@ -642,8 +628,8 @@ export default defineComponent({
     },
 
 
-    validTextField(text){
-      if (text){
+    validTextField(text) {
+      if (text) {
         return text.trim().length > 0
       }
     },
@@ -673,8 +659,8 @@ export default defineComponent({
     },
     isFormValid() {
       return (
-          this.validTextField(this.categorieData.firstName) &&
-          this.validTextField(this.categorieData.lastName)
+        this.validTextField(this.categorieData.firstName) &&
+        this.validTextField(this.categorieData.lastName)
       );
     }
   },
@@ -685,7 +671,7 @@ export default defineComponent({
   },
   mounted() {
     this.actionDetected = (this as any).$route.params.action
-    if((this as any).$route.params.action == ActionCrud.EDIT){
+    if ((this as any).$route.params.action == ActionCrud.EDIT) {
       this.fetchDetailCategorie((this as any).$route.params.customerID)
     }
     // const action = (this as any).$route.params.action
@@ -695,17 +681,18 @@ export default defineComponent({
 </script>
 
 <style>
-
-
-
-.vs--searchable .vs__dropdown-toggle, .vs__search, .vs__search:focus {
-  padding: 4px 6px 6px  !important;
-  font-size: 13px;
-  color: rgba(132, 128, 128, 0.712);
-}
-.vs__search, .vs__search:focus, input.vs__search{
+.vs--searchable .vs__dropdown-toggle,
+.vs__search,
+.vs__search:focus {
+  padding: 4px 6px 6px !important;
   font-size: 13px;
   color: rgba(132, 128, 128, 0.712);
 }
 
+.vs__search,
+.vs__search:focus,
+input.vs__search {
+  font-size: 13px;
+  color: rgba(132, 128, 128, 0.712);
+}
 </style>

@@ -385,6 +385,35 @@ export const createNewOrder = async (orderData): Promise<ApiResponse<any>> =>{
     }
 };
 
+// Créer une commande POS simplifiée pour click_collect (sur place)
+export const createPOSOrder = async (orderData: any): Promise<ApiResponse<any>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/initial/order', orderData);
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la création d'une commande POS", error);
+        throw error;
+    }
+};
+
+// Récupérer la liste des clients pour un restaurant
+export const getCustomers = async (page = 1, restaurantID: string): Promise<ApiResponse<any>> => {
+    try {
+        const token = localStorage.getItem('USER_TOKEN');
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.get(
+            `/v1/customer/all/0/all`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la récupération des clients", error);
+        throw error;
+    }
+};
 
 export const listeOrder = async (page = 1): Promise<ApiResponse<PaginatedOrder>> => {
     // eslint-disable-next-line no-useless-catch
@@ -547,7 +576,7 @@ export const listeRestaurantCategorie = async (page = 1, usePagination: string):
     // eslint-disable-next-line no-useless-catch
     try {
         const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
-        const response = await apiClient.get(`/restaurant/categories/${restaurantID}/0/${usePagination}?page=${page}`);
+        const response = await apiClient.get(`/restaurant/categories/${restaurantID}/1/${usePagination}?page=${page}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,

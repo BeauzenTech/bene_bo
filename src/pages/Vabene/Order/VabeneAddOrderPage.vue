@@ -1,18 +1,19 @@
 <template>
-  <BreadCrumb PageTitle="POS Système (Terminal de vente)" />
-  <VabeneAddOrder />
+  <POSMain />
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import POSMain from "@/components/Vabene/POS/Modern/views/POSMain.vue";
 
-import BreadCrumb from "@/components/Common/BreadCrumb.vue";
-import VabeneAddOrder from "@/components/Vabene/Order/OrderNew/VabeneAddOrder.vue";
 export default defineComponent({
   name: "VabeneAddOrderPage",
   components: {
-    BreadCrumb,
-    VabeneAddOrder,
+    POSMain,
   },
 });
 </script>
+
+<style scoped>
+/* Enlever tout padding/margin pour une expérience plein écran */
+</style>

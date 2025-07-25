@@ -7,7 +7,7 @@
 import { defineComponent } from "vue";
 
 import BreadCrumb from "@/components/Common/BreadCrumb.vue";
-import VabeneTransactionList from "@/components/Vabene/Order/TransactionList/VabeneTransactionList.vue";
+import VabeneTransactionList from "@/components/Vabene/POS/TransactionList/VabeneTransactionList.vue";
 
 export default defineComponent({
   name: "VabeneListTransactionPage",
