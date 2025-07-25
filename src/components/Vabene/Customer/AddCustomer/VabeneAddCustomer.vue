@@ -97,27 +97,54 @@
                 </div>
               </div>
             </div>
-            <div class="card mb-3" v-if="categorieResponse">
+            <div class="card mb-3" v-if="categorieResponse && categorieResponse.user">
               <div class="card-header bg-danger text-white">
                 Historique de commandes
               </div>
               <div class="card-body p-3" v-if="categorieResponse.user.orders && categorieResponse.user.orders.length > 0">
                 <div v-for="commande in categorieResponse.user.orders" :key="commande.id" class="mb-3 border-bottom pb-2">
                   <h5 class="mb-1" v-if="getOrderTypeParType(listeOrderType, commande.order_type).length > 0">{{ getOrderTypeParType(listeOrderType, commande.order_type)[0].libelle }}</h5>
+                  <h2 class="mb-1 badge text-outline-success">{{commande.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'TOUT DE SUITE'}}</h2>
+                  <br v-if="commande.DeliveryPreference !== 'immediat'"/>
+                  <span v-if="commande.DeliveryPreference !== 'immediat'">{{ convertDateCreate(commande.timeOrder) }}</span><br/>
+                  <h2 class="mb-1 badge text-outline-warning">{{commande.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ commande.nif : 'VBP'+ commande.nif}}</h2>
                   <p class="mb-1 text-muted">
-                    📅 {{ convertDateCreate(commande.created_at)}} <br>
-                    📦 Statut :
+
+
+                    <span class="text-success">
+                   ({{commande.orderItems.length }}) produits<span
+                        class="text-primary"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        :title="getProduitsTooltip(commande.orderItems)">
+                     (Voir)
+                    </span>
+                    </span> <br>
+                    Statut :
                     <span class="text-warning">
                      {{ fetchStatusOrderFr(commande.status)  }}
-                </span>
+                    </span> <br>
+                    <span class="text-warning" v-if="getMethodePaiementParType(listeMethode, commande.paymentID.paymentMethod).length > 0">
+                     {{ getMethodePaiementParType(listeMethode, commande.paymentID.paymentMethod)[0].libelle }}
+                    </span> <br>
+
                   </p>
-                  <p class="fw-bold">Total : {{ commande.total_price }} CHF</p>
+                  <p class="fw-bold">Total brut : {{ commande.total_price }} CHF</p>
                 </div>
+              </div>
+              <div class="card-body p-3" v-else>
+                <h5 class="mb-1">Aucune commande.</h5>
+              </div>
+            </div>
+            <div class="card mb-3" v-else>
+              <div class="card-header bg-danger text-white">
+                Historique de commandes
+              </div>
+              <div class="card-body p-3">
+                <span class="mb-1">Aucune commande.</span>
               </div>
             </div>
           </div>
-
-
         </div>
       </div>
     </div>
@@ -277,13 +304,14 @@ import {
   updateCategorie,
   uploadFile,
   deleteFileUpload,
-  detailCustomer, listeOrderType
+  detailCustomer, listeOrderType, listeMethodePaiement
 } from "@/service/api";
+import { Tooltip } from 'bootstrap'
 
 import { useToast } from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import { AxiosError } from 'axios';
-import {ApiResponse, PaginatedCategorie, PaginatedOrderType} from "@/models/Apiresponse";
+import {ApiResponse, PaginatedCategorie, PaginatedMethodePaiement, PaginatedOrderType} from "@/models/Apiresponse";
 import { CategorieModel } from "@/models/categorie.model";
 import { ActionCrud } from "@/enums/actionCrud.enum";
 import { CustomerModel } from "@/models/customer.model";
@@ -291,6 +319,10 @@ import LeadsInformation from "@/components/CRM/LeadDetails/LeadsInformation.vue"
 import {OrderStatus} from "@/enums/orderStatut.enum";
 import {OrderTypeModel} from "@/models/orderType.model";
 import {UserGeneralKey} from "@/models/user.generalkey";
+import {RestaurantEnum} from "../../../../enums/restaurant.enum";
+import {MethodePaiementModel} from "@/models/methodePaiement.model";
+import {ProductModel} from "@/models/product.model";
+import {OrderItemModel} from "@/models/orderItem.model";
 
 
 export default defineComponent({
@@ -312,6 +344,8 @@ export default defineComponent({
   },
   data() {
     return {
+      listeMethode: [] as MethodePaiementModel[],
+      methodePaiementSelected: [] as MethodePaiementModel[],
       orderTypeSelected: [] as OrderTypeModel[],
       listeOrderType: [] as OrderTypeModel[],
       categorieData: {
@@ -333,6 +367,38 @@ export default defineComponent({
     }
   },
   methods: {
+    getProduitsTooltip(items: OrderItemModel[]) {
+      return items.map(item => `(x${item.quantity}) ${item.productID.name}`).join(', ');
+    },
+    getMethodePaiementParType(
+        liste: MethodePaiementModel[],
+        type: string
+    ): MethodePaiementModel[] {
+      console.log(liste)
+      console.log(type)
+      return liste.filter(methode =>
+          methode.type === type
+      );
+    },
+    async fetchListeMethodePaiement(page = 1) {
+      // this.isLoading = true;
+      try {
+        const response = await listeMethodePaiement(page) as ApiResponse<PaginatedMethodePaiement>;
+        console.log(response)
+        if (response.code === 200) {
+          if (response.data?.items) {
+            this.listeMethode = response.data.items;
+          }
+        } else {
+          this.toast.error(response.message);
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des methodes de paiement");
+        console.error(error);
+      } finally {
+        // this.isLoading = false;
+      }
+    },
     getOrderTypeParType(
         liste: OrderTypeModel[],
         type: string
@@ -722,6 +788,9 @@ export default defineComponent({
 
   },
   computed: {
+    RestaurantEnum() {
+      return RestaurantEnum
+    },
     ActionCrud() {
       return ActionCrud
     },
@@ -742,6 +811,11 @@ export default defineComponent({
     if ((this as any).$route.params.action == ActionCrud.EDIT) {
       this.fetchDetailCategorie((this as any).$route.params.customerID)
       this.fetchOrderType(1)
+      this.fetchListeMethodePaiement(1)
+      const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+      tooltipTriggerList.forEach(tooltipTriggerEl => {
+        new Tooltip(tooltipTriggerEl)
+      })
     }
     // const action = (this as any).$route.params.action
   }
