@@ -18,13 +18,13 @@
         </div>
       </div> -->
       <!-- Information restaurant -->
-      <div v-if="restaurantInfo" class="restaurant-info">
+      <!-- <div v-if="restaurantInfo" class="restaurant-info">
         <div class="restaurant-name">{{ restaurantInfo.name }}</div>
         <div class="restaurant-address">{{ restaurantInfo.address }} {{ restaurantInfo.numeroRue }}</div>
         <div class="restaurant-city">{{ restaurantInfo.codePostalID?.numeroPostal }} {{
           restaurantInfo.codePostalID?.ville }}</div>
         <div class="restaurant-phone">{{ restaurantInfo.phoneNumber }}</div>
-      </div>
+      </div> -->
     </div>
 
     <!-- Informations client -->
@@ -74,160 +74,260 @@
           <input v-model="customerInfo.phone" type="tel" placeholder="Numéro de téléphone"
             :class="['form-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
         </div>
-        <!-- <div class="form-group">
+        <div class="form-group">
           <label>Type de commande</label>
           <select v-model="orderType" class="form-select">
             <option value="dine-in">Sur place</option>
-            <option value="takeaway">À emporter</option>
-            <option value="delivery">Livraison</option>
+            <option value="click_collect">À emporter</option>
+            <!-- <option value="delivery">Livraison</option> -->
           </select>
-        </div> -->
-      </div>
-    </div>
+        </div>
 
-    <!-- Liste des articles -->
-    <div class="cart-section">
-      <div class="section-header">
-        <h3 class="section-title">Commande</h3>
-        <span class="item-count">{{ cart.length }} article(s)</span>
-      </div>
+        <!-- Type client -->
+        <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px;">
+          <label>Type client</label>
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <input type="radio" name="customer" id="customer" value="customer" v-model="clientType">
+            <label for="customer" style="font-size: 14px;">Client</label>
+          </div>
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <input type="radio" name="organisation" id="organisation" value="organisation" v-model="clientType">
+            <label for="organisation" style="font-size: 14px;">Organisation</label>
+          </div>
+        </div>
 
-      <div class="cart-items">
-        <div v-for="item in cart" :key="item.localProductId" class="cart-item">
-          <div class="item-image">
-            <img :src="item.image" :alt="item.name" />
+        <!-- AFficher champs organisation -->
+        <div v-if="clientType === 'organisation'">
+          <div class="form-group">
+            <label>Société</label>
+            <input v-model="organisationInfo.societe" type="text" placeholder="Nom de la société"
+              :class="['form-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
+          </div>
+          <div class="form-group">
+            <label>Département</label>
+            <input v-model="organisationInfo.departement" type="text" placeholder="Département"
+              :class="['form-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
+          </div>
+        </div>
+
+        <!-- Options de récupération pour click_collect -->
+        <div v-if="orderType === 'click_collect'" class="delivery-preference-section">
+          <label>Moment de récupération</label>
+          <div class="delivery-options">
+            <div class="delivery-option">
+              <input 
+                type="radio" 
+                id="immediat" 
+                name="deliveryPreference" 
+                value="immediat" 
+                v-model="deliveryPreference"
+                :disabled="!isRestaurantOpen"
+              >
+              <label for="immediat" class="delivery-option-label">
+                <span class="delivery-option-title">Dès que possible</span>
+                <span v-if="!isRestaurantOpen" class="delivery-option-subtitle">
+                  (Restaurant fermé)
+                </span>
+                <span v-else class="delivery-option-subtitle">
+                  Prêt dans 15-20 minutes
+                </span>
+              </label>
+            </div>
+            
+            <div class="delivery-option">
+              <input 
+                type="radio" 
+                id="ulterieur" 
+                name="deliveryPreference" 
+                value="ulterieur" 
+                v-model="deliveryPreference"
+              >
+              <label for="ulterieur" class="delivery-option-label">
+                <span class="delivery-option-title">Date et heure souhaitées</span>
+                <span class="delivery-option-subtitle">
+                  Programmer pour plus tard
+                </span>
+              </label>
+            </div>
           </div>
 
-          <div class="item-details">
-            <h4 class="item-name">{{ item.name }}</h4>
-            <p class="item-size">{{ item.selectedSize.size }}</p>
-
-            <!-- Ingrédients personnalisés -->
-            <div v-if="hasCustomIngredients(item)" class="item-customization">
-              <span class="customization-label">Personnalisé:</span>
-              <div class="ingredients-list">
-                <span v-for="ingredient in getCustomIngredients(item)" :key="ingredient.id" class="ingredient-tag">
-                  {{ ingredient.name }} ({{ ingredient.quantity }})
-                </span>
-              </div>
+          <!-- Sélecteurs de date et heure pour livraison programmée -->
+          <div v-if="deliveryPreference === 'ulterieur'" class="scheduled-delivery">
+            <div class="form-group">
+              <label>Date de récupération</label>
+              <select v-model="selectedDate" class="form-select">
+                <option value="">Sélectionner une date</option>
+                <option 
+                  v-for="date in getAvailableDates" 
+                  :key="date.value" 
+                  :value="date.value"
+                >
+                  {{ date.label }}
+                </option>
+              </select>
             </div>
-
-            <!-- Options additionnelles -->
-            <div v-if="item.additionnal && item.additionnal.length" class="item-customization">
-              <span class="customization-label">Options :</span>
-              <div class="ingredients-list">
-                <span v-for="option in item.additionnal" :key="option" class="ingredient-tag">
-                  {{ option }}
-                </span>
-              </div>
+            
+            <div class="form-group" v-if="selectedDate">
+              <label>Heure de récupération</label>
+              <select v-model="selectedTime" class="form-select">
+                <option value="">Sélectionner une heure</option>
+                <option 
+                  v-for="time in getAvailableTimes" 
+                  :key="time" 
+                  :value="time"
+                >
+                  {{ time }}
+                </option>
+              </select>
             </div>
-
-            <!-- Suppléments -->
-            <div v-if="item.supplements && item.supplements.length" class="item-customization">
-              <span class="customization-label">Suppléments :</span>
-              <div class="ingredients-list">
-                <span v-for="supp in item.supplements" :key="supp.id" class="ingredient-tag">
-                  {{ supp.name }}<template v-if="supp.quantity > 1"> ({{ supp.quantity }})</template>
-                </span>
-              </div>
-            </div>
-
-            <!-- Notes -->
-            <p v-if="item.notes" class="item-notes">{{ item.notes }}</p>
           </div>
+        </div>
+      </div>
 
-          <div class="item-controls">
-            <div class="quantity-controls">
-              <button class="qty-btn decrease" @click="decreaseQuantity(item.localProductId)">
-                ➖
+      <!-- Liste des articles -->
+      <div class="cart-section">
+        <div class="section-header">
+          <h3 class="section-title">Commande</h3>
+          <span class="item-count">{{ cart.length }} article(s)</span>
+        </div>
+
+        <div class="cart-items">
+          <div v-for="item in cart" :key="item.localProductId" class="cart-item">
+            <div class="item-image">
+              <img :src="item.image" :alt="item.name" />
+            </div>
+
+            <div class="item-details">
+              <h4 class="item-name">{{ item.name }}</h4>
+              <p class="item-size">{{ item.selectedSize.size }}</p>
+
+              <!-- Ingrédients personnalisés -->
+              <div v-if="hasCustomIngredients(item)" class="item-customization">
+                <span class="customization-label">Personnalisé:</span>
+                <div class="ingredients-list">
+                  <span v-for="ingredient in getCustomIngredients(item)" :key="ingredient.id" class="ingredient-tag">
+                    {{ ingredient.name }} ({{ ingredient.quantity }})
+                  </span>
+                </div>
+              </div>
+
+              <!-- Options additionnelles -->
+              <div v-if="item.additionnal && item.additionnal.length" class="item-customization">
+                <span class="customization-label">Options :</span>
+                <div class="ingredients-list">
+                  <span v-for="option in item.additionnal" :key="option" class="ingredient-tag">
+                    {{ option }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Suppléments -->
+              <div v-if="item.supplements && item.supplements.length" class="item-customization">
+                <span class="customization-label">Suppléments :</span>
+                <div class="ingredients-list">
+                  <span v-for="supp in item.supplements" :key="supp.id" class="ingredient-tag">
+                    {{ supp.name }}<template v-if="supp.quantity > 1"> ({{ supp.quantity }})</template>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Notes -->
+              <p v-if="item.notes" class="item-notes">{{ item.notes }}</p>
+            </div>
+
+            <div class="item-controls">
+              <div class="quantity-controls">
+                <button class="qty-btn decrease" @click="decreaseQuantity(item.localProductId)">
+                  ➖
+                </button>
+                <span class="quantity">{{ item.quantity }}</span>
+                <button class="qty-btn increase" @click="increaseQuantity(item.localProductId)">
+                  ➕
+                </button>
+              </div>
+
+              <div class="item-price">
+                <span class="price">{{ formatPrice(item.totalPrice) }} CHF</span>
+              </div>
+
+              <button class="remove-btn" @click="removeItem(item.localProductId)">
+                🗑️
               </button>
-              <span class="quantity">{{ item.quantity }}</span>
-              <button class="qty-btn increase" @click="increaseQuantity(item.localProductId)">
-                ➕
-              </button>
             </div>
+          </div>
 
-            <div class="item-price">
-              <span class="price">{{ formatPrice(item.totalPrice) }} CHF</span>
+          <!-- Message panier vide -->
+          <div v-if="cart.length === 0" class="empty-cart">
+            <div class="empty-icon">
+              🛒
             </div>
+            <p>Panier vide</p>
+            <span>Ajoutez des articles pour commencer</span>
+          </div>
+        </div>
+      </div>
 
-            <button class="remove-btn" @click="removeItem(item.localProductId)">
-              🗑️
-            </button>
+      <!-- Résumé de la commande -->
+      <div v-if="cart.length > 0" class="order-summary">
+        <h3 class="section-title">Résumé</h3>
+
+        <!-- Features sélectionnées -->
+        <div v-if="selectedFeatures.length > 0" class="features-section">
+          <h4 class="features-title">Options sélectionnées</h4>
+          <div class="features-list">
+            <span v-for="feature in selectedFeatures" :key="feature" class="feature-tag">
+              {{ feature }}
+            </span>
           </div>
         </div>
 
-        <!-- Message panier vide -->
-        <div v-if="cart.length === 0" class="empty-cart">
-          <div class="empty-icon">
-            🛒
+        <div class="summary-lines">
+          <div class="summary-row">
+            <span class="label">Sous-total</span>
+            <span class="value">{{ formatPrice(orderSummary.subtotal) }} CHF</span>
           </div>
-          <p>Panier vide</p>
-          <span>Ajoutez des articles pour commencer</span>
-        </div>
-      </div>
-    </div>
 
-    <!-- Résumé de la commande -->
-    <div v-if="cart.length > 0" class="order-summary">
-      <h3 class="section-title">Résumé</h3>
+          <div class="summary-row">
+            <span class="label">TVA ({{ taxRate }}%)</span>
+            <span class="value">{{ formatPrice(orderSummary.tax) }} CHF</span>
+          </div>
 
-      <!-- Features sélectionnées -->
-      <div v-if="selectedFeatures.length > 0" class="features-section">
-        <h4 class="features-title">Options sélectionnées</h4>
-        <div class="features-list">
-          <span v-for="feature in selectedFeatures" :key="feature" class="feature-tag">
-            {{ feature }}
-          </span>
+          <div class="summary-row total">
+            <span class="label">Total</span>
+            <span class="value">{{ formatPrice(orderSummary.total) }} CHF</span>
+          </div>
         </div>
       </div>
 
-      <div class="summary-lines">
-        <div class="summary-row">
-          <span class="label">Sous-total</span>
-          <span class="value">{{ formatPrice(orderSummary.subtotal) }} CHF</span>
-        </div>
+      <!-- Méthodes de paiement -->
+      <div v-if="cart.length > 0" class="payment-section">
+        <h3 class="section-title">Mode de paiement</h3>
 
-        <div class="summary-row">
-          <span class="label">TVA ({{ taxRate }}%)</span>
-          <span class="value">{{ formatPrice(orderSummary.tax) }} CHF</span>
-        </div>
-
-        <div class="summary-row total">
-          <span class="label">Total</span>
-          <span class="value">{{ formatPrice(orderSummary.total) }} CHF</span>
+        <div class="payment-methods">
+          <button v-for="method in paymentMethods" :key="method.id"
+            :class="['payment-btn', { active: selectedPaymentMethod === method.id }]"
+            @click="selectPaymentMethod(method.id)">
+            <span class="payment-icon">{{ getPaymentIcon(method.icon) }}</span>
+            <span>{{ method.name }}</span>
+          </button>
         </div>
       </div>
-    </div>
 
-    <!-- Méthodes de paiement -->
-    <div v-if="cart.length > 0" class="payment-section">
-      <h3 class="section-title">Mode de paiement</h3>
+      <!-- Bouton de validation -->
+      <div v-if="cart.length > 0" class="action-section">
 
-      <div class="payment-methods">
-        <button v-for="method in paymentMethods" :key="method.id"
-          :class="['payment-btn', { active: selectedPaymentMethod === method.id }]"
-          @click="selectPaymentMethod(method.id)">
-          <span class="payment-icon">{{ getPaymentIcon(method.icon) }}</span>
-          <span>{{ method.name }}</span>
+        <button @click="handlePlaceOrder" :disabled="!canPlaceOrder || isProcessingOrder" class="place-order-btn">
+          <i :class="isProcessingOrder ? 'fas fa-spinner fa-spin' : 'fas fa-receipt'"></i>
+          {{ isProcessingOrder ? 'Traitement...' : 'Valider la commande' }}
+          <span class="order-total">{{ formatPrice(orderSummary.total) }} CHF</span>
         </button>
       </div>
-    </div>
-
-    <!-- Bouton de validation -->
-    <div v-if="cart.length > 0" class="action-section">
-
-      <button @click="handlePlaceOrder" :disabled="!canPlaceOrder || isProcessingOrder" class="place-order-btn">
-        <i :class="isProcessingOrder ? 'fas fa-spinner fa-spin' : 'fas fa-receipt'"></i>
-        {{ isProcessingOrder ? 'Traitement...' : 'Valider la commande' }}
-        <span class="order-total">{{ formatPrice(orderSummary.total) }} CHF</span>
-      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import type { CartItem, OrderSummary, PaymentMethod } from '../types'
 import { createPOSOrder, detailRestaurant } from '@/service/api'
 import { getCustomers } from '@/service/api'
@@ -266,9 +366,21 @@ const allCustomers = ref<CustomerModel[]>([])
 const searchTimeout = ref<NodeJS.Timeout | null>(null)
 const selectedCustomer = ref<CustomerModel | null>(null)
 
-const orderType = ref<'dine-in' | 'takeaway' | 'delivery'>('dine-in')
+const orderType = ref<'dine-in' | 'click_collect' | 'delivery'>('dine-in')
 const selectedPaymentMethod = ref<string>('pay_click_collect_cash')
 const taxRate = ref(2.6) // Taux de TVA suisse
+
+// Type de client
+const clientType = ref<'customer' | 'organisation'>('customer');
+const organisationInfo = ref({
+  societe: '',
+  departement: '',
+})
+
+// État pour la préférence de livraison
+const deliveryPreference = ref<'immediat' | 'ulterieur'>('immediat')
+const selectedDate = ref<string>('')
+const selectedTime = ref<string>('')
 
 // État pour la commande
 const isProcessingOrder = ref(false)
@@ -277,6 +389,83 @@ const restaurantInfo = ref<RestaurantModel | null>(null)
 // Utilitaires
 const toast = useToast()
 const store = useStore()
+
+// Fonctions utilitaires pour la gestion des dates et horaires
+const getGMT2Date = (date?: Date) => {
+  const now = date || new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000; // UTC en millisecondes
+  return new Date(utc + 2 * 3600000); // GMT+2 en millisecondes (2 heures = 2 * 3600000 ms)
+};
+
+// Utilitaires pour la gestion des horaires
+const getCurrentTime = () => {
+  // Utiliser GMT+2 (UTC+2)
+  const gmt2 = getGMT2Date();
+  return gmt2.getHours() * 60 + gmt2.getMinutes(); // Minutes depuis minuit en GMT+2
+};
+
+const parseTime = (timeString: string) => {
+  const [hours, minutes] = timeString.split(":").map(Number);
+  return hours * 60 + minutes;
+};
+
+const isRestaurantOpen = computed(() => {
+  // Utiliser directement la propriété isOpen du restaurant
+  return restaurantInfo.value?.isOpen ?? true;
+});
+
+const getAvailableTimes = computed(() => {
+  // Pour l'instant, générer des créneaux standards si le restaurant est ouvert
+  if (!restaurantInfo.value?.isOpen) {
+    return [];
+  }
+
+  const times: string[] = [];
+  
+  // Générer des créneaux de 15 minutes de 11h à 22h (horaires standards)
+  for (let hour = 11; hour < 22; hour++) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      const timeString = `${hour.toString().padStart(2, "0")}:${minute
+        .toString()
+        .padStart(2, "0")}`;
+      times.push(timeString);
+    }
+  }
+
+  return times;
+});
+
+const getAvailableDates = computed(() => {
+  // Utiliser GMT+2 (UTC+2) pour déterminer les dates
+  const today = getGMT2Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  return [
+    {
+      value: today.toISOString().split("T")[0],
+      label: `${today.toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })} - Aujourd'hui`,
+    },
+    {
+      value: tomorrow.toISOString().split("T")[0],
+      label: `${tomorrow.toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })} - Demain`,
+    },
+  ];
+});
+
+// Fonction pour formater la date pour le payload
+const formatDateForPayload = (date: string, time: string): string => {
+  const dateObj = new Date(date);
+  return `${dateObj.getDate().toString().padStart(2, '0')}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getFullYear()} ${time}`;
+};
 
 // Computed pour les features sélectionnées
 const selectedFeatures = computed(() => {
@@ -330,10 +519,19 @@ const getPaymentIcon = (iconName: string): string => {
 
 // Validation pour passer commande
 const canPlaceOrder = computed(() => {
-  return props.cart.length > 0 &&
+  const basicValidation = props.cart.length > 0 &&
     customerInfo.value.firstName.trim() !== '' &&
     customerInfo.value.lastName.trim() !== '' &&
     customerInfo.value.phone.trim() !== ''
+  
+  // Validation supplémentaire pour la livraison programmée
+  if (orderType.value === 'click_collect' && deliveryPreference.value === 'ulterieur') {
+    return basicValidation && 
+           selectedDate.value !== '' && 
+           selectedTime.value !== ''
+  }
+  
+  return basicValidation
 })
 
 // Charger tous les clients du restaurant
@@ -437,6 +635,11 @@ const closeSuggestions = () => {
 }
 
 // Fermer les suggestions quand on clique ailleurs
+// Watcher pour mettre à jour deliveryPreference quand le restaurant info change
+watch(isRestaurantOpen, (newValue) => {
+  deliveryPreference.value = newValue ? 'immediat' : 'ulterieur'
+}, { immediate: false })
+
 onMounted(() => {
   loadRestaurantInfo()
   loadCustomers()
@@ -578,14 +781,18 @@ const handlePlaceOrder = async () => {
       feature: cartFeatures, // L'API attend un array, pas un string
       order_type: "click_collect", // Toujours sur place pour le POS
       numberRue: restaurantInfo.value.numeroRue || "",
-      deliveryPreference: "immediat", // Toujours immédiat
-      typeCustomer: "customer",
+      deliveryPreference: deliveryPreference.value,
+      typeCustomer: clientType.value,
       SpecialInstructions: "",
-      timeOrder: "", // Pas de programmation pour immédiat
+      timeOrder: deliveryPreference.value === 'ulterieur' && selectedDate.value && selectedTime.value
+        ? formatDateForPayload(selectedDate.value, selectedTime.value)
+        : "",
       payment_method: selectedPaymentMethod.value,
       addressLivraison: `${restaurantInfo.value.address} ${restaurantInfo.value.numeroRue}`.trim(),
       batiment: restaurantInfo.value.batiment || "",
       rue: restaurantInfo.value.address || "",
+      societe: organisationInfo.value.societe || "",
+      departement: organisationInfo.value.departement || "",
       newsletter: "0",
       intructionOrder: [
         {
@@ -627,6 +834,11 @@ const handlePlaceOrder = async () => {
       // Vider le client sélectionné
       selectedCustomer.value = null
       customerSuggestions.value = []
+
+      // Réinitialiser les préférences de livraison
+      deliveryPreference.value = isRestaurantOpen.value ? 'immediat' : 'ulterieur'
+      selectedDate.value = ''
+      selectedTime.value = ''
 
       // Émettre l'événement de succès
       emit('place-order', { success: true, orderData: response.data })
@@ -912,21 +1124,21 @@ const selectPaymentMethod = (methodId: string) => {
     font-weight: 600;
   }
 
-  .banner-clear-btn {
-    background: #dc2626;
-    border: none;
-    color: white;
-    cursor: pointer;
-    font-size: 12px;
-    padding: 6px 12px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-weight: 500;
+      .banner-clear-btn {
+      background: #dc2626;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
 
-    &:hover {
+      &:hover {
       background: #b91c1c;
       transform: translateY(-1px);
     }
@@ -1263,6 +1475,110 @@ const selectPaymentMethod = (methodId: string) => {
     .order-total {
       font-size: 18px;
       font-weight: 700;
+    }
+  }
+}
+
+// Styles pour les options de livraison
+.delivery-preference-section {
+  margin-bottom: 1rem;
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+  }
+
+  .delivery-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .delivery-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: #388D35;
+      background: #f8fafc;
+    }
+
+    input[type="radio"] {
+      margin-top: 2px;
+      accent-color: #388D35;
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    .delivery-option-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      cursor: pointer;
+      flex: 1;
+
+      .delivery-option-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1e293b;
+      }
+
+      .delivery-option-subtitle {
+        font-size: 12px;
+        color: #64748b;
+      }
+    }
+
+    &:has(input:checked) {
+      border-color: #388D35;
+      background: #f0fdf4;
+      
+      .delivery-option-title {
+        color: #388D35;
+      }
+    }
+
+    &:has(input:disabled) {
+      opacity: 0.6;
+      cursor: not-allowed;
+      
+      &:hover {
+        border-color: #e2e8f0;
+        background: white;
+      }
+      
+      .delivery-option-label {
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .scheduled-delivery {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+
+    .form-group {
+      margin-bottom: 1rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
     }
   }
 }
