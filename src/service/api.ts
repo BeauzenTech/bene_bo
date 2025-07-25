@@ -1223,27 +1223,14 @@ export const topProductReportSell = async (categoryID, restaurantID): Promise<Ap
 /* eslint-disable */
 export const tauxCommandeCategorie = async (
     categoryID: string,
-    startDate?: string,
-    endDate?: string,
-    restaurantID?: string,
-    paymentMethode?: string,
-    orderType?: string,
+    startDate: string,
+    endDate: string,
+    restaurantID: string,
+    paymentMethode: string,
+    orderType: string,
 ): Promise<ApiResponse<RatioModel>> => {
-
-
     try {
-        const url = [
-            `/v1/report_sale/tauxcommande`,
-            categoryID,
-            startDate,
-            endDate,
-            restaurantID,
-            paymentMethode,
-            orderType,
-        ]
-            .filter(Boolean) // retire les undefined
-            .join('/');
-
+        const url = `/v1/report_sale/tauxcommande/${categoryID}/${startDate}/${endDate}/${restaurantID}/${paymentMethode}/${orderType}`;
         const response = await apiClient.get(url);
 
         return new ApiResponse(
@@ -1259,29 +1246,17 @@ export const tauxCommandeCategorie = async (
 /* eslint-disable */
 export const nombreCommandeParProduct = async (
     productID: string,
-    startDate?: string,
-    endDate?: string,
-    restaurantID?: string,
-    paymentMethode?: string,
-    orderType?: string,
+    startDate: string,
+    endDate: string,
+    restaurantID: string,
+    paymentMethode: string,
+    orderType: string,
 ): Promise<ApiResponse<RatioModel>> => {
 
 
     try {
-        const url = [
-            `/v1/report_sale/nombrecommande`,
-            productID,
-            startDate,
-            endDate,
-            restaurantID,
-            paymentMethode,
-            orderType,
-        ]
-            .filter(Boolean) // retire les undefined
-            .join('/');
-
+        const url = `/v1/report_sale/nombrecommande/${productID}/${startDate}/${endDate}/${restaurantID}/${paymentMethode}/${orderType}`;
         const response = await apiClient.get(url);
-
         return new ApiResponse(
             response.data.code,
             response.data.message,

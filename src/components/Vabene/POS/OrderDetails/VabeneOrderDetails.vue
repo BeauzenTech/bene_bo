@@ -22,7 +22,7 @@
             <span v-if="orderResponse.DeliveryPreference === 'immediat'" class="badge text-bg-success fs-13 ms-10" style="margin-left: 70px;" >
             TOUT DE SUITE
            </span>
-            <span class="badge text-bg-warning fs-13" style="margin-left: 70px;">
+            <span v-if="orderResponse.DeliveryPreference === 'ulterieur'" class="badge text-bg-warning fs-13" style="margin-left: 70px;">
             Précommande
           </span>
           </h5>
@@ -64,12 +64,13 @@
                   v-if="methodePaiementSelected.length > 0"
                 class="d-flex align-items-center text-paragraph fs-md-15 fs-lg-16"
               >
-                <img
-                  :src="methodePaiementSelected[0].icone"
-                  :alt="methodePaiementSelected[0].libelle"
-                  class="me-8 "
-                  style="width: 25px; height: 25px;"
-                />
+<!--                <img-->
+<!--                  :src="methodePaiementSelected[0].icone"-->
+<!--                  :alt="methodePaiementSelected[0].libelle"-->
+<!--                  class="me-8 "-->
+<!--                  style="width: 25px; height: 25px;"-->
+<!--                />-->
+
                 {{methodePaiementSelected[0].libelle}}
 
               </span>
