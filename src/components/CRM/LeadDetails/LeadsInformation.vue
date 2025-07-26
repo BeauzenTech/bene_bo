@@ -75,7 +75,7 @@
             target="_blank"
             class="d-inline-block fs-md-15 fs-lg-16 text-muted text-decoration-none"
           >
-            {{lead.npa ?? lead.codePostal}}
+            {{lead.npa ?? ''}}
           </a>
         </li>
         <li class="position-relative">
@@ -88,7 +88,7 @@
               target="_blank"
               class="d-inline-block fs-md-15 fs-lg-16 text-muted text-decoration-none"
           >
-            {{lead.localite ?? lead.city}}
+            {{lead.localite}}
           </a>
         </li>
 

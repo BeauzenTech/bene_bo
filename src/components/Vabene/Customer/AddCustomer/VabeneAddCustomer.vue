@@ -43,7 +43,7 @@
                 </div>
                 <div class="row mb-2">
                   <div class="col-sm-4 fw-bold">Batiment :</div>
-                  <div class="col-sm-8">{{ categorieResponse.rue ?? '-' }}</div>
+                  <div class="col-sm-8">{{ categorieResponse.batiment ?? '-' }}</div>
                 </div>
               </div>
             </div>
@@ -66,7 +66,7 @@
                 </div>
                 <div class="row mb-2">
                   <div class="col-sm-4 fw-bold">Batiment :</div>
-                  <div class="col-sm-8">{{ categorieResponse.rue ?? '-' }}</div>
+                  <div class="col-sm-8">{{ categorieResponse.batiment ?? '-' }}</div>
                 </div>
               </div>
             </div>
