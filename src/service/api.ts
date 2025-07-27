@@ -225,6 +225,17 @@ export const fetchAllPostalCode = async (): Promise<ApiResponse<any>> => {
     }
 };
 
+// Fonction pour récupérer les adresses d'un utilisateur
+export const getUserAddresses = async (userID: string): Promise<ApiResponse<any>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.get(`/v1/user/adresseLocal/${userID}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des adresses utilisateur', error);
+        throw error;
+    }
+};
+
 
 // FRANCHISE
 export const listefranchises = async (page = 1): Promise<ApiResponse<PaginatedFrachises>> => {
