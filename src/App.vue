@@ -484,7 +484,7 @@ export default defineComponent({
                 const file = new File([blob], "ticket.pdf", {
                   type: "application/pdf",
                 });
-                window.open(url, '_blank');
+                // window.open(url, '_blank');
                 this.launchPrint(file);
                 // window.open(url, '_blank');
                 // Remet à la taille normale après génération si besoin
