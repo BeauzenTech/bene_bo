@@ -129,11 +129,14 @@ const cart: Module<CartState, RootState> = {
   
   actions: {
     // Fonction pour calculer le prix total d'un item
-    calculateItemTotalPrice(_context, { item, typeOfDelivery = 'click_collect' }: { item: CartItem; typeOfDelivery?: string }) {
+    calculateItemTotalPrice({ rootGetters }, { item }: { item: CartItem }) {
       if (!item.selectedSize) return 0
 
-      // Prix de base selon le type de livraison
-      const basePrice = typeOfDelivery === 'delivery'
+      // Récupérer le type de commande depuis le store orderType
+      const orderType = rootGetters['orderType/selectedOrderType'] || 'dine_in'
+
+      // Prix de base selon le type de commande
+      const basePrice = orderType === 'delivery'
         ? Number(item.selectedSize.priceLivraison) || Number(item.selectedSize.price) || 0
         : Number(item.selectedSize.price) || 0
 
@@ -159,15 +162,13 @@ const cart: Module<CartState, RootState> = {
       return basePrice + ingredientsPrice + supplementsPrice
     },
     
-    async addToCart({ commit, dispatch }, { item, typeOfDelivery }: { item: CartItem; typeOfDelivery?: string }) {
+    async addToCart({ commit, dispatch }, { item }: { item: CartItem }) {
       // Si l'item a déjà un totalPrice calculé (comme dans le POS moderne), on l'utilise
       let totalPrice = item.totalPrice
       
       if (!totalPrice || totalPrice === 0) {
-        totalPrice = await dispatch('calculateItemTotalPrice', { item, typeOfDelivery })
+        totalPrice = await dispatch('calculateItemTotalPrice', { item })
       }
-      
-
       
       commit('ADD_TO_CART', { item, totalPrice })
       dispatch('saveToStorage')
@@ -332,6 +333,19 @@ const cart: Module<CartState, RootState> = {
       } catch (error) {
         console.error('Erreur lors de la sauvegarde du panier dans le stockage local:', error)
       }
+    },
+
+    // Recalculer tous les prix du panier quand le type de commande change
+    async recalculateAllPrices({ commit, dispatch, state }) {
+      const updatedCart = await Promise.all(
+        state.cart.map(async (item) => {
+          const totalPrice = await dispatch('calculateItemTotalPrice', { item })
+          return { ...item, totalPrice }
+        })
+      )
+      
+      commit('SET_CART', updatedCart)
+      dispatch('saveToStorage')
     }
   },
   

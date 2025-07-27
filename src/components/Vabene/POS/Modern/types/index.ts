@@ -131,7 +131,7 @@ export interface POSState {
   customer: CustomerInfo | null;
   paymentMethod: PaymentMethod | null;
   isProcessingOrder: boolean;
-  orderType: "dine-in" | "takeaway" | "delivery";
+  orderType: "dine_in" | "click_collect" | "delivery";
 }
 
 // Types pour les modales

@@ -60,6 +60,9 @@
           <div class="product-actions">
             <div class="price-section">
               <span class="price">{{ formatPrice(getCurrentPrice(product)) }}</span>
+              <span v-if="currentOrderType === 'delivery'" class="delivery-price-indicator">
+                🚚 Prix de Livraison*
+              </span>
             </div>
             <div class="action-buttons">
               <!-- Add to cart button -->
@@ -102,6 +105,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useStore } from 'vuex'
 import type { Product, ProductSize, AddToCartEvent, CartIngredient, CartSupplement } from '../types'
 import type { ProductModel } from '@/models/product.model'
 import type { ProductSizesModel } from '@/models/productSizes.model'
@@ -123,6 +127,9 @@ const emit = defineEmits<{
   'add-to-cart': [event: AddToCartEvent]
   'customize-product': [product: Product]
 }>()
+
+// Store
+const store = useStore()
 
 // État local pour les tailles sélectionnées par produit
 const selectedSizes = ref<{ [productId: string]: ProductSize }>({})
@@ -284,16 +291,40 @@ const getSelectedSize = (product: ProductModel): ProductSize | null => {
 
 const getCurrentPrice = (product: ProductModel): number => {
   const selectedSize = getSelectedSize(product)
-  if (selectedSize) {
-    return parseFloat(selectedSize.price) || 0
+  if (!selectedSize) {
+    // Prix par défaut si pas de taille
+    if (product.productSizes && product.productSizes.length > 0) {
+      const defaultSize = transformProductSize(product.productSizes[0])
+      return calculateItemTotalPrice(product, defaultSize)
+    }
+    return 0
   }
 
-  // Prix par défaut si pas de taille
-  if (product.productSizes && product.productSizes.length > 0) {
-    return parseFloat(product.productSizes[0].price) || 0
-  }
+  return calculateItemTotalPrice(product, selectedSize)
+}
 
-  return 0
+// Fonction pour calculer le prix total d'un item (similaire à celle du store cart)
+const calculateItemTotalPrice = (product: ProductModel, size: ProductSize): number => {
+  // Utiliser le computed pour la réactivité
+  const orderType = currentOrderType.value
+
+  // Prix de base selon le type de commande
+  const basePrice = orderType === 'delivery'
+    ? Number(size.priceLivraison) || Number(size.price) || 0
+    : Number(size.price) || 0
+
+  // Coût des ingrédients par défaut (non par défaut)
+  const ingredientsPrice = (product.Ingredients || []).reduce((total: number, ingredient: any) => {
+    if (!ingredient.isDefault && ingredient.quantity > 0) {
+      return total + (Number(ingredient.extra_cost_price) || 0) * ingredient.quantity
+    }
+    return total
+  }, 0)
+
+  // Coût des suppléments (pour l'instant 0 car pas de suppléments dans ProductMenu)
+  const supplementsPrice = 0
+
+  return basePrice + ingredientsPrice + supplementsPrice
 }
 
 const transformProductSize = (size: ProductSizesModel): ProductSize => {
@@ -446,7 +477,7 @@ function handleAdditionalAddToCart(event: any) {
       isDefault: ing.isDefault
     })) || [],
     supplements: [],
-    additionnal: event.additionnal, // <-- Ajout de la clé
+    additionnal: event.additionnal,
     notes: event.notes || ''
   })
   handleAdditionalModalClose()
@@ -498,6 +529,15 @@ watch(() => props.products, (newProducts) => {
     })
   }
 }, { immediate: true })
+
+// Computed pour forcer la réactivité des prix
+const currentOrderType = computed(() => store.getters['orderType/selectedOrderType'] || 'dine_in')
+
+// Watcher pour forcer le recalcul des prix quand le type de commande change
+watch(currentOrderType, () => {
+  // Forcer la réactivité en touchant les computed
+  // Les prix se recalculeront automatiquement grâce à la réactivité de Vue
+}, { immediate: false })
 </script>
 
 <style lang="scss" scoped>
@@ -811,11 +851,20 @@ watch(() => props.products, (newProducts) => {
 
 .price-section {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 
   .price {
     font-size: 1.25rem;
     font-weight: 700;
     color: #388D35;
+  }
+
+  .delivery-price-indicator {
+    font-size: 0.65rem;
+    color: #64748b;
+    font-weight: 500;
   }
 }
 

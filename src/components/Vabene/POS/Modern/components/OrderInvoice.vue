@@ -76,10 +76,10 @@
         </div>
         <div class="form-group">
           <label>Type de commande</label>
-          <select v-model="orderType" class="form-select">
-            <option value="dine-in">Sur place</option>
+          <select v-model="storeOrderType" class="form-select">
+            <option value="dine_in">Sur place</option>
             <option value="click_collect">À emporter</option>
-            <!-- <option value="delivery">Livraison</option> -->
+            <option value="delivery">Livraison</option>
           </select>
         </div>
 
@@ -111,7 +111,7 @@
         </div>
 
         <!-- Options de récupération pour click_collect -->
-        <div v-if="orderType === 'click_collect'" class="delivery-preference-section">
+        <div v-if="storeOrderType === 'click_collect' || storeOrderType === 'delivery'" class="delivery-preference-section">
           <label>Moment de récupération</label>
           <div class="delivery-options">
             <div class="delivery-option">
@@ -155,7 +155,7 @@
           <div v-if="deliveryPreference === 'ulterieur'" class="scheduled-delivery">
             <div class="form-group">
               <label>Date de récupération</label>
-              <select v-model="selectedDate" class="form-select">
+              <select v-model="selectedDate" class="form-select" @change="handleDateChange">
                 <option value="">Sélectionner une date</option>
                 <option 
                   v-for="date in getAvailableDates" 
@@ -179,6 +179,9 @@
                   {{ time }}
                 </option>
               </select>
+              <div v-if="selectedDate === getGMT2Date().toISOString().split('T')[0] && getAvailableTimes.length === 0" class="time-info">
+                <span class="time-info-text">Aucune heure disponible aujourd'hui. Veuillez sélectionner demain.</span>
+              </div>
             </div>
           </div>
         </div>
@@ -281,10 +284,35 @@
           </div>
         </div>
 
+        <!-- Champ de rabais -->
+        <div class="discount-section">
+          <div class="form-group">
+            <label>Rabais (%)</label>
+            <div class="discount-input-group">
+              <input 
+                v-model="discountPercentage" 
+                type="number" 
+                min="0" 
+                max="100" 
+                step="0.1"
+                placeholder="0" 
+                class="discount-input"
+                @input="handleDiscountChange"
+              />
+              <span class="discount-symbol">%</span>
+            </div>
+          </div>
+        </div>
+
         <div class="summary-lines">
           <div class="summary-row">
             <span class="label">Sous-total</span>
             <span class="value">{{ formatPrice(orderSummary.subtotal) }} CHF</span>
+          </div>
+
+          <div class="summary-row" v-if="discountAmount > 0">
+            <span class="label">Rabais ({{ discountPercentage }}%)</span>
+            <span class="value discount-value">-{{ formatPrice(discountAmount) }} CHF</span>
           </div>
 
           <div class="summary-row">
@@ -294,7 +322,7 @@
 
           <div class="summary-row total">
             <span class="label">Total</span>
-            <span class="value">{{ formatPrice(orderSummary.total) }} CHF</span>
+            <span class="value">{{ formatPrice(finalTotal) }} CHF</span>
           </div>
         </div>
       </div>
@@ -366,7 +394,11 @@ const allCustomers = ref<CustomerModel[]>([])
 const searchTimeout = ref<NodeJS.Timeout | null>(null)
 const selectedCustomer = ref<CustomerModel | null>(null)
 
-const orderType = ref<'dine-in' | 'click_collect' | 'delivery'>('dine-in')
+// Synchroniser avec le store
+const storeOrderType = computed({
+  get: () => store.getters['orderType/selectedOrderType'] || 'dine_in',
+  set: (value) => store.dispatch('orderType/setOrderType', value)
+})
 const selectedPaymentMethod = ref<string>('pay_click_collect_cash')
 const taxRate = ref(2.6) // Taux de TVA suisse
 
@@ -385,6 +417,9 @@ const selectedTime = ref<string>('')
 // État pour la commande
 const isProcessingOrder = ref(false)
 const restaurantInfo = ref<RestaurantModel | null>(null)
+
+// État pour le rabais
+const discountPercentage = ref<number>(0)
 
 // Utilitaires
 const toast = useToast()
@@ -421,6 +456,8 @@ const getAvailableTimes = computed(() => {
   }
 
   const times: string[] = [];
+  const currentTime = getCurrentTime(); // Minutes depuis minuit
+  const selectedDateValue = selectedDate.value;
   
   // Générer des créneaux de 15 minutes de 11h à 22h (horaires standards)
   for (let hour = 11; hour < 22; hour++) {
@@ -428,7 +465,19 @@ const getAvailableTimes = computed(() => {
       const timeString = `${hour.toString().padStart(2, "0")}:${minute
         .toString()
         .padStart(2, "0")}`;
-      times.push(timeString);
+      
+      // Vérifier si cette heure n'est pas déjà passée
+      const timeInMinutes = hour * 60 + minute;
+      
+      // Si c'est aujourd'hui, vérifier que l'heure n'est pas passée
+      if (selectedDateValue === getGMT2Date().toISOString().split("T")[0]) {
+        if (timeInMinutes > currentTime + 30) { // +30 minutes de marge
+          times.push(timeString);
+        }
+      } else {
+        // Si c'est demain ou plus tard, toutes les heures sont disponibles
+        times.push(timeString);
+      }
     }
   }
 
@@ -441,24 +490,34 @@ const getAvailableDates = computed(() => {
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
 
-  return [
-    {
+  const dates: Array<{ value: string; label: string }> = [];
+
+  // Vérifier si aujourd'hui est encore valide (pas trop tard)
+  const currentTime = getCurrentTime();
+  const isTodayStillValid = currentTime < 21 * 60; // Avant 21h00
+
+  if (isTodayStillValid) {
+    dates.push({
       value: today.toISOString().split("T")[0],
       label: `${today.toLocaleDateString("fr-FR", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
       })} - Aujourd'hui`,
-    },
-    {
-      value: tomorrow.toISOString().split("T")[0],
-      label: `${tomorrow.toLocaleDateString("fr-FR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      })} - Demain`,
-    },
-  ];
+    });
+  }
+
+  // Demain est toujours disponible
+  dates.push({
+    value: tomorrow.toISOString().split("T")[0],
+    label: `${tomorrow.toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })} - Demain`,
+  });
+
+  return dates;
 });
 
 // Fonction pour formater la date pour le payload
@@ -470,6 +529,19 @@ const formatDateForPayload = (date: string, time: string): string => {
 // Computed pour les features sélectionnées
 const selectedFeatures = computed(() => {
   return store?.getters?.['features/selectedFeatures'] || []
+})
+
+// Computed pour le rabais
+const discountAmount = computed(() => {
+  if (discountPercentage.value <= 0) return 0
+  return (props.orderSummary.subtotal * discountPercentage.value) / 100
+})
+
+// Computed pour le total final avec rabais
+const finalTotal = computed(() => {
+  const subtotalWithDiscount = props.orderSummary.subtotal - discountAmount.value
+  const taxOnDiscountedSubtotal = (subtotalWithDiscount * taxRate.value) / 100
+  return subtotalWithDiscount + taxOnDiscountedSubtotal
 })
 
 // Méthodes de paiement pour click_collect
@@ -525,7 +597,7 @@ const canPlaceOrder = computed(() => {
     customerInfo.value.phone.trim() !== ''
   
   // Validation supplémentaire pour la livraison programmée
-  if (orderType.value === 'click_collect' && deliveryPreference.value === 'ulterieur') {
+  if (storeOrderType.value === 'click_collect' && deliveryPreference.value === 'ulterieur') {
     return basicValidation && 
            selectedDate.value !== '' && 
            selectedTime.value !== ''
@@ -627,6 +699,40 @@ const clearSelectedCustomer = () => {
   customerSuggestions.value = []
 }
 
+// Sélectionner le client par défaut selon le restaurant
+const selectDefaultClient = (restaurantID: string) => {
+  const defaultClient = DEFAULT_CLIENTS[restaurantID as keyof typeof DEFAULT_CLIENTS]
+  
+  if (defaultClient) {
+    // Créer un objet CustomerModel compatible
+    const customerModel: CustomerModel = {
+      id: defaultClient.id,
+      email: defaultClient.email,
+      firstName: defaultClient.firstName,
+      lastName: defaultClient.lastName,
+      phoneNumber: defaultClient.phoneNumber,
+      address: defaultClient.address || '',
+      city: defaultClient.city || '',
+      codePostal: defaultClient.codePostal || '',
+      batiment: defaultClient.batiment || '',
+      rue: defaultClient.rue || '',
+      user: null as any,
+      civilite: defaultClient.civilite,
+      npa: defaultClient.npa,
+      localite: defaultClient.localite,
+      numeroRue: defaultClient.numeroRue,
+      remarqueCommande: [null, ''],
+      promotions: false,
+      newsletter: false,
+      created_at: new Date().toISOString()
+    }
+    
+    // Sélectionner le client
+    selectCustomer(customerModel)
+    console.log('Client par défaut sélectionné:', customerModel.firstName, customerModel.lastName)
+  }
+}
+
 
 
 // Fermer les suggestions
@@ -640,9 +746,42 @@ watch(isRestaurantOpen, (newValue) => {
   deliveryPreference.value = newValue ? 'immediat' : 'ulterieur'
 }, { immediate: false })
 
+// Watcher pour sélectionner le client par défaut quand on passe en mode "sur place"
+watch(storeOrderType, (newOrderType) => {
+  if (newOrderType === 'dine_in' && restaurantInfo.value) {
+    const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
+    if (restaurantID && !selectedCustomer.value) {
+      selectDefaultClient(restaurantID)
+    }
+  } else if (newOrderType !== 'dine_in' && selectedCustomer.value) {
+    // Vérifier si le client sélectionné est un client par défaut
+    const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
+    if (restaurantID) {
+      const defaultClient = DEFAULT_CLIENTS[restaurantID as keyof typeof DEFAULT_CLIENTS]
+      if (defaultClient && selectedCustomer.value.id === defaultClient.id) {
+        // Désélectionner le client par défaut si on change de type de commande
+        clearSelectedCustomer()
+      }
+    }
+  }
+}, { immediate: false })
+
+// Watcher pour s'assurer que le client par défaut est sélectionné après le chargement des données
+watch([restaurantInfo, () => store.getters['orderType/selectedOrderType']], ([restaurant, orderType]) => {
+  if (restaurant && orderType === 'dine_in' && !selectedCustomer.value) {
+    const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
+    if (restaurantID) {
+      selectDefaultClient(restaurantID)
+    }
+  }
+}, { immediate: false })
+
 onMounted(() => {
   loadRestaurantInfo()
   loadCustomers()
+  
+  // Charger le type de commande depuis le store
+  store.dispatch('orderType/loadFromStorage')
 
   document.addEventListener('click', (event) => {
     const target = event.target as HTMLElement
@@ -651,6 +790,44 @@ onMounted(() => {
     }
   })
 })
+
+// Clients par défaut selon le restaurant
+const DEFAULT_CLIENTS = {
+  'fd9d1677-f994-473a-9939-908cf3145bd4': {
+    id: '94adffbc-fdea-43f2-b22f-005604',
+    email: 'clientmorges@vabenepizza.ch',
+    firstName: 'Client',
+    lastName: 'Morges',
+    phoneNumber: '+41218882300',
+    address: 'Morges, 1110 - Place Saint-Louis 5',
+    city: 'Morges',
+    codePostal: '1110',
+    batiment: '5',
+    rue: 'Place Saint-Louis',
+    civilite: 'monsieur',
+    npa: '1110',
+    localite: 'Morges',
+    numeroRue: '5',
+    type: 'customer'
+  },
+  '515a4836-3e47-47c5-9b87-1cf4feefe247': {
+    id: '54391338-ad3f-4cbf-97ec-005751',
+    email: 'clientpenthaz@vabenepizza.ch',
+    firstName: 'Client',
+    lastName: 'Penthaz',
+    phoneNumber: '+41218621313',
+    address: null,
+    city: 'Penthaz',
+    codePostal: null,
+    batiment: null,
+    rue: 'Test',
+    civilite: 'monsieur',
+    npa: '1303',
+    localite: 'Penthaz',
+    numeroRue: '12',
+    type: 'customer'
+  }
+}
 
 // Charger les informations du restaurant
 const loadRestaurantInfo = async () => {
@@ -661,6 +838,11 @@ const loadRestaurantInfo = async () => {
       if (response.code === 200 && response.data) {
         restaurantInfo.value = response.data
         console.log('Restaurant info loaded:', restaurantInfo.value)
+        
+        // Sélectionner le client par défaut si on est en mode "sur place"
+        if (storeOrderType.value === 'dine_in') {
+          selectDefaultClient(restaurantID)
+        }
       }
     }
   } catch (error) {
@@ -779,7 +961,7 @@ const handlePlaceOrder = async () => {
       guest_email: selectedCustomer.value?.email || "",
       guest_phone_number: customerInfo.value.phone,
       feature: cartFeatures, // L'API attend un array, pas un string
-      order_type: "click_collect", // Toujours sur place pour le POS
+      order_type: storeOrderType.value, // Utiliser le type depuis le store
       numberRue: restaurantInfo.value.numeroRue || "",
       deliveryPreference: deliveryPreference.value,
       typeCustomer: clientType.value,
@@ -794,6 +976,8 @@ const handlePlaceOrder = async () => {
       societe: organisationInfo.value.societe || "",
       departement: organisationInfo.value.departement || "",
       newsletter: "0",
+      discount: discountPercentage.value > 0 ? discountPercentage.value.toString() : "0",
+      discountAmount: discountAmount.value > 0 ? discountAmount.value.toString() : "0",
       intructionOrder: [
         {
           demandeCouverts: false,
@@ -840,6 +1024,9 @@ const handlePlaceOrder = async () => {
       selectedDate.value = ''
       selectedTime.value = ''
 
+      // Réinitialiser le rabais
+      discountPercentage.value = 0
+
       // Émettre l'événement de succès
       emit('place-order', { success: true, orderData: response.data })
     } else {
@@ -875,6 +1062,28 @@ const removeItem = (itemId: string) => {
 
 const selectPaymentMethod = (methodId: string) => {
   selectedPaymentMethod.value = methodId
+}
+
+// Gestionnaire pour le changement de rabais
+const handleDiscountChange = () => {
+  // S'assurer que la valeur est dans les limites
+  if (discountPercentage.value < 0) {
+    discountPercentage.value = 0
+  } else if (discountPercentage.value > 100) {
+    discountPercentage.value = 100
+  }
+}
+
+// Gestionnaire pour le changement de date
+const handleDateChange = () => {
+  // Si une heure est sélectionnée, vérifier qu'elle est toujours valide
+  if (selectedTime.value) {
+    const availableTimes = getAvailableTimes.value;
+    if (!availableTimes.includes(selectedTime.value)) {
+      // L'heure sélectionnée n'est plus disponible, la réinitialiser
+      selectedTime.value = '';
+    }
+  }
 }
 </script>
 
@@ -1371,6 +1580,10 @@ const selectPaymentMethod = (methodId: string) => {
       font-size: 14px;
       font-weight: 600;
       color: #1e293b;
+
+      &.discount-value {
+        color: #dc2626;
+      }
     }
   }
 }
@@ -1402,6 +1615,52 @@ const selectPaymentMethod = (methodId: string) => {
       font-weight: 500;
       border: 1px solid #bbf7d0;
     }
+  }
+}
+
+.discount-section {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+
+  .form-group {
+    margin-bottom: 0;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 4px;
+  }
+
+  .discount-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .discount-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #388D35;
+      box-shadow: 0 0 0 2px rgba(56, 141, 53, 0.1);
+    }
+  }
+
+  .discount-symbol {
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    min-width: 20px;
   }
 }
 
@@ -1578,6 +1837,20 @@ const selectPaymentMethod = (methodId: string) => {
 
       &:last-child {
         margin-bottom: 0;
+      }
+    }
+
+    .time-info {
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: 4px;
+
+      .time-info-text {
+        font-size: 0.75rem;
+        color: #92400e;
+        font-weight: 500;
       }
     }
   }

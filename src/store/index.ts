@@ -3,6 +3,7 @@ import additionalFeaturesModal from './modules/additional-features-modal'
 import features from './modules/features'
 import specializedModals from './modules/specialized-modals'
 import cart from './modules/cart'
+import orderType from './modules/order-type'
 import { persistencePlugin } from './plugins/persistence'
 
 export interface RootState {
@@ -14,7 +15,8 @@ export default createStore<RootState>({
     additionalFeaturesModal,
     features,
     specializedModals,
-    cart
+    cart,
+    orderType
   },
   plugins: [persistencePlugin]
 })
