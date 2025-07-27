@@ -155,7 +155,7 @@
           <div v-if="deliveryPreference === 'ulterieur'" class="scheduled-delivery">
             <div class="form-group">
               <label>Date de récupération</label>
-              <select v-model="selectedDate" class="form-select">
+              <select v-model="selectedDate" class="form-select" @change="handleDateChange">
                 <option value="">Sélectionner une date</option>
                 <option 
                   v-for="date in getAvailableDates" 
@@ -179,6 +179,9 @@
                   {{ time }}
                 </option>
               </select>
+              <div v-if="selectedDate === getGMT2Date().toISOString().split('T')[0] && getAvailableTimes.length === 0" class="time-info">
+                <span class="time-info-text">Aucune heure disponible aujourd'hui. Veuillez sélectionner demain.</span>
+              </div>
             </div>
           </div>
         </div>
@@ -453,6 +456,8 @@ const getAvailableTimes = computed(() => {
   }
 
   const times: string[] = [];
+  const currentTime = getCurrentTime(); // Minutes depuis minuit
+  const selectedDateValue = selectedDate.value;
   
   // Générer des créneaux de 15 minutes de 11h à 22h (horaires standards)
   for (let hour = 11; hour < 22; hour++) {
@@ -460,7 +465,19 @@ const getAvailableTimes = computed(() => {
       const timeString = `${hour.toString().padStart(2, "0")}:${minute
         .toString()
         .padStart(2, "0")}`;
-      times.push(timeString);
+      
+      // Vérifier si cette heure n'est pas déjà passée
+      const timeInMinutes = hour * 60 + minute;
+      
+      // Si c'est aujourd'hui, vérifier que l'heure n'est pas passée
+      if (selectedDateValue === getGMT2Date().toISOString().split("T")[0]) {
+        if (timeInMinutes > currentTime + 30) { // +30 minutes de marge
+          times.push(timeString);
+        }
+      } else {
+        // Si c'est demain ou plus tard, toutes les heures sont disponibles
+        times.push(timeString);
+      }
     }
   }
 
@@ -473,24 +490,34 @@ const getAvailableDates = computed(() => {
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
 
-  return [
-    {
+  const dates: Array<{ value: string; label: string }> = [];
+
+  // Vérifier si aujourd'hui est encore valide (pas trop tard)
+  const currentTime = getCurrentTime();
+  const isTodayStillValid = currentTime < 21 * 60; // Avant 21h00
+
+  if (isTodayStillValid) {
+    dates.push({
       value: today.toISOString().split("T")[0],
       label: `${today.toLocaleDateString("fr-FR", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
       })} - Aujourd'hui`,
-    },
-    {
-      value: tomorrow.toISOString().split("T")[0],
-      label: `${tomorrow.toLocaleDateString("fr-FR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      })} - Demain`,
-    },
-  ];
+    });
+  }
+
+  // Demain est toujours disponible
+  dates.push({
+    value: tomorrow.toISOString().split("T")[0],
+    label: `${tomorrow.toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })} - Demain`,
+  });
+
+  return dates;
 });
 
 // Fonction pour formater la date pour le payload
@@ -1044,6 +1071,18 @@ const handleDiscountChange = () => {
     discountPercentage.value = 0
   } else if (discountPercentage.value > 100) {
     discountPercentage.value = 100
+  }
+}
+
+// Gestionnaire pour le changement de date
+const handleDateChange = () => {
+  // Si une heure est sélectionnée, vérifier qu'elle est toujours valide
+  if (selectedTime.value) {
+    const availableTimes = getAvailableTimes.value;
+    if (!availableTimes.includes(selectedTime.value)) {
+      // L'heure sélectionnée n'est plus disponible, la réinitialiser
+      selectedTime.value = '';
+    }
   }
 }
 </script>
@@ -1798,6 +1837,20 @@ const handleDiscountChange = () => {
 
       &:last-child {
         margin-bottom: 0;
+      }
+    }
+
+    .time-info {
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: 4px;
+
+      .time-info-text {
+        font-size: 0.75rem;
+        color: #92400e;
+        font-weight: 500;
       }
     }
   }
