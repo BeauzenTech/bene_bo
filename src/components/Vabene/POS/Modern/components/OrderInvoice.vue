@@ -185,6 +185,29 @@
             </div>
           </div>
         </div>
+
+        <!-- Champs d'adresse pour la livraison -->
+        <div v-if="storeOrderType === 'delivery'" class="delivery-address-section">
+          <h4 class="delivery-address-title">Adresse de livraison</h4>
+          <div class="form-group">
+            <label>Rue</label>
+            <input 
+              v-model="deliveryAddress.rue" 
+              type="text" 
+              placeholder="Nom de la rue"
+              class="form-input"
+            />
+          </div>
+          <div class="form-group">
+            <label>N° Rue</label>
+            <input 
+              v-model="deliveryAddress.numeroRue" 
+              type="text" 
+              placeholder="Numéro de rue"
+              class="form-input"
+            />
+          </div>
+        </div>
       </div>
 
       <!-- Liste des articles -->
@@ -421,6 +444,12 @@ const restaurantInfo = ref<RestaurantModel | null>(null)
 // État pour le rabais
 const discountPercentage = ref<number>(0)
 
+// État pour l'adresse de livraison
+const deliveryAddress = ref({
+  rue: '',
+  numeroRue: ''
+})
+
 // Utilitaires
 const toast = useToast()
 const store = useStore()
@@ -601,6 +630,22 @@ const canPlaceOrder = computed(() => {
     return basicValidation && 
            selectedDate.value !== '' && 
            selectedTime.value !== ''
+  }
+  
+  // Validation supplémentaire pour la livraison à domicile
+  if (storeOrderType.value === 'delivery') {
+    const deliveryValidation = deliveryAddress.value.rue.trim() !== '' && 
+                              deliveryAddress.value.numeroRue.trim() !== ''
+    
+    // Si c'est une livraison programmée, vérifier aussi la date et l'heure
+    if (deliveryPreference.value === 'ulterieur') {
+      return basicValidation && 
+             deliveryValidation &&
+             selectedDate.value !== '' && 
+             selectedTime.value !== ''
+    }
+    
+    return basicValidation && deliveryValidation
   }
   
   return basicValidation
@@ -962,7 +1007,7 @@ const handlePlaceOrder = async () => {
       guest_phone_number: customerInfo.value.phone,
       feature: cartFeatures, // L'API attend un array, pas un string
       order_type: storeOrderType.value, // Utiliser le type depuis le store
-      numberRue: restaurantInfo.value.numeroRue || "",
+      numberRue: storeOrderType.value === 'delivery' ? deliveryAddress.value.numeroRue : restaurantInfo.value.numeroRue || "",
       deliveryPreference: deliveryPreference.value,
       typeCustomer: clientType.value,
       SpecialInstructions: "",
@@ -970,9 +1015,11 @@ const handlePlaceOrder = async () => {
         ? formatDateForPayload(selectedDate.value, selectedTime.value)
         : "",
       payment_method: selectedPaymentMethod.value,
-      addressLivraison: `${restaurantInfo.value.address} ${restaurantInfo.value.numeroRue}`.trim(),
+      addressLivraison: storeOrderType.value === 'delivery' 
+        ? `${deliveryAddress.value.rue} ${deliveryAddress.value.numeroRue}`.trim()
+        : `${restaurantInfo.value.address} ${restaurantInfo.value.numeroRue}`.trim(),
       batiment: restaurantInfo.value.batiment || "",
-      rue: restaurantInfo.value.address || "",
+      rue: storeOrderType.value === 'delivery' ? deliveryAddress.value.rue : restaurantInfo.value.address || "",
       societe: organisationInfo.value.societe || "",
       departement: organisationInfo.value.departement || "",
       newsletter: "0",
@@ -1026,6 +1073,9 @@ const handlePlaceOrder = async () => {
 
       // Réinitialiser le rabais
       discountPercentage.value = 0
+
+      // Réinitialiser l'adresse de livraison
+      deliveryAddress.value = { rue: '', numeroRue: '' }
 
       // Émettre l'événement de succès
       emit('place-order', { success: true, orderData: response.data })
@@ -1851,6 +1901,29 @@ const handleDateChange = () => {
         font-size: 0.75rem;
         color: #92400e;
         font-weight: 500;
+      }
+    }
+  }
+
+  .delivery-address-section {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+
+    .delivery-address-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #388D35;
+      margin: 0 0 1rem 0;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+
+      &:last-child {
+        margin-bottom: 0;
       }
     }
   }
