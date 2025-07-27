@@ -82,7 +82,7 @@
                             </div>
 
                             <!-- 🧂 Ingrédients -->
-                            <ul v-if="item.ingredients && item.ingredients?.length > 0" style="margin: 2px 0 0 10px; font-size: 18px; color: #555;">
+                            <ul v-if="item?.ingredients && item.ingredients?.length > 0" style="margin: 2px 0 0 10px; font-size: 18px; color: #555;">
                               <li
                                   v-for="ingredient in item.ingredients"
                                   :key="ingredient.id"
@@ -247,6 +247,10 @@ export default defineComponent({
     },
     convertDateCreate(date: string): string {
       return UserGeneralKey.formatDateToFrenchLocale(date);
+    },
+    extraireCmValeur(texte: string): string | null {
+      const match = texte.match(/\b\d+cm\b/);
+      return match ? match[0] : null;
     },
     getMethodePaiementParType(
         liste: MethodePaiementModel[],
