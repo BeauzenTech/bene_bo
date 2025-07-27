@@ -292,12 +292,12 @@ const getSelectedSize = (product: ProductModel): ProductSize | null => {
 const getCurrentPrice = (product: ProductModel): number => {
   const selectedSize = getSelectedSize(product)
   if (!selectedSize) {
-    // Prix par défaut si pas de taille
-    if (product.productSizes && product.productSizes.length > 0) {
+  // Prix par défaut si pas de taille
+  if (product.productSizes && product.productSizes.length > 0) {
       const defaultSize = transformProductSize(product.productSizes[0])
       return calculateItemTotalPrice(product, defaultSize)
-    }
-    return 0
+  }
+  return 0
   }
 
   return calculateItemTotalPrice(product, selectedSize)

@@ -111,18 +111,13 @@
         </div>
 
         <!-- Options de récupération pour click_collect -->
-        <div v-if="storeOrderType === 'click_collect' || storeOrderType === 'delivery'" class="delivery-preference-section">
+        <div v-if="storeOrderType === 'click_collect' || storeOrderType === 'delivery'"
+          class="delivery-preference-section">
           <label>Moment de récupération</label>
           <div class="delivery-options">
             <div class="delivery-option">
-              <input 
-                type="radio" 
-                id="immediat" 
-                name="deliveryPreference" 
-                value="immediat" 
-                v-model="deliveryPreference"
-                :disabled="!isRestaurantOpen"
-              >
+              <input type="radio" id="immediat" name="deliveryPreference" value="immediat" v-model="deliveryPreference"
+                :disabled="!isRestaurantOpen">
               <label for="immediat" class="delivery-option-label">
                 <span class="delivery-option-title">Dès que possible</span>
                 <span v-if="!isRestaurantOpen" class="delivery-option-subtitle">
@@ -133,15 +128,10 @@
                 </span>
               </label>
             </div>
-            
+
             <div class="delivery-option">
-              <input 
-                type="radio" 
-                id="ulterieur" 
-                name="deliveryPreference" 
-                value="ulterieur" 
-                v-model="deliveryPreference"
-              >
+              <input type="radio" id="ulterieur" name="deliveryPreference" value="ulterieur"
+                v-model="deliveryPreference">
               <label for="ulterieur" class="delivery-option-label">
                 <span class="delivery-option-title">Date et heure souhaitées</span>
                 <span class="delivery-option-subtitle">
@@ -157,29 +147,22 @@
               <label>Date de récupération</label>
               <select v-model="selectedDate" class="form-select" @change="handleDateChange">
                 <option value="">Sélectionner une date</option>
-                <option 
-                  v-for="date in getAvailableDates" 
-                  :key="date.value" 
-                  :value="date.value"
-                >
+                <option v-for="date in getAvailableDates" :key="date.value" :value="date.value">
                   {{ date.label }}
                 </option>
               </select>
             </div>
-            
+
             <div class="form-group" v-if="selectedDate">
               <label>Heure de récupération</label>
               <select v-model="selectedTime" class="form-select">
                 <option value="">Sélectionner une heure</option>
-                <option 
-                  v-for="time in getAvailableTimes" 
-                  :key="time" 
-                  :value="time"
-                >
+                <option v-for="time in getAvailableTimes" :key="time" :value="time">
                   {{ time }}
                 </option>
               </select>
-              <div v-if="selectedDate === getGMT2Date().toISOString().split('T')[0] && getAvailableTimes.length === 0" class="time-info">
+              <div v-if="selectedDate === getGMT2Date().toISOString().split('T')[0] && getAvailableTimes.length === 0"
+                class="time-info">
                 <span class="time-info-text">Aucune heure disponible aujourd'hui. Veuillez sélectionner demain.</span>
               </div>
             </div>
@@ -189,23 +172,40 @@
         <!-- Champs d'adresse pour la livraison -->
         <div v-if="storeOrderType === 'delivery'" class="delivery-address-section">
           <h4 class="delivery-address-title">Adresse de livraison</h4>
+
+          <!-- Sélection d'adresse utilisateur si client sélectionné -->
+          <div v-if="selectedCustomer && userAddresses.length > 0" class="form-group">
+            <label>Adresses enregistrées</label>
+            <select v-model="selectedAddressId" class="form-select" @change="handleAddressSelection">
+              <option value="">Nouvelle adresse</option>
+              <option v-for="address in userAddresses" :key="address.id" :value="address.id">
+                {{ address.rue }} {{ address.numeroLocalite }}, {{ address.localite }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>NPA (Code postal)</label>
+            <input v-model="deliveryAddress.npa" type="text" placeholder="Code postal" class="form-input"
+              :disabled="selectedAddressId !== '' && userAddresses.length > 0" />
+          </div>
+
+          <div class="form-group">
+            <label>Localité</label>
+            <input v-model="deliveryAddress.localite" type="text" placeholder="Localité" class="form-input"
+              :disabled="selectedAddressId !== '' && userAddresses.length > 0" />
+          </div>
+
           <div class="form-group">
             <label>Rue</label>
-            <input 
-              v-model="deliveryAddress.rue" 
-              type="text" 
-              placeholder="Nom de la rue"
-              class="form-input"
-            />
+            <input v-model="deliveryAddress.rue" type="text" placeholder="Nom de la rue" class="form-input"
+              :disabled="selectedAddressId !== '' && userAddresses.length > 0" />
           </div>
+
           <div class="form-group">
             <label>N° Rue</label>
-            <input 
-              v-model="deliveryAddress.numeroRue" 
-              type="text" 
-              placeholder="Numéro de rue"
-              class="form-input"
-            />
+            <input v-model="deliveryAddress.numeroRue" type="text" placeholder="Numéro de rue" class="form-input"
+              :disabled="selectedAddressId !== '' && userAddresses.length > 0" />
           </div>
         </div>
       </div>
@@ -310,19 +310,28 @@
         <!-- Champ de rabais -->
         <div class="discount-section">
           <div class="form-group">
-            <label>Rabais (%)</label>
+            <label>Type de rabais</label>
+            <div class="discount-type-selector">
+              <label class="discount-type-option">
+                <input type="radio" v-model="discountType" value="percentage" @change="handleDiscountTypeChange" />
+                <span>Pourcentage (%)</span>
+              </label>
+              <label class="discount-type-option">
+                <input type="radio" v-model="discountType" value="fixed" @change="handleDiscountTypeChange" />
+                <span>Montant fixe (CHF)</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label v-if="discountType === 'percentage'">Rabais (%)</label>
+            <label v-else>Rabais (CHF)</label>
             <div class="discount-input-group">
-              <input 
-                v-model="discountPercentage" 
-                type="number" 
-                min="0" 
-                max="100" 
-                step="0.1"
-                placeholder="0" 
-                class="discount-input"
-                @input="handleDiscountChange"
-              />
-              <span class="discount-symbol">%</span>
+              <input v-if="discountType === 'percentage'" v-model="discountPercentage" type="number" min="0" max="100"
+                step="0.1" placeholder="0" class="discount-input" @input="handleDiscountChange" />
+              <input v-else v-model="discountFixed" type="number" min="0" step="0.01" placeholder="0.00"
+                class="discount-input" @input="handleFixedDiscountChange" />
+              <span class="discount-symbol">{{ discountType === 'percentage' ? '%' : 'CHF' }}</span>
             </div>
           </div>
         </div>
@@ -330,17 +339,21 @@
         <div class="summary-lines">
           <div class="summary-row">
             <span class="label">Sous-total</span>
-            <span class="value">{{ formatPrice(orderSummary.subtotal) }} CHF</span>
+            <span class="value">{{ formatPrice(orderSummaryWithDiscount.subtotal) }} CHF</span>
           </div>
 
           <div class="summary-row" v-if="discountAmount > 0">
-            <span class="label">Rabais ({{ discountPercentage }}%)</span>
+            <span class="label">
+              Rabais
+              <span v-if="discountType === 'percentage'">({{ discountPercentage }}%)</span>
+              <span v-else>({{ formatPrice(discountFixed) }} CHF)</span>
+            </span>
             <span class="value discount-value">-{{ formatPrice(discountAmount) }} CHF</span>
           </div>
 
           <div class="summary-row">
             <span class="label">TVA ({{ taxRate }}%)</span>
-            <span class="value">{{ formatPrice(orderSummary.tax) }} CHF</span>
+            <span class="value">{{ formatPrice(orderSummaryWithDiscount.tax) }} CHF</span>
           </div>
 
           <div class="summary-row total">
@@ -370,7 +383,7 @@
         <button @click="handlePlaceOrder" :disabled="!canPlaceOrder || isProcessingOrder" class="place-order-btn">
           <i :class="isProcessingOrder ? 'fas fa-spinner fa-spin' : 'fas fa-receipt'"></i>
           {{ isProcessingOrder ? 'Traitement...' : 'Valider la commande' }}
-          <span class="order-total">{{ formatPrice(orderSummary.total) }} CHF</span>
+          <span class="order-total">{{ formatPrice(finalTotal) }} CHF</span>
         </button>
       </div>
     </div>
@@ -380,7 +393,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import type { CartItem, OrderSummary, PaymentMethod } from '../types'
-import { createPOSOrder, detailRestaurant } from '@/service/api'
+import { createPOSOrder, detailRestaurant, getUserAddresses } from '@/service/api'
 import { getCustomers } from '@/service/api'
 import type { ApiResponse } from '@/models/Apiresponse'
 import type { RestaurantModel } from '@/models/restaurant.model'
@@ -442,13 +455,22 @@ const isProcessingOrder = ref(false)
 const restaurantInfo = ref<RestaurantModel | null>(null)
 
 // État pour le rabais
+const discountType = ref<'percentage' | 'fixed'>('percentage')
 const discountPercentage = ref<number>(0)
+const discountFixed = ref<number>(0)
 
 // État pour l'adresse de livraison
 const deliveryAddress = ref({
   rue: '',
-  numeroRue: ''
+  numeroRue: '',
+  npa: '',
+  localite: ''
 })
+
+// État pour les adresses utilisateur
+const userAddresses = ref<any[]>([])
+const selectedAddressId = ref<string>('')
+const isLoadingAddresses = ref(false)
 
 // Utilitaires
 const toast = useToast()
@@ -487,17 +509,17 @@ const getAvailableTimes = computed(() => {
   const times: string[] = [];
   const currentTime = getCurrentTime(); // Minutes depuis minuit
   const selectedDateValue = selectedDate.value;
-  
+
   // Générer des créneaux de 15 minutes de 11h à 22h (horaires standards)
   for (let hour = 11; hour < 22; hour++) {
     for (let minute = 0; minute < 60; minute += 15) {
       const timeString = `${hour.toString().padStart(2, "0")}:${minute
         .toString()
         .padStart(2, "0")}`;
-      
+
       // Vérifier si cette heure n'est pas déjà passée
       const timeInMinutes = hour * 60 + minute;
-      
+
       // Si c'est aujourd'hui, vérifier que l'heure n'est pas passée
       if (selectedDateValue === getGMT2Date().toISOString().split("T")[0]) {
         if (timeInMinutes > currentTime + 30) { // +30 minutes de marge
@@ -562,15 +584,32 @@ const selectedFeatures = computed(() => {
 
 // Computed pour le rabais
 const discountAmount = computed(() => {
-  if (discountPercentage.value <= 0) return 0
-  return (props.orderSummary.subtotal * discountPercentage.value) / 100
+  if (discountType.value === 'percentage') {
+    if (discountPercentage.value <= 0) return 0
+    return (props.orderSummary.subtotal * discountPercentage.value) / 100
+  } else {
+    if (discountFixed.value <= 0) return 0
+    // Le rabais fixe ne peut pas dépasser le sous-total
+    return Math.min(discountFixed.value, props.orderSummary.subtotal)
+  }
+})
+
+// Computed pour le résumé avec rabais appliqué
+const orderSummaryWithDiscount = computed(() => {
+  const subtotalWithDiscount = props.orderSummary.subtotal - discountAmount.value
+  const taxOnDiscountedSubtotal = (subtotalWithDiscount * taxRate.value) / 100 // TVA (affichage informatif uniquement)
+  const totalWithDiscount = subtotalWithDiscount // Le total ne comprend pas la TVA
+
+  return {
+    subtotal: props.orderSummary.subtotal,
+    tax: taxOnDiscountedSubtotal,
+    total: totalWithDiscount
+  }
 })
 
 // Computed pour le total final avec rabais
 const finalTotal = computed(() => {
-  const subtotalWithDiscount = props.orderSummary.subtotal - discountAmount.value
-  const taxOnDiscountedSubtotal = (subtotalWithDiscount * taxRate.value) / 100
-  return subtotalWithDiscount + taxOnDiscountedSubtotal
+  return orderSummaryWithDiscount.value.total
 })
 
 // Méthodes de paiement pour click_collect
@@ -624,30 +663,32 @@ const canPlaceOrder = computed(() => {
     customerInfo.value.firstName.trim() !== '' &&
     customerInfo.value.lastName.trim() !== '' &&
     customerInfo.value.phone.trim() !== ''
-  
+
   // Validation supplémentaire pour la livraison programmée
   if (storeOrderType.value === 'click_collect' && deliveryPreference.value === 'ulterieur') {
-    return basicValidation && 
-           selectedDate.value !== '' && 
-           selectedTime.value !== ''
+    return basicValidation &&
+      selectedDate.value !== '' &&
+      selectedTime.value !== ''
   }
-  
+
   // Validation supplémentaire pour la livraison à domicile
   if (storeOrderType.value === 'delivery') {
-    const deliveryValidation = deliveryAddress.value.rue.trim() !== '' && 
-                              deliveryAddress.value.numeroRue.trim() !== ''
-    
+    const deliveryValidation = deliveryAddress.value.rue.trim() !== '' &&
+      deliveryAddress.value.numeroRue.trim() !== '' &&
+      deliveryAddress.value.npa.trim() !== '' &&
+      deliveryAddress.value.localite.trim() !== ''
+
     // Si c'est une livraison programmée, vérifier aussi la date et l'heure
     if (deliveryPreference.value === 'ulterieur') {
-      return basicValidation && 
-             deliveryValidation &&
-             selectedDate.value !== '' && 
-             selectedTime.value !== ''
+      return basicValidation &&
+        deliveryValidation &&
+        selectedDate.value !== '' &&
+        selectedTime.value !== ''
     }
-    
+
     return basicValidation && deliveryValidation
   }
-  
+
   return basicValidation
 })
 
@@ -665,6 +706,62 @@ const loadCustomers = async () => {
   } catch (error) {
     console.error('Erreur lors du chargement des clients:', error)
   }
+}
+
+// Charger les adresses d'un utilisateur
+const loadUserAddresses = async (userID: string) => {
+  if (!userID) {
+    userAddresses.value = []
+    return
+  }
+
+  isLoadingAddresses.value = true
+  try {
+    const response = await getUserAddresses(userID)
+    if (response.code === 200 && response?.data?.items) {
+      userAddresses.value = response.data.items
+      console.log(`✅ ${userAddresses.value.length} adresses chargées pour l'utilisateur`)
+    } else {
+      userAddresses.value = []
+    }
+  } catch (error) {
+    console.error('Erreur lors du chargement des adresses utilisateur:', error)
+    userAddresses.value = []
+  } finally {
+    isLoadingAddresses.value = false
+  }
+}
+
+// Gérer la sélection d'une adresse
+const handleAddressSelection = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  const addressId = target.value
+
+  if (!addressId) {
+    // Réinitialiser les champs pour une nouvelle adresse
+    deliveryAddress.value = {
+      rue: '',
+      numeroRue: '',
+      npa: '',
+      localite: ''
+    }
+    selectedAddressId.value = ''
+    return
+  }
+
+  const address = userAddresses.value.find(addr => addr.id === addressId)
+  if (!address) return
+
+  // Remplir les champs avec l'adresse sélectionnée
+  deliveryAddress.value = {
+    rue: address.rue || '',
+    numeroRue: address.numeroLocalite || '',
+    npa: address.codePostal || '',
+    localite: address.localite || ''
+  }
+
+  selectedAddressId.value = addressId
+  console.log('Adresse sélectionnée:', address)
 }
 
 // Recherche de clients avec debounce
@@ -735,6 +832,11 @@ const selectCustomer = (customer: CustomerModel) => {
   customerInfo.value.phone = customer.phoneNumber
   customerInfo.value.email = customer.email
   customerSuggestions.value = []
+
+  // Charger les adresses de l'utilisateur sélectionné
+  if (customer.user?.id) {
+    loadUserAddresses(customer.user.id)
+  }
 }
 
 // Supprimer la sélection du client
@@ -742,12 +844,17 @@ const clearSelectedCustomer = () => {
   selectedCustomer.value = null
   customerInfo.value = { id: '', firstName: '', lastName: '', phone: '', email: '' }
   customerSuggestions.value = []
+
+  // Vider les adresses et la sélection
+  userAddresses.value = []
+  selectedAddressId.value = ''
+  deliveryAddress.value = { rue: '', numeroRue: '', npa: '', localite: '' }
 }
 
 // Sélectionner le client par défaut selon le restaurant
 const selectDefaultClient = (restaurantID: string) => {
   const defaultClient = DEFAULT_CLIENTS[restaurantID as keyof typeof DEFAULT_CLIENTS]
-  
+
   if (defaultClient) {
     // Créer un objet CustomerModel compatible
     const customerModel: CustomerModel = {
@@ -771,7 +878,7 @@ const selectDefaultClient = (restaurantID: string) => {
       newsletter: false,
       created_at: new Date().toISOString()
     }
-    
+
     // Sélectionner le client
     selectCustomer(customerModel)
     console.log('Client par défaut sélectionné:', customerModel.firstName, customerModel.lastName)
@@ -824,7 +931,7 @@ watch([restaurantInfo, () => store.getters['orderType/selectedOrderType']], ([re
 onMounted(() => {
   loadRestaurantInfo()
   loadCustomers()
-  
+
   // Charger le type de commande depuis le store
   store.dispatch('orderType/loadFromStorage')
 
@@ -883,7 +990,7 @@ const loadRestaurantInfo = async () => {
       if (response.code === 200 && response.data) {
         restaurantInfo.value = response.data
         console.log('Restaurant info loaded:', restaurantInfo.value)
-        
+
         // Sélectionner le client par défaut si on est en mode "sur place"
         if (storeOrderType.value === 'dine_in') {
           selectDefaultClient(restaurantID)
@@ -1015,15 +1122,24 @@ const handlePlaceOrder = async () => {
         ? formatDateForPayload(selectedDate.value, selectedTime.value)
         : "",
       payment_method: selectedPaymentMethod.value,
-      addressLivraison: storeOrderType.value === 'delivery' 
-        ? `${deliveryAddress.value.rue} ${deliveryAddress.value.numeroRue}`.trim()
+      addressLivraison: storeOrderType.value === 'delivery'
+        ? `${deliveryAddress.value.rue} ${deliveryAddress.value.numeroRue}, ${deliveryAddress.value.localite}`.trim()
         : `${restaurantInfo.value.address} ${restaurantInfo.value.numeroRue}`.trim(),
       batiment: restaurantInfo.value.batiment || "",
       rue: storeOrderType.value === 'delivery' ? deliveryAddress.value.rue : restaurantInfo.value.address || "",
+      npa: storeOrderType.value === 'delivery' ? deliveryAddress.value.npa : restaurantInfo.value.codePostalID?.numeroPostal || "",
+      localite: storeOrderType.value === 'delivery' ? deliveryAddress.value.localite : restaurantInfo.value.codePostalID?.ville || "",
       societe: organisationInfo.value.societe || "",
       departement: organisationInfo.value.departement || "",
       newsletter: "0",
-      discount: discountPercentage.value > 0 ? discountPercentage.value.toString() : "0",
+      discount: discountType.value === 'percentage'
+        ? (discountPercentage.value > 0 ? discountPercentage.value.toString() : "0")
+        : "0",
+      discountFixed: discountType.value === 'fixed'
+        ? (discountFixed.value > 0 ? discountFixed.value.toString() : "0")
+        : "0",
+      discountType: discountType.value,
+      discountValue: discountType.value === 'percentage' ? discountPercentage.value : discountFixed.value,
       discountAmount: discountAmount.value > 0 ? discountAmount.value.toString() : "0",
       intructionOrder: [
         {
@@ -1072,10 +1188,12 @@ const handlePlaceOrder = async () => {
       selectedTime.value = ''
 
       // Réinitialiser le rabais
+      discountType.value = 'percentage'
       discountPercentage.value = 0
+      discountFixed.value = 0
 
       // Réinitialiser l'adresse de livraison
-      deliveryAddress.value = { rue: '', numeroRue: '' }
+      deliveryAddress.value = { rue: '', numeroRue: '', npa: '', localite: '' }
 
       // Émettre l'événement de succès
       emit('place-order', { success: true, orderData: response.data })
@@ -1114,13 +1232,31 @@ const selectPaymentMethod = (methodId: string) => {
   selectedPaymentMethod.value = methodId
 }
 
-// Gestionnaire pour le changement de rabais
+// Gestionnaire pour le changement de type de rabais
+const handleDiscountTypeChange = () => {
+  // Réinitialiser les valeurs lors du changement de type
+  if (discountType.value === 'percentage') {
+    discountFixed.value = 0
+  } else {
+    discountPercentage.value = 0
+  }
+}
+
+// Gestionnaire pour le changement de rabais en pourcentage
 const handleDiscountChange = () => {
   // S'assurer que la valeur est dans les limites
   if (discountPercentage.value < 0) {
     discountPercentage.value = 0
   } else if (discountPercentage.value > 100) {
     discountPercentage.value = 100
+  }
+}
+
+// Gestionnaire pour le changement de rabais fixe
+const handleFixedDiscountChange = () => {
+  // S'assurer que la valeur n'est pas négative
+  if (discountFixed.value < 0) {
+    discountFixed.value = 0
   }
 }
 
@@ -1280,6 +1416,13 @@ const handleDateChange = () => {
         border-color: #388D35;
         box-shadow: 0 0 0 2px rgba(56, 141, 53, 0.1);
       }
+
+      &:disabled {
+        background-color: #f8fafc;
+        color: #64748b;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
     }
 
     &.client-selected {
@@ -1383,21 +1526,21 @@ const handleDateChange = () => {
     font-weight: 600;
   }
 
-      .banner-clear-btn {
-      background: #dc2626;
-      border: none;
-      color: white;
-      cursor: pointer;
-      font-size: 12px;
-      padding: 6px 12px;
-      border-radius: 4px;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-weight: 500;
+  .banner-clear-btn {
+    background: #dc2626;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
 
-      &:hover {
+    &:hover {
       background: #b91c1c;
       transform: translateY(-1px);
     }
@@ -1674,7 +1817,11 @@ const handleDateChange = () => {
   border-bottom: 1px solid #f1f5f9;
 
   .form-group {
-    margin-bottom: 0;
+    margin-bottom: 1rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
 
   label {
@@ -1682,7 +1829,35 @@ const handleDateChange = () => {
     font-size: 12px;
     font-weight: 500;
     color: #374151;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
+  }
+
+  .discount-type-selector {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+
+  .discount-type-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #374151;
+
+    input[type="radio"] {
+      accent-color: #388D35;
+      margin: 0;
+    }
+
+    span {
+      font-weight: 500;
+    }
+
+    &:hover {
+      color: #388D35;
+    }
   }
 
   .discount-input-group {
@@ -1854,7 +2029,7 @@ const handleDateChange = () => {
     &:has(input:checked) {
       border-color: #388D35;
       background: #f0fdf4;
-      
+
       .delivery-option-title {
         color: #388D35;
       }
@@ -1863,12 +2038,12 @@ const handleDateChange = () => {
     &:has(input:disabled) {
       opacity: 0.6;
       cursor: not-allowed;
-      
+
       &:hover {
         border-color: #e2e8f0;
         background: white;
       }
-      
+
       .delivery-option-label {
         cursor: not-allowed;
       }
