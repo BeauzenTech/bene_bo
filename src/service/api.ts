@@ -236,6 +236,21 @@ export const getUserAddresses = async (userID: string): Promise<ApiResponse<any>
     }
 };
 
+// Fonction pour appliquer un coupon
+export const applyCoupon = async (couponData: {
+    coupon: string;
+    email: string;
+    amount: string;
+}): Promise<ApiResponse<any>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/coupon/order/apply', couponData);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de l\'application du coupon', error);
+        throw error;
+    }
+};
+
 
 // FRANCHISE
 export const listefranchises = async (page = 1): Promise<ApiResponse<PaginatedFrachises>> => {
