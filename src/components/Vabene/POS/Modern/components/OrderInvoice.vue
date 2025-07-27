@@ -307,6 +307,44 @@
           </div>
         </div>
 
+        <!-- Section coupon -->
+        <div class="coupon-section">
+          <h4 class="coupon-title">Code promo</h4>
+          
+          <!-- Coupon appliqué -->
+          <div v-if="appliedCoupon" class="applied-coupon">
+            <div class="coupon-info">
+              <span class="coupon-code">{{ appliedCoupon.code }}</span>
+              <span class="coupon-discount">-{{ formatPrice(appliedCoupon.discountAmount || 0) }} CHF</span>
+            </div>
+            <button @click="removeCoupon" class="remove-coupon-btn">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- Formulaire d'application de coupon -->
+          <div v-else class="coupon-form">
+            <div class="coupon-input-group">
+              <input 
+                v-model="couponCode" 
+                type="text" 
+                placeholder="Entrez votre code promo"
+                class="coupon-input"
+                :disabled="isApplyingCoupon"
+                @keyup.enter="applyCouponCode"
+              />
+              <button 
+                @click="applyCouponCode" 
+                :disabled="!couponCode.trim() || isApplyingCoupon"
+                class="apply-coupon-btn"
+              >
+                <i v-if="isApplyingCoupon" class="fas fa-spinner fa-spin"></i>
+                <span v-else>Appliquer</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Champ de rabais -->
         <div class="discount-section">
           <div class="form-group">
@@ -342,13 +380,18 @@
             <span class="value">{{ formatPrice(orderSummaryWithDiscount.subtotal) }} CHF</span>
           </div>
 
-          <div class="summary-row" v-if="discountAmount > 0">
+                    <div class="summary-row" v-if="discountAmount > 0">
             <span class="label">
-              Rabais
+              Rabais 
               <span v-if="discountType === 'percentage'">({{ discountPercentage }}%)</span>
               <span v-else>({{ formatPrice(discountFixed) }} CHF)</span>
             </span>
             <span class="value discount-value">-{{ formatPrice(discountAmount) }} CHF</span>
+          </div>
+
+          <div class="summary-row" v-if="couponDiscountAmount > 0">
+            <span class="label">Coupon ({{ appliedCoupon?.code }})</span>
+            <span class="value discount-value">-{{ formatPrice(couponDiscountAmount) }} CHF</span>
           </div>
 
           <div class="summary-row">
@@ -358,7 +401,7 @@
 
           <div class="summary-row total">
             <span class="label">Total</span>
-            <span class="value">{{ formatPrice(finalTotal) }} CHF</span>
+            <span class="value">{{ formatPrice(finalTotalWithCoupon) }} CHF</span>
           </div>
         </div>
       </div>
@@ -383,7 +426,7 @@
         <button @click="handlePlaceOrder" :disabled="!canPlaceOrder || isProcessingOrder" class="place-order-btn">
           <i :class="isProcessingOrder ? 'fas fa-spinner fa-spin' : 'fas fa-receipt'"></i>
           {{ isProcessingOrder ? 'Traitement...' : 'Valider la commande' }}
-          <span class="order-total">{{ formatPrice(finalTotal) }} CHF</span>
+          <span class="order-total">{{ formatPrice(finalTotalWithCoupon) }} CHF</span>
         </button>
       </div>
     </div>
@@ -393,7 +436,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import type { CartItem, OrderSummary, PaymentMethod } from '../types'
-import { createPOSOrder, detailRestaurant, getUserAddresses } from '@/service/api'
+import { createPOSOrder, detailRestaurant, getUserAddresses, applyCoupon } from '@/service/api'
 import { getCustomers } from '@/service/api'
 import type { ApiResponse } from '@/models/Apiresponse'
 import type { RestaurantModel } from '@/models/restaurant.model'
@@ -458,6 +501,11 @@ const restaurantInfo = ref<RestaurantModel | null>(null)
 const discountType = ref<'percentage' | 'fixed'>('percentage')
 const discountPercentage = ref<number>(0)
 const discountFixed = ref<number>(0)
+
+// État pour les coupons
+const couponCode = ref<string>('')
+const appliedCoupon = ref<any>(null)
+const isApplyingCoupon = ref<boolean>(false)
 
 // État pour l'adresse de livraison
 const deliveryAddress = ref({
@@ -592,6 +640,30 @@ const discountAmount = computed(() => {
     // Le rabais fixe ne peut pas dépasser le sous-total
     return Math.min(discountFixed.value, props.orderSummary.subtotal)
   }
+})
+
+// Computed pour le total avec coupon
+const couponDiscountAmount = computed(() => {
+  if (!appliedCoupon.value) return 0
+  const amount = appliedCoupon.value.discountAmount || 0
+  console.log('Calcul du coupon:', amount)
+  return amount
+})
+
+// Computed pour le total final avec rabais et coupon
+const finalTotalWithCoupon = computed(() => {
+  const subtotalAfterDiscount = props.orderSummary.subtotal - discountAmount.value
+  const totalAfterCoupon = subtotalAfterDiscount - couponDiscountAmount.value
+  const finalTotal = Math.max(0, totalAfterCoupon) // Ne peut pas être négatif
+  console.log('Calcul du total final:', {
+    subtotal: props.orderSummary.subtotal,
+    discountAmount: discountAmount.value,
+    couponAmount: couponDiscountAmount.value,
+    subtotalAfterDiscount,
+    totalAfterCoupon,
+    finalTotal
+  })
+  return finalTotal
 })
 
 // Computed pour le résumé avec rabais appliqué
@@ -1101,7 +1173,9 @@ const handlePlaceOrder = async () => {
 
     // Préparer les données de commande selon le format de l'API
     const orderData = {
-      coupon: "",
+      coupon: appliedCoupon.value?.code || "",
+      couponValue: appliedCoupon.value?.discountAmount?.toString() || "0",
+      couponType: appliedCoupon.value?.type || "",
       codePostal: restaurantInfo.value.codePostalID?.numeroPostal || "",
       deliveryLocality: restaurantInfo.value.codePostalID?.ville || "",
       restaurantID: restaurantID,
@@ -1139,7 +1213,7 @@ const handlePlaceOrder = async () => {
         ? (discountFixed.value > 0 ? discountFixed.value.toString() : "0")
         : "0",
       discountType: discountType.value,
-      discountValue: discountType.value === 'percentage' ? discountPercentage.value : discountFixed.value,
+      discountValue: discountType.value === 'percentage' ? String(discountPercentage.value) : String(discountFixed.value),
       discountAmount: discountAmount.value > 0 ? discountAmount.value.toString() : "0",
       intructionOrder: [
         {
@@ -1162,6 +1236,11 @@ const handlePlaceOrder = async () => {
     })
     console.log('Payload de commande final:', orderData);
     console.log("Supplements:", props.cart.map(item => item.supplements))
+    console.log("Coupon dans le payload:", {
+      coupon: orderData.coupon,
+      couponValue: orderData.couponValue,
+      couponType: orderData.couponType
+    })
 
     const response = await createPOSOrder(orderData)
 
@@ -1191,6 +1270,10 @@ const handlePlaceOrder = async () => {
       discountType.value = 'percentage'
       discountPercentage.value = 0
       discountFixed.value = 0
+
+      // Réinitialiser le coupon
+      appliedCoupon.value = null
+      couponCode.value = ''
 
       // Réinitialiser l'adresse de livraison
       deliveryAddress.value = { rue: '', numeroRue: '', npa: '', localite: '' }
@@ -1258,6 +1341,55 @@ const handleFixedDiscountChange = () => {
   if (discountFixed.value < 0) {
     discountFixed.value = 0
   }
+}
+
+// Fonction pour appliquer un coupon
+const applyCouponCode = async () => {
+  if (appliedCoupon.value) {
+    toast.info('Un coupon est déjà appliqué')
+    return
+  }
+
+  if (!couponCode.value.trim()) {
+    toast.error('Veuillez entrer un code promo')
+    return
+  }
+
+  isApplyingCoupon.value = true
+  try {
+    const response = await applyCoupon({
+      coupon: couponCode.value.trim(),
+      email: selectedCustomer.value?.email || customerInfo.value.email || '',
+      amount: String(props.orderSummary.subtotal)
+    })
+
+    if (response.code === 200) {
+      const couponData = {
+        ...response.data,
+        code: couponCode.value.trim(),
+        discountAmount: parseFloat(response.data.value) || 0
+      }
+      appliedCoupon.value = couponData
+      couponCode.value = ''
+      console.log('Coupon appliqué:', couponData)
+      console.log('Montant du coupon:', couponData.discountAmount)
+      toast.success(response.message || 'Coupon appliqué avec succès')
+    } else {
+      toast.error(response.message || 'Code promo invalide')
+    }
+  } catch (error) {
+    console.error('Erreur lors de l\'application du coupon:', error)
+    toast.error('Code promo invalide')
+  } finally {
+    isApplyingCoupon.value = false
+  }
+}
+
+// Fonction pour supprimer un coupon
+const removeCoupon = () => {
+  appliedCoupon.value = null
+  couponCode.value = ''
+  toast.info('Coupon supprimé')
 }
 
 // Gestionnaire pour le changement de date
@@ -1807,6 +1939,132 @@ const handleDateChange = () => {
       font-size: 0.75rem;
       font-weight: 500;
       border: 1px solid #bbf7d0;
+    }
+  }
+}
+
+.coupon-section {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+
+  .coupon-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 1rem 0;
+  }
+
+  .applied-coupon {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 1rem;
+
+    .coupon-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .coupon-code {
+        font-size: 14px;
+        font-weight: 600;
+        color: #388D35;
+      }
+
+      .coupon-discount {
+        font-size: 12px;
+        color: #388D35;
+        font-weight: 500;
+      }
+    }
+
+    .remove-coupon-btn {
+      background: #dc2626;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
+
+      &:hover {
+        background: #b91c1c;
+        transform: translateY(-1px);
+      }
+
+      i {
+        font-size: 10px;
+      }
+    }
+  }
+
+  .coupon-form {
+    .coupon-input-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .coupon-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.2s ease;
+
+      &:focus {
+        outline: none;
+        border-color: #388D35;
+        box-shadow: 0 0 0 2px rgba(56, 141, 53, 0.1);
+      }
+
+      &:disabled {
+        background-color: #f8fafc;
+        color: #64748b;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+    }
+
+    .apply-coupon-btn {
+      background: #388D35;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      &:hover:not(:disabled) {
+        background: #2f7d32;
+        transform: translateY(-1px);
+      }
+
+      &:disabled {
+        background: #94a3b8;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      i {
+        font-size: 10px;
+      }
     }
   }
 }
