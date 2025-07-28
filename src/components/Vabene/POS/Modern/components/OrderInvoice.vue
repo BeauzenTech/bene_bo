@@ -128,7 +128,7 @@
                 </span>
               </label>
             </div>
-
+            
             <div class="delivery-option">
               <input type="radio" id="ulterieur" name="deliveryPreference" value="ulterieur"
                 v-model="deliveryPreference">
@@ -152,7 +152,7 @@
                 </option>
               </select>
             </div>
-
+            
             <div class="form-group" v-if="selectedDate">
               <label>Heure de récupération</label>
               <select v-model="selectedTime" class="form-select">
@@ -187,11 +187,11 @@
           <div class="form-group">
             <label>NPA (Code postal)</label>
             <div class="postal-code-input-container">
-              <input 
+            <input 
                 v-model="deliveryAddress.npa" 
-                type="text" 
+              type="text" 
                 placeholder="Code postal"
-                class="form-input"
+              class="form-input"
                 :disabled="selectedAddressId !== '' && userAddresses.length > 0"
                 @input="handlePostalCodeChange"
                 @focus="handlePostalCodeChange"
@@ -207,7 +207,7 @@
                 >
                   <span class="postal-code-number">{{ postalCode.numeroPostal }}</span>
                   <span class="postal-code-city">{{ postalCode.ville }}</span>
-                </div>
+          </div>
               </div>
             </div>
           </div>
@@ -241,11 +241,11 @@
       <div class="cart-section">
         <div class="section-header">
           <h3 class="section-title">Commande</h3>
-          <span class="item-count">{{ cart.length }} article(s)</span>
+          <span class="item-count">{{ storeCart.length }} article(s)</span>
         </div>
 
         <div class="cart-items">
-          <div v-for="item in cart" :key="item.localProductId" class="cart-item">
+          <div v-for="item in storeCart" :key="item.localProductId" class="cart-item">
             <div class="item-image">
               <img :src="item.image" :alt="item.name" />
             </div>
@@ -310,7 +310,7 @@
           </div>
 
           <!-- Message panier vide -->
-          <div v-if="cart.length === 0" class="empty-cart">
+          <div v-if="storeCart.length === 0" class="empty-cart">
             <div class="empty-icon">
               🛒
             </div>
@@ -321,7 +321,7 @@
       </div>
 
       <!-- Résumé de la commande -->
-      <div v-if="cart.length > 0" class="order-summary">
+      <div v-if="storeCart.length > 0" class="order-summary">
         <h3 class="section-title">Résumé</h3>
 
         <!-- Features sélectionnées -->
@@ -420,7 +420,7 @@
             <span class="value">{{ formatPrice(orderSummaryWithDiscount.subtotal) }} CHF</span>
           </div>
 
-                    <div class="summary-row" v-if="discountAmount > 0">
+          <div class="summary-row" v-if="discountAmount > 0">
             <span class="label">
               Rabais 
               <span v-if="discountType === 'percentage'">({{ discountPercentage }}%)</span>
@@ -452,7 +452,7 @@
       </div>
 
       <!-- Méthodes de paiement -->
-      <div v-if="cart.length > 0" class="payment-section">
+      <div v-if="storeCart.length > 0" class="payment-section">
         <h3 class="section-title">Mode de paiement</h3>
 
         <div class="payment-methods">
@@ -466,7 +466,7 @@
       </div>
 
       <!-- Bouton de validation -->
-      <div v-if="cart.length > 0" class="action-section">
+      <div v-if="storeCart.length > 0" class="action-section">
 
         <button @click="handlePlaceOrder" :disabled="!canPlaceOrder || isProcessingOrder" class="place-order-btn">
           <i :class="isProcessingOrder ? 'fas fa-spinner fa-spin' : 'fas fa-receipt'"></i>
@@ -496,6 +496,10 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+// Utiliser les getters du store pour avoir les données réactives
+const storeCart = computed(() => store.getters['cart/cart'] || [])
+const storeCartTotal = computed(() => store.getters['cart/cartTotal'] || 0)
 
 const emit = defineEmits<{
   'update-quantity': [itemId: string, quantity: number]
@@ -612,17 +616,17 @@ const getAvailableTimes = computed(() => {
   const times: string[] = [];
   const currentTime = getCurrentTime(); // Minutes depuis minuit
   const selectedDateValue = selectedDate.value;
-
+  
   // Générer des créneaux de 15 minutes de 11h à 22h (horaires standards)
   for (let hour = 11; hour < 22; hour++) {
     for (let minute = 0; minute < 60; minute += 15) {
       const timeString = `${hour.toString().padStart(2, "0")}:${minute
         .toString()
         .padStart(2, "0")}`;
-
+      
       // Vérifier si cette heure n'est pas déjà passée
       const timeInMinutes = hour * 60 + minute;
-
+      
       // Si c'est aujourd'hui, vérifier que l'heure n'est pas passée
       if (selectedDateValue === getGMT2Date().toISOString().split("T")[0]) {
         if (timeInMinutes > currentTime + 30) { // +30 minutes de marge
@@ -688,8 +692,8 @@ const selectedFeatures = computed(() => {
 // Computed pour le rabais
 const discountAmount = computed(() => {
   if (discountType.value === 'percentage') {
-    if (discountPercentage.value <= 0) return 0
-    return (props.orderSummary.subtotal * discountPercentage.value) / 100
+  if (discountPercentage.value <= 0) return 0
+  return (props.orderSummary.subtotal * discountPercentage.value) / 100
   } else {
     if (discountFixed.value <= 0) return 0
     // Le rabais fixe ne peut pas dépasser le sous-total
@@ -749,7 +753,7 @@ const orderSummaryWithDiscount = computed(() => {
   const subtotalWithDiscount = props.orderSummary.subtotal - discountAmount.value
   const taxOnDiscountedSubtotal = (subtotalWithDiscount * taxRate.value) / 100 // TVA (affichage informatif uniquement)
   const totalWithDiscount = subtotalWithDiscount // Le total ne comprend pas la TVA
-
+  
   return {
     subtotal: props.orderSummary.subtotal,
     tax: taxOnDiscountedSubtotal,
@@ -809,36 +813,36 @@ const getPaymentIcon = (iconName: string): string => {
 
 // Validation pour passer commande
 const canPlaceOrder = computed(() => {
-  const basicValidation = props.cart.length > 0 &&
+  const basicValidation = storeCart.value.length > 0 &&
     customerInfo.value.firstName.trim() !== '' &&
     customerInfo.value.lastName.trim() !== '' &&
     customerInfo.value.phone.trim() !== ''
-
+  
   // Validation supplémentaire pour la livraison programmée
   if (storeOrderType.value === 'click_collect' && deliveryPreference.value === 'ulterieur') {
-    return basicValidation &&
-      selectedDate.value !== '' &&
-      selectedTime.value !== ''
+    return basicValidation && 
+           selectedDate.value !== '' && 
+           selectedTime.value !== ''
   }
-
+  
   // Validation supplémentaire pour la livraison à domicile
   if (storeOrderType.value === 'delivery') {
-    const deliveryValidation = deliveryAddress.value.rue.trim() !== '' &&
+    const deliveryValidation = deliveryAddress.value.rue.trim() !== '' && 
       deliveryAddress.value.numeroRue.trim() !== '' &&
       deliveryAddress.value.npa.trim() !== '' &&
       deliveryAddress.value.localite.trim() !== ''
-
+    
     // Si c'est une livraison programmée, vérifier aussi la date et l'heure
     if (deliveryPreference.value === 'ulterieur') {
-      return basicValidation &&
-        deliveryValidation &&
-        selectedDate.value !== '' &&
-        selectedTime.value !== ''
+      return basicValidation && 
+             deliveryValidation &&
+             selectedDate.value !== '' && 
+             selectedTime.value !== ''
     }
-
+    
     return basicValidation && deliveryValidation
   }
-
+  
   return basicValidation
 })
 
@@ -1007,7 +1011,7 @@ const clearSelectedCustomer = () => {
 // Sélectionner le client par défaut selon le restaurant
 const selectDefaultClient = (restaurantID: string) => {
   const defaultClient = DEFAULT_CLIENTS[restaurantID as keyof typeof DEFAULT_CLIENTS]
-
+  
   if (defaultClient) {
     // Créer un objet CustomerModel compatible
     const customerModel: CustomerModel = {
@@ -1031,7 +1035,7 @@ const selectDefaultClient = (restaurantID: string) => {
       newsletter: false,
       created_at: new Date().toISOString()
     }
-
+    
     // Sélectionner le client
     selectCustomer(customerModel)
     console.log('Client par défaut sélectionné:', customerModel.firstName, customerModel.lastName)
@@ -1080,6 +1084,19 @@ watch([restaurantInfo, () => store.getters['orderType/selectedOrderType']], ([re
     }
   }
 }, { immediate: false })
+
+// Watcher pour afficher un message quand les prix du panier changent
+watch(storeCart, (newCart, oldCart) => {
+  if (oldCart && oldCart.length > 0 && newCart.length > 0) {
+    const oldTotal = oldCart.reduce((sum, item) => sum + (item.totalPrice || 0), 0)
+    const newTotal = newCart.reduce((sum, item) => sum + (item.totalPrice || 0), 0)
+    
+    if (oldTotal !== newTotal) {
+      console.log(`💰 Prix du panier mis à jour: ${oldTotal} → ${newTotal} CHF`)
+      // toast.info(`Prix mis à jour selon le type de commande`)
+    }
+  }
+}, { deep: true })
 
 onMounted(() => {
   loadRestaurantInfo()
@@ -1282,7 +1299,7 @@ const handlePlaceOrder = async () => {
     }
 
     // Extraire les features du panier
-    const cartFeatures = extractFeaturesFromCart(props.cart)
+    const cartFeatures = extractFeaturesFromCart(storeCart.value)
 
     // ID du client
     const customerID = /* selectedCustomer.value?.id ||  */customerInfo.value.id;
@@ -1296,7 +1313,7 @@ const handlePlaceOrder = async () => {
       codePostal: restaurantInfo.value.codePostalID?.numeroPostal || "",
       deliveryLocality: restaurantInfo.value.codePostalID?.ville || "",
       restaurantID: restaurantID,
-      paniers: transformCartForAPI(props.cart),
+      paniers: transformCartForAPI(storeCart.value),
       userID: selectedCustomer.value?.user?.id || "", // ID utilisateur si client sélectionné
       guest_first_name: customerInfo.value.firstName,
       civilite: selectedCustomer.value?.civilite || "",
@@ -1313,7 +1330,7 @@ const handlePlaceOrder = async () => {
         ? formatDateForPayload(selectedDate.value, selectedTime.value)
         : "",
       payment_method: selectedPaymentMethod.value,
-      addressLivraison: storeOrderType.value === 'delivery'
+      addressLivraison: storeOrderType.value === 'delivery' 
         ? `${deliveryAddress.value.rue} ${deliveryAddress.value.numeroRue}, ${deliveryAddress.value.localite}`.trim()
         : `${restaurantInfo.value.address} ${restaurantInfo.value.numeroRue}`.trim(),
       batiment: restaurantInfo.value.batiment || "",
@@ -1352,7 +1369,7 @@ const handlePlaceOrder = async () => {
       batiment: restaurantInfo.value.batiment
     })
     console.log('Payload de commande final:', orderData);
-    console.log("Supplements:", props.cart.map(item => item.supplements))
+    console.log("Supplements:", storeCart.value.map(item => item.supplements))
     console.log("Coupon dans le payload:", {
       coupon: orderData.coupon,
       couponValue: orderData.couponValue,
@@ -1411,14 +1428,14 @@ const handlePlaceOrder = async () => {
 
 // Gestionnaires d'événements
 const decreaseQuantity = (itemId: string) => {
-  const item = props.cart.find(item => item.localProductId === itemId)
+  const item = storeCart.value.find(item => item.localProductId === itemId)
   if (item) {
     emit('update-quantity', itemId, item.quantity - 1)
   }
 }
 
 const increaseQuantity = (itemId: string) => {
-  const item = props.cart.find(item => item.localProductId === itemId)
+  const item = storeCart.value.find(item => item.localProductId === itemId)
   if (item) {
     emit('update-quantity', itemId, item.quantity + 1)
   }
@@ -1862,21 +1879,21 @@ const handleDateChange = () => {
     font-weight: 600;
   }
 
-  .banner-clear-btn {
-    background: #dc2626;
-    border: none;
-    color: white;
-    cursor: pointer;
-    font-size: 12px;
-    padding: 6px 12px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-weight: 500;
+      .banner-clear-btn {
+      background: #dc2626;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
 
-    &:hover {
+      &:hover {
       background: #b91c1c;
       transform: translateY(-1px);
     }
@@ -2319,7 +2336,7 @@ const handleDateChange = () => {
     margin-bottom: 1rem;
 
     &:last-child {
-      margin-bottom: 0;
+    margin-bottom: 0;
     }
   }
 
@@ -2528,7 +2545,7 @@ const handleDateChange = () => {
     &:has(input:checked) {
       border-color: #388D35;
       background: #f0fdf4;
-
+      
       .delivery-option-title {
         color: #388D35;
       }
@@ -2537,12 +2554,12 @@ const handleDateChange = () => {
     &:has(input:disabled) {
       opacity: 0.6;
       cursor: not-allowed;
-
+      
       &:hover {
         border-color: #e2e8f0;
         background: white;
       }
-
+      
       .delivery-option-label {
         cursor: not-allowed;
       }

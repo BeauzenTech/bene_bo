@@ -18,7 +18,7 @@
             <label v-for="size in availableSizes" :key="size.id" class="size-option"
               :class="{ selected: selectedSize?.id === size.id }">
               <input type="radio" :value="size.id" v-model="selectedSizeId" @change="selectSize(size)" />
-              <span>{{ size.name }} - {{ formatPrice(parseFloat(size.price)) }}</span>
+                              <span>{{ size.name }} - {{ formatPrice(getSizePrice(size)) }}</span>
             </label>
           </div>
 
@@ -230,9 +230,22 @@ const decrementQuantity = () => {
 
 const formatPrice = (price: number): string => `${price.toFixed(2)} CHF`
 
+const getSizePrice = (size: ProductSize): number => {
+  const isDelivery = store.getters['orderType/isDelivery']
+  return isDelivery && size.priceLivraison 
+    ? parseFloat(size.priceLivraison) 
+    : parseFloat(size.price)
+}
+
 const calculateTotal = (): number => {
   if (!selectedSize.value) return 0
-  const basePrice = parseFloat(selectedSize.value.price) || 0
+  
+  // Utiliser le prix de livraison si le type de commande est 'delivery'
+  const isDelivery = store.getters['orderType/isDelivery']
+  const basePrice = isDelivery && selectedSize.value.priceLivraison 
+    ? parseFloat(selectedSize.value.priceLivraison) || 0
+    : parseFloat(selectedSize.value.price) || 0
+  
   const ingredientsTotal = selectedIngredients.value.reduce((sum, ing) => sum + ing.price, 0)
   return (basePrice + ingredientsTotal) * quantity.value
 }
@@ -244,6 +257,18 @@ const CUSTOM_PIZZA_IMAGE = CustomPizzaImage
 
 const handleAddToCart = () => {
   if (!selectedSize.value) return
+
+  // Utiliser le bon prix selon le type de commande
+  const isDelivery = store.getters['orderType/isDelivery']
+  const correctPrice = isDelivery && selectedSize.value.priceLivraison 
+    ? parseFloat(selectedSize.value.priceLivraison) || 0
+    : parseFloat(selectedSize.value.price) || 0
+
+  // Créer une copie de la taille avec le bon prix
+  const sizeWithCorrectPrice = {
+    ...selectedSize.value,
+    price: correctPrice.toString()
+  }
 
   // Déterminer le nom selon l'ID du produit reçu
   const pizzaName = props.productId === PIZZA_PRODUCT_IDS.GLUTEN_FREE ? 'Votre pizza sans gluten' : 'Votre pizza'
@@ -313,7 +338,7 @@ const handleAddToCart = () => {
       supplements: [],
       isAvailable: true
     },
-    size: selectedSize.value,
+    size: sizeWithCorrectPrice,
     quantity: quantity.value,
     ingredients: cartIngredients,
     supplements: [],

@@ -28,7 +28,7 @@
                 <button v-for="size in product.sizes" :key="size.id"
                   :class="['size-btn', { active: selectedSize?.id === size.id }]" @click="selectSize(size)">
                   <span class="size-name">{{ size.name }}</span>
-                  <span class="size-price">{{ formatPrice(size.price) }} CHF</span>
+                  <span class="size-price">{{ formatPrice(getSizePrice(size)) }} CHF</span>
                 </button>
               </div>
             </div>
@@ -139,7 +139,10 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useStore } from 'vuex'
 import type { Product, ProductSize, Ingredient, AddToCartEvent } from '../types'
+
+const store = useStore()
 
 interface Props {
   product: Product | null
@@ -187,7 +190,12 @@ const hasModifications = computed(() => {
 const unitPrice = computed(() => {
   if (!selectedSize.value) return 0
 
-  const basePrice = parseFloat(selectedSize.value.price)
+  // Utiliser le prix de livraison si le type de commande est 'delivery'
+  const isDelivery = store.getters['orderType/isDelivery']
+  const basePrice = isDelivery && selectedSize.value.priceLivraison 
+    ? parseFloat(selectedSize.value.priceLivraison) 
+    : parseFloat(selectedSize.value.price)
+  
   const ingredientsPrice = modifiedIngredients.value.reduce((sum, ing) => {
     return sum + (ing.price * ing.quantity)
   }, 0)
@@ -228,6 +236,13 @@ watch(() => props.product, (newProduct) => {
 const formatPrice = (price: number | string): string => {
   const numPrice = typeof price === 'string' ? parseFloat(price) : price
   return isNaN(numPrice) ? '0.00' : numPrice.toFixed(2)
+}
+
+const getSizePrice = (size: ProductSize): number => {
+  const isDelivery = store.getters['orderType/isDelivery']
+  return isDelivery && size.priceLivraison 
+    ? parseFloat(size.priceLivraison) 
+    : parseFloat(size.price)
 }
 
 const selectSize = (size: ProductSize) => {
@@ -278,6 +293,18 @@ const closeModal = () => {
 const addToCart = () => {
   if (!props.product || !selectedSize.value) return
 
+  // Utiliser le bon prix selon le type de commande
+  const isDelivery = store.getters['orderType/isDelivery']
+  const correctPrice = isDelivery && selectedSize.value.priceLivraison 
+    ? parseFloat(selectedSize.value.priceLivraison) || 0
+    : parseFloat(selectedSize.value.price) || 0
+
+  // Créer une copie de la taille avec le bon prix
+  const sizeWithCorrectPrice = {
+    ...selectedSize.value,
+    price: correctPrice.toString()
+  }
+
   const cartIngredients = modifiedIngredients.value.map(ing => ({
     id: ing.id,
     name: ing.name,
@@ -290,7 +317,7 @@ const addToCart = () => {
 
   const addToCartEvent: AddToCartEvent = {
     product: props.product,
-    size: selectedSize.value,
+    size: sizeWithCorrectPrice,
     quantity: quantity.value,
     ingredients: cartIngredients,
     supplements: [],

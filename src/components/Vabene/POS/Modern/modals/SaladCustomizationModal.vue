@@ -183,7 +183,12 @@ const decrementQuantity = () => {
 const calculateTotal = (): number => {
   if (!props.selectedSize) return 0
 
-  const basePrice = parseFloat(props.selectedSize.price) || 0
+  // Utiliser le prix de livraison si le type de commande est 'delivery'
+  const isDelivery = store.getters['orderType/isDelivery']
+  const basePrice = isDelivery && props.selectedSize.priceLivraison 
+    ? parseFloat(props.selectedSize.priceLivraison) || 0
+    : parseFloat(props.selectedSize.price) || 0
+  
   const saucesPrice = availableSauces.reduce((total, sauce) => {
     return selectedSauces.value[sauce.name] ? total + sauce.extra_cost_price : total
   }, 0)
@@ -201,6 +206,18 @@ const closeModal = () => {
 
 const handleAddToCart = () => {
   if (!props.product || !props.selectedSize) return
+
+  // Utiliser le bon prix selon le type de commande
+  const isDelivery = store.getters['orderType/isDelivery']
+  const correctPrice = isDelivery && props.selectedSize.priceLivraison 
+    ? parseFloat(props.selectedSize.priceLivraison) || 0
+    : parseFloat(props.selectedSize.price) || 0
+
+  // Créer une copie de la taille avec le bon prix
+  const sizeWithCorrectPrice = {
+    ...props.selectedSize,
+    price: correctPrice.toString()
+  }
 
   // Ajouter les sauces sélectionnées au store features
   const selectedSauceNames = availableSauces
@@ -235,7 +252,7 @@ const handleAddToCart = () => {
 
   const event: AddToCartEvent = {
     product: props.product,
-    size: props.selectedSize,
+    size: sizeWithCorrectPrice,
     quantity: quantity.value,
     ingredients: cartIngredients,
     supplements: selectedSupplements,
