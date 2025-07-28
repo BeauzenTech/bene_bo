@@ -123,9 +123,9 @@
                       </div>
                       <hr class="dashed-line" />
                       <div class="route">
-                        <h2 v-if="orderResponse.feature.length > 0"><strong>{{orderResponse.feature[0]}}</strong></h2>
                         <h2><strong>Trancher: {{orderResponse.intructionOrder.isTrancher ? 'OUI': 'NON'}}</strong></h2>
                         <h2><strong>Couverts: {{orderResponse.intructionOrder.quantityCouverts}}</strong></h2>
+                        <h2><strong>{{orderResponse.SpecialInstructions}}</strong></h2>
 
                       </div>
 
