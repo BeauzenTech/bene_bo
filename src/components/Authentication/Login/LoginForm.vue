@@ -189,6 +189,7 @@ export default {
         const response = await getUserData();
         console.log(response);
         if (response.code === 200) {
+          console.log("response.data", response.data)
          UserGeneralKey.saveUserDatA(response.data)
         } else {
           this.toast.error(response.message)
