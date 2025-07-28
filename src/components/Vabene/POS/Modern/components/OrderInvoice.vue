@@ -186,14 +186,41 @@
 
           <div class="form-group">
             <label>NPA (Code postal)</label>
-            <input v-model="deliveryAddress.npa" type="text" placeholder="Code postal" class="form-input"
-              :disabled="selectedAddressId !== '' && userAddresses.length > 0" />
+            <div class="postal-code-input-container">
+              <input 
+                v-model="deliveryAddress.npa" 
+                type="text" 
+                placeholder="Code postal"
+                class="form-input"
+                :disabled="selectedAddressId !== '' && userAddresses.length > 0"
+                @input="handlePostalCodeChange"
+                @focus="handlePostalCodeChange"
+              />
+              
+              <!-- Dropdown des suggestions de codes postaux -->
+              <div v-if="showPostalCodeSuggestions" class="postal-code-suggestions">
+                <div 
+                  v-for="postalCode in postalCodeSuggestions" 
+                  :key="postalCode.id" 
+                  class="postal-code-suggestion"
+                  @click="selectPostalCode(postalCode)"
+                >
+                  <span class="postal-code-number">{{ postalCode.numeroPostal }}</span>
+                  <span class="postal-code-city">{{ postalCode.ville }}</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="form-group">
             <label>Localité</label>
-            <input v-model="deliveryAddress.localite" type="text" placeholder="Localité" class="form-input"
-              :disabled="selectedAddressId !== '' && userAddresses.length > 0" />
+            <input 
+              v-model="deliveryAddress.localite" 
+              type="text" 
+              placeholder="Localité" 
+              class="form-input"
+              :disabled="selectedAddressId !== '' && userAddresses.length > 0"
+            />
           </div>
 
           <div class="form-group">
@@ -311,6 +338,19 @@
         <div class="coupon-section">
           <h4 class="coupon-title">Code promo</h4>
           
+          <!-- Message montant minimum pour livraison -->
+          <div v-if="storeOrderType === 'delivery' && restaurantMinOrder > 0" class="min-order-info">
+            <div class="min-order-message">
+              <span class="min-order-icon">ℹ️</span>
+              <span class="min-order-text">
+                Montant minimum de commande : <strong>{{ formatPrice(restaurantMinOrder) }} CHF</strong>
+                <span v-if="minOrderSupplement > 0" class="min-order-warning">
+                  (supplément de {{ formatPrice(minOrderSupplement) }} CHF appliqué)
+                </span>
+              </span>
+            </div>
+          </div>
+          
           <!-- Coupon appliqué -->
           <div v-if="appliedCoupon" class="applied-coupon">
             <div class="coupon-info">
@@ -394,6 +434,11 @@
             <span class="value discount-value">-{{ formatPrice(couponDiscountAmount) }} CHF</span>
           </div>
 
+          <div class="summary-row" v-if="minOrderSupplement > 0">
+            <span class="label">Supplément minimum de commande</span>
+            <span class="value supplement-value">+{{ formatPrice(minOrderSupplement) }} CHF</span>
+          </div>
+
           <div class="summary-row">
             <span class="label">TVA ({{ taxRate }}%)</span>
             <span class="value">{{ formatPrice(orderSummaryWithDiscount.tax) }} CHF</span>
@@ -436,7 +481,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import type { CartItem, OrderSummary, PaymentMethod } from '../types'
-import { createPOSOrder, detailRestaurant, getUserAddresses, applyCoupon } from '@/service/api'
+import { createPOSOrder, detailRestaurant, getUserAddresses, applyCoupon, getRestaurantDetails, getAllPostalCodes } from '@/service/api'
 import { getCustomers } from '@/service/api'
 import type { ApiResponse } from '@/models/Apiresponse'
 import type { RestaurantModel } from '@/models/restaurant.model'
@@ -506,6 +551,16 @@ const discountFixed = ref<number>(0)
 const couponCode = ref<string>('')
 const appliedCoupon = ref<any>(null)
 const isApplyingCoupon = ref<boolean>(false)
+
+// État pour le montant minimum de commande
+const restaurantMinOrder = ref<number>(0)
+const restaurantDetails = ref<any>(null)
+
+// État pour les codes postaux
+const allPostalCodes = ref<any[]>([])
+const postalCodeSuggestions = ref<any[]>([])
+const showPostalCodeSuggestions = ref<boolean>(false)
+const selectedPostalCode = ref<any>(null)
 
 // État pour l'adresse de livraison
 const deliveryAddress = ref({
@@ -650,19 +705,42 @@ const couponDiscountAmount = computed(() => {
   return amount
 })
 
-// Computed pour le total final avec rabais et coupon
+// Computed pour le supplément de montant minimum (livraison uniquement)
+const minOrderSupplement = computed(() => {
+  if (storeOrderType.value !== 'delivery') return 0
+  
+  const subtotalAfterDiscount = props.orderSummary.subtotal - discountAmount.value
+  const totalAfterCoupon = subtotalAfterDiscount - couponDiscountAmount.value
+  const remainingAmount = Math.max(0, restaurantMinOrder.value - totalAfterCoupon)
+  
+  console.log('Calcul du supplément minimum:', {
+    restaurantMinOrder: restaurantMinOrder.value,
+    subtotalAfterDiscount,
+    totalAfterCoupon,
+    remainingAmount
+  })
+  
+  return remainingAmount
+})
+
+// Computed pour le total final avec rabais, coupon et supplément minimum
 const finalTotalWithCoupon = computed(() => {
   const subtotalAfterDiscount = props.orderSummary.subtotal - discountAmount.value
   const totalAfterCoupon = subtotalAfterDiscount - couponDiscountAmount.value
-  const finalTotal = Math.max(0, totalAfterCoupon) // Ne peut pas être négatif
+  const totalWithSupplement = totalAfterCoupon + minOrderSupplement.value
+  const finalTotal = Math.max(0, totalWithSupplement) // Ne peut pas être négatif
+  
   console.log('Calcul du total final:', {
     subtotal: props.orderSummary.subtotal,
     discountAmount: discountAmount.value,
     couponAmount: couponDiscountAmount.value,
     subtotalAfterDiscount,
     totalAfterCoupon,
+    minOrderSupplement: minOrderSupplement.value,
+    totalWithSupplement,
     finalTotal
   })
+  
   return finalTotal
 })
 
@@ -818,6 +896,7 @@ const handleAddressSelection = (event: Event) => {
       localite: ''
     }
     selectedAddressId.value = ''
+    selectedPostalCode.value = null
     return
   }
 
@@ -831,8 +910,9 @@ const handleAddressSelection = (event: Event) => {
     npa: address.codePostal || '',
     localite: address.localite || ''
   }
-
+  
   selectedAddressId.value = addressId
+  selectedPostalCode.value = null
   console.log('Adresse sélectionnée:', address)
 }
 
@@ -917,10 +997,11 @@ const clearSelectedCustomer = () => {
   customerInfo.value = { id: '', firstName: '', lastName: '', phone: '', email: '' }
   customerSuggestions.value = []
 
-  // Vider les adresses et la sélection
-  userAddresses.value = []
-  selectedAddressId.value = ''
-  deliveryAddress.value = { rue: '', numeroRue: '', npa: '', localite: '' }
+        // Vider les adresses et la sélection
+      userAddresses.value = []
+      selectedAddressId.value = ''
+      selectedPostalCode.value = null
+      deliveryAddress.value = { rue: '', numeroRue: '', npa: '', localite: '' }
 }
 
 // Sélectionner le client par défaut selon le restaurant
@@ -1002,8 +1083,10 @@ watch([restaurantInfo, () => store.getters['orderType/selectedOrderType']], ([re
 
 onMounted(() => {
   loadRestaurantInfo()
+  loadRestaurantDetails()
+  loadAllPostalCodes()
   loadCustomers()
-
+  
   // Charger le type de commande depuis le store
   store.dispatch('orderType/loadFromStorage')
 
@@ -1011,6 +1094,9 @@ onMounted(() => {
     const target = event.target as HTMLElement
     if (!target.closest('.customer-form')) {
       closeSuggestions()
+    }
+    if (!target.closest('.postal-code-input-container')) {
+      showPostalCodeSuggestions.value = false
     }
   })
 })
@@ -1062,7 +1148,7 @@ const loadRestaurantInfo = async () => {
       if (response.code === 200 && response.data) {
         restaurantInfo.value = response.data
         console.log('Restaurant info loaded:', restaurantInfo.value)
-
+        
         // Sélectionner le client par défaut si on est en mode "sur place"
         if (storeOrderType.value === 'dine_in') {
           selectDefaultClient(restaurantID)
@@ -1071,6 +1157,37 @@ const loadRestaurantInfo = async () => {
     }
   } catch (error) {
     console.error('Erreur lors du chargement des informations du restaurant:', error)
+  }
+}
+
+// Charger les détails du restaurant pour le montant minimum
+const loadRestaurantDetails = async () => {
+  try {
+    const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
+    if (restaurantID) {
+      const response = await getRestaurantDetails(restaurantID)
+      if (response.code === 200 && response.data) {
+        restaurantDetails.value = response.data
+        restaurantMinOrder.value = parseFloat(response.data.codePostalID?.minimumCommandeAmount || '0')
+        console.log('Restaurant details loaded:', response.data)
+        console.log('Montant minimum de commande:', restaurantMinOrder.value)
+      }
+    }
+  } catch (error) {
+    console.error('Erreur lors du chargement des détails du restaurant:', error)
+  }
+}
+
+// Charger tous les codes postaux
+const loadAllPostalCodes = async () => {
+  try {
+    const response = await getAllPostalCodes()
+    if (response.code === 200 && response.data) {
+      allPostalCodes.value = response.data
+      console.log(`${allPostalCodes.value.length} codes postaux chargés`)
+    }
+  } catch (error) {
+    console.error('Erreur lors du chargement des codes postaux:', error)
   }
 }
 
@@ -1392,6 +1509,45 @@ const removeCoupon = () => {
   toast.info('Coupon supprimé')
 }
 
+// Fonction pour rechercher des codes postaux
+const searchPostalCodes = (query: string) => {
+  if (!query.trim() || query.length < 2) {
+    postalCodeSuggestions.value = []
+    showPostalCodeSuggestions.value = false
+    return
+  }
+
+  const results = allPostalCodes.value.filter(postalCode => 
+    postalCode.numeroPostal.includes(query) || 
+    postalCode.ville.toLowerCase().includes(query.toLowerCase())
+  ).slice(0, 10) // Limiter à 10 résultats
+
+  postalCodeSuggestions.value = results
+  showPostalCodeSuggestions.value = results.length > 0
+}
+
+// Fonction pour sélectionner un code postal
+const selectPostalCode = (postalCode: any) => {
+  selectedPostalCode.value = postalCode
+  deliveryAddress.value.npa = postalCode.numeroPostal
+  deliveryAddress.value.localite = postalCode.ville
+  showPostalCodeSuggestions.value = false
+  postalCodeSuggestions.value = []
+  
+  console.log('Code postal sélectionné:', postalCode)
+}
+
+// Fonction pour gérer le changement du code postal
+const handlePostalCodeChange = () => {
+  // Réinitialiser la sélection si l'utilisateur modifie manuellement
+  if (selectedPostalCode.value && deliveryAddress.value.npa !== selectedPostalCode.value.numeroPostal) {
+    selectedPostalCode.value = null
+  }
+  
+  // Rechercher des suggestions
+  searchPostalCodes(deliveryAddress.value.npa)
+}
+
 // Gestionnaire pour le changement de date
 const handleDateChange = () => {
   // Si une heure est sélectionnée, vérifier qu'elle est toujours valide
@@ -1554,6 +1710,54 @@ const handleDateChange = () => {
         color: #64748b;
         cursor: not-allowed;
         opacity: 0.7;
+      }
+    }
+
+    .postal-code-input-container {
+      position: relative;
+
+      .postal-code-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+        margin-top: 2px;
+
+        .postal-code-suggestion {
+          padding: 10px 12px;
+          cursor: pointer;
+          border-bottom: 1px solid #f1f5f9;
+          transition: background-color 0.2s ease;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          &:hover {
+            background: #f8fafc;
+          }
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          .postal-code-number {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 14px;
+          }
+
+          .postal-code-city {
+            color: #64748b;
+            font-size: 12px;
+          }
+        }
       }
     }
 
@@ -1909,6 +2113,10 @@ const handleDateChange = () => {
       &.discount-value {
         color: #dc2626;
       }
+
+      &.supplement-value {
+        color: #f59e0b;
+      }
     }
   }
 }
@@ -1953,6 +2161,39 @@ const handleDateChange = () => {
     font-weight: 600;
     color: #374151;
     margin: 0 0 1rem 0;
+  }
+
+  .min-order-info {
+    margin-bottom: 1rem;
+    padding: 10px 12px;
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 6px;
+
+    .min-order-message {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #92400e;
+
+      .min-order-icon {
+        font-size: 14px;
+      }
+
+      .min-order-text {
+        flex: 1;
+
+        strong {
+          font-weight: 600;
+        }
+
+        .min-order-warning {
+          color: #dc2626;
+          font-weight: 500;
+        }
+      }
+    }
   }
 
   .applied-coupon {

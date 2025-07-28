@@ -251,6 +251,28 @@ export const applyCoupon = async (couponData: {
     }
 };
 
+// Fonction pour récupérer les détails du restaurant
+export const getRestaurantDetails = async (restaurantID: string): Promise<ApiResponse<any>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.get(`/restaurant/detail/${restaurantID}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des détails du restaurant', error);
+        throw error;
+    }
+};
+
+// Fonction pour récupérer tous les codes postaux
+export const getAllPostalCodes = async (): Promise<ApiResponse<any>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.get('/region/codePostal/all');
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des codes postaux', error);
+        throw error;
+    }
+};
+
 
 // FRANCHISE
 export const listefranchises = async (page = 1): Promise<ApiResponse<PaginatedFrachises>> => {
