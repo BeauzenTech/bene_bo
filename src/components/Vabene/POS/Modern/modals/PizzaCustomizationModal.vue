@@ -79,8 +79,11 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { useStore } from 'vuex';
 import type { Product, ProductSize, AddToCartEvent, CartIngredient } from '../types';
 import { INGREDIENTS_WITH_PRICING, IngredientWithPricing } from '../ingredients';
+
+const store = useStore();
 
 // Props
 const props = defineProps<{
@@ -153,7 +156,13 @@ const decrementIngredient = (ingredient: IngredientWithPricing) => {
 
 // Logique des prix
 const basePrice = computed(() => {
-  return selectedSize.value ? parseFloat(selectedSize.value.price) : 0;
+  if (!selectedSize.value) return 0;
+  
+  // Utiliser le prix de livraison si le type de commande est 'delivery'
+  const isDelivery = store.getters['orderType/isDelivery'];
+  return isDelivery && selectedSize.value.priceLivraison 
+    ? parseFloat(selectedSize.value.priceLivraison) 
+    : parseFloat(selectedSize.value.price);
 });
 
 const ingredientsPrice = computed(() => {
@@ -189,6 +198,18 @@ const closeModal = () => emit('close');
 const handleAddToCart = () => {
   if (!props.product || !selectedSize.value) return;
 
+  // Utiliser le bon prix selon le type de commande
+  const isDelivery = store.getters['orderType/isDelivery']
+  const correctPrice = isDelivery && selectedSize.value.priceLivraison 
+    ? parseFloat(selectedSize.value.priceLivraison) || 0
+    : parseFloat(selectedSize.value.price) || 0
+
+  // Créer une copie de la taille avec le bon prix
+  const sizeWithCorrectPrice = {
+    ...selectedSize.value,
+    price: correctPrice.toString()
+  }
+
   const finalIngredients: CartIngredient[] = Object.entries(customIngredients.value)
     .filter(([, quantity]) => quantity > 0)
     .map(([id, quantity]) => {
@@ -215,7 +236,7 @@ const handleAddToCart = () => {
 
   const event: AddToCartEvent = {
     product: props.product,
-    size: selectedSize.value,
+    size: sizeWithCorrectPrice,
     quantity: quantity.value,
     ingredients: finalIngredients,
     supplements: [],

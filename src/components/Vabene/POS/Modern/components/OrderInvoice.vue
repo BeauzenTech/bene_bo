@@ -128,7 +128,7 @@
                 </span>
               </label>
             </div>
-
+            
             <div class="delivery-option">
               <input type="radio" id="ulterieur" name="deliveryPreference" value="ulterieur"
                 v-model="deliveryPreference">
@@ -152,7 +152,7 @@
                 </option>
               </select>
             </div>
-
+            
             <div class="form-group" v-if="selectedDate">
               <label>Heure de récupération</label>
               <select v-model="selectedTime" class="form-select">
@@ -187,11 +187,11 @@
           <div class="form-group">
             <label>NPA (Code postal)</label>
             <div class="postal-code-input-container">
-              <input 
+            <input 
                 v-model="deliveryAddress.npa" 
-                type="text" 
+              type="text" 
                 placeholder="Code postal"
-                class="form-input"
+              class="form-input"
                 :disabled="selectedAddressId !== '' && userAddresses.length > 0"
                 @input="handlePostalCodeChange"
                 @focus="handlePostalCodeChange"
@@ -207,7 +207,7 @@
                 >
                   <span class="postal-code-number">{{ postalCode.numeroPostal }}</span>
                   <span class="postal-code-city">{{ postalCode.ville }}</span>
-                </div>
+          </div>
               </div>
             </div>
           </div>
@@ -420,7 +420,7 @@
             <span class="value">{{ formatPrice(orderSummaryWithDiscount.subtotal) }} CHF</span>
           </div>
 
-                    <div class="summary-row" v-if="discountAmount > 0">
+          <div class="summary-row" v-if="discountAmount > 0">
             <span class="label">
               Rabais 
               <span v-if="discountType === 'percentage'">({{ discountPercentage }}%)</span>
@@ -612,17 +612,17 @@ const getAvailableTimes = computed(() => {
   const times: string[] = [];
   const currentTime = getCurrentTime(); // Minutes depuis minuit
   const selectedDateValue = selectedDate.value;
-
+  
   // Générer des créneaux de 15 minutes de 11h à 22h (horaires standards)
   for (let hour = 11; hour < 22; hour++) {
     for (let minute = 0; minute < 60; minute += 15) {
       const timeString = `${hour.toString().padStart(2, "0")}:${minute
         .toString()
         .padStart(2, "0")}`;
-
+      
       // Vérifier si cette heure n'est pas déjà passée
       const timeInMinutes = hour * 60 + minute;
-
+      
       // Si c'est aujourd'hui, vérifier que l'heure n'est pas passée
       if (selectedDateValue === getGMT2Date().toISOString().split("T")[0]) {
         if (timeInMinutes > currentTime + 30) { // +30 minutes de marge
@@ -688,8 +688,8 @@ const selectedFeatures = computed(() => {
 // Computed pour le rabais
 const discountAmount = computed(() => {
   if (discountType.value === 'percentage') {
-    if (discountPercentage.value <= 0) return 0
-    return (props.orderSummary.subtotal * discountPercentage.value) / 100
+  if (discountPercentage.value <= 0) return 0
+  return (props.orderSummary.subtotal * discountPercentage.value) / 100
   } else {
     if (discountFixed.value <= 0) return 0
     // Le rabais fixe ne peut pas dépasser le sous-total
@@ -749,7 +749,7 @@ const orderSummaryWithDiscount = computed(() => {
   const subtotalWithDiscount = props.orderSummary.subtotal - discountAmount.value
   const taxOnDiscountedSubtotal = (subtotalWithDiscount * taxRate.value) / 100 // TVA (affichage informatif uniquement)
   const totalWithDiscount = subtotalWithDiscount // Le total ne comprend pas la TVA
-
+  
   return {
     subtotal: props.orderSummary.subtotal,
     tax: taxOnDiscountedSubtotal,
@@ -813,32 +813,32 @@ const canPlaceOrder = computed(() => {
     customerInfo.value.firstName.trim() !== '' &&
     customerInfo.value.lastName.trim() !== '' &&
     customerInfo.value.phone.trim() !== ''
-
+  
   // Validation supplémentaire pour la livraison programmée
   if (storeOrderType.value === 'click_collect' && deliveryPreference.value === 'ulterieur') {
-    return basicValidation &&
-      selectedDate.value !== '' &&
-      selectedTime.value !== ''
+    return basicValidation && 
+           selectedDate.value !== '' && 
+           selectedTime.value !== ''
   }
-
+  
   // Validation supplémentaire pour la livraison à domicile
   if (storeOrderType.value === 'delivery') {
-    const deliveryValidation = deliveryAddress.value.rue.trim() !== '' &&
+    const deliveryValidation = deliveryAddress.value.rue.trim() !== '' && 
       deliveryAddress.value.numeroRue.trim() !== '' &&
       deliveryAddress.value.npa.trim() !== '' &&
       deliveryAddress.value.localite.trim() !== ''
-
+    
     // Si c'est une livraison programmée, vérifier aussi la date et l'heure
     if (deliveryPreference.value === 'ulterieur') {
-      return basicValidation &&
-        deliveryValidation &&
-        selectedDate.value !== '' &&
-        selectedTime.value !== ''
+      return basicValidation && 
+             deliveryValidation &&
+             selectedDate.value !== '' && 
+             selectedTime.value !== ''
     }
-
+    
     return basicValidation && deliveryValidation
   }
-
+  
   return basicValidation
 })
 
@@ -1007,7 +1007,7 @@ const clearSelectedCustomer = () => {
 // Sélectionner le client par défaut selon le restaurant
 const selectDefaultClient = (restaurantID: string) => {
   const defaultClient = DEFAULT_CLIENTS[restaurantID as keyof typeof DEFAULT_CLIENTS]
-
+  
   if (defaultClient) {
     // Créer un objet CustomerModel compatible
     const customerModel: CustomerModel = {
@@ -1031,7 +1031,7 @@ const selectDefaultClient = (restaurantID: string) => {
       newsletter: false,
       created_at: new Date().toISOString()
     }
-
+    
     // Sélectionner le client
     selectCustomer(customerModel)
     console.log('Client par défaut sélectionné:', customerModel.firstName, customerModel.lastName)
@@ -1313,7 +1313,7 @@ const handlePlaceOrder = async () => {
         ? formatDateForPayload(selectedDate.value, selectedTime.value)
         : "",
       payment_method: selectedPaymentMethod.value,
-      addressLivraison: storeOrderType.value === 'delivery'
+      addressLivraison: storeOrderType.value === 'delivery' 
         ? `${deliveryAddress.value.rue} ${deliveryAddress.value.numeroRue}, ${deliveryAddress.value.localite}`.trim()
         : `${restaurantInfo.value.address} ${restaurantInfo.value.numeroRue}`.trim(),
       batiment: restaurantInfo.value.batiment || "",
@@ -1862,21 +1862,21 @@ const handleDateChange = () => {
     font-weight: 600;
   }
 
-  .banner-clear-btn {
-    background: #dc2626;
-    border: none;
-    color: white;
-    cursor: pointer;
-    font-size: 12px;
-    padding: 6px 12px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-weight: 500;
+      .banner-clear-btn {
+      background: #dc2626;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
 
-    &:hover {
+      &:hover {
       background: #b91c1c;
       transform: translateY(-1px);
     }
@@ -2319,7 +2319,7 @@ const handleDateChange = () => {
     margin-bottom: 1rem;
 
     &:last-child {
-      margin-bottom: 0;
+    margin-bottom: 0;
     }
   }
 
@@ -2528,7 +2528,7 @@ const handleDateChange = () => {
     &:has(input:checked) {
       border-color: #388D35;
       background: #f0fdf4;
-
+      
       .delivery-option-title {
         color: #388D35;
       }
@@ -2537,12 +2537,12 @@ const handleDateChange = () => {
     &:has(input:disabled) {
       opacity: 0.6;
       cursor: not-allowed;
-
+      
       &:hover {
         border-color: #e2e8f0;
         background: white;
       }
-
+      
       .delivery-option-label {
         cursor: not-allowed;
       }
