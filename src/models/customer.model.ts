@@ -1,5 +1,6 @@
 import {UserModel} from "@/models/user.model";
 import {OrderModel} from "@/models/order.model";
+import { AdresseLocalModel } from "./adresseLocal.model";
 
 export interface CustomerUser {
   created_at: string;
@@ -11,6 +12,7 @@ export interface CustomerUser {
   deviceToken: string;
   enableNotification: boolean;
   orders: OrderModel[]
+  listeAdresses: AdresseLocalModel[]
 }
 
 export interface CustomerModel {

@@ -43,5 +43,7 @@ export interface OrderModel {
     npa: string
     localite: string
     nif: number
-
+    discountType: string
+    discountValue: string
 }
+

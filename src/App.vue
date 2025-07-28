@@ -109,7 +109,8 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                           <span><strong>RABAIS: </strong></span>
-                          <span><strong>0 CHF</strong></span>
+                          <span v-if="orderResponse.discountValue != ''"><strong>{{  orderResponse.discountValue ?? "-" }} {{ orderResponse.discountType === 'fixed' ? 'CHF' : '%' }}</strong></span>
+                          <span v-else><strong>0 CHF</strong></span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                           <span><strong>TOTAL BRUT:  </strong></span>

@@ -24,52 +24,52 @@
         </ul>
         <div class="tab-content" id="myTabContent">
           <div class="tab-pane fade show active" id="tasks-tab-pane" role="tabpanel" tabindex="0">
-            <div class="card mb-3" v-if="categorieResponse">
-              <div class="card-header bg-primary text-white">
-                Adresse de livraison
-              </div>
-              <div class="card-body p-3">
-                <div class="row mb-2">
-                  <div class="col-sm-4 fw-bold">Adresse :</div>
-                  <div class="col-sm-8">{{ categorieResponse.address ?? '-' }}</div>
-                </div>
-                <div class="row mb-2">
-                  <div class="col-sm-4 fw-bold">Ville :</div>
-                  <div class="col-sm-8">{{ categorieResponse.city ?? '-' }}</div>
-                </div>
-                <div class="row mb-2">
-                  <div class="col-sm-4 fw-bold">Rue :</div>
-                  <div class="col-sm-8">{{ categorieResponse.rue ?? '-' }}</div>
-                </div>
-                <div class="row mb-2">
-                  <div class="col-sm-4 fw-bold">Batiment :</div>
-                  <div class="col-sm-8">{{ categorieResponse.batiment ?? '-' }}</div>
-                </div>
-              </div>
-            </div>
-            <div class="card mb-3" v-if="categorieResponse">
+            <div class="card mb-3" v-if="categorieResponse && categorieResponse.user">
               <div class="card-header bg-warning text-white">
-                Adresse de facturation
+                Liste des adresses enregistrées
               </div>
-              <div class="card-body p-3">
-                <div class="row mb-2">
-                  <div class="col-sm-4 fw-bold">Adresse :</div>
-                  <div class="col-sm-8">{{ categorieResponse.address ?? '-' }}</div>
+              <div class="card-body p-3" v-if="categorieResponse.user.listeAdresses && categorieResponse.user.listeAdresses.length > 0">
+                <div v-for="adresse in paginatedAdresses" :key="adresse.id" class="mb-3 border-bottom pb-2">
+                  <div class="row mb-2">
+                        <div class="col-sm-4 fw-bold">NPA :</div>
+                        <div class="col-sm-8">{{ adresse.codePostal ?? '-' }}</div>
+                      </div>
+                      <div class="row mb-2">
+                        <div class="col-sm-4 fw-bold">Localité :</div>
+                        <div class="col-sm-8">{{ adresse.localite ?? '-' }}</div>
+                      </div>
+                      <div class="row mb-2">
+                        <div class="col-sm-4 fw-bold">Rue :</div>
+                        <div class="col-sm-8">{{ adresse.rue ?? '-' }}</div>
+                      </div>
+                      <div class="row mb-2">
+                        <div class="col-sm-4 fw-bold">Nº:</div>
+                        <div class="col-sm-8">{{ adresse.numeroLocalite ?? '-' }}</div>
+                      </div>
                 </div>
-                <div class="row mb-2">
-                  <div class="col-sm-4 fw-bold">Ville :</div>
-                  <div class="col-sm-8">{{ categorieResponse.city ?? '-' }}</div>
+                <div class="d-flex justify-content-center mt-3" >
+                  <button
+                    class="btn btn-sm btn-outline-secondary me-2"
+                    :disabled="currentAdressePage === 1"
+                    @click="goToAdressePage(currentAdressePage - 1)"
+                  >
+                    Précédent
+                  </button>
+                  <span class="align-self-center">Page {{ currentAdressePage }} / {{ totalAdressesPages }}</span>
+                  <button
+                    class="btn btn-sm btn-outline-secondary ms-2"
+                    :disabled="currentAdressePage === totalAdressesPages"
+                    @click="goToAdressePage(currentPage + 1)"
+                  >
+                    Suivant
+                  </button>
                 </div>
-                <div class="row mb-2">
-                  <div class="col-sm-4 fw-bold">Rue :</div>
-                  <div class="col-sm-8">{{ categorieResponse.rue ?? '-' }}</div>
-                </div>
-                <div class="row mb-2">
-                  <div class="col-sm-4 fw-bold">Batiment :</div>
-                  <div class="col-sm-8">{{ categorieResponse.batiment ?? '-' }}</div>
-                </div>
+              </div>
+              <div class="card-body p-3" v-else>
+                <h5 class="mb-1">Aucune adresse enregistrée.</h5>
               </div>
             </div>
+           
             <div class="card mb-3" v-if="categorieResponse">
               <div class="card-header bg-primary text-white">
                 Analyse lors des commandes
@@ -102,7 +102,7 @@
                 Historique de commandes
               </div>
               <div class="card-body p-3" v-if="categorieResponse.user.orders && categorieResponse.user.orders.length > 0">
-                <div v-for="commande in categorieResponse.user.orders" :key="commande.id" class="mb-3 border-bottom pb-2">
+                <div v-for="commande in paginatedOrders" :key="commande.id" class="mb-3 border-bottom pb-2">
                   <h5 class="mb-1" v-if="getOrderTypeParType(listeOrderType, commande.order_type).length > 0">{{ getOrderTypeParType(listeOrderType, commande.order_type)[0].libelle }}</h5>
                   <h2 class="mb-1 badge text-outline-success">{{commande.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'TOUT DE SUITE'}}</h2>
                   <br v-if="commande.DeliveryPreference !== 'immediat'"/>
@@ -119,17 +119,44 @@
                         :title="getProduitsTooltip(commande.orderItems)">
                      (Voir)
                     </span>
-                    </span> <br>
+                    </span> 
+                    
+                    <br>
                     Statut :
                     <span class="text-warning">
                      {{ fetchStatusOrderFr(commande.status)  }}
-                    </span> <br>
+                    </span> <br v-if="getMethodePaiementParType(listeMethode, commande.paymentID.paymentMethod).length > 0">
                     <span class="text-warning" v-if="getMethodePaiementParType(listeMethode, commande.paymentID.paymentMethod).length > 0">
                      {{ getMethodePaiementParType(listeMethode, commande.paymentID.paymentMethod)[0].libelle }}
-                    </span> <br>
+                    </span> <br v-if="getMethodePaiementParType(listeMethode, commande.paymentID.paymentMethod).length > 0">
 
                   </p>
-                  <p class="fw-bold">Total brut : {{ commande.total_price }} CHF</p>
+                  <p class="fw-bold">Total net : {{ commande.total_price }} CHF</p>
+                
+                  <button
+                    class="btn btn-sm btn-outline-secondary me-2"
+                    
+                    @click="selectionOrder(commande)"
+                  >
+                    Voir détail
+                  </button>
+                </div>
+                <div class="d-flex justify-content-center mt-3" v-if="totalPages > 1">
+                  <button
+                    class="btn btn-sm btn-outline-secondary me-2"
+                    :disabled="currentPage === 1"
+                    @click="goToPage(currentPage - 1)"
+                  >
+                    Précédent
+                  </button>
+                  <span class="align-self-center">Page {{ currentPage }} / {{ totalPages }}</span>
+                  <button
+                    class="btn btn-sm btn-outline-secondary ms-2"
+                    :disabled="currentPage === totalPages"
+                    @click="goToPage(currentPage + 1)"
+                  >
+                    Suivant
+                  </button>
                 </div>
               </div>
               <div class="card-body p-3" v-else>
@@ -344,6 +371,10 @@ export default defineComponent({
   },
   data() {
     return {
+      currentAdressePage: 1,
+      itemsAdressePerPage: 3,
+      currentPage: 1,
+      itemsPerPage: 3,
       listeMethode: [] as MethodePaiementModel[],
       methodePaiementSelected: [] as MethodePaiementModel[],
       orderTypeSelected: [] as OrderTypeModel[],
@@ -367,6 +398,13 @@ export default defineComponent({
     }
   },
   methods: {
+    selectionOrder(order){
+      console.log(order)
+      this.$router.push({
+        name: "VabeneOrderDetailsPage",
+        params: { commandeID: order.id }
+      });
+    },
     getProduitsTooltip(items: OrderItemModel[]) {
       return items.map(item => `(x${item.quantity}) ${item.productID.name}`).join(', ');
     },
@@ -784,6 +822,16 @@ export default defineComponent({
       }
 
       return true;
+    },
+    goToPage(page) {
+      if (page >= 1 && page <= this.totalPages) {
+        this.currentPage = page;
+      }
+    },
+    goToAdressePage(page) {
+      if (page >= 1 && page <= this.totalAdressesPages) {
+        this.currentAdressePage = page;
+      }
     }
 
   },
@@ -799,6 +847,26 @@ export default defineComponent({
         this.validTextField(this.categorieData.firstName) &&
         this.validTextField(this.categorieData.lastName)
       );
+    },
+    paginatedAdresses() {
+      if (!this.categorieResponse?.user?.listeAdresses) return [];
+      const start = (this.currentAdressePage - 1) * this.itemsAdressePerPage;
+      const end = start + this.itemsAdressePerPage;
+      return this.categorieResponse.user.listeAdresses.slice(start, end);
+    },
+    paginatedOrders() {
+      if (!this.categorieResponse?.user?.orders) return [];
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.categorieResponse.user.orders.slice(start, end);
+    },
+    totalPages() {
+      if (!this.categorieResponse?.user?.orders) return 1;
+      return Math.ceil(this.categorieResponse.user.orders.length / this.itemsPerPage);
+    },
+    totalAdressesPages() {
+      if (!this.categorieResponse?.user?.listeAdresses) return 1;
+      return Math.ceil(this.categorieResponse.user.listeAdresses.length / this.itemsAdressePerPage);
     }
   },
   setup: () => {

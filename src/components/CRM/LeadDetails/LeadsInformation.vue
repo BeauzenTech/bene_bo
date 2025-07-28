@@ -40,66 +40,43 @@
 <!--          Edit-->
 <!--        </router-link>-->
       </div>
-      <ul class="info mt-25 ps-0 mb-0 list-unstyled">
-        <li class="position-relative">
-          <div class="icon text-success rounded-circle text-center">
-            <i class="flaticon-mail-inbox-app"></i>
-          </div>
-          <span class="d-block text-black mb-5 fw-semibold">Email</span>
-          <a
-            href="#"
-            class="d-inline-block fs-md-15 fs-lg-16 text-primary text-decoration-none"
-          >
-            {{lead.email}}
-          </a>
-        </li>
-        <li class="position-relative">
-          <div class="icon text-info rounded-circle text-center">
-            <i class="flaticon-telephone-call"></i>
-          </div>
-          <span class="d-block text-black mb-5 fw-semibold">Téléphone</span>
-          <a
-            href="tel:+1-321-456-8756"
-            class="d-inline-block fs-md-15 fs-lg-16 text-muted text-decoration-none"
-          >
-            {{lead.phoneNumber}}
-          </a>
-        </li>
-        <li class="position-relative">
-          <div class="icon text-primary rounded-circle text-center">
-            <i class="flaticon-menu"></i>
-          </div>
-          <span class="d-block text-black mb-5 fw-semibold">NPA</span>
-          <a
-            href="#"
-            target="_blank"
-            class="d-inline-block fs-md-15 fs-lg-16 text-muted text-decoration-none"
-          >
-            {{lead.npa ?? ''}}
-          </a>
-        </li>
-        <li class="position-relative">
-          <div class="icon text-primary rounded-circle text-center">
-            <i class="flaticon-menu"></i>
-          </div>
-          <span class="d-block text-black mb-5 fw-semibold">Localité</span>
-          <a
-              href="#"
-              target="_blank"
-              class="d-inline-block fs-md-15 fs-lg-16 text-muted text-decoration-none"
-          >
-            {{lead.localite}}
-          </a>
-        </li>
-
-        <li class="position-relative">
-          <div class="icon text-warning rounded-circle text-center">
-            <i class="flaticon-status"></i>
-          </div>
-          <span class="d-block text-black mb-5 fw-semibold"> Déjà un compte ? </span>
-          <span class="badge text-outline-info">{{lead.user ? 'Oui' : 'Non'}}</span>
-        </li>
-      </ul>
+      <div class="row mb-2 mt-4" v-if="lead">
+  <div class="col-sm-4 fw-bold">Pays</div>
+  <div v-if="lead.user" class="col-sm-8">{{ lead.user.country ?? '-' }}</div>
+</div>
+<div class="row mb-2 mt-4" v-if="lead">
+  <div class="col-sm-4 fw-bold">Code postal</div>
+  <div v-if="lead.user" class="col-sm-8">{{ lead.user.postal_code ?? '-' }}</div>
+</div>
+<div class="row mb-2 mt-4" v-if="lead">
+  <div class="col-sm-4 fw-bold">Ville</div>
+  <div v-if="lead.user" class="col-sm-8">{{ lead.user.city ?? '-' }}</div>
+</div>
+<div class="row mb-2 mt-4" v-if="lead">
+  <div class="col-sm-4 fw-bold">Adresse</div>
+  <div v-if="lead.user" class="col-sm-8">{{ lead.user.address ?? '-' }}</div>
+</div>
+<div class="row mb-2 mt-4" v-if="lead">
+  <div class="col-sm-4 fw-bold">Prénom</div>
+  <div  v-if="lead.user" class="col-sm-8">{{ lead.user.first_name ?? '-' }}</div>
+</div>
+<div class="row mb-2 mt-4" v-if="lead">
+  <div class="col-sm-4 fw-bold">Nom</div>
+  <div v-if="lead.user" class="col-sm-8">{{ lead.user.last_name ?? '-' }}</div>
+</div>
+<div class="row mb-2 mt-4" v-if="lead">
+  <div class="col-sm-4 fw-bold">Date de naissance</div>
+  <div v-if="lead.user" class="col-sm-8">{{ lead.user.date_of_birth ?? '-' }}</div>
+</div>
+<div class="row mb-2 mt-4" v-if="lead">
+  <div class="col-sm-4 fw-bold">Email</div>
+  <div v-if="lead.user" class="col-sm-8">{{ lead.user.email ?? '-' }}</div>
+</div>
+<div class="row mb-2 mt-4" v-if="lead">
+  <div class="col-sm-4 fw-bold">Téléphone</div>
+  <div v-if="lead.user" class="col-sm-8">{{ lead.user.phone_number ?? '-' }}</div>
+</div>
+    
     </div>
   </div>
 </template>
