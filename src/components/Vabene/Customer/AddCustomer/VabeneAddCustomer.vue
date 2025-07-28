@@ -97,70 +97,144 @@
                 </div>
               </div>
             </div>
-            <div class="card mb-3" v-if="categorieResponse && categorieResponse.user">
-              <div class="card-header bg-danger text-white">
-                Historique de commandes
+            <div class="card mb-3 shadow-sm" v-if="categorieResponse && categorieResponse.user">
+              <div class="card-header bg-gradient-danger text-white d-flex align-items-center">
+                <i class="fas fa-history me-2"></i>
+                <h5 class="mb-0">Historique de commandes</h5>
+                <span class="badge bg-light text-danger ms-auto">{{ categorieResponse.user.orders ? categorieResponse.user.orders.length : 0 }} commande(s)</span>
               </div>
-              <div class="card-body p-3" v-if="categorieResponse.user.orders && categorieResponse.user.orders.length > 0">
-                <div v-for="commande in paginatedOrders" :key="commande.id" class="mb-3 border-bottom pb-2">
-                  <h5 class="mb-1" v-if="getOrderTypeParType(listeOrderType, commande.order_type).length > 0">{{ getOrderTypeParType(listeOrderType, commande.order_type)[0].libelle }}</h5>
-                  <h2 class="mb-1 badge text-outline-success">{{commande.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'TOUT DE SUITE'}}</h2>
-                  <br v-if="commande.DeliveryPreference !== 'immediat'"/>
-                  <span v-if="commande.DeliveryPreference !== 'immediat'">{{ convertDateCreate(commande.timeOrder) }}</span><br/>
-                  <h2 class="mb-1 badge text-outline-warning">{{commande.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ commande.nif : 'VBP'+ commande.nif}}</h2>
-                  <p class="mb-1 text-muted">
+              <div class="card-body p-0" v-if="categorieResponse.user.orders && categorieResponse.user.orders.length > 0">
+                <div v-for="commande in paginatedOrders" :key="commande.id" class="order-item p-4 border-bottom">
+                  <div class="row align-items-center">
+                    <div class="col-md-8">
+                      <!-- En-tête de la commande -->
+                      <div class="d-flex align-items-center mb-3">
+                        <div class="order-number me-3">
+                          <span class="badge bg-primary fs-6">{{commande.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ commande.nif : 'VBP'+ commande.nif}}</span>
+                        </div>
+                        <div class="order-type me-3">
+                          <span class="badge" :class="commande.DeliveryPreference != 'immediat' ? 'bg-warning text-dark' : 'bg-success'">
+                            <i class="fas" :class="commande.DeliveryPreference != 'immediat' ? 'fa-clock' : 'fa-bolt'"></i>
+                            {{commande.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'IMMÉDIAT'}}
+                          </span>
+                        </div>
+                        <div class="order-status">
+                          <span class="badge" :class="getStatusBadgeClass(commande.status)">
+                            {{ fetchStatusOrderFr(commande.status) }}
+                          </span>
+                        </div>
+                      </div>
 
+                      <!-- Informations de la commande -->
+                      <div class="order-details">
+                        <div class="row mb-2">
+                          <div class="col-sm-6">
+                            <small class="text-muted">
+                              <i class="fas fa-calendar-alt me-1"></i>
+                              {{ convertDateCreate(commande.timeOrder) }}
+                            </small>
+                          </div>
+                          <div class="col-sm-6">
+                            <small class="text-muted">
+                              <i class="fas fa-shopping-bag me-1"></i>
+                              {{commande.orderItems.length }} produit(s)
+                            </small>
+                          </div>
+                        </div>
 
-                    <span class="text-success">
-                   ({{commande.orderItems.length }}) produits<span
-                        class="text-primary"
-                        data-bs-toggle="tooltip"
-                        data-bs-placement="top"
-                        :title="getProduitsTooltip(commande.orderItems)">
-                     (Voir)
-                    </span>
-                    </span> 
-                    
-                    <br>
-                    Statut :
-                    <span class="text-warning">
-                     {{ fetchStatusOrderFr(commande.status)  }}
-                    </span> <br v-if="getMethodePaiementParType(listeMethode, commande.paymentID.paymentMethod).length > 0">
-                    <span class="text-warning" v-if="getMethodePaiementParType(listeMethode, commande.paymentID.paymentMethod).length > 0">
-                     {{ getMethodePaiementParType(listeMethode, commande.paymentID.paymentMethod)[0].libelle }}
-                    </span> <br v-if="getMethodePaiementParType(listeMethode, commande.paymentID.paymentMethod).length > 0">
+                        <!-- Type de commande -->
+                        <div class="mb-2" v-if="getOrderTypeParType(listeOrderType, commande.order_type).length > 0">
+                          <span class="text-primary fw-semibold">
+                            <i class="fas fa-truck me-1"></i>
+                            {{ getOrderTypeParType(listeOrderType, commande.order_type)[0].libelle }}
+                          </span>
+                        </div>
 
-                  </p>
-                  <p class="fw-bold">Total net : {{ commande.total_price }} CHF</p>
-                
-                  <button
-                    class="btn btn-sm btn-outline-secondary me-2"
-                    
-                    @click="selectionOrder(commande)"
-                  >
-                    Voir détail
-                  </button>
+                        <!-- Méthode de paiement -->
+                        <div class="mb-2" v-if="getMethodePaiementParType(listeMethode, commande.paymentID.paymentMethod).length > 0">
+                          <span class="text-info">
+                            <i class="fas fa-credit-card me-1"></i>
+                            {{ getMethodePaiementParType(listeMethode, commande.paymentID.paymentMethod)[0].libelle }}
+                          </span>
+                        </div>
+
+                        <!-- Produits avec tooltip -->
+                       <!--  <div class="mb-3">
+                          <span class="text-success fw-semibold">
+                            <i class="fas fa-box me-1"></i>
+                            Détails produits
+                          </span>
+                          <span
+                            class="text-primary cursor-pointer ms-2"
+                            data-bs-toggle="tooltip"
+                            data-bs-placement="top"
+                            :title="getProduitsTooltip(commande.orderItems)"
+                            style="text-decoration: underline;"
+                          >
+                            <i class="fas fa-eye me-1"></i>Voir
+                          </span>
+                        </div> -->
+                      </div>
+                    </div>
+
+                    <!-- Colonne de droite avec prix et action -->
+                    <div class="col-md-4 text-end">
+                      <div class="order-total mb-3">
+                        <h4 class="text-success mb-0">
+                          <i class="fas fa-franc-sign me-1"></i>
+                          {{ commande.total_price }} CHF
+                        </h4>
+                        <small class="text-muted">Total net</small>
+                      </div>
+                      
+                      <button
+                        class="btn btn-primary btn-sm w-100"
+                        @click="selectionOrder(commande)"
+                      >
+                        <i class="fas fa-eye me-1"></i>
+                        Voir détail
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div class="d-flex justify-content-center mt-3" v-if="totalPages > 1">
-                  <button
-                    class="btn btn-sm btn-outline-secondary me-2"
-                    :disabled="currentPage === 1"
-                    @click="goToPage(currentPage - 1)"
-                  >
-                    Précédent
-                  </button>
-                  <span class="align-self-center">Page {{ currentPage }} / {{ totalPages }}</span>
-                  <button
-                    class="btn btn-sm btn-outline-secondary ms-2"
-                    :disabled="currentPage === totalPages"
-                    @click="goToPage(currentPage + 1)"
-                  >
-                    Suivant
-                  </button>
+                <div class="pagination-container p-3 bg-light border-top" v-if="totalPages > 1">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="pagination-info">
+                      <small class="text-muted">
+                        Affichage de {{ (currentPage - 1) * itemsPerPage + 1 }} à {{ Math.min(currentPage * itemsPerPage, categorieResponse.user.orders.length) }} 
+                        sur {{ categorieResponse.user.orders.length }} commande(s)
+                      </small>
+                    </div>
+                    <div class="pagination-controls">
+                      <button
+                        class="btn btn-outline-primary btn-sm me-2"
+                        :disabled="currentPage === 1"
+                        @click="goToPage(currentPage - 1)"
+                      >
+                        <i class="fas fa-chevron-left me-1"></i>
+                        Précédent
+                      </button>
+                      <span class="badge bg-primary mx-2 px-3 py-2">
+                        Page {{ currentPage }} / {{ totalPages }}
+                      </span>
+                      <button
+                        class="btn btn-outline-primary btn-sm ms-2"
+                        :disabled="currentPage === totalPages"
+                        @click="goToPage(currentPage + 1)"
+                      >
+                        Suivant
+                        <i class="fas fa-chevron-right ms-1"></i>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div class="card-body p-3" v-else>
-                <h5 class="mb-1">Aucune commande.</h5>
+              <div class="card-body p-5 text-center" v-else>
+                <div class="empty-state">
+                  <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+                  <h5 class="text-muted mb-2">Aucune commande trouvée</h5>
+                  <p class="text-muted mb-0">Ce client n'a pas encore passé de commande.</p>
+                </div>
               </div>
             </div>
             <div class="card mb-3" v-else>
@@ -467,6 +541,22 @@ export default defineComponent({
     convertDateCreate(date: string): string {
       return UserGeneralKey.formatDateToFrenchLocale(date);
     },
+    getStatusBadgeClass(status: string): string {
+      switch (status) {
+        case OrderStatus.PENDING:
+          return 'bg-warning text-dark';
+        case OrderStatus.PROCESSING:
+          return 'bg-info text-white';
+        case OrderStatus.READY_FOR_DELIVERY:
+          return 'bg-primary text-white';
+        case OrderStatus.OUT_FOR_DELIVERY:
+          return 'bg-warning text-dark';
+        case OrderStatus.DELIVERED:
+          return 'bg-success text-white';
+        default:
+          return 'bg-danger text-white';
+      }
+    },
     fetchStatusOrderFr(status: string){
       switch (status) {
         case OrderStatus.PENDING:
@@ -474,7 +564,7 @@ export default defineComponent({
         case OrderStatus.PROCESSING:
           return 'En cours de traitement';
         case OrderStatus.READY_FOR_DELIVERY:
-          return 'Près pour livraison';
+          return 'Prêt pour livraison';
         case OrderStatus.OUT_FOR_DELIVERY:
           return 'En cours de livraison';
         case OrderStatus.DELIVERED:
@@ -905,5 +995,126 @@ export default defineComponent({
 input.vs__search {
   font-size: 13px;
   color: rgba(132, 128, 128, 0.712);
+}
+
+/* Styles pour l'historique de commandes */
+.order-item {
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.order-item:hover {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.order-item:last-child {
+  border-bottom: none !important;
+}
+
+.bg-gradient-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+}
+
+.order-number .badge {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.order-type .badge {
+  font-weight: 500;
+}
+
+.order-status .badge {
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.order-details {
+  line-height: 1.6;
+}
+
+.order-total h4 {
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.cursor-pointer:hover {
+  opacity: 0.8;
+}
+
+.empty-state {
+  padding: 2rem 0;
+}
+
+.empty-state i {
+  opacity: 0.5;
+}
+
+.pagination-container {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.pagination-controls .btn {
+  border-radius: 20px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.pagination-controls .btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.pagination-controls .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Animation pour les badges */
+.badge {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .order-item {
+    padding: 1.5rem !important;
+  }
+  
+  .order-item .row {
+    flex-direction: column;
+  }
+  
+  .order-item .col-md-4 {
+    text-align: left !important;
+    margin-top: 1rem;
+  }
+  
+  .pagination-container .d-flex {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .pagination-controls {
+    justify-content: center;
+  }
 }
 </style>
