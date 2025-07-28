@@ -241,11 +241,11 @@
       <div class="cart-section">
         <div class="section-header">
           <h3 class="section-title">Commande</h3>
-          <span class="item-count">{{ cart.length }} article(s)</span>
+          <span class="item-count">{{ storeCart.length }} article(s)</span>
         </div>
 
         <div class="cart-items">
-          <div v-for="item in cart" :key="item.localProductId" class="cart-item">
+          <div v-for="item in storeCart" :key="item.localProductId" class="cart-item">
             <div class="item-image">
               <img :src="item.image" :alt="item.name" />
             </div>
@@ -310,7 +310,7 @@
           </div>
 
           <!-- Message panier vide -->
-          <div v-if="cart.length === 0" class="empty-cart">
+          <div v-if="storeCart.length === 0" class="empty-cart">
             <div class="empty-icon">
               🛒
             </div>
@@ -321,7 +321,7 @@
       </div>
 
       <!-- Résumé de la commande -->
-      <div v-if="cart.length > 0" class="order-summary">
+      <div v-if="storeCart.length > 0" class="order-summary">
         <h3 class="section-title">Résumé</h3>
 
         <!-- Features sélectionnées -->
@@ -452,7 +452,7 @@
       </div>
 
       <!-- Méthodes de paiement -->
-      <div v-if="cart.length > 0" class="payment-section">
+      <div v-if="storeCart.length > 0" class="payment-section">
         <h3 class="section-title">Mode de paiement</h3>
 
         <div class="payment-methods">
@@ -466,7 +466,7 @@
       </div>
 
       <!-- Bouton de validation -->
-      <div v-if="cart.length > 0" class="action-section">
+      <div v-if="storeCart.length > 0" class="action-section">
 
         <button @click="handlePlaceOrder" :disabled="!canPlaceOrder || isProcessingOrder" class="place-order-btn">
           <i :class="isProcessingOrder ? 'fas fa-spinner fa-spin' : 'fas fa-receipt'"></i>
@@ -496,6 +496,10 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+// Utiliser les getters du store pour avoir les données réactives
+const storeCart = computed(() => store.getters['cart/cart'] || [])
+const storeCartTotal = computed(() => store.getters['cart/cartTotal'] || 0)
 
 const emit = defineEmits<{
   'update-quantity': [itemId: string, quantity: number]
@@ -809,7 +813,7 @@ const getPaymentIcon = (iconName: string): string => {
 
 // Validation pour passer commande
 const canPlaceOrder = computed(() => {
-  const basicValidation = props.cart.length > 0 &&
+  const basicValidation = storeCart.value.length > 0 &&
     customerInfo.value.firstName.trim() !== '' &&
     customerInfo.value.lastName.trim() !== '' &&
     customerInfo.value.phone.trim() !== ''
@@ -1081,6 +1085,19 @@ watch([restaurantInfo, () => store.getters['orderType/selectedOrderType']], ([re
   }
 }, { immediate: false })
 
+// Watcher pour afficher un message quand les prix du panier changent
+watch(storeCart, (newCart, oldCart) => {
+  if (oldCart && oldCart.length > 0 && newCart.length > 0) {
+    const oldTotal = oldCart.reduce((sum, item) => sum + (item.totalPrice || 0), 0)
+    const newTotal = newCart.reduce((sum, item) => sum + (item.totalPrice || 0), 0)
+    
+    if (oldTotal !== newTotal) {
+      console.log(`💰 Prix du panier mis à jour: ${oldTotal} → ${newTotal} CHF`)
+      // toast.info(`Prix mis à jour selon le type de commande`)
+    }
+  }
+}, { deep: true })
+
 onMounted(() => {
   loadRestaurantInfo()
   loadRestaurantDetails()
@@ -1282,7 +1299,7 @@ const handlePlaceOrder = async () => {
     }
 
     // Extraire les features du panier
-    const cartFeatures = extractFeaturesFromCart(props.cart)
+    const cartFeatures = extractFeaturesFromCart(storeCart.value)
 
     // ID du client
     const customerID = /* selectedCustomer.value?.id ||  */customerInfo.value.id;
@@ -1296,7 +1313,7 @@ const handlePlaceOrder = async () => {
       codePostal: restaurantInfo.value.codePostalID?.numeroPostal || "",
       deliveryLocality: restaurantInfo.value.codePostalID?.ville || "",
       restaurantID: restaurantID,
-      paniers: transformCartForAPI(props.cart),
+      paniers: transformCartForAPI(storeCart.value),
       userID: selectedCustomer.value?.user?.id || "", // ID utilisateur si client sélectionné
       guest_first_name: customerInfo.value.firstName,
       civilite: selectedCustomer.value?.civilite || "",
@@ -1352,7 +1369,7 @@ const handlePlaceOrder = async () => {
       batiment: restaurantInfo.value.batiment
     })
     console.log('Payload de commande final:', orderData);
-    console.log("Supplements:", props.cart.map(item => item.supplements))
+    console.log("Supplements:", storeCart.value.map(item => item.supplements))
     console.log("Coupon dans le payload:", {
       coupon: orderData.coupon,
       couponValue: orderData.couponValue,
@@ -1411,14 +1428,14 @@ const handlePlaceOrder = async () => {
 
 // Gestionnaires d'événements
 const decreaseQuantity = (itemId: string) => {
-  const item = props.cart.find(item => item.localProductId === itemId)
+  const item = storeCart.value.find(item => item.localProductId === itemId)
   if (item) {
     emit('update-quantity', itemId, item.quantity - 1)
   }
 }
 
 const increaseQuantity = (itemId: string) => {
-  const item = props.cart.find(item => item.localProductId === itemId)
+  const item = storeCart.value.find(item => item.localProductId === itemId)
   if (item) {
     emit('update-quantity', itemId, item.quantity + 1)
   }

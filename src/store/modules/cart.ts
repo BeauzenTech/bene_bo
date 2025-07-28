@@ -133,11 +133,11 @@ const cart: Module<CartState, RootState> = {
       if (!item.selectedSize) return 0
 
       // Récupérer le type de commande depuis le store orderType
-      const orderType = rootGetters['orderType/selectedOrderType'] || 'dine_in'
+      const isDelivery = rootGetters['orderType/isDelivery'] || false
 
       // Prix de base selon le type de commande
-      const basePrice = orderType === 'delivery'
-        ? Number(item.selectedSize.priceLivraison) || Number(item.selectedSize.price) || 0
+      const basePrice = isDelivery && item.selectedSize.priceLivraison
+        ? Number(item.selectedSize.priceLivraison) || 0
         : Number(item.selectedSize.price) || 0
 
       // Coût des ingrédients ajoutés (non par défaut)
@@ -337,15 +337,24 @@ const cart: Module<CartState, RootState> = {
 
     // Recalculer tous les prix du panier quand le type de commande change
     async recalculateAllPrices({ commit, dispatch, state }) {
+      console.log('🔄 Recalcul des prix du panier...')
+      
       const updatedCart = await Promise.all(
         state.cart.map(async (item) => {
           const totalPrice = await dispatch('calculateItemTotalPrice', { item })
+          console.log(`📦 ${item.name}: ${item.totalPrice} → ${totalPrice} CHF`)
           return { ...item, totalPrice }
         })
       )
       
+      // Calculer le nouveau total du panier
+      const newTotal = updatedCart.reduce((total, item) => total + (item.totalPrice || 0), 0)
+      
       commit('SET_CART', updatedCart)
+      commit('SET_TOTAL', newTotal)
       dispatch('saveToStorage')
+      
+      console.log(`💰 Nouveau total du panier: ${newTotal} CHF`)
     }
   },
   
