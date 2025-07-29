@@ -308,38 +308,145 @@ export default defineComponent({
       return digitsOnly.slice(-6);
     },
     previewPDF(): void {
+      console.log("previewPDF");
       const element = document.getElementById("recu-pdf");
-      if ((this as any).orderResponse && element) {
+      const modal = document.getElementById("contentModalScrollable_facture");
+      console.log("previewPDF ==> 2");
+      if ((this as any).orderResponse && element && modal) {
         const style = document.createElement("style");
+        console.log("previewPDF ==> 3");
         const originalElementWidth = element.style.width;
+        const originalElementHeight = element.style.height;
         const originalElementMargin = element.style.margin;
-        const originalElementTransform = element.style.transform; // Capture la transformation d'animation
-
+        const originalElementTransform = element.style.transform;
+        const originalElementDisplay = element.style.display;
+        const originalElementPosition = element.style.position;
+        const originalElementVisibility = element.style.visibility;
+        
+        // Sauvegarder les styles du modal
+        const originalModalDisplay = modal.style.display;
+        const originalModalVisibility = modal.style.visibility;
+        const originalModalOpacity = modal.style.opacity;
+        const originalModalZIndex = modal.style.zIndex;
+        
+        console.log("previewPDF ==> 4");
+        console.log("orderResponse", this.orderResponse);
         const receiptsElement = element.querySelector('.receipts') as HTMLElement;
+        console.log("previewPDF ==> 5");
         let originalReceiptsTransform = '';
         let originalReceiptsMarginTop = '';
         if (receiptsElement) {
           originalReceiptsTransform = receiptsElement.style.transform;
           originalReceiptsMarginTop = receiptsElement.style.marginTop;
         }
+        console.log("previewPDF ==> 6");
 
-
-
-        // Appliquer largeur ticket
+        // Rendre le modal invisible mais fonctionnel pour le rendu
+        modal.style.display = 'block';
+        modal.style.visibility = 'hidden';
+        modal.style.opacity = '0';
+        modal.style.zIndex = '-9999';
+        modal.classList.remove('fade');
+        modal.classList.add('show');
+        
+        // Forcer l'élément à être visible et avoir une taille
+        element.style.display = 'block';
+        element.style.position = 'relative';
+        element.style.visibility = 'visible';
         element.style.width = "102mm";
+        element.style.height = "auto";
         element.style.margin = "0 auto";
-        element.style.transform = 'none'; // Désactiver toute trxansformation de translation des animations
+        element.style.transform = 'none';
+        element.style.opacity = '1';
+        element.style.zIndex = '9999';
+        
+        console.log("previewPDF ==> 7");
         if (receiptsElement) {
-          receiptsElement.style.transform = 'none'; // Désactiver les animations sur .receipts
-          receiptsElement.style.marginTop = '0'; // S'assurer qu'aucune marge supérieure ne pousse le contenu
+          console.log("previewPDF ==> 8");
+          receiptsElement.style.transform = 'none';
+          receiptsElement.style.marginTop = '0';
+          receiptsElement.style.display = 'block';
+          receiptsElement.style.visibility = 'visible';
         }
+        
+        // Fonction pour convertir les chemins d'images en URLs absolues
+        const convertImagePaths = () => {
+          const images = element.querySelectorAll('img');
+          const imagePromises: Promise<void>[] = [];
+          
+          images.forEach((img) => {
+            if (img.src.includes('@/assets/')) {
+              // Convertir le chemin relatif en chemin absolu
+              const relativePath = img.src.split('@/assets/')[1];
+              img.src = `${window.location.origin}/src/assets/${relativePath}`;
+              
+              // Créer une promesse pour chaque image
+              const imagePromise = new Promise<void>((resolve) => {
+                img.onerror = () => {
+                  console.warn(`Impossible de charger l'image: ${img.src}`);
+                  img.style.display = 'none';
+                  resolve(); // Résoudre même en cas d'erreur
+                };
+                
+                img.onload = () => {
+                  console.log(`Image chargée avec succès: ${img.src}`);
+                  resolve();
+                };
+                
+                // Timeout de sécurité
+                setTimeout(() => {
+                  console.warn(`Timeout pour le chargement de l'image: ${img.src}`);
+                  resolve();
+                }, 5000);
+              });
+              
+              imagePromises.push(imagePromise);
+            }
+          });
+          
+          return Promise.all(imagePromises);
+        };
+        
         // Injecter les styles avec un scope sur #recu-pdf uniquement
         style.textContent = `
+    #contentModalScrollable_facture {
+        display: block !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        z-index: -9999 !important;
+        position: fixed !important;
+        top: -9999px !important;
+        left: -9999px !important;
+    }
+    
+    #contentModalScrollable_facture .modal-dialog {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    #contentModalScrollable_facture .modal-content {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
     #recu-pdf {
         box-sizing: border-box;
         font-family: 'Ubuntu', sans-serif;
         color: #1c1c1c;
-        padding: 0; /* Réinitialiser le padding pour éviter les problèmes de double padding */
+        padding: 0;
+        min-height: 200px;
+        display: block !important;
+        position: relative !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 9999 !important;
+        width: 102mm !important;
+        height: auto !important;
+        margin: 0 auto !important;
+        transform: none !important;
+        background-color: white !important;
       }
 
       #recu-pdf * {
@@ -347,40 +454,51 @@ export default defineComponent({
       }
 
       #recu-pdf .receipts-wrapper {
-        overflow: hidden;
-        margin-top: 0; /* Réinitialiser ceci également, cela faisait partie de l'animation */
-        padding-bottom: 0; /* Réinitialiser ou ajuster au besoin */
+        overflow: visible;
+        margin-top: 0;
+        padding-bottom: 0;
+        min-height: 200px;
+        display: block !important;
+        visibility: visible !important;
       }
 
       #recu-pdf .receipts {
-        width: 100%; /* Le faire prendre toute la largeur de #recu-pdf (102mm) */
+        width: 100%;
         display: flex;
-        align-items: center; /* Centrer horizontalement pour les éléments enfants */
+        align-items: center;
         flex-direction: column;
-        transform: none; /* Désactiver la transformation d'animation pour le PDF */
-        animation: none; /* Désactiver l'animation pour le PDF */
+        transform: none !important;
+        animation: none !important;
+        min-height: 200px;
+        display: block !important;
+        visibility: visible !important;
       }
 
       #recu-pdf .receipt {
-        padding: 25px 15px; /* Padding réduit pour un ajustement plus serré sur un ticket, ajuster au besoin */
+        padding: 25px 15px;
         text-align: left;
-        min-height: 200px; /* Garder min-height ou ajuster */
-        width: 100%; /* Faire en sorte que le contenu réel du ticket prenne 100% de la largeur de #recu-pdf (102mm) */
+        min-height: 200px;
+        width: 100%;
         background-color: #fff;
         border-radius: 10px 10px 20px 20px;
-        box-shadow: none; /* Supprimer l'ombre portée pour un PDF plus propre, sauf si spécifiquement désiré */
+        box-shadow: none;
+        display: block !important;
+        visibility: visible !important;
       }
  /* NOUVEAUX STYLES FLEXBOX POUR LE CONTENEUR DU LOGO */
 #recu-pdf .logo-container {
   max-width: 150px;
-  margin-bottom: 20px; /* Espace sous le logo, ajustez si besoin */
-  /* optionnel: background-color: #f0f0f0; pour voir les limites du conteneur si vous déboguez */
+  margin-bottom: 20px;
+  display: block !important;
+  visibility: visible !important;
 }
 
 #recu-pdf .airliner-logo {
   max-width: 190px;
   position: relative;
   left: 50%;
+  display: block !important;
+  visibility: visible !important;
 }
 
       #recu-pdf .route {
@@ -400,9 +518,9 @@ export default defineComponent({
 
       #recu-pdf .route h2 {
         font-weight: 100;
-        font-size: 18px; /* Taille de police légèrement plus petite pour le ticket */
+        font-size: 18px;
         margin: 0;
-        line-height: 1.3; /* Ajuster la hauteur de ligne pour une meilleure lisibilité */
+        line-height: 1.3;
       }
 
       #recu-pdf .product-ticket {
@@ -410,16 +528,16 @@ export default defineComponent({
       }
 
       #recu-pdf .category-section {
-        margin-bottom: 8px; /* Marge ajustée */
+        margin-bottom: 8px;
       }
 
       #recu-pdf .product-ticket .category-section div {
-         font-size: 18px; /* Taille de police cohérente pour les lignes de produits */
+         font-size: 18px;
       }
 
       #recu-pdf .product-ticket ul {
-        margin: 2px 0 0 5px; /* Ajustement de la marge de la liste d'ingrédients */
-        font-size: 18px; /* Taille de police plus petite pour les ingrédients */
+        margin: 2px 0 0 5px;
+        font-size: 18px;
         color: #555;
       }
 
@@ -428,78 +546,250 @@ export default defineComponent({
       }
 
       #recu-pdf .product-list div {
-        font-size: 18px; /* Taille de police pour les lignes du résumé */
+        font-size: 18px;
         padding: 2px 0;
       }
       #recu-pdf .product-list span {
-        font-size: 18px; /* Assurer la cohérence */
+        font-size: 18px;
       }
 
       #recu-pdf .barcode-footer {
         text-align: center;
-        margin-top: 15px; /* Marge réduite */
+        margin-top: 15px;
         padding-top: 10px;
         border-top: 1px dashed #ccc;
       }
 
       #recu-pdf .barcode-image {
-        height: 50px; /* Code-barres légèrement plus petit */
+        height: 50px;
         margin-bottom: 5px;
       }
 
       #recu-pdf .barcode-label {
-        font-size: 18px; /* Étiquette du code-barres plus petite */
+        font-size: 18px;
       }
 
-      /* Supprimer tous les styles liés à l'animation pour le PDF */
       @keyframes print {
           from { transform: none; }
           to { transform: none; }
       }
     `;
-
+        console.log("previewPDF ==> 9");
         document.head.appendChild(style);
-
+        console.log("previewPDF ==> 10");
+        
+        // Fonction pour forcer le rendu et vérifier les dimensions
+        const forceRenderAndCheck = () => {
+          return new Promise<void>((resolve) => {
+            // Forcer un reflow
+            element.offsetHeight;
+            modal.offsetHeight;
+            
+            // Attendre un peu plus pour s'assurer que le rendu est terminé
+            setTimeout(() => {
+              const rect = element.getBoundingClientRect();
+              const modalRect = modal.getBoundingClientRect();
+              console.log("Element dimensions after force render:", rect.width, rect.height);
+              console.log("Modal dimensions:", modalRect.width, modalRect.height);
+              
+              // Si l'élément a toujours une taille de 0, essayer une approche différente
+              if (rect.width === 0 || rect.height === 0) {
+                console.warn("L'élément a encore une taille de 0, tentative de correction...");
+                
+                // Forcer des dimensions minimales
+                element.style.width = "300px";
+                element.style.height = "400px";
+                element.style.minWidth = "300px";
+                element.style.minHeight = "400px";
+                
+                // Forcer un autre reflow
+                element.offsetHeight;
+                
+                setTimeout(() => {
+                  const newRect = element.getBoundingClientRect();
+                  console.log("Element dimensions after correction:", newRect.width, newRect.height);
+                  resolve();
+                }, 500);
+              } else {
+                resolve();
+              }
+            }, 500);
+          });
+        };
+        
+        // Attendre que le DOM soit mis à jour et que les styles soient appliqués
         setTimeout(() => {
-          const contentHeight = 320 + ((this.orderResponse?.orderItems.length ?? 1 )  * 80)
-          const desiredHeight = Math.max(200, contentHeight + 20); // Minimum 200mm, ou hauteur du contenu + un peu de marge
-          const opt = {
-            margin: [5, 0, 5, 0],
-            filename: `Facture_${this.getShortUuid(
-                this.orderResponse!.id
-            )}.pdf`,
-            image: { type: "jpeg", quality: 0.98 },
-            html2canvas: {
-              scale: 2,
-              useCORS: true,
-              width: element.offsetWidth, // Utiliser la largeur rendue de l'élément
-              windowWidth: element.offsetWidth, // Important pour une mise à l'échelle cohérente
-            },
-            jsPDF: { unit: "mm", format: [102, desiredHeight], orientation: "portrait" }, // 102mm largeur, 200mm hauteur (à ajuster)
-          };
-
-          html2pdf()
-              .set(opt)
-              .from(element)
-              .toPdf()
-              .get("pdf")
-              .then((pdf) => {
-                const blob = pdf.output("blob");
-                const url = URL.createObjectURL(blob);
-                const file = new File([blob], "ticket.pdf", {
-                  type: "application/pdf",
-                });
-                // window.open(url, '_blank');
-                this.launchPrint(file);
-                // window.open(url, '_blank');
-                // Remet à la taille normale après génération si besoin
-                element.style.width = "";
-                element.style.margin = "";
-              })
-              .finally(() => {
+          // Convertir les chemins d'images
+          convertImagePaths().then(() => {
+            // Forcer le rendu et vérifier les dimensions
+            forceRenderAndCheck().then(() => {
+              // Vérifier que l'élément a une taille valide
+              const rect = element.getBoundingClientRect();
+              console.log("Final element dimensions:", rect.width, rect.height);
+              
+              if (rect.width === 0 || rect.height === 0) {
+                console.error("L'élément a une taille de 0, impossible de générer le PDF");
                 document.head.removeChild(style);
-              });
-        }, 500);
+                // Restaurer les styles originaux
+                element.style.width = originalElementWidth;
+                element.style.height = originalElementHeight;
+                element.style.margin = originalElementMargin;
+                element.style.transform = originalElementTransform;
+                element.style.display = originalElementDisplay;
+                element.style.position = originalElementPosition;
+                element.style.visibility = originalElementVisibility;
+                element.style.opacity = '';
+                element.style.zIndex = '';
+                
+                // Restaurer les styles du modal
+                modal.style.display = originalModalDisplay;
+                modal.style.visibility = originalModalVisibility;
+                modal.style.opacity = originalModalOpacity;
+                modal.style.zIndex = originalModalZIndex;
+                modal.classList.remove('show');
+                modal.classList.add('fade');
+                return;
+              }
+              
+              const contentHeight = 320 + ((this.orderResponse?.orderItems.length ?? 1 )  * 80)
+              const desiredHeight = Math.max(200, contentHeight + 20);
+              console.log("previewPDF ==> 11");
+              const opt = {
+                margin: [5, 0, 5, 0],
+                filename: `Facture_${this.getShortUuid(
+                    this.orderResponse?.id ?? "none"
+                )}.pdf`,
+                image: { type: "jpeg", quality: 0.98 },
+                html2canvas: {
+                  scale: 2,
+                  useCORS: true,
+                  allowTaint: true,
+                  backgroundColor: '#ffffff',
+                  width: Math.max(rect.width, 300),
+                  height: Math.max(rect.height, 200),
+                  windowWidth: Math.max(rect.width, 300),
+                  windowHeight: Math.max(rect.height, 200),
+                  logging: true,
+                  onclone: (clonedDoc) => {
+                    const clonedElement = clonedDoc.getElementById("recu-pdf");
+                    if (clonedElement) {
+                      clonedElement.style.width = "102mm";
+                      clonedElement.style.height = "auto";
+                      clonedElement.style.margin = "0 auto";
+                      clonedElement.style.transform = "none";
+                      clonedElement.style.display = "block";
+                      clonedElement.style.visibility = "visible";
+                      clonedElement.style.position = "relative";
+                      
+                      const clonedImages = clonedElement.querySelectorAll('img');
+                      clonedImages.forEach((img) => {
+                        if (img.src.includes('@/assets/')) {
+                          const relativePath = img.src.split('@/assets/')[1];
+                          img.src = `${window.location.origin}/src/assets/${relativePath}`;
+                        }
+                      });
+                    }
+                  }
+                },
+                jsPDF: { unit: "mm", format: [102, desiredHeight], orientation: "portrait" },
+              };
+              console.log("previewPDF ==> 12");
+              html2pdf()
+                  .set(opt)
+                  .from(element)
+                  .toPdf()
+                  .get("pdf")
+                  .then((pdf) => {
+                    console.log("previewPDF ==> 13");
+                    const blob = pdf.output("blob");
+                    const file = new File([blob], "ticket.pdf", {
+                      type: "application/pdf",
+                    });
+                    
+                    // Lancer directement l'impression sans ouvrir le PDF
+                    this.launchPrint(file);
+                    
+                    // Restaurer les styles originaux
+                    element.style.width = originalElementWidth;
+                    element.style.height = originalElementHeight;
+                    element.style.margin = originalElementMargin;
+                    element.style.transform = originalElementTransform;
+                    element.style.display = originalElementDisplay;
+                    element.style.position = originalElementPosition;
+                    element.style.visibility = originalElementVisibility;
+                    element.style.opacity = '';
+                    element.style.zIndex = '';
+                    
+                    // Restaurer les styles du modal
+                    modal.style.display = originalModalDisplay;
+                    modal.style.visibility = originalModalVisibility;
+                    modal.style.opacity = originalModalOpacity;
+                    modal.style.zIndex = originalModalZIndex;
+                    modal.classList.remove('show');
+                    modal.classList.add('fade');
+                    
+                    if (receiptsElement) {
+                      receiptsElement.style.transform = originalReceiptsTransform;
+                      receiptsElement.style.marginTop = originalReceiptsMarginTop;
+                    }
+                  })
+                  .catch((error) => {
+                    console.log("previewPDF ==> 14");
+                    console.error("Erreur lors de la génération du PDF:", error);
+                    
+                    // Restaurer les styles originaux en cas d'erreur
+                    element.style.width = originalElementWidth;
+                    element.style.height = originalElementHeight;
+                    element.style.margin = originalElementMargin;
+                    element.style.transform = originalElementTransform;
+                    element.style.display = originalElementDisplay;
+                    element.style.position = originalElementPosition;
+                    element.style.visibility = originalElementVisibility;
+                    element.style.opacity = '';
+                    element.style.zIndex = '';
+                    
+                    // Restaurer les styles du modal
+                    modal.style.display = originalModalDisplay;
+                    modal.style.visibility = originalModalVisibility;
+                    modal.style.opacity = originalModalOpacity;
+                    modal.style.zIndex = originalModalZIndex;
+                    modal.classList.remove('show');
+                    modal.classList.add('fade');
+                    
+                    if (receiptsElement) {
+                      receiptsElement.style.transform = originalReceiptsTransform;
+                      receiptsElement.style.marginTop = originalReceiptsMarginTop;
+                    }
+                  })
+                  .finally(() => {
+                    console.log("previewPDF ==> 15");
+                    document.head.removeChild(style);
+                  });
+            });
+          }).catch(error => {
+            console.error("Erreur lors du chargement des images:", error);
+            document.head.removeChild(style);
+            
+            // Restaurer les styles originaux
+            element.style.width = originalElementWidth;
+            element.style.height = originalElementHeight;
+            element.style.margin = originalElementMargin;
+            element.style.transform = originalElementTransform;
+            element.style.display = originalElementDisplay;
+            element.style.position = originalElementPosition;
+            element.style.visibility = originalElementVisibility;
+            element.style.opacity = '';
+            element.style.zIndex = '';
+            
+            // Restaurer les styles du modal
+            modal.style.display = originalModalDisplay;
+            modal.style.visibility = originalModalVisibility;
+            modal.style.opacity = originalModalOpacity;
+            modal.style.zIndex = originalModalZIndex;
+            modal.classList.remove('show');
+            modal.classList.add('fade');
+          });
+        }, 1000);
       }
     },
 
@@ -658,6 +948,8 @@ export default defineComponent({
       });
 
       if (data.type && data.type === "NOUVELLE_COMMANDE") {
+        console.log("NOUVELLE_COMMANDE");
+        console.log(data);
         this.clearData();
         if (
             data.restaurant_id &&
