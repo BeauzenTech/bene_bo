@@ -341,7 +341,7 @@ export default defineComponent({
         }
         console.log("previewPDF ==> 6");
 
-        // Rendre le modal invisible mais fonctionnel pour le rendu
+        // MODE DEBUG: Afficher le modal pour voir le reçu avant impression
         modal.style.display = 'block';
         modal.style.visibility = 'hidden';
         modal.style.opacity = '0';
@@ -384,8 +384,8 @@ export default defineComponent({
               const imagePromise = new Promise<void>((resolve) => {
                 img.onerror = () => {
                   console.warn(`Impossible de charger l'image: ${img.src}`);
-                  img.style.display = 'none';
-                  resolve(); // Résoudre même en cas d'erreur
+                  // Ne pas masquer l'image, juste résoudre
+                  resolve();
                 };
                 
                 img.onload = () => {
@@ -447,6 +447,7 @@ export default defineComponent({
         margin: 0 auto !important;
         transform: none !important;
         background-color: white !important;
+        text-align: left !important;
       }
 
       #recu-pdf * {
@@ -460,6 +461,7 @@ export default defineComponent({
         min-height: 200px;
         display: block !important;
         visibility: visible !important;
+        text-align: left !important;
       }
 
       #recu-pdf .receipts {
@@ -472,11 +474,12 @@ export default defineComponent({
         min-height: 200px;
         display: block !important;
         visibility: visible !important;
+        text-align: left !important;
       }
 
       #recu-pdf .receipt {
-        padding: 25px 15px;
-        text-align: left;
+        padding: 20px 12px;
+        text-align: left !important;
         min-height: 200px;
         width: 100%;
         background-color: #fff;
@@ -484,89 +487,113 @@ export default defineComponent({
         box-shadow: none;
         display: block !important;
         visibility: visible !important;
+        margin: 0 auto !important;
       }
  /* NOUVEAUX STYLES FLEXBOX POUR LE CONTENEUR DU LOGO */
 #recu-pdf .logo-container {
-  max-width: 150px;
-  margin-bottom: 20px;
+  max-width: 120px;
+  margin: 0 auto 15px auto !important;
   display: block !important;
   visibility: visible !important;
+  text-align: center !important;
 }
 
 #recu-pdf .airliner-logo {
-  max-width: 190px;
+  max-width: 150px;
   position: relative;
-  left: 50%;
+  left: 0 !important;
+  transform: none !important;
   display: block !important;
   visibility: visible !important;
+  margin: 0 auto !important;
 }
 
       #recu-pdf .route {
         display: flex;
         flex-direction: column;
-        justify-content: start;
-        align-items: start;
-        margin: 5px 0;
+        justify-content: flex-start;
+        align-items: flex-start;
+        margin: 3px 0;
+        text-align: left !important;
       }
 
       .dashed-line {
         border: none;
-        border-top: 2px dashed #333;
-        margin: 1rem 0;
+        border-top: 1px dashed #333;
+        margin: 0.5rem 0;
         width: 100%;
       }
 
       #recu-pdf .route h2 {
         font-weight: 100;
-        font-size: 18px;
+        font-size: 14px;
         margin: 0;
-        line-height: 1.3;
+        line-height: 1.2;
+        text-align: left !important;
       }
 
       #recu-pdf .product-ticket {
         width: 100%;
+        text-align: left !important;
       }
 
       #recu-pdf .category-section {
-        margin-bottom: 8px;
+        margin-bottom: 6px;
+        text-align: left !important;
       }
 
       #recu-pdf .product-ticket .category-section div {
-         font-size: 18px;
+         font-size: 12px;
+         text-align: left !important;
       }
 
       #recu-pdf .product-ticket ul {
-        margin: 2px 0 0 5px;
-        font-size: 18px;
+        margin: 1px 0 0 8px;
+        font-size: 11px;
         color: #555;
+        text-align: left !important;
+        list-style: none !important;
+        padding: 0 !important;
       }
 
       #recu-pdf .product-ticket ul li {
-         line-height: 1.2;
+         line-height: 1.1;
+         text-align: left !important;
       }
 
       #recu-pdf .product-list div {
-        font-size: 18px;
-        padding: 2px 0;
+        font-size: 13px;
+        padding: 1px 0;
+        text-align: left !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        white-space: nowrap !important;
       }
       #recu-pdf .product-list span {
-        font-size: 18px;
+        font-size: 13px;
+        text-align: left !important;
+      }
+      
+      #recu-pdf .product-list span:last-child {
+        text-align: right !important;
+        font-weight: bold !important;
       }
 
       #recu-pdf .barcode-footer {
         text-align: center;
-        margin-top: 15px;
-        padding-top: 10px;
+        margin-top: 10px;
+        padding-top: 8px;
         border-top: 1px dashed #ccc;
       }
 
       #recu-pdf .barcode-image {
-        height: 50px;
-        margin-bottom: 5px;
+        height: 40px;
+        margin-bottom: 4px;
       }
 
       #recu-pdf .barcode-label {
-        font-size: 18px;
+        font-size: 14px;
       }
 
       @keyframes print {
@@ -651,7 +678,8 @@ export default defineComponent({
                 return;
               }
               
-              const contentHeight = 320 + ((this.orderResponse?.orderItems.length ?? 1 )  * 80)
+              // Calculer une hauteur plus raisonnable basée sur le contenu réel
+              const contentHeight = Math.max(200, 150 + ((this.orderResponse?.orderItems.length ?? 1 )  * 40));
               const desiredHeight = Math.max(200, contentHeight + 20);
               console.log("previewPDF ==> 11");
               const opt = {
@@ -680,6 +708,49 @@ export default defineComponent({
                       clonedElement.style.display = "block";
                       clonedElement.style.visibility = "visible";
                       clonedElement.style.position = "relative";
+                      clonedElement.style.textAlign = "left";
+                      
+                      // Appliquer les styles d'alignement aux éléments clonés
+                      const clonedRoutes = clonedElement.querySelectorAll('.route');
+                      clonedRoutes.forEach(route => {
+                        route.style.textAlign = "left";
+                        route.style.justifyContent = "flex-start";
+                        route.style.alignItems = "flex-start";
+                      });
+                      
+                      const clonedProductList = clonedElement.querySelectorAll('.product-list div');
+                      clonedProductList.forEach(div => {
+                        div.style.display = "flex";
+                        div.style.justifyContent = "space-between";
+                        div.style.alignItems = "center";
+                        div.style.textAlign = "left";
+                        div.style.whiteSpace = "nowrap";
+                        div.style.fontSize = "13px";
+                      });
+                      
+                      const clonedProductListSpans = clonedElement.querySelectorAll('.product-list span:last-child');
+                      clonedProductListSpans.forEach(span => {
+                        span.style.textAlign = "right";
+                        span.style.fontWeight = "bold";
+                        span.style.fontSize = "13px";
+                      });
+                      
+                      const clonedProductListSpansFirst = clonedElement.querySelectorAll('.product-list span:first-child');
+                      clonedProductListSpansFirst.forEach(span => {
+                        span.style.textAlign = "left";
+                        span.style.fontSize = "13px";
+                      });
+                      
+                      // Appliquer les nouvelles tailles de police pour les produits
+                      const clonedCategorySections = clonedElement.querySelectorAll('.category-section div');
+                      clonedCategorySections.forEach(div => {
+                        div.style.fontSize = "12px";
+                      });
+                      
+                      const clonedProductTicketUl = clonedElement.querySelectorAll('.product-ticket ul');
+                      clonedProductTicketUl.forEach(ul => {
+                        ul.style.fontSize = "11px";
+                      });
                       
                       const clonedImages = clonedElement.querySelectorAll('img');
                       clonedImages.forEach((img) => {
@@ -694,6 +765,8 @@ export default defineComponent({
                 jsPDF: { unit: "mm", format: [102, desiredHeight], orientation: "portrait" },
               };
               console.log("previewPDF ==> 12");
+              
+              // Génération et impression directe du PDF
               html2pdf()
                   .set(opt)
                   .from(element)
