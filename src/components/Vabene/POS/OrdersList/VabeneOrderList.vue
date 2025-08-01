@@ -107,7 +107,7 @@
                 {{ order.total_price || '-' }} CHF
               </td>
               <td v-if="order.orderItems.length > 0" class="shadow-none lh-1 fw-medium text-black-emphasis">
-                {{ convertDateCreate(order.created_at) }}
+                {{ formatInTimeZone(order.created_at, 'UTC', 'dd/MM/yyyy HH:mm') }}
 
               </td>
               <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">
@@ -241,6 +241,7 @@ import { PaginatedOrder } from "@/models/Apiresponse";
 import { OrderModel } from "@/models/order.model";
 import VabeneOrderDetailsPage from "@/pages/Vabene/Order/VabeneOrderDetailsPage.vue";
 import { RestaurantEnum } from "../../../../enums/restaurant.enum";
+import { formatInTimeZone } from "date-fns-tz";
 
 export default defineComponent({
   name: "VabeneOrderList",
@@ -295,6 +296,7 @@ export default defineComponent({
     getShortUuid(uuid: string): string {
       return uuid.split('-')[0];
     },
+    formatInTimeZone,
     gotoCreate() {
       this.$router.push("/ajout-commande");
     },
