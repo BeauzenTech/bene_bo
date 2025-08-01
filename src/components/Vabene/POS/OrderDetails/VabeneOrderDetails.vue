@@ -39,7 +39,7 @@
                 Créer le:
               </div>
               <span class="d-block text-paragraph fs-md-15 fs-lg-16">
-                {{ convertDateCreate(orderResponse.created_at) }}
+                {{ formatInTimeZone(orderResponse.created_at, 'UTC', 'dd/MM/yyyy - HH:mm') }}
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between" v-if="orderResponse.DeliveryPreference !== 'immediat'">
@@ -50,7 +50,7 @@
                 Date de recuperation:
               </div>
               <span class="d-block text-paragraph fs-md-15 fs-lg-16">
-                  {{convertDateCreate(orderResponse.timeOrder)}}
+                  {{formatInTimeZone(orderResponse.timeOrder, 'UTC', 'dd/MM/yyyy - HH:mm')}}
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between" >
@@ -930,8 +930,7 @@ import {OrderStatus} from "@/enums/orderStatut.enum";
 import {PaymentStatus} from "@/enums/orderPaiementMethode.enum";
 import {Modal} from "bootstrap";
 import {RestaurantEnum} from "../../../../enums/restaurant.enum";
-import {PaymentTypeEnum} from "@/enums/PaymentType.enum";
-
+import { formatInTimeZone } from "date-fns-tz";
 
 
 
@@ -1220,6 +1219,7 @@ export default defineComponent({
     convertDateCreate(date: string): string {
       return UserGeneralKey.formatDateToFrenchLocale(date);
     },
+    formatInTimeZone,
     async fetchOrder(orderID) {
       this.isLoading = true;
       try {
