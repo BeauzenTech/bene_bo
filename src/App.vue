@@ -77,7 +77,7 @@
                               style="display: flex; flex-direction: column; margin-bottom: 10px;"
                           >
                             <div style="display: flex; justify-content: space-between; font-size: 18px;">
-                              <span><strong>{{ item.quantity }}x {{ item.productID.name }} {{item.size}} {{item.optionSpecific}}</strong></span>
+                              <span style=" width: 100%; max-width: 230px;"><strong>{{ item.quantity }}x {{ item.productID.name }} {{item.size}} {{item.optionSpecific}}</strong></span>
                               <span><strong>{{ item.total_price }} CHF</strong></span>
                             </div>
 
@@ -101,24 +101,29 @@
                       <div class="product-list">
                         <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                           <span><strong>SOUS-TOTAL: </strong></span>
-                          <span><strong>{{(orderResponse.total_price - (orderResponse.total_price * 2.60/100)).toFixed(2) }} CHF</strong></span>
+                          <span style="text-align: right;"><strong>{{(orderResponse.total_price - (orderResponse.total_price * 2.60/100)).toFixed(2) }} CHF</strong></span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                           <span><strong>2.60% TVA </strong></span>
-                          <span><strong>{{(orderResponse.total_price * 2.60/100).toFixed(2)}} CHF</strong></span>
+                          <span style="text-align: right;"><strong>{{(orderResponse.total_price * 2.60/100).toFixed(2)}} CHF</strong></span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                           <span><strong>RABAIS: </strong></span>
-                          <span v-if="orderResponse.discountValue != ''"><strong>{{  orderResponse.discountValue ?? "-" }} {{ orderResponse.discountType === 'fixed' ? 'CHF' : '%' }}</strong></span>
-                          <span v-else><strong>0 CHF</strong></span>
+                          <span style="text-align: right;" v-if="orderResponse.discountValue != ''"><strong>{{  orderResponse.discountValue ?? "-" }} {{ orderResponse.discountType === 'fixed' ? 'CHF' : '%' }}</strong></span>
+                          <span style="text-align: right;" v-else><strong>0 CHF</strong></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                          <span><strong>FRAIS SUPPLÉMENTAIRES: </strong></span>
+                          <span style="text-align: right;" v-if="orderResponse.restMinimumOrder != ''"><strong>{{  orderResponse.restMinimumOrder ?? "-" }} CHF</strong></span>
+                          <span style="text-align: right;" v-else><strong>0 CHF</strong></span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                           <span><strong>TOTAL BRUT:  </strong></span>
-                          <span><strong>{{ orderResponse.total_price }} CHF</strong></span>
+                          <span style="text-align: right;"><strong>{{ orderResponse.total_price }} CHF</strong></span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin: 5px 0;" v-if="methodePaiementSelected.length > 0">
                           <span>Méthode de paiements :  </span>
-                          <span>{{ methodePaiementSelected[0].libelle }}</span>
+                          <span style="text-align: right;">{{ methodePaiementSelected[0].libelle }}</span>
                         </div>
                       </div>
                       <hr class="dashed-line" />
@@ -326,7 +331,7 @@ export default defineComponent({
 
 
         // Appliquer largeur ticket
-        element.style.width = "102mm";
+        element.style.width = "100mm";
         element.style.margin = "0 auto";
         element.style.transform = 'none'; // Désactiver toute trxansformation de translation des animations
         if (receiptsElement) {
@@ -335,7 +340,11 @@ export default defineComponent({
         }
         // Injecter les styles avec un scope sur #recu-pdf uniquement
         style.textContent = `
-    #recu-pdf {
+      #recu-pdf {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         box-sizing: border-box;
         font-family: 'Ubuntu', sans-serif;
         color: #1c1c1c;
@@ -372,15 +381,13 @@ export default defineComponent({
       }
  /* NOUVEAUX STYLES FLEXBOX POUR LE CONTENEUR DU LOGO */
 #recu-pdf .logo-container {
-  max-width: 150px;
+  width: 100%;
   margin-bottom: 20px; /* Espace sous le logo, ajustez si besoin */
   /* optionnel: background-color: #f0f0f0; pour voir les limites du conteneur si vous déboguez */
 }
 
 #recu-pdf .airliner-logo {
-  max-width: 190px;
-  position: relative;
-  left: 50%;
+  width: 100%;
 }
 
       #recu-pdf .route {
@@ -461,8 +468,8 @@ export default defineComponent({
         document.head.appendChild(style);
 
         setTimeout(() => {
-          const contentHeight = 320 + ((this.orderResponse?.orderItems.length ?? 1 )  * 80)
-          const desiredHeight = Math.max(200, contentHeight + 20); // Minimum 200mm, ou hauteur du contenu + un peu de marge
+          const contentHeight = 280 + ((this.orderResponse?.orderItems.length ?? 1 )  * 50)
+          const desiredHeight = Math.max(60, contentHeight + 20); // Minimum 200mm, ou hauteur du contenu + un peu de marge
           const opt = {
             margin: [5, 0, 5, 0],
             filename: `Facture_${this.getShortUuid(
@@ -472,11 +479,10 @@ export default defineComponent({
             html2canvas: {
               scale: 2,
               useCORS: true,
-              width: element.offsetWidth, // Utiliser la largeur rendue de l'élément
-              windowWidth: element.offsetWidth, // Important pour une mise à l'échelle cohérente
             },
             jsPDF: { unit: "mm", format: [102, desiredHeight], orientation: "portrait" }, // 102mm largeur, 200mm hauteur (à ajuster)
           };
+
 
           html2pdf()
               .set(opt)
@@ -489,12 +495,16 @@ export default defineComponent({
                 const file = new File([blob], "ticket.pdf", {
                   type: "application/pdf",
                 });
-                // window.open(url, '_blank');
+                window.open(url, '_blank');
                 this.launchPrint(file);
                 // window.open(url, '_blank');
                 // Remet à la taille normale après génération si besoin
                 element.style.width = "";
                 element.style.margin = "";
+              })
+              .catch((error) => {
+                console.error("Erreur lors de la génération du PDF:", error);
+                (this as any).toast.error("Erreur lors de la génération du PDF");
               })
               .finally(() => {
                 document.head.removeChild(style);

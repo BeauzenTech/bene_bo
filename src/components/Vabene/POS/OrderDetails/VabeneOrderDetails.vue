@@ -71,7 +71,7 @@
 <!--                  style="width: 25px; height: 25px;"-->
 <!--                />-->
 
-                {{methodePaiementSelected[0].libelle}}
+                {{methodePaiementSelected[0]?.libelle ?? ''}}
 
               </span>
             </li>
@@ -85,7 +85,7 @@
 <!--              <span class="d-block text-paragraph fs-md-15 fs-lg-16">-->
 <!--                  {{orderTypeSelected[0].libelle}}-->
 <!--              </span>-->
-              <span  class="d-block badge text-bg-info fs-13">{{orderTypeSelected[0].libelle}}</span>
+              <span  class="d-block badge text-bg-info fs-13">{{orderTypeSelected[0]?.libelle ?? ''}}</span>
 
             </li>
           </ul>
@@ -446,6 +446,15 @@
             </li>
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-primary fw-bolder fw-medium">
+                FRAIS SUPPLÉMENTAIRES
+              </span>
+              <span class="d-block text-primary fw-bolder fw-medium">
+                {{orderResponse.restMinimumOrder ?? "0" }} CHF
+              </span>
+            </li>
+
+            <li class="d-flex align-items-center justify-content-between">
+              <span class="d-block text-primary fw-bolder fw-medium">
                 TOTAL BRUT
               </span>
               <span class="d-block text-primary fw-bolder fw-medium">
@@ -623,7 +632,7 @@
 
               <ul class="dropdown-menu">
                 <li v-for="status in allOrderStatus" :key="status">
-                  <a @click="updateStatusOrder(status, methodePaiementSelected[0].type)" class="dropdown-item" href="#">{{ fetchStatusOrderFr(status)  }}</a>
+                  <a @click="updateStatusOrder(status, methodePaiementSelected[0]?.type ?? '')" class="dropdown-item" href="#">{{ fetchStatusOrderFr(status)  }}</a>
                 </li>
               </ul>
             </div>
@@ -803,7 +812,7 @@
                           <hr class="dashed-line" />
 
                           <div class="route">
-                            <h2><strong>{{orderTypeSelected[0].libelle}}</strong></h2>
+                            <h2><strong>{{orderTypeSelected[0]?.libelle ?? ''}}</strong></h2>
                             <h2><strong>{{orderResponse.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'TOUT DE SUITE'}}</strong></h2>
                             <h2 v-if="orderResponse.DeliveryPreference != 'immediat'"><strong>{{convertDateCreate(orderResponse.timeOrder) ?? ''}} </strong></h2>
                             <h2><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ orderResponse.nif : 'VBP'+ orderResponse.nif}}</strong></h2>
@@ -836,7 +845,7 @@
                                 style="display: flex; flex-direction: column; margin-bottom: 10px;"
                             >
                               <div style="display: flex; justify-content: space-between; font-size: 18px;">
-                                <span><strong>{{ item.quantity }}x {{ item.productID.name }} {{item.size}} {{item.optionSpecific}}</strong></span>
+                                <span style=" width: 100%; max-width: 230px;"><strong>{{ item.quantity }}x {{ item.productID.name }} {{item.size}} {{item.optionSpecific}}</strong></span>
                                 <span><strong>{{ item.total_price }} CHF</strong></span>
                               </div>
 
@@ -860,25 +869,31 @@
                           <div class="product-list">
                             <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                               <span><strong>SOUS-TOTAL: </strong></span>
-                              <span><strong>{{(orderResponse.total_price - (orderResponse.total_price * 2.60/100)).toFixed(2) }} CHF</strong></span>
+                              <span style="text-align: right;"><strong>{{(orderResponse.total_price - (orderResponse.total_price * 2.60/100)).toFixed(2) }} CHF</strong></span>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                               <span><strong>2.60% TVA </strong></span>
-                              <span><strong>{{(orderResponse.total_price * 2.60/100).toFixed(2)}} CHF</strong></span>
+                              <span style="text-align: right;"><strong>{{(orderResponse.total_price * 2.60/100).toFixed(2)}} CHF</strong></span>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                               <span><strong>RABAIS: </strong></span>
-                              <span v-if="orderResponse.discountValue != ''"><strong>{{  orderResponse.discountValue ?? "-" }} {{ orderResponse.discountType === 'fixed' ? 'CHF' : '%' }}</strong></span>
-                              <span v-else><strong>0 CHF</strong></span>
+                              <span style="text-align: right;" v-if="orderResponse.discountValue != ''"><strong>{{  orderResponse.discountValue ?? "-" }} {{ orderResponse.discountType === 'fixed' ? 'CHF' : '%' }}</strong></span>
+                              <span style="text-align: right;" v-else><strong>0 CHF</strong></span>
+
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                              <span><strong>FRAIS SUPPLÉMENTAIRES: </strong></span>
+                              <span style="text-align: right;" v-if="orderResponse.restMinimumOrder != ''"><strong>{{  orderResponse.restMinimumOrder ?? "-" }} CHF</strong></span>
+                              <span style="text-align: right;" v-else><strong>0 CHF</strong></span>
 
                             </div>
                             <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                               <span><strong>TOTAL BRUT:  </strong></span>
-                              <span><strong>{{ orderResponse.total_price }} CHF</strong></span>
+                              <span style="text-align: right;"><strong>{{ orderResponse.total_price }} CHF</strong></span>
                             </div>
-                            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                            <div style="display: flex; justify-content: space-between; margin: 5px 0;"  v-if="methodePaiementSelected.length > 0">
                               <span>Méthode de paiements :  </span>
-                              <span>{{ methodePaiementSelected[0].libelle }}</span>
+                              <span style="text-align: right;">{{ methodePaiementSelected[0]?.libelle ?? '' }}</span>
                             </div>
                           </div>
                           <hr class="dashed-line" />
@@ -1012,7 +1027,7 @@ export default defineComponent({
 
         // Appliquer les styles spécifiques pour la génération de PDF
         // IMPORTANT: Définir la largeur sur l'élément principal. Supprimer toute max-width ou largeur interne en conflit.
-        element.style.width = '102mm'; // Largeur physique cible du ticket
+        element.style.width = '115mm'; // Largeur physique cible du ticket
         element.style.margin = '0'; // Pas de marge auto pour le PDF, il doit remplir la largeur de la page
         element.style.transform = 'none'; // Désactiver toute trxansformation de translation des animations
         if (receiptsElement) {
@@ -1023,6 +1038,10 @@ export default defineComponent({
 
         style.textContent = `
       #recu-pdf {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         box-sizing: border-box;
         font-family: 'Ubuntu', sans-serif;
         color: #1c1c1c;
@@ -1059,13 +1078,13 @@ export default defineComponent({
       }
  /* NOUVEAUX STYLES FLEXBOX POUR LE CONTENEUR DU LOGO */
 #recu-pdf .logo-container {
-  max-width: 150px;
+  width: 100%;
   margin-bottom: 20px; /* Espace sous le logo, ajustez si besoin */
   /* optionnel: background-color: #f0f0f0; pour voir les limites du conteneur si vous déboguez */
 }
 
 #recu-pdf .airliner-logo {
-  max-width: 190px;
+  width: 100%;
 }
 
       #recu-pdf .route {
@@ -1386,7 +1405,7 @@ export default defineComponent({
     fetchMethodePaiementOrderFr(methode: string){
       const dt = this.getMethodePaiementParType(this.listeMethode, methode);
       if(dt.length > 0){
-        return dt[0].libelle
+        return dt[0]?.libelle ?? ''
       }
       return ''
     },

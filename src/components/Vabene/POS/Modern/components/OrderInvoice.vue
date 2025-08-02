@@ -414,6 +414,7 @@
           </div>
         </div>
 
+
         <div class="summary-lines">
           <div class="summary-row">
             <span class="label">Sous-total</span>
