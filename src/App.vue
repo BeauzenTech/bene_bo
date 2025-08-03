@@ -685,7 +685,7 @@ export default defineComponent({
           // Une hauteur typique pour un A4 est de 297mm. Si votre ticket peut être très long,
           // une hauteur de 500mm ou plus pourrait être nécessaire, et jsPDF paginera si elle est dépassée.
           // Si vous voulez une SEULE et très longue page, définissez une très grande hauteur.
-          const contentHeight = 280 + ((this.orderResponse?.orderItems.length ?? 1 )  * 50)
+          const contentHeight = 200 + ((this.orderResponse?.orderItems.length ?? 1 )  * 30)
           const desiredHeight = Math.max(200, contentHeight + 20); // Minimum 200mm, ou hauteur du contenu + un peu de marge
 
           const opt = {
