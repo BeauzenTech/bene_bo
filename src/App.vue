@@ -527,7 +527,7 @@ export default defineComponent({
       let baseHeight = 0
       if (this.orderResponse?.orderItems && this.orderResponse.orderItems.length > 0) {
         this.orderResponse.orderItems.forEach(item => {
-          baseHeight += 5
+          baseHeight += 0.5
           if (item.ingredients && item.ingredients.length > 0) {
             baseHeight += (item.ingredients.length * 2)
           }
