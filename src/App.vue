@@ -466,7 +466,7 @@ export default defineComponent({
         document.head.appendChild(style);
 
         setTimeout(() => {
-          const contentHeight = this.getHeightTicket() + ((this.orderResponse?.orderItems.length ?? 1 )  * 20)
+          const contentHeight = this.getHeightTicket() + ((this.orderResponse?.orderItems.length ?? 1 )  * 5)
           console.log("contentHeight: ", contentHeight);
           const desiredHeight = Math.max(this.getHeightTicket(), contentHeight + 35); // Minimum 200mm, ou hauteur du contenu + un peu de marge
           console.log("desiredHeight: ", desiredHeight);
