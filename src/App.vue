@@ -311,224 +311,15 @@ export default defineComponent({
       const digitsOnly = lastPart.replace(/\D/g, "");
       return digitsOnly.slice(-6);
     },
-//     previewPDF(): void {
-//       const element = document.getElementById("recu-pdf");
-//       if ((this as any).orderResponse && element) {
-//         const style = document.createElement("style");
-//
-//         const originalElementWidth = element.style.width;
-//         const originalElementMargin = element.style.margin;
-//         const originalElementTransform = element.style.transform; // Capture la transformation d'animation
-//
-//         const receiptsElement = element.querySelector('.receipts') as HTMLElement;
-//         let originalReceiptsTransform = '';
-//         let originalReceiptsMarginTop = '';
-//         if (receiptsElement) {
-//           originalReceiptsTransform = receiptsElement.style.transform;
-//           originalReceiptsMarginTop = receiptsElement.style.marginTop;
-//         }
-//
-//         // Appliquer largeur ticket
-//         element.style.width = '72mm'
-//         element.style.margin = "0";
-//         element.style.transform = 'none'; // Désactiver toute trxansformation de translation des animations
-//         if (receiptsElement) {
-//           receiptsElement.style.transform = 'none'; // Désactiver les animations sur .receipts
-//           receiptsElement.style.marginTop = '0'; // S'assurer qu'aucune marge supérieure ne pousse le contenu
-//         }
-//         // Injecter les styles avec un scope sur #recu-pdf uniquement
-//         style.textContent = `
-//       #recu-pdf {
-//         display: flex;
-//         flex-direction: column;
-//         align-items: center;
-//         justify-content: center;
-//         box-sizing: border-box;
-//         font-family: 'Ubuntu', sans-serif;
-//         color: #1c1c1c;
-//         padding: 0; /* Réinitialiser le padding pour éviter les problèmes de double padding */
-//       }
-//
-//       #recu-pdf * {
-//         box-sizing: border-box;
-//       }
-//
-//       #recu-pdf .receipts-wrapper {
-//         overflow: hidden;
-//         margin-top: 0; /* Réinitialiser ceci également, cela faisait partie de l'animation */
-//         padding-bottom: 0; /* Réinitialiser ou ajuster au besoin */
-//       }
-//
-//       #recu-pdf .receipts {
-//         width: 100%; /* Le faire prendre toute la largeur de #recu-pdf (102mm) */
-//         display: flex;
-//         align-items: center; /* Centrer horizontalement pour les éléments enfants */
-//         flex-direction: column;
-//         transform: none; /* Désactiver la transformation d'animation pour le PDF */
-//         animation: none; /* Désactiver l'animation pour le PDF */
-//       }
-//
-//       #recu-pdf .receipt {
-//         padding: 25px 15px; /* Padding réduit pour un ajustement plus serré sur un ticket, ajuster au besoin */
-//         text-align: left;
-//         min-height: 200px; /* Garder min-height ou ajuster */
-//         width: 100%; /* Faire en sorte que le contenu réel du ticket prenne 100% de la largeur de #recu-pdf (102mm) */
-//         background-color: #fff;
-//         border-radius: 10px 10px 20px 20px;
-//         box-shadow: none; /* Supprimer l'ombre portée pour un PDF plus propre, sauf si spécifiquement désiré */
-//       }
-//  /* NOUVEAUX STYLES FLEXBOX POUR LE CONTENEUR DU LOGO */
-// #recu-pdf .logo-container {
-//   width: 100%;
-//   margin-bottom: 20px; /* Espace sous le logo, ajustez si besoin */
-//   /* optionnel: background-color: #f0f0f0; pour voir les limites du conteneur si vous déboguez */
-// }
-//
-// #recu-pdf .airliner-logo {
-//   width: 100%;
-// }
-//
-//       #recu-pdf .route {
-//         display: flex;
-//         flex-direction: column;
-//         justify-content: start;
-//         align-items: start;
-//         margin: 5px 0;
-//       }
-//
-//       .dashed-line {
-//         border: none;
-//         border-top: 2px dashed #333;
-//         margin: 1rem 0;
-//         width: 100%;
-//       }
-//
-//       #recu-pdf .route h2 {
-//         font-weight: 100;
-//         font-size: 18px; /* Taille de police légèrement plus petite pour le ticket */
-//         margin: 0;
-//         line-height: 1.3; /* Ajuster la hauteur de ligne pour une meilleure lisibilité */
-//       }
-//
-//       #recu-pdf .product-ticket {
-//         width: 100%;
-//       }
-//
-//       #recu-pdf .category-section {
-//         margin-bottom: 8px; /* Marge ajustée */
-//       }
-//
-//       #recu-pdf .product-ticket .category-section div {
-//          font-size: 18px; /* Taille de police cohérente pour les lignes de produits */
-//       }
-//
-//       #recu-pdf .product-ticket ul {
-//         margin: 2px 0 0 5px; /* Ajustement de la marge de la liste d'ingrédients */
-//         font-size: 18px; /* Taille de police plus petite pour les ingrédients */
-//         color: #555;
-//       }
-//
-//       #recu-pdf .product-ticket ul li {
-//          line-height: 1.2;
-//       }
-//
-//       #recu-pdf .product-list div {
-//         font-size: 18px; /* Taille de police pour les lignes du résumé */
-//         padding: 2px 0;
-//       }
-//       #recu-pdf .product-list span {
-//         font-size: 18px; /* Assurer la cohérence */
-//       }
-//
-//       #recu-pdf .barcode-footer {
-//         text-align: center;
-//         margin-top: 15px; /* Marge réduite */
-//         padding-top: 10px;
-//         border-top: 1px dashed #ccc;
-//       }
-//
-//       #recu-pdf .barcode-image {
-//         height: 50px; /* Code-barres légèrement plus petit */
-//         margin-bottom: 5px;
-//       }
-//
-//       #recu-pdf .barcode-label {
-//         font-size: 18px; /* Étiquette du code-barres plus petite */
-//       }
-//
-//       /* Supprimer tous les styles liés à l'animation pour le PDF */
-//       @keyframes print {
-//           from { transform: none; }
-//           to { transform: none; }
-//       }
-//     `;
-//
-//         document.head.appendChild(style);
-//
-//         setTimeout(() => {
-//           const contentHeight = 280 + ((this.orderResponse?.orderItems.length ?? 1 )  * 50)
-//           const desiredHeight = Math.max(200, contentHeight + 20); // Minimum 200mm, ou hauteur du contenu + un peu de marge
-//           const opt = {
-//             margin: [5, 0, 5, 0],
-//             filename: `Facture_${this.getShortUuid(
-//                 this.orderResponse!.id
-//             )}.pdf`,
-//             image: { type: "jpeg", quality: 0.98 },
-//             html2canvas: {
-//               scale: 2,
-//               useCORS: true,
-//             },
-//             jsPDF: { unit: 'mm', format: [72, desiredHeight], orientation: 'portrait' } // <-- Exemple pour 80mm de papier
-//           };
-//
-//
-//           html2pdf()
-//               .set(opt)
-//               .from(element)
-//               .toPdf()
-//               .get("pdf")
-//               .then((pdf) => {
-//                 const blob = pdf.output("blob");
-//                 const url = URL.createObjectURL(blob);
-//                 window.open(url, '_blank');
-//                 const file = new File([blob], "ticket.pdf", {
-//                   type: "application/pdf",
-//                 });
-//                 // window.open(url, '_blank');
-//                 this.launchPrint(file);
-//                 // window.open(url, '_blank');
-//                 // Remet à la taille normale après génération si besoin
-//                 element.style.width = "";
-//                 element.style.margin = "";
-//               })
-//               .catch((error) => {
-//                 console.error("Erreur lors de la génération du PDF:", error);
-//                 (this as any).toast.error("Erreur lors de la génération du PDF");
-//               })
-//               .finally(() => {
-//                 document.head.removeChild(style);
-//                 // Restaurer les styles originaux de l'élément
-//                 element.style.width = originalElementWidth;
-//                 element.style.margin = originalElementMargin;
-//                 element.style.transform = originalElementTransform;
-//                 if (receiptsElement) {
-//                   receiptsElement.style.transform = originalReceiptsTransform;
-//                   receiptsElement.style.marginTop = originalReceiptsMarginTop;
-//                 }
-//               });
-//         }, 100);
-//       }
-//     },
-    previewPDF() {
-      const element = document.getElementById('recu-pdf');
-      if (this.orderResponse && element) {
-        const style = document.createElement('style');
+    previewPDF(): void {
+      const element = document.getElementById("recu-pdf");
+      if ((this as any).orderResponse && element) {
+        const style = document.createElement("style");
 
-        // Sauvegarder les styles originaux pour les restaurer plus tard (bonne pratique)
         const originalElementWidth = element.style.width;
         const originalElementMargin = element.style.margin;
         const originalElementTransform = element.style.transform; // Capture la transformation d'animation
-        // Capturez aussi les styles spécifiques des enfants qui pourraient être animés/déplacés
+
         const receiptsElement = element.querySelector('.receipts') as HTMLElement;
         let originalReceiptsTransform = '';
         let originalReceiptsMarginTop = '';
@@ -537,31 +328,26 @@ export default defineComponent({
           originalReceiptsMarginTop = receiptsElement.style.marginTop;
         }
 
-
-        // Appliquer les styles spécifiques pour la génération de PDF
-        // IMPORTANT: Définir la largeur sur l'élément principal. Supprimer toute max-width ou largeur interne en conflit.
-        element.style.width = '102mm'; // Largeur physique cible du ticket
-        element.style.margin = '0'; // Pas de marge auto pour le PDF, il doit remplir la largeur de la page
+        // Appliquer largeur ticket
+        element.style.width = '72mm'
+        element.style.margin = "0";
         element.style.transform = 'none'; // Désactiver toute trxansformation de translation des animations
         if (receiptsElement) {
           receiptsElement.style.transform = 'none'; // Désactiver les animations sur .receipts
           receiptsElement.style.marginTop = '0'; // S'assurer qu'aucune marge supérieure ne pousse le contenu
         }
-
-
+        // Injecter les styles avec un scope sur #recu-pdf uniquement
         style.textContent = `
-        #recu-pdf .receipts { width: 100%; } /* Prendra 100% de 72mm */
-  #recu-pdf .receipt { width: 100%; } /* Prendra 100% de 72mm */
-        #recu-pdf {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          box-sizing: border-box;
-          font-family: 'Ubuntu', sans-serif;
-          color: #1c1c1c;
-          padding: 0; /* Réinitialiser le padding pour éviter les problèmes de double padding */
-        }
+      #recu-pdf {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        font-family: 'Ubuntu', sans-serif;
+        color: #1c1c1c;
+        padding: 0; /* Réinitialiser le padding pour éviter les problèmes de double padding */
+      }
 
       #recu-pdf * {
         box-sizing: border-box;
@@ -592,15 +378,15 @@ export default defineComponent({
         box-shadow: none; /* Supprimer l'ombre portée pour un PDF plus propre, sauf si spécifiquement désiré */
       }
  /* NOUVEAUX STYLES FLEXBOX POUR LE CONTENEUR DU LOGO */
-      #recu-pdf .logo-container {
-        width: 100%;
-        margin-bottom: 20px; /* Espace sous le logo, ajustez si besoin */
-        /* optionnel: background-color: #f0f0f0; pour voir les limites du conteneur si vous déboguez */
-      }
+#recu-pdf .logo-container {
+  width: 100%;
+  margin-bottom: 20px; /* Espace sous le logo, ajustez si besoin */
+  /* optionnel: background-color: #f0f0f0; pour voir les limites du conteneur si vous déboguez */
+}
 
-      #recu-pdf .airliner-logo {
-        width: 100%;
-      }
+#recu-pdf .airliner-logo {
+  width: 100%;
+}
 
       #recu-pdf .route {
         display: flex;
@@ -679,56 +465,45 @@ export default defineComponent({
 
         document.head.appendChild(style);
 
-        // Un petit délai pour s'assurer que les styles sont appliqués avant la capture
         setTimeout(() => {
-          // Calculer la hauteur du contenu pour le format jsPDF si vous voulez une hauteur dynamique
-          // Vous pourriez avoir besoin de rendre l'élément hors écran d'abord pour obtenir sa vraie hauteur.
-          // Pour l'instant, utilisons une hauteur fixe suffisamment grande.
-          // Une hauteur typique pour un A4 est de 297mm. Si votre ticket peut être très long,
-          // une hauteur de 500mm ou plus pourrait être nécessaire, et jsPDF paginera si elle est dépassée.
-          // Si vous voulez une SEULE et très longue page, définissez une très grande hauteur.
-          // const contentHeight = 280 + ((this.orderResponse?.orderItems.length ?? 1 )  * 10)
-          // const desiredHeight = Math.max(200, contentHeight + 20); // Minimum 200mm, ou hauteur du contenu + un peu de marge
-
-
-          const contentHeight = 200 + ((this.orderResponse?.orderItems.length ?? 1 )  * 30);
-         // Pour un test : une très grande hauteur pour s'assurer que tout le contenu est capturé
-         const desiredHeight = Math.max(200, contentHeight + 20, 3000); 
-
-
+          const contentHeight = 280 + ((this.orderResponse?.orderItems.length ?? 1 )  * 50)
+          const desiredHeight = Math.max(200, contentHeight + 20); // Minimum 200mm, ou hauteur du contenu + un peu de marge
           const opt = {
-            margin: [5, 0, 5, 0], // Marges (Haut, Gauche, Bas, Droite) en mm (ex: 5mm de chaque côté)
-            filename: `Facture_${this.getShortUuid(this.orderResponse!.id)}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
+            margin: [5, 0, 5, 0],
+            filename: `Facture_${this.getShortUuid(
+                this.orderResponse!.id
+            )}.pdf`,
+            image: { type: "jpeg", quality: 0.98 },
             html2canvas: {
-              scale: 2, // Augmentez la résolution pour une meilleure qualité
+              scale: 2,
               useCORS: true,
-              // Définir explicitement la largeur pour correspondre à la largeur du PDF afin d'éviter les problèmes de mise à l'échelle
-              width: element.offsetWidth, // Utiliser la largeur rendue de l'élément
-              windowWidth: element.offsetWidth, // Important pour une mise à l'échelle cohérente
             },
-            // IMPORTANT: Ajuster la hauteur ici.
-            // Si contentHeight est disponible et précis, utilisez-le. Sinon, utilisez une hauteur fixe généreuse.
-            jsPDF: { unit: 'mm', format: [102, desiredHeight], orientation: 'portrait' }
+            jsPDF: { unit: 'mm', format: [72, desiredHeight], orientation: 'portrait' } // <-- Exemple pour 80mm de papier
           };
+
 
           html2pdf()
               .set(opt)
               .from(element)
               .toPdf()
-              .get('pdf')
-              .then(pdf => {
-                const blob = pdf.output('blob');
+              .get("pdf")
+              .then((pdf) => {
+                const blob = pdf.output("blob");
                 const url = URL.createObjectURL(blob);
-                window.open(url, '_blank');
                 const file = new File([blob], "ticket.pdf", {
                   type: "application/pdf",
                 });
                 // window.open(url, '_blank');
                 this.launchPrint(file);
+               
+                element.style.width = "";
+                element.style.margin = "";
+              })
+              .catch((error) => {
+                console.error("Erreur lors de la génération du PDF:", error);
+                (this as any).toast.error("Erreur lors de la génération du PDF");
               })
               .finally(() => {
-                // Nettoyer les styles injectés
                 document.head.removeChild(style);
                 // Restaurer les styles originaux de l'élément
                 element.style.width = originalElementWidth;
@@ -739,9 +514,10 @@ export default defineComponent({
                   receiptsElement.style.marginTop = originalReceiptsMarginTop;
                 }
               });
-        }, 100); // Réduit le setTimeout pour une génération PDF plus rapide après l'application des styles
+        }, 100);
       }
     },
+   
 
     getShortUuid(uuid: string): string {
       return uuid.split("-")[0];
