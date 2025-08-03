@@ -533,11 +533,11 @@ export default defineComponent({
       // 2. Parcourir chaque orderItem pour ajouter sa hauteur et celle de ses ingrédients
       if (this.orderResponse && this.orderResponse.orderItems && this.orderResponse.orderItems.length > 0) {
         this.orderResponse.orderItems.forEach(item => {
-          totalHeight += 10; // Hauteur de base pour chaque orderItem
+          totalHeight += 5; // Hauteur de base pour chaque orderItem
 
           // Vérifier si l'orderItem a des ingrédients et s'il y en a
           if (item.ingredients && item.ingredients.length > 0) {
-            totalHeight += (item.ingredients.length * 5); // Ajouter 20 pour chaque ingrédient
+            totalHeight += (item.ingredients.length * 3); // Ajouter 20 pour chaque ingrédient
           }
         });
       }
@@ -545,7 +545,7 @@ export default defineComponent({
       // Vous pouvez ajouter ici des marges ou paddings supplémentaires si nécessaire,
       // ou une petite valeur de sécurité.
       // totalHeight += 10; // Exemple: ajouter 10mm de marge de sécurité
-
+      console.log("totalHeight: ", totalHeight);
       return totalHeight;
     },
 
