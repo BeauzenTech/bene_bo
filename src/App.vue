@@ -540,7 +540,7 @@ export default defineComponent({
 
         // Appliquer les styles spécifiques pour la génération de PDF
         // IMPORTANT: Définir la largeur sur l'élément principal. Supprimer toute max-width ou largeur interne en conflit.
-        element.style.width = '72mm'; // Largeur physique cible du ticket
+        element.style.width = '102mm'; // Largeur physique cible du ticket
         element.style.margin = '0'; // Pas de marge auto pour le PDF, il doit remplir la largeur de la page
         element.style.transform = 'none'; // Désactiver toute trxansformation de translation des animations
         if (receiptsElement) {
@@ -550,16 +550,18 @@ export default defineComponent({
 
 
         style.textContent = `
-      #recu-pdf {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        box-sizing: border-box;
-        font-family: 'Ubuntu', sans-serif;
-        color: #1c1c1c;
-        padding: 0; /* Réinitialiser le padding pour éviter les problèmes de double padding */
-      }
+        #recu-pdf .receipts { width: 100%; } /* Prendra 100% de 72mm */
+  #recu-pdf .receipt { width: 100%; } /* Prendra 100% de 72mm */
+        #recu-pdf {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          box-sizing: border-box;
+          font-family: 'Ubuntu', sans-serif;
+          color: #1c1c1c;
+          padding: 0; /* Réinitialiser le padding pour éviter les problèmes de double padding */
+        }
 
       #recu-pdf * {
         box-sizing: border-box;
@@ -685,8 +687,14 @@ export default defineComponent({
           // Une hauteur typique pour un A4 est de 297mm. Si votre ticket peut être très long,
           // une hauteur de 500mm ou plus pourrait être nécessaire, et jsPDF paginera si elle est dépassée.
           // Si vous voulez une SEULE et très longue page, définissez une très grande hauteur.
-          const contentHeight = 200 + ((this.orderResponse?.orderItems.length ?? 1 )  * 30)
-          const desiredHeight = Math.max(200, contentHeight + 20, 1500); // Minimum 200mm, ou hauteur du contenu + un peu de marge
+          // const contentHeight = 280 + ((this.orderResponse?.orderItems.length ?? 1 )  * 10)
+          // const desiredHeight = Math.max(200, contentHeight + 20); // Minimum 200mm, ou hauteur du contenu + un peu de marge
+
+
+          const contentHeight = 200 + ((this.orderResponse?.orderItems.length ?? 1 )  * 30);
+         // Pour un test : une très grande hauteur pour s'assurer que tout le contenu est capturé
+         const desiredHeight = Math.max(200, contentHeight + 20, 3000); 
+
 
           const opt = {
             margin: [5, 0, 5, 0], // Marges (Haut, Gauche, Bas, Droite) en mm (ex: 5mm de chaque côté)
@@ -696,12 +704,12 @@ export default defineComponent({
               scale: 2, // Augmentez la résolution pour une meilleure qualité
               useCORS: true,
               // Définir explicitement la largeur pour correspondre à la largeur du PDF afin d'éviter les problèmes de mise à l'échelle
-              // width: element.offsetWidth, // Utiliser la largeur rendue de l'élément
-              // windowWidth: element.offsetWidth, // Important pour une mise à l'échelle cohérente
+              width: element.offsetWidth, // Utiliser la largeur rendue de l'élément
+              windowWidth: element.offsetWidth, // Important pour une mise à l'échelle cohérente
             },
             // IMPORTANT: Ajuster la hauteur ici.
             // Si contentHeight est disponible et précis, utilisez-le. Sinon, utilisez une hauteur fixe généreuse.
-            jsPDF: { unit: 'mm', format: [72, desiredHeight], orientation: 'portrait' }
+            jsPDF: { unit: 'mm', format: [102, desiredHeight], orientation: 'portrait' }
           };
 
           html2pdf()
