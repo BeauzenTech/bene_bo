@@ -686,7 +686,7 @@ export default defineComponent({
           // une hauteur de 500mm ou plus pourrait être nécessaire, et jsPDF paginera si elle est dépassée.
           // Si vous voulez une SEULE et très longue page, définissez une très grande hauteur.
           const contentHeight = 200 + ((this.orderResponse?.orderItems.length ?? 1 )  * 30)
-          const desiredHeight = Math.max(200, contentHeight + 20); // Minimum 200mm, ou hauteur du contenu + un peu de marge
+          const desiredHeight = Math.max(200, contentHeight + 20, 1500); // Minimum 200mm, ou hauteur du contenu + un peu de marge
 
           const opt = {
             margin: [5, 0, 5, 0], // Marges (Haut, Gauche, Bas, Droite) en mm (ex: 5mm de chaque côté)
