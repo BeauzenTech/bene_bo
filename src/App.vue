@@ -21,7 +21,7 @@
                   <div class="receipts"  id="recu-pdf">
                     <div class="receipt">
                       <div class="logo-container">
-                        <img src="@/assets/images/logo_black.png" class="airliner-logo"/>
+                        <img src="https://res.cloudinary.com/dmxs8btps/image/upload/v1753145633/fmpnkb8e5tgp1nbeiebh.png" class="airliner-logo"/>
                       </div>
                       <div class="route">
                         <h2><strong>Livraison de pizzas {{orderResponse.restaurantID.name}}</strong></h2>
