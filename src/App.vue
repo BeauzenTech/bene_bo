@@ -466,8 +466,8 @@ export default defineComponent({
         document.head.appendChild(style);
 
         setTimeout(() => {
-          const contentHeight = 210 + ((this.orderResponse?.orderItems.length ?? 1 )  * 30)
-          const desiredHeight = Math.max(210, contentHeight + 28); // Minimum 200mm, ou hauteur du contenu + un peu de marge
+          const contentHeight = 250 + ((this.orderResponse?.orderItems.length ?? 1 )  * 30)
+          const desiredHeight = Math.max(250, contentHeight + 35); // Minimum 200mm, ou hauteur du contenu + un peu de marge
           const opt = {
             margin: [5, 0, 5, 0],
             filename: `Facture_${this.getShortUuid(
