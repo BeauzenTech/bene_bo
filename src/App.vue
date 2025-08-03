@@ -466,8 +466,10 @@ export default defineComponent({
         document.head.appendChild(style);
 
         setTimeout(() => {
-          const contentHeight = 245 + ((this.orderResponse?.orderItems.length ?? 1 )  * 30)
-          const desiredHeight = Math.max(245, contentHeight + 33); // Minimum 200mm, ou hauteur du contenu + un peu de marge
+          const contentHeight = this.getHeightTicket() + ((this.orderResponse?.orderItems.length ?? 1 )  * 30)
+          console.log("contentHeight: ", contentHeight);
+          const desiredHeight = Math.max(this.getHeightTicket(), contentHeight + 35); // Minimum 200mm, ou hauteur du contenu + un peu de marge
+          console.log("desiredHeight: ", desiredHeight);
           const opt = {
             margin: [5, 0, 5, 0],
             filename: `Facture_${this.getShortUuid(
@@ -518,6 +520,9 @@ export default defineComponent({
       }
     },
    
+    getHeightTicket(): number {
+      return 235 + (this.orderResponse?.SpecialInstructions != null ? 30 : 0 )
+    },
 
     getShortUuid(uuid: string): string {
       return uuid.split("-")[0];
