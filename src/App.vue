@@ -540,7 +540,7 @@ export default defineComponent({
 
         // Appliquer les styles spécifiques pour la génération de PDF
         // IMPORTANT: Définir la largeur sur l'élément principal. Supprimer toute max-width ou largeur interne en conflit.
-        element.style.width = '115mm'; // Largeur physique cible du ticket
+        element.style.width = '72mm'; // Largeur physique cible du ticket
         element.style.margin = '0'; // Pas de marge auto pour le PDF, il doit remplir la largeur de la page
         element.style.transform = 'none'; // Désactiver toute trxansformation de translation des animations
         if (receiptsElement) {
@@ -701,7 +701,7 @@ export default defineComponent({
             },
             // IMPORTANT: Ajuster la hauteur ici.
             // Si contentHeight est disponible et précis, utilisez-le. Sinon, utilisez une hauteur fixe généreuse.
-            jsPDF: { unit: 'mm', format: [102, desiredHeight], orientation: 'portrait' }
+            jsPDF: { unit: 'mm', format: [72, desiredHeight], orientation: 'portrait' }
           };
 
           html2pdf()
