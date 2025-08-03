@@ -21,7 +21,7 @@
                   <div class="receipts"  id="recu-pdf">
                     <div class="receipt">
                       <div class="logo-container">
-                        <img src="https://res.cloudinary.com/dmxs8btps/image/upload/v1754234590/itc7b3qrnvrhlniekvus.png" class="airliner-logo"/>
+                        <img src="https://res.cloudinary.com/dmxs8btps/image/upload/v1753145633/fmpnkb8e5tgp1nbeiebh.png" class="airliner-logo"/>
                       </div>
                       <div class="route">
                         <h2><strong>Livraison de pizzas {{orderResponse.restaurantID.name}}</strong></h2>
@@ -76,9 +76,9 @@
                               :key="item.id"
                               style="display: flex; flex-direction: column; margin-bottom: 10px;"
                           >
-                            <div style="display: flex; justify-content: space-between; font-size: 18px;">
-                              <span style=" width: 100%; max-width: 230px;"><strong>{{ item.quantity }}x {{ item.productID.name }} {{item.size}} {{item.optionSpecific}}</strong></span>
-                              <span><strong>{{ item.total_price }} CHF</strong></span>
+                            <div style="display: flex; align-items: flex-start; font-size: 15px; line-height: 1.2;">
+                              <span style=" flex: 1; margin-right: 3px; overflow-wrap: break-word; max-width: 250px;"><strong>{{ item.quantity }}x {{ item.productID.name }} {{item.size}} {{item.optionSpecific}}</strong></span>
+                              <span style="flex: 0 0 auto; text-align: right; white-space: nowrap;"><strong>{{ item.total_price }} CHF</strong></span>
                             </div>
 
                             <!-- 🧂 Ingrédients -->
@@ -99,31 +99,31 @@
 
                       <hr class="dashed-line" />
                       <div class="product-list">
-                        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
-                          <span><strong>SOUS-TOTAL: </strong></span>
-                          <span style="text-align: right;"><strong>{{(orderResponse.total_price - (orderResponse.total_price * 2.60/100)).toFixed(2) }} CHF</strong></span>
+                        <div style="display: flex; align-items: flex-start; margin: 5px 0;">
+                          <span style="flex: 1; margin-right: 3px;"><strong>SOUS-TOTAL: </strong></span>
+                          <span style="flex: 0 0 auto; text-align: right;"><strong>{{(orderResponse.total_price - (orderResponse.total_price * 2.60/100)).toFixed(2) }} CHF</strong></span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
-                          <span><strong>2.60% TVA </strong></span>
-                          <span style="text-align: right;"><strong>{{(orderResponse.total_price * 2.60/100).toFixed(2)}} CHF</strong></span>
+                        <div style="display: flex; align-items: flex-start; margin: 5px 0;">
+                          <span style="flex: 1; margin-right: 3px;"><strong>2.60% TVA </strong></span>
+                          <span style="flex: 0 0 auto; text-align: right;"><strong>{{(orderResponse.total_price * 2.60/100).toFixed(2)}} CHF</strong></span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
-                          <span><strong>RABAIS: </strong></span>
-                          <span style="text-align: right;" v-if="orderResponse.discountValue != ''"><strong>{{  orderResponse.discountValue ?? "-" }} {{ orderResponse.discountType === 'fixed' ? 'CHF' : '%' }}</strong></span>
-                          <span style="text-align: right;" v-else><strong>0 CHF</strong></span>
+                        <div style="display: flex; align-items: flex-start; margin: 5px 0;">
+                          <span style="flex: 1; margin-right: 3px;"><strong>RABAIS: </strong></span>
+                          <span style="flex: 0 0 auto; text-align: right;" v-if="orderResponse.discountValue != ''"><strong>{{  orderResponse.discountValue ?? "-" }} {{ orderResponse.discountType === 'fixed' ? 'CHF' : '%' }}</strong></span>
+                          <span style="flex: 0 0 auto; text-align: right;" v-else><strong>0 CHF</strong></span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
-                          <span><strong>FRAIS SUPPLÉMENTAIRES: </strong></span>
-                          <span style="text-align: right;" v-if="orderResponse.restMinimumOrder != ''"><strong>{{  orderResponse.restMinimumOrder ?? "-" }} CHF</strong></span>
-                          <span style="text-align: right;" v-else><strong>0 CHF</strong></span>
+                        <div style="display: flex; margin: 5px 0;">
+                          <span style="flex: 1; margin-right: 5px;"><strong>FRAIS SUPP.: </strong></span>
+                          <span style="flex-shrink: 0; text-align: right;" v-if="orderResponse.restMinimumOrder != ''"><strong>{{  orderResponse.restMinimumOrder ?? "-" }} CHF</strong></span>
+                          <span style="flex-shrink: 0; text-align: right;" v-else><strong>0 CHF</strong></span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
-                          <span><strong>TOTAL BRUT:  </strong></span>
-                          <span style="text-align: right;"><strong>{{ orderResponse.total_price }} CHF</strong></span>
+                        <div style="display: flex; align-items: flex-start; margin: 5px 0;">
+                          <span style="flex: 1; margin-right: 3px;"><strong>TOTAL BRUT:  </strong></span>
+                          <span style="flex: 0 0 auto; text-align: right;"><strong>{{ orderResponse.total_price }} CHF</strong></span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin: 5px 0;" v-if="methodePaiementSelected.length > 0">
-                          <span>Méthode de paiements :  </span>
-                          <span style="text-align: right;">{{ methodePaiementSelected[0].libelle }}</span>
+                        <div style="display: flex; align-items: flex-start; margin: 5px 0;" v-if="methodePaiementSelected.length > 0">
+                          <span style="flex: 0 0 auto; margin-right: 3px; ">Paiement par :  </span>
+                          <span style="flex: 1; text-align: right; line-height: 1.1;">{{ methodePaiementSelected[0].libelle }}</span>
                         </div>
                       </div>
                       <hr class="dashed-line" />
@@ -369,7 +369,7 @@ export default defineComponent({
       }
 
       #recu-pdf .receipt {
-        padding: 25px 5px; /* Padding réduit pour un ajustement plus serré sur un ticket, ajuster au besoin */
+        padding: 18px 7px; /* Padding réduit pour un ajustement plus serré sur un ticket, ajuster au besoin */
         text-align: left;
         min-height: 200px; /* Garder min-height ou ajuster */
         width: 100%; /* Faire en sorte que le contenu réel du ticket prenne 100% de la largeur de #recu-pdf (102mm) */
@@ -437,7 +437,7 @@ export default defineComponent({
         padding: 2px 0;
       }
       #recu-pdf .product-list span {
-        font-size: 18px; /* Assurer la cohérence */
+        font-size: 15px; /* Assurer la cohérence */
       }
 
       #recu-pdf .barcode-footer {
@@ -471,7 +471,7 @@ export default defineComponent({
           const desiredHeight = Math.max(this.getHeightTicket(), contentHeight + 35); // Minimum 200mm, ou hauteur du contenu + un peu de marge
           console.log("desiredHeight: ", desiredHeight);
           const opt = {
-            margin: [5, 0, 5, 0],
+            margin: [2, 1, 2, 1],
             filename: `Facture_${this.getShortUuid(
                 this.orderResponse!.id
             )}.pdf`,
@@ -480,7 +480,7 @@ export default defineComponent({
               scale: 2,
               useCORS: true,
             },
-            jsPDF: { unit: 'mm', format: [72, desiredHeight], orientation: 'portrait' } // <-- Exemple pour 80mm de papier
+            jsPDF: { unit: 'mm', format: [80, desiredHeight], orientation: 'portrait' } // <-- Exemple pour 80mm de papier
           };
 
 
