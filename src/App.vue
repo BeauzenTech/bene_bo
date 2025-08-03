@@ -21,7 +21,7 @@
                   <div class="receipts"  id="recu-pdf">
                     <div class="receipt">
                       <div class="logo-container">
-                        <img src="https://res.cloudinary.com/dmxs8btps/image/upload/v1753145633/fmpnkb8e5tgp1nbeiebh.png" class="airliner-logo"/>
+                        <img src="https://res.cloudinary.com/dmxs8btps/image/upload/v1754257024/axxnjus7lrowcmlcssxp.png" class="airliner-logo"/>
                       </div>
                       <div class="route">
                         <h2><strong>Livraison de pizzas {{orderResponse.restaurantID.name}}</strong></h2>
@@ -521,8 +521,34 @@ export default defineComponent({
     },
    
     getHeightTicket(): number {
-      return 235 + (this.orderResponse?.SpecialInstructions != null ? 30 : 0 )
+      let totalHeight = 235; // Hauteur de base pour les éléments fixes du ticket
+
+      // 1. Ajouter la hauteur pour les instructions spéciales (si présentes)
+      // Note: Vous avez orderResponse?.SpecialInstructions != null
+      // Il est souvent plus sûr de vérifier si la chaîne n'est pas vide et n'est pas juste des espaces
+      if (this.orderResponse?.SpecialInstructions && this.orderResponse.SpecialInstructions.trim() !== '') {
+        totalHeight += 30;
+      }
+
+      // 2. Parcourir chaque orderItem pour ajouter sa hauteur et celle de ses ingrédients
+      if (this.orderResponse && this.orderResponse.orderItems && this.orderResponse.orderItems.length > 0) {
+        this.orderResponse.orderItems.forEach(item => {
+          totalHeight += 30; // Hauteur de base pour chaque orderItem
+
+          // Vérifier si l'orderItem a des ingrédients et s'il y en a
+          if (item.ingredients && item.ingredients.length > 0) {
+            totalHeight += (item.ingredients.length * 20); // Ajouter 20 pour chaque ingrédient
+          }
+        });
+      }
+
+      // Vous pouvez ajouter ici des marges ou paddings supplémentaires si nécessaire,
+      // ou une petite valeur de sécurité.
+      // totalHeight += 10; // Exemple: ajouter 10mm de marge de sécurité
+
+      return totalHeight;
     },
+
 
     getShortUuid(uuid: string): string {
       return uuid.split("-")[0];
