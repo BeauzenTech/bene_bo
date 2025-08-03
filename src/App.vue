@@ -112,7 +112,7 @@
                           <span style="flex: 0 0 auto; text-align: right;" v-if="orderResponse.discountValue != ''"><strong>{{  orderResponse.discountValue ?? "-" }} {{ orderResponse.discountType === 'fixed' ? 'CHF' : '%' }}</strong></span>
                           <span style="flex: 0 0 auto; text-align: right;" v-else><strong>0 CHF</strong></span>
                         </div>
-                        <div style="display: flex; margin: 5px 0;">
+                        <div style="display: flex; margin: 5px 0;" v-if="orderResponse.restMinimumOrder != ''">
                           <span style="flex: 1; margin-right: 5px;"><strong>FRAIS SUPP.: </strong></span>
                           <span style="flex-shrink: 0; text-align: right;" v-if="orderResponse.restMinimumOrder != ''"><strong>{{  orderResponse.restMinimumOrder ?? "-" }} CHF</strong></span>
                           <span style="flex-shrink: 0; text-align: right;" v-else><strong>0 CHF</strong></span>
@@ -405,7 +405,7 @@ export default defineComponent({
 
       #recu-pdf .route h2 {
         font-weight: 100;
-        font-size: 18px; /* Taille de police légèrement plus petite pour le ticket */
+        font-size: 15px; /* Taille de police légèrement plus petite pour le ticket */
         margin: 0;
         line-height: 1.3; /* Ajuster la hauteur de ligne pour une meilleure lisibilité */
       }
