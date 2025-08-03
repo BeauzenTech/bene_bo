@@ -1077,15 +1077,15 @@ export default defineComponent({
         box-shadow: none; /* Supprimer l'ombre portée pour un PDF plus propre, sauf si spécifiquement désiré */
       }
  /* NOUVEAUX STYLES FLEXBOX POUR LE CONTENEUR DU LOGO */
-#recu-pdf .logo-container {
-  width: 100%;
-  margin-bottom: 20px; /* Espace sous le logo, ajustez si besoin */
-  /* optionnel: background-color: #f0f0f0; pour voir les limites du conteneur si vous déboguez */
-}
+      #recu-pdf .logo-container {
+        width: 100%;
+        margin-bottom: 20px; /* Espace sous le logo, ajustez si besoin */
+        /* optionnel: background-color: #f0f0f0; pour voir les limites du conteneur si vous déboguez */
+      }
 
-#recu-pdf .airliner-logo {
-  width: 100%;
-}
+      #recu-pdf .airliner-logo {
+        width: 100%;
+      }
 
       #recu-pdf .route {
         display: flex;

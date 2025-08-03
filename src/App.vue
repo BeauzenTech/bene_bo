@@ -131,7 +131,6 @@
                         <h2><strong>Trancher: {{orderResponse.intructionOrder.isTrancher ? 'OUI': 'NON'}}</strong></h2>
                         <h2><strong>Couverts: {{orderResponse.intructionOrder.quantityCouverts}}</strong></h2>
                         <h2><strong>{{orderResponse.SpecialInstructions}}</strong></h2>
-
                       </div>
 
                       <!--                        <div class="barcode-footer">-->
@@ -316,6 +315,7 @@ export default defineComponent({
       const element = document.getElementById("recu-pdf");
       if ((this as any).orderResponse && element) {
         const style = document.createElement("style");
+
         const originalElementWidth = element.style.width;
         const originalElementMargin = element.style.margin;
         const originalElementTransform = element.style.transform; // Capture la transformation d'animation
@@ -328,11 +328,9 @@ export default defineComponent({
           originalReceiptsMarginTop = receiptsElement.style.marginTop;
         }
 
-
-
         // Appliquer largeur ticket
-        element.style.width = "100mm";
-        element.style.margin = "0 auto";
+        element.style.width = '72mm'
+        element.style.margin = "0";
         element.style.transform = 'none'; // Désactiver toute trxansformation de translation des animations
         if (receiptsElement) {
           receiptsElement.style.transform = 'none'; // Désactiver les animations sur .receipts
@@ -469,7 +467,7 @@ export default defineComponent({
 
         setTimeout(() => {
           const contentHeight = 280 + ((this.orderResponse?.orderItems.length ?? 1 )  * 50)
-          const desiredHeight = Math.max(60, contentHeight + 20); // Minimum 200mm, ou hauteur du contenu + un peu de marge
+          const desiredHeight = Math.max(200, contentHeight + 20); // Minimum 200mm, ou hauteur du contenu + un peu de marge
           const opt = {
             margin: [5, 0, 5, 0],
             filename: `Facture_${this.getShortUuid(
@@ -480,7 +478,7 @@ export default defineComponent({
               scale: 2,
               useCORS: true,
             },
-            jsPDF: { unit: "mm", format: [102, desiredHeight], orientation: "portrait" }, // 102mm largeur, 200mm hauteur (à ajuster)
+            jsPDF: { unit: 'mm', format: [72, desiredHeight], orientation: 'portrait' } // <-- Exemple pour 80mm de papier
           };
 
 
@@ -492,6 +490,7 @@ export default defineComponent({
               .then((pdf) => {
                 const blob = pdf.output("blob");
                 const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
                 const file = new File([blob], "ticket.pdf", {
                   type: "application/pdf",
                 });
@@ -508,8 +507,16 @@ export default defineComponent({
               })
               .finally(() => {
                 document.head.removeChild(style);
+                // Restaurer les styles originaux de l'élément
+                element.style.width = originalElementWidth;
+                element.style.margin = originalElementMargin;
+                element.style.transform = originalElementTransform;
+                if (receiptsElement) {
+                  receiptsElement.style.transform = originalReceiptsTransform;
+                  receiptsElement.style.marginTop = originalReceiptsMarginTop;
+                }
               });
-        }, 500);
+        }, 100);
       }
     },
 
