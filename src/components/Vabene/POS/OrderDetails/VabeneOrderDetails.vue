@@ -946,7 +946,7 @@ import {PaymentStatus} from "@/enums/orderPaiementMethode.enum";
 import {Modal} from "bootstrap";
 import {RestaurantEnum} from "../../../../enums/restaurant.enum";
 import { formatInTimeZone } from "date-fns-tz";
-import { CategorieModel } from "./models/categorie.model";
+import { CategorieModel } from "@/models/categorie.model";
 
 
 export default defineComponent({

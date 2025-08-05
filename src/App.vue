@@ -97,7 +97,7 @@
 
 
 
-                      <hr class="dashed-line" />
+                      <span style=" margin: 1rem 0; width: 100%; color: #000;">------------------------------------------------------------------------</span>
                       <div class="product-list">
                         <div style="display: flex; align-items: flex-start; margin: 5px 0;">
                           <span style="flex: 1; margin-right: 3px;"><strong>SOUS-TOTAL: </strong></span>
@@ -126,7 +126,8 @@
                           <span style="flex: 1; text-align: right; line-height: 1.1;">{{ methodePaiementSelected[0].libelle }}</span>
                         </div>
                       </div>
-                      <hr class="dashed-line" />
+                      <span style=" margin: 1rem 0; width: 100%; color: #000;">------------------------------------------------------------------------</span>
+
                       <div class="route">
                         <h2><strong>Trancher: {{orderResponse.intructionOrder.isTrancher ? 'OUI': 'NON'}}</strong></h2>
                         <h2><strong>Couverts: {{orderResponse.intructionOrder.quantityCouverts}}</strong></h2>
@@ -393,8 +394,7 @@ export default defineComponent({
       #recu-pdf .receipt {
         padding: 18px 7px; /* Padding réduit pour un ajustement plus serré sur un ticket, ajuster au besoin */
         text-align: left;
-        position: relative;
-        left: 3em;
+      
         min-height: 200px; /* Garder min-height ou ajuster */
         width: 100%; /* Faire en sorte que le contenu réel du ticket prenne 100% de la largeur de #recu-pdf (102mm) */
         background-color: #fff;
@@ -422,7 +422,7 @@ export default defineComponent({
 
       .dashed-line {
         border: none;
-        border-top: 2px dashed #333;
+        border-top: 2px dashed #010101;
         margin: 1rem 0;
         width: 100%;
       }
