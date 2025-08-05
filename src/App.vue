@@ -88,7 +88,7 @@
                                   :key="ingredient.id"
                                   class="text-decoration-none list-unstyled"
                               >
-                                <strong>x{{ ingredient.quantite }} {{ ingredient.name }} {{extraireCmValeur(ingredient.size)}}</strong>
+                                <strong>x{{ ingredient.quantite }} {{ ingredient.name }} {{extraireCmValeur(ingredient.size, item.productID.categorieID?.id)}}</strong>
                               </li>
                             </ul>
                           </div>
@@ -193,6 +193,7 @@ import html2pdf from "html2pdf.js";
 import { OrderStatus } from "@/enums/orderStatut.enum";
 import { PaymentStatus } from "@/enums/orderPaiementMethode.enum";
 import { RestaurantEnum } from "./enums/restaurant.enum";
+import { CategorieModel } from "./models/categorie.model";
 
 export default defineComponent({
   name: "App",
@@ -268,9 +269,15 @@ export default defineComponent({
       // Si les parenthèses sont vides ou n'existent pas, on retourne une chaîne vide.
       return "";
     },
-    extraireCmValeur(texte: string): string | null {
-      const match = texte.match(/\b\d+cm\b/);
-      return match ? this.extraireParenthese(match[0]) : null;
+    extraireCmValeur(texte: string, categorie: CategorieModel): string | null {
+      if(categorie.id === 'fd4a2c4e-49ef-48a5-9937-6f3a51122f9e'){
+        return ""
+      }
+      else{
+        const match = texte.match(/\b\d+cm\b/);
+        return match ? this.extraireParenthese(match[0]) : null;
+      }
+     
     },
     getMethodePaiementParType(
         liste: MethodePaiementModel[],
@@ -439,7 +446,7 @@ export default defineComponent({
 
       #recu-pdf .product-ticket ul {
         margin: 2px 0 0 5px; /* Ajustement de la marge de la liste d'ingrédients */
-        font-size: 12px; /* Taille de police plus petite pour les ingrédients */
+        font-size: 18px; /* Taille de police plus petite pour les ingrédients */
         color: #555;
       }
 
@@ -448,11 +455,11 @@ export default defineComponent({
       }
 
       #recu-pdf .product-list div {
-        font-size: 18px ; /* Taille de police pour les lignes du résumé */
+        font-size: 18px; /* Taille de police pour les lignes du résumé */
         padding: 2px 0;
       }
       #recu-pdf .product-list span {
-        font-size: 18px !important; /* Assurer la cohérence */
+        font-size: 15px; /* Assurer la cohérence */
       }
 
       #recu-pdf .barcode-footer {
