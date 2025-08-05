@@ -88,7 +88,7 @@
                                   :key="ingredient.id"
                                   class="text-decoration-none list-unstyled"
                               >
-                                <strong>x{{ ingredient.quantite }} {{ ingredient.name }} ({{extraireCmValeur(ingredient.size)}})</strong>
+                                <strong>x{{ ingredient.quantite }} {{ ingredient.name }} {{extraireCmValeur(ingredient.size)}}</strong>
                               </li>
                             </ul>
                           </div>
