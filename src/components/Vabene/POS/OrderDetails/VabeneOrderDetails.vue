@@ -1090,7 +1090,7 @@ export default defineComponent({
       }
 
       #recu-pdf .receipt {
-        padding: 25px 15px; /* Padding réduit pour un ajustement plus serré sur un ticket, ajuster au besoin */
+        padding: 25px 15px 15px 3em; /* Padding réduit pour un ajustement plus serré sur un ticket, ajuster au besoin */
         text-align: left;
         min-height: 200px; /* Garder min-height ou ajuster */
         width: 100%; /* Faire en sorte que le contenu réel du ticket prenne 100% de la largeur de #recu-pdf (102mm) */
