@@ -439,7 +439,7 @@ export default defineComponent({
 
       #recu-pdf .product-ticket ul {
         margin: 2px 0 0 5px; /* Ajustement de la marge de la liste d'ingrédients */
-        font-size: 18px; /* Taille de police plus petite pour les ingrédients */
+        font-size: 14px; /* Taille de police plus petite pour les ingrédients */
         color: #555;
       }
 
@@ -452,7 +452,7 @@ export default defineComponent({
         padding: 2px 0;
       }
       #recu-pdf .product-list span {
-        font-size: 15px; /* Assurer la cohérence */
+        font-size: 18px; /* Assurer la cohérence */
       }
 
       #recu-pdf .barcode-footer {
