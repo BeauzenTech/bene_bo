@@ -253,9 +253,24 @@ export default defineComponent({
     convertDateCreate(date: string): string {
       return UserGeneralKey.formatDateToFrenchLocale(date);
     },
+    extraireParenthese(texte: string): string {
+      // L'expression régulière cherche des parenthèses qui contiennent au moins un caractère
+      // (un chiffre, un espace, une lettre, etc.).
+      const regexAvecContenu = /\([^)]+\)/;
+      
+      const match = texte.match(regexAvecContenu);
+
+      // Si une correspondance est trouvée, on retourne la chaîne entière (par exemple "(28 cm)").
+      if (match) {
+        return "("+match[0]+")";
+      }
+      
+      // Si les parenthèses sont vides ou n'existent pas, on retourne une chaîne vide.
+      return "";
+    },
     extraireCmValeur(texte: string): string | null {
       const match = texte.match(/\b\d+cm\b/);
-      return match ? match[0] : null;
+      return match ? this.extraireParenthese(match[0]) : null;
     },
     getMethodePaiementParType(
         liste: MethodePaiementModel[],

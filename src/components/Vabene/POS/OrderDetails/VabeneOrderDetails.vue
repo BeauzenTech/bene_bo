@@ -856,7 +856,7 @@
                                     :key="ingredient.id"
                                     class="text-decoration-none list-unstyled"
                                 >
-                                  <strong>x{{ ingredient.quantite }} {{ ingredient.name }} ({{extraireCmValeur(ingredient.size)}})</strong>
+                                  <strong>x{{ ingredient.quantite }} {{ ingredient.name }} {{extraireCmValeur(ingredient.size) }}</strong>
                                 </li>
                               </ul>
                             </div>
@@ -995,9 +995,24 @@ export default defineComponent({
   },
 
   methods: {
+        extraireParenthese(texte: string): string {
+      // L'expression régulière cherche des parenthèses qui contiennent au moins un caractère
+      // (un chiffre, un espace, une lettre, etc.).
+      const regexAvecContenu = /\([^)]+\)/;
+      
+      const match = texte.match(regexAvecContenu);
+
+      // Si une correspondance est trouvée, on retourne la chaîne entière (par exemple "(28 cm)").
+      if (match) {
+        return "("+match[0]+")";
+      }
+      
+      // Si les parenthèses sont vides ou n'existent pas, on retourne une chaîne vide.
+      return "";
+    },
     extraireCmValeur(texte: string): string | null {
       const match = texte.match(/\b\d+cm\b/);
-      return match ? match[0] : null;
+      return match ? this.extraireParenthese(match[0]) : null;
     },
     getLast6Digits(uuid: string): string {
       const parts = uuid.split('-');
