@@ -394,7 +394,7 @@ export default defineComponent({
         padding: 18px 7px; /* Padding réduit pour un ajustement plus serré sur un ticket, ajuster au besoin */
         text-align: left;
         position: relative;
-        left: 3em
+        left: 3em;
         min-height: 200px; /* Garder min-height ou ajuster */
         width: 100%; /* Faire en sorte que le contenu réel du ticket prenne 100% de la largeur de #recu-pdf (102mm) */
         background-color: #fff;
