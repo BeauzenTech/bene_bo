@@ -76,13 +76,13 @@
                               :key="item.id"
                               style="display: flex; flex-direction: column; margin-bottom: 10px;"
                           >
-                            <div style="display: flex; align-items: flex-start; font-size: 15px; line-height: 1.2;">
+                            <div style="display: flex; align-items: flex-start; font-size: 18px; line-height: 1.2;">
                               <span style=" flex: 1; margin-right: 3px; overflow-wrap: break-word; max-width: 250px;"><strong>{{ item.quantity }}x {{ item.productID.name }} {{item.size}} {{item.optionSpecific}}</strong></span>
                               <span style="flex: 0 0 auto; text-align: right; white-space: nowrap;"><strong>{{ item.total_price }} CHF</strong></span>
                             </div>
 
                             <!-- 🧂 Ingrédients -->
-                            <ul v-if="item?.ingredients && item.ingredients?.length > 0" style="margin: 2px 0 0 10px; font-size: 18px; color: #555;">
+                            <ul v-if="item?.ingredients && item.ingredients?.length > 0" style="margin: 2px 0 0 10px; font-size: 14px; color: #555;">
                               <li
                                   v-for="ingredient in item.ingredients"
                                   :key="ingredient.id"
@@ -439,7 +439,7 @@ export default defineComponent({
 
       #recu-pdf .product-ticket ul {
         margin: 2px 0 0 5px; /* Ajustement de la marge de la liste d'ingrédients */
-        font-size: 14px; /* Taille de police plus petite pour les ingrédients */
+        font-size: 12px; /* Taille de police plus petite pour les ingrédients */
         color: #555;
       }
 
@@ -448,11 +448,11 @@ export default defineComponent({
       }
 
       #recu-pdf .product-list div {
-        font-size: 18px; /* Taille de police pour les lignes du résumé */
+        font-size: 18px ; /* Taille de police pour les lignes du résumé */
         padding: 2px 0;
       }
       #recu-pdf .product-list span {
-        font-size: 18px; /* Assurer la cohérence */
+        font-size: 18px !important; /* Assurer la cohérence */
       }
 
       #recu-pdf .barcode-footer {
@@ -536,7 +536,7 @@ export default defineComponent({
     },
    
     getHeightTicket(): number {
-      return 235 + (this.orderResponse?.SpecialInstructions != null ? 30 : 0 ) + this.getHeightTicketWithIngredients()
+      return 235 + (this.orderResponse?.SpecialInstructions != null ? 20 : 0 ) + this.getHeightTicketWithIngredients()
     },
     getHeightTicketWithIngredients(): number {
       let baseHeight = 0
