@@ -548,7 +548,7 @@ export default defineComponent({
     },
    
     getHeightTicket(): number {
-      return 235 + (this.orderResponse?.SpecialInstructions != null ? 12 : 0 ) + this.getHeightTicketWithIngredients()
+      return 235 + (this.orderResponse?.SpecialInstructions != null ? 20 : 0 ) + this.getHeightTicketWithIngredients()
     },
     getHeightTicketWithIngredients(): number {
       let baseHeight = 0
