@@ -19,7 +19,7 @@
               <main class="ticket-system" >
                 <div class="receipts-wrapper" >
                   <div class="receipts"  id="recu-pdf">
-                    <div class="receipt">
+                    <div class="receipt" style="padding-left: 3em;">
                       <div class="logo-container">
                         <img src="https://res.cloudinary.com/dmxs8btps/image/upload/v1753145633/fmpnkb8e5tgp1nbeiebh.png" class="airliner-logo"/>
                       </div>

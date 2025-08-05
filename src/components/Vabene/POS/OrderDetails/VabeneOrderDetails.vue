@@ -856,7 +856,7 @@
                                     :key="ingredient.id"
                                     class="text-decoration-none list-unstyled"
                                 >
-                                  <strong>x{{ ingredient.quantite }} {{ ingredient.name }} {{extraireCmValeur(ingredient.size) }}</strong>
+                                  <strong>x{{ ingredient.quantite }} {{ ingredient.name }} {{extraireCmValeur(ingredient.size, item.productID.categorieID?.id)}}</strong>
                                 </li>
                               </ul>
                             </div>
@@ -946,6 +946,7 @@ import {PaymentStatus} from "@/enums/orderPaiementMethode.enum";
 import {Modal} from "bootstrap";
 import {RestaurantEnum} from "../../../../enums/restaurant.enum";
 import { formatInTimeZone } from "date-fns-tz";
+import { CategorieModel } from "./models/categorie.model";
 
 
 export default defineComponent({
@@ -1010,9 +1011,15 @@ export default defineComponent({
       // Si les parenthèses sont vides ou n'existent pas, on retourne une chaîne vide.
       return "";
     },
-    extraireCmValeur(texte: string): string | null {
-      const match = texte.match(/\b\d+cm\b/);
-      return match ? this.extraireParenthese(match[0]) : null;
+    extraireCmValeur(texte: string, categorie: CategorieModel): string | null {
+      if(categorie.id === 'fd4a2c4e-49ef-48a5-9937-6f3a51122f9e'){
+        return ""
+      }
+      else{
+        const match = texte.match(/\b\d+cm\b/);
+        return match ? this.extraireParenthese(match[0]) : null;
+      }
+     
     },
     getLast6Digits(uuid: string): string {
       const parts = uuid.split('-');
