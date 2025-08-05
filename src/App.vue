@@ -19,9 +19,9 @@
               <main class="ticket-system" >
                 <div class="receipts-wrapper" >
                   <div class="receipts"  id="recu-pdf">
-                    <div class="receipt" style="padding-left: 3em;">
+                    <div class="receipt">
                       <div class="logo-container">
-                        <img src="https://res.cloudinary.com/dmxs8btps/image/upload/v1753145633/fmpnkb8e5tgp1nbeiebh.png" class="airliner-logo"/>
+                        <img src="https://pizzeriavabene.ch/wp-content/uploads/2023/10/LOGO_VABENE.png" class="airliner-logo"/>
                       </div>
                       <div class="route">
                         <h2><strong>Livraison de pizzas {{orderResponse.restaurantID.name}}</strong></h2>
@@ -391,7 +391,7 @@ export default defineComponent({
       }
 
       #recu-pdf .receipt {
-        padding: 18px 7px; /* Padding réduit pour un ajustement plus serré sur un ticket, ajuster au besoin */
+        padding: 18px 7px 18px 3em; /* Padding réduit pour un ajustement plus serré sur un ticket, ajuster au besoin */
         text-align: left;
         min-height: 200px; /* Garder min-height ou ajuster */
         width: 100%; /* Faire en sorte que le contenu réel du ticket prenne 100% de la largeur de #recu-pdf (102mm) */
