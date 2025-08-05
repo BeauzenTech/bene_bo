@@ -31,7 +31,8 @@
                         <h2><strong>{{orderResponse.restaurantID.phoneNumber}}</strong></h2>
                         <h2><strong>{{orderResponse.restaurantID.taxe}}</strong></h2>
                       </div>
-                      <hr class="dashed-line" />
+                      <span style=" margin: 1rem 0; width: 100%; color: #000;">------------------------------------------------------------------------</span>
+
 
                       <div class="route">
                         <h2><strong>{{orderResponse.guest_first_name}} {{orderResponse.guest_last_name}}</strong></h2>
@@ -41,7 +42,8 @@
                         <h2><strong>{{orderResponse.guest_email}}</strong></h2>
                       </div>
 
-                      <hr class="dashed-line" />
+                      <span style=" margin: 1rem 0; width: 100%; color: #000;">------------------------------------------------------------------------</span>
+
 
                       <div class="route">
                         <h2 v-if="orderTypeSelected.length > 0"><strong>{{orderTypeSelected[0].libelle}}</strong></h2>
@@ -51,7 +53,8 @@
                         <!--                            <h2><strong>{{getLast6Digits(orderResponse.customer.id)}}</strong></h2>-->
 
                       </div>
-                      <hr class="dashed-line" />
+                      <span style=" margin: 1rem 0; width: 100%; color: #000;">------------------------------------------------------------------------</span>
+
                       <!--                          <div class="product-list">-->
                       <!--                            <div v-for="item in orderResponse.orderItems" :key="item.id" style="display: flex; justify-content: space-between; margin: 5px 0;">-->
                       <!--                              <span><strong>{{item.quantity}}x {{ item.productID.name }}</strong></span>-->
@@ -545,7 +548,7 @@ export default defineComponent({
     },
    
     getHeightTicket(): number {
-      return 235 + (this.orderResponse?.SpecialInstructions != null ? 20 : 0 ) + this.getHeightTicketWithIngredients()
+      return 235 + (this.orderResponse?.SpecialInstructions != null ? 12 : 0 ) + this.getHeightTicketWithIngredients()
     },
     getHeightTicketWithIngredients(): number {
       let baseHeight = 0
