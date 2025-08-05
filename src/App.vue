@@ -24,32 +24,32 @@
                         <img src="https://res.cloudinary.com/dmxs8btps/image/upload/v1753145633/fmpnkb8e5tgp1nbeiebh.png" class="airliner-logo"/>
                       </div>
                       <div class="route">
-                        <h2 style="font-weight: 600; font-size: 15px;"><strong>Livraison de pizzas {{orderResponse.restaurantID.name}}</strong></h2>
-                        <h2 style="font-weight: 600; font-size: 15px;"><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'Va Bene pizza sàrl Morges' : 'Pizzeria Va Bene SA '}}</strong></h2>
-                        <h2 style="font-weight: 600; font-size: 15px;"><strong>{{orderResponse.restaurantID.address}}</strong></h2>
-                        <h2 style="font-weight: 600; font-size: 15px;"><strong>{{orderResponse.restaurantID.codePostalID.numeroPostal}} {{orderResponse.restaurantID.name}}</strong> </h2>
-                        <h2 style="font-weight: 600; font-size: 15px;"><strong>{{orderResponse.restaurantID.phoneNumber}}</strong></h2>
-                        <h2 style="font-weight: 600; font-size: 15px;"><strong>{{orderResponse.restaurantID.taxe}}</strong></h2>
+                        <h2><strong>Livraison de pizzas {{orderResponse.restaurantID.name}}</strong></h2>
+                        <h2><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'Va Bene pizza sàrl Morges' : 'Pizzeria Va Bene SA '}}</strong></h2>
+                        <h2><strong>{{orderResponse.restaurantID.address}}</strong></h2>
+                        <h2><strong>{{orderResponse.restaurantID.codePostalID.numeroPostal}} {{orderResponse.restaurantID.name}}</strong> </h2>
+                        <h2><strong>{{orderResponse.restaurantID.phoneNumber}}</strong></h2>
+                        <h2><strong>{{orderResponse.restaurantID.taxe}}</strong></h2>
                       </div>
                       <span style=" margin: 1rem 0; width: 100%; color: #000;">------------------------------------------------------------------------</span>
 
 
                       <div class="route">
-                        <h2 style="font-weight: 600; font-size: 15px;"><strong>{{orderResponse.guest_first_name}} {{orderResponse.guest_last_name}}</strong></h2>
-                        <h2 style="font-weight: 600; font-size: 15px;"><strong>{{orderResponse.npa ?? ''}} {{orderResponse.localite ?? ''}}</strong></h2>
-                        <h2 style="font-weight: 600; font-size: 15px;"><strong>{{orderResponse.rue }} - {{orderResponse.numberRue}}</strong></h2>
-                        <h2 style="font-weight: 600; font-size: 15px;"><strong>{{orderResponse.guest_phone_number}}</strong></h2>
-                        <h2 style="font-weight: 600; font-size: 15px;"><strong>{{orderResponse.guest_email}}</strong></h2>
+                        <h2><strong>{{orderResponse.guest_first_name}} {{orderResponse.guest_last_name}}</strong></h2>
+                        <h2><strong>{{orderResponse.npa ?? ''}} {{orderResponse.localite ?? ''}}</strong></h2>
+                        <h2><strong>{{orderResponse.rue }} - {{orderResponse.numberRue}}</strong></h2>
+                        <h2><strong>{{orderResponse.guest_phone_number}}</strong></h2>
+                        <h2><strong>{{orderResponse.guest_email}}</strong></h2>
                       </div>
 
                       <span style=" margin: 1rem 0; width: 100%; color: #000;">------------------------------------------------------------------------</span>
 
 
                       <div class="route">
-                        <h2 v-if="orderTypeSelected.length > 0" style="font-weight: 600; font-size: 15px;"><strong>{{orderTypeSelected[0].libelle}}</strong></h2>
-                        <h2 style="font-weight: 600; font-size: 15px;"><strong>{{orderResponse.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'TOUT DE SUITE'}}</strong></h2>
-                        <h2 style="font-weight: 600; font-size: 15px;" v-if="orderResponse.DeliveryPreference != 'immediat'"><strong>{{convertDateCreate(orderResponse.timeOrder) ?? ''}} </strong></h2>
-                        <h2 style="font-weight: 600; font-size: 15px;"><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ orderResponse.nif : 'VBP'+ orderResponse.nif}}</strong></h2>
+                        <h2 v-if="orderTypeSelected.length > 0" style="font-weight: 600; font-size: 18px;"><strong>{{orderTypeSelected[0].libelle}}</strong></h2>
+                        <h2><strong>{{orderResponse.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'TOUT DE SUITE'}}</strong></h2>
+                        <h2 v-if="orderResponse.DeliveryPreference != 'immediat'"><strong>{{convertDateCreate(orderResponse.timeOrder) ?? ''}} </strong></h2>
+                        <h2><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ orderResponse.nif : 'VBP'+ orderResponse.nif}}</strong></h2>
                         <!--                            <h2><strong>{{getLast6Digits(orderResponse.customer.id)}}</strong></h2>-->
 
                       </div>
@@ -431,7 +431,7 @@ export default defineComponent({
       }
 
       #recu-pdf .route h2 {
-        font-weight: 600;
+        font-weight: 400;
         font-size: 15px; /* Taille de police légèrement plus petite pour le ticket */
         margin: 0;
         line-height: 1.3; /* Ajuster la hauteur de ligne pour une meilleure lisibilité */
