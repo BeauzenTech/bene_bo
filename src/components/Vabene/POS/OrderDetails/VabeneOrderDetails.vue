@@ -156,7 +156,7 @@
                 Numéro de téléphone
               </div>
               <span class="d-block text-paragraph fs-md-15 fs-lg-16">
-                 {{orderResponse.guest_phone_number || '-'}}
+                 {{orderResponse.guest_phone_number !== null ? '+41' + orderResponse.guest_phone_number : '-'}}
               </span>
             </li>
 

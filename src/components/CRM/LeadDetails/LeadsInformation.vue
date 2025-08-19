@@ -45,15 +45,15 @@
   <div v-if="lead.user" class="col-sm-8">{{ lead.user.country ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
-  <div class="col-sm-4 fw-bold">Code postal</div>
+  <div class="col-sm-4 fw-bold">NPA</div>
   <div v-if="lead.user" class="col-sm-8">{{ lead.user.postal_code ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
-  <div class="col-sm-4 fw-bold">Ville</div>
+  <div class="col-sm-4 fw-bold">Localité</div>
   <div v-if="lead.user" class="col-sm-8">{{ lead.user.city ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
-  <div class="col-sm-4 fw-bold">Adresse</div>
+  <div class="col-sm-4 fw-bold">Rue</div>
   <div v-if="lead.user" class="col-sm-8">{{ lead.user.address ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
@@ -74,7 +74,7 @@
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Téléphone</div>
-  <div v-if="lead.user" class="col-sm-8">{{ lead.user.phone_number ?? '-' }}</div>
+  <div v-if="lead.user" class="col-sm-8">{{ lead.user.phone_number != null  ? '+41'+lead.user.phone_number : '-' }}</div>
 </div>
     
     </div>

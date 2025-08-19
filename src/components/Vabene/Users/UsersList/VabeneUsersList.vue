@@ -148,7 +148,7 @@
               {{ user.email }}
             </td>
             <td class="shadow-none lh-1 fw-medium text-black-emphasis">
-              {{ user.phone_number || '-' }}
+              {{ '+41'+user.phone_number || '-' }}
             </td>
             <td v-if="user.roles.length == 2" class="shadow-none lh-1 fw-medium text-black-emphasis">
               <span v-if="user.roles[1] === UserRole.FRANCHISE" class="badge text-bg-danger fs-13">{{fetchRole(user.roles[1])}}</span>

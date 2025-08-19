@@ -124,7 +124,7 @@
 
 
             <td class="shadow-none lh-1 fw-medium text-muted">
-              {{ categorie.phoneNumber  }}
+              {{ categorie.phoneNumber ? '+41'+categorie.phoneNumber : '-' }}
             </td>
 
 

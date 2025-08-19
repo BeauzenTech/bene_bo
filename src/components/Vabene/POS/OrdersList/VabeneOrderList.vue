@@ -133,8 +133,7 @@
 
               </td>
               <td>
-                <span v-if="order.guest_phone_number" class="badge text-bg-secondary fs-13">{{ order.guest_phone_number
-                  }}</span>
+                <span v-if="order.guest_phone_number" class="badge text-bg-secondary fs-13">{{ order.guest_phone_number != null ? '+41'+ order.guest_phone_number :  order.guest_phone_number  }}</span>
                 <span v-else class="badge text-black-emphasis fs-13">-</span>
               </td>
               <td class="shadow-none lh-1 fw-medium text-body-tertiary text-end pe-0">
