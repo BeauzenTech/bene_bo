@@ -444,12 +444,12 @@
                 </div>
                 <div class="row">
                   <h5 class="mb-15 mb-md-25 fw-bold text-black">
-                    Methode de paiement *
+                    Méthode de paiement *
                   </h5>
                   <div class="col-md-12">
                     <div class="form-group mb-15 mb-sm-20 mb-md-25">
                       <label class="d-block text-black fw-semibold mb-10">
-                        Choisir la methode de paiement
+                        Choisir la méthode de paiement
                       </label>
                       <v-select v-model="methodePaiementDefault" :options="listeMethode" label="libelle"
                         :reduce="methode => methode.type" />
@@ -640,7 +640,7 @@
                       </th>
 
                       <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0">
-                        QUANTITE
+                        QUANTITÉ
                       </th>
 
                       <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0">
@@ -700,7 +700,7 @@
                   </tbody>
                   <tbody v-else>
                     <tr>
-                      <EmptyTable message="Aucun ingredient ajouter pour le moment" :colspan="8"
+                      <EmptyTable message="Aucun ingrédient ajouter pour le moment" :colspan="8"
                         textClass="text-muted" />
                     </tr>
                   </tbody>

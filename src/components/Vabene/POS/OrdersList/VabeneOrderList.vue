@@ -63,7 +63,7 @@
                 PAIEMENT STATUS
               </th>
               <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0">
-                NUMERO TELEPHONE
+                NUMÉRO TÉLÉPHONE
               </th>
               <th scope="col" class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0 text-end pe-0">
               </th>

@@ -76,7 +76,7 @@
                 :disabled="!isFormValid"
                 :class="{ 'opacity-50 cursor-not-allowed': !isFormValid }"
               >
-               {{ actionDetected === 'edit' ? 'Mettre à jour' : ' Ajouter une categorie'}}
+               {{ actionDetected === 'edit' ? 'Mettre à jour' : ' Ajouter une catégorie'}}
               </button>
               <button
                 type="button"

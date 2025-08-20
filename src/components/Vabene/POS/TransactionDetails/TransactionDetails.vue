@@ -40,7 +40,7 @@
           <h2
             class="text-black fw-black mb-5 mb-sm-10 mb-lg-20 fs-18 fs-md-20 fs-lg-30"
           >
-            Reference
+            Référence
           </h2>
           <span v-if="paiementResponse.orderSelf" class="d-block fs-md-15 fs-md-16 text-muted">
             <span class="me-md-5 d-block d-md-inline-block">
@@ -61,7 +61,7 @@
         <div class="d-flex"  v-if="paiementResponse">
           <div v-if="paiementResponse.orderSelf">
             <span class="d-block text-black fs-md-15 fw-bold mb-12">
-             Operation effectuée par:
+             Opération effectuée par:
             </span>
             <span
               class="d-block fs-md-15 fs-lg-16 fw-medium text-paragraph mb-8"
@@ -96,7 +96,7 @@
         </div>
       </div>
       <span class="d-block text-black fs-md-15 fw-bold mb-15 mb-md-20 mb-lg-25">
-        Recapitulatif de commande
+        Récapitulatif de commande
       </span>
       <div class="table-responsive" v-if="paiementResponse">
         <table class="table text-nowrap align-middle mb-0">

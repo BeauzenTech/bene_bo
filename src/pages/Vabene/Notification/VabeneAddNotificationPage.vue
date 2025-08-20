@@ -1,6 +1,6 @@
 <template>
   <BreadCrumb v-if="action === 'add'" PageTitle="Envoyer une notification" />
-  <BreadCrumb v-else PageTitle="Detail de la notification" />
+  <BreadCrumb v-else PageTitle="Détail de la notification" />
   <VabeneAddNotification :action="action ?? 'add'" :notificationID="notificationID ?? ''"/>
 </template>
 

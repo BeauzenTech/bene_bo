@@ -139,7 +139,7 @@
                 </li>
                 <li class="sidebar-sub-menu-item">
                   <router-link to="/ingredient-list" class="sidebar-sub-menu-link">
-                    Ingredients
+                    Ingrédients
                   </router-link>
                 </li>
                 <li class="sidebar-sub-menu-item"  >

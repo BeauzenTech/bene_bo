@@ -1,5 +1,5 @@
 <template>
-  <BreadCrumb PageTitle="Detail de la commande" />
+  <BreadCrumb PageTitle="Détail de la commande" />
   <VabeneOrderDetails :commandeID="commandeID!"/>
 </template>
 

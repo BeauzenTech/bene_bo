@@ -1,6 +1,6 @@
 <template>
   <BreadCrumb v-if="action === 'add'" PageTitle="Ajouter un client" />
-  <BreadCrumb v-else PageTitle="Detail du client" />
+  <BreadCrumb v-else PageTitle="Détail du client" />
   <VabeneAddCustomer :action="action ?? 'add'" :customerID="customerID ?? ''"/>
 </template>
 

@@ -1,6 +1,6 @@
 <template>
-  <BreadCrumb v-if="action === 'add'" PageTitle="Ajouter une categorie" />
-  <BreadCrumb v-else PageTitle="Mettre à jour la categorie" />
+  <BreadCrumb v-if="action === 'add'" PageTitle="Ajouter une catégorie" />
+  <BreadCrumb v-else PageTitle="Mettre à jour la catégorie" />
   <VabeneAddCategorie :action="action ?? 'add'" :categorieID="categorieID ?? ''"/>
 </template>
 

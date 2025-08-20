@@ -63,7 +63,7 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0 ps-0"
             >
-              Nom & Prenom
+              Nom & Prénom
             </th>
             <th
                 scope="col"
@@ -93,7 +93,7 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
-              VERIFICATION
+              VÉRIFICATION
             </th>
             <th
                 scope="col"

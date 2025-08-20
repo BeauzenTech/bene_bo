@@ -96,7 +96,7 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
-              CREER LE
+              CRÉER LE
             </th>
 
             <th v-if="userRole === UserRole.FRANCHISE"

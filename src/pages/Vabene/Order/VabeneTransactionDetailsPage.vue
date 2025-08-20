@@ -1,5 +1,5 @@
 <template>
-  <BreadCrumb PageTitle="Detail de la transaction" />
+  <BreadCrumb PageTitle="Détail de la transaction" />
   <TransactionDetails :transactionID="transactionID" />
 </template>
 

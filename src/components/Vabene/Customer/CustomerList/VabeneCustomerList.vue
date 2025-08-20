@@ -66,7 +66,7 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
-              TELEPHONE
+              TÉLÉPHONE
             </th>
 
 
@@ -91,7 +91,7 @@
             </td>
           </tr>
           <tr v-else-if="!isLoading && allCategorie.length > 0"
-              v-for="(categorie, index) in allCategorie" :key="categorie.id"
+              v-for="(categorie, index) in allCategorie" :key="categorie.created_at"
           >
             <th
                 class="shadow-none lh-1 fw-medium text-black-emphasis title ps-0 text-capitalize"
@@ -282,7 +282,8 @@ export default defineComponent({
   },
   computed: {
     allCategorie(): CustomerModel[] {
-      const categories = this.categorieResponse?.data?.items || this.originalCategories;
+      const categories: CustomerModel[] = this.originalCategories;
+      
 
       // Filtrage par searchQuery
       const filtered = this.searchQuery
@@ -291,16 +292,13 @@ export default defineComponent({
             return (
                 categorie.firstName?.toLowerCase().includes(query) ||
                 categorie.lastName?.toLowerCase().includes(query)
-            );
+            )
           })
-          : categories;
+          : categories
+          
 
       // Tri alphabétique par name
-      return filtered.sort((a, b) => {
-        const nameA = a.firstName?.toLowerCase() || '';
-        const nameB = b.firstName?.toLowerCase() || '';
-        return nameA.localeCompare(nameB);
-      });
+      return filtered;
     },
 
     pagination(): any {
@@ -423,6 +421,7 @@ export default defineComponent({
     convertDateCreate(date: string): string {
       return UserGeneralKey.formatDateToFrenchLocale(date);
     },
+  
     async fetchCategories(page = 1) {
       this.isLoading = true;
       try {
@@ -437,6 +436,7 @@ export default defineComponent({
           this.categorieResponse = response;
           if (response.data?.items) {
             this.originalCategories = response.data.items;
+            
           }
           if (response.data && response.data.pagination) {
             this.currentPage = response.data.pagination.current_page;

@@ -11,7 +11,7 @@
 
         >
 
-             Ajouter une categorie
+             Ajouter une catégorie
 
           <i class="flaticon-plus position-relative ms-5 fs-12"></i>
         </Button>

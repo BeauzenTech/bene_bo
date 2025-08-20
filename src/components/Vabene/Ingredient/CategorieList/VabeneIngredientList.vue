@@ -228,7 +228,7 @@
           </tr>
           <tr v-else>
             <EmptyTable
-                message="Aucun ingredient pour le moment"
+                message="Aucun ingrédient pour le moment"
                 :colspan="8"
                 textClass="text-muted"
             />

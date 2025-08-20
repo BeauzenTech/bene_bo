@@ -64,7 +64,7 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
-              NOM & PRENOM DU RESPONSABLE
+              NOM & PRÉNOM DU RESPONSABLE
             </th>
             <th
                 scope="col"

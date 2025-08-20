@@ -7,7 +7,7 @@
             <div class="col-md-4 mb-4">
               <div>
                 <label class="d-block text-black fw-semibold mb-10">
-                  Debut
+                  Début
                 </label>
                 <input
                     type="date"
@@ -51,14 +51,14 @@
             <div class="col-md-7 mb-4">
               <div class="form-group position-relative transition mt-2">
                 <label class="d-block text-black fw-semibold mb-10">
-                  Methode de paiement
+                  Méthode de paiement
                 </label>
                 <v-select
                     v-model="methodePaiementSelected"
                     :options="listeMethode"
                     label="libelle"
                     :reduce="methode => methode.type"
-                    placeholder="Methode de paiement"
+                    placeholder="Méthode de paiement"
                 />
               </div>
             </div>

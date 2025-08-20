@@ -58,7 +58,7 @@
                 class="title text-black fs-md-15 fs-lg-16 fw-semibold position-relative"
               >
                 <i class="flaticon-atm"></i>
-                Methode de paiement:
+                Méthode de paiement:
               </div>
               <span
                   v-if="methodePaiementSelected.length > 0"
@@ -131,7 +131,7 @@
                   class="title text-black fs-md-15 fs-lg-16 fw-semibold position-relative"
               >
                 <i class="flaticon-user-1"></i>
-                Nom & Prenom:
+                Nom & Prénom:
               </div>
               <span class="d-block text-paragraph fs-md-15 fs-lg-16">
                {{orderResponse.civilite}} {{orderResponse.guest_first_name}} {{orderResponse.guest_last_name}}
@@ -235,7 +235,7 @@
                     scope="col"
                     class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13"
                   >
-                    Quantite
+                    Quantité
                   </th>
                   <th
                     scope="col"
@@ -261,7 +261,7 @@
                       scope="col"
                       class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pe-0"
                   >
-                    Ingredients
+                    Ingrédients
                   </th>
                 </tr>
               </thead>
@@ -309,7 +309,7 @@
                     <button  @click="selectedOrderItem(orderItems)" class="text-primary fw-medium text-decoration-underline btn btn-link" type="button" data-bs-toggle="modal" data-bs-target="#contentModalScrollable_ingredient" v-if="orderItems.ingredients.length > 0"
                     >({{ orderItems.ingredients.length }}) Ingredients</button>
                     <span v-else class="text-primary fw-medium text-decoration-underline"
-                    >Aucun Ingredient</span>
+                    >Aucun Ingrédient</span>
                   </td>
 
                 </tr>
@@ -338,7 +338,7 @@
 
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium">
-                Delai de livraison estimé
+                Délai de livraison estimé
               </span>
               <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium" v-if="orderResponse">
                 {{orderResponse.timeOrder ? convertDateCreate(orderResponse.timeOrder) : 'TOUT DE SUITE'}}
@@ -391,7 +391,7 @@
       >
         <div class="card-head bg-white d-flex align-items-center">
           <i class="flaticon-document text-info"></i>
-          <h5 class="mb-0 fw-bold text-black ms-10 ms-md-15">Recapitulatif de la commande</h5>
+          <h5 class="mb-0 fw-bold text-black ms-10 ms-md-15">Récapitulatif de la commande</h5>
         </div>
         <div class="card-body">
           <ul class="order-summary-list ps-0 mb-0 list-unstyled">
@@ -667,7 +667,7 @@
           <div
               class="card-head bg-white d-flex justify-content-between align-items-center"
           >
-            <h5 class="mb-0 fw-bold text-black">Methode de paiement</h5>
+            <h5 class="mb-0 fw-bold text-black">Méthode de paiement</h5>
 
             <div class="dropdown" v-if="listeMethode.length > 0">
               <button v-if="orderResponse.paymentID.paymentMethod === 'pay_click_collect_cash'" class="btn btn-danger btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -728,7 +728,7 @@
                       scope="col"
                       class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
                   >
-                   QUANTITE
+                   QUANTITÉ
                   </th>
                   <th
                       scope="col"
