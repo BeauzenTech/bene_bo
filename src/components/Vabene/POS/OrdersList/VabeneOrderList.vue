@@ -93,7 +93,7 @@
               <td class="shadow-none lh-1 fw-medium text-muted ">
                 <span v-if="order.order_type === 'click_collect'" class="badge text-bg-secondary fs-13">À
                   emporter</span>
-                <span v-if="order.status === 'dine_in'" class="badge text-bg-info fs-13">Sur place</span>
+                <span v-if="order.order_type === 'dine_in'" class="badge text-bg-info fs-13">Sur place</span>
                 <span v-if="order.order_type === 'delivery'" class="badge text-bg-success fs-13">À livrer</span>
               </td>
 
