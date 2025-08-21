@@ -93,7 +93,6 @@
                               >
                                 <!-- <strong>x{{ ingredient.quantite }} {{ ingredient.name }} {{extraireCmValeur(ingredient.size, item.productID.categorieID?.id)}}</strong> -->
                                 <strong>x{{ ingredient.quantite }} {{ ingredient.name }} ({{((ingredient.extra_cost_price * ingredient.quantite) + ' CHF')}})</strong>
-
                               </li>
                             </ul>
                           </div>
@@ -372,7 +371,7 @@ export default defineComponent({
         align-items: center;
         justify-content: center;
         box-sizing: border-box;
-        font-family: 'Ubuntu', sans-serif;
+        font-family: 'Arial', sans-serif;
         color: #1c1c1c;
         padding: 0; /* Réinitialiser le padding pour éviter les problèmes de double padding */
       }
@@ -550,14 +549,14 @@ export default defineComponent({
     },
    
     getHeightTicket(): number {
-      return 235 + (this.orderResponse?.SpecialInstructions != null ? 20 : 0 ) + this.getHeightTicketWithIngredients()
+      return 225 + (this.orderResponse?.SpecialInstructions != null ? 15 : 0 ) + this.getHeightTicketWithIngredients()
     },
     getHeightTicketWithIngredients(): number {
       let baseHeight = 0
       if (this.orderResponse?.orderItems && this.orderResponse.orderItems.length > 0) {
         this.orderResponse.orderItems.forEach(item => {
           if (item.ingredients && item.ingredients.length > 0) {
-            baseHeight += (item.ingredients.length * 4)
+            baseHeight += (item.ingredients.length * 2)
           }
         })
       }
@@ -799,7 +798,7 @@ html, body {
 }
 #recu-pdf * {
   box-sizing: border-box;
-  font-family: 'Ubuntu', sans-serif;
+  font-family: 'Arial', sans-serif;
   color: #1c1c1c;
 }
 #recu-pdf {
