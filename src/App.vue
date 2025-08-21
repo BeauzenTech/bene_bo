@@ -21,7 +21,7 @@
                   <div class="receipts"  id="recu-pdf">
                     <div class="receipt">
                       <div class="logo-container">
-                        <img src="https://res.cloudinary.com/dmxs8btps/image/upload/v1753145633/fmpnkb8e5tgp1nbeiebh.png" class="airliner-logo"/>
+                        <img src="https://res.cloudinary.com/dmxs8btps/image/upload/v1755765444/ttpjntx3u2xloclzd61t.png" class="airliner-logo"/>
                       </div>
                       <div class="route">
                         <h2><strong>Livraison de pizzas {{orderResponse.restaurantID.name}}</strong></h2>
@@ -91,7 +91,9 @@
                                   :key="ingredient.id"
                                   class="text-decoration-none list-unstyled"
                               >
-                                <strong>x{{ ingredient.quantite }} {{ ingredient.name }} {{extraireCmValeur(ingredient.size, item.productID.categorieID?.id)}}</strong>
+                                <!-- <strong>x{{ ingredient.quantite }} {{ ingredient.name }} {{extraireCmValeur(ingredient.size, item.productID.categorieID?.id)}}</strong> -->
+                                <strong>x{{ ingredient.quantite }} {{ ingredient.name }} {{ingredient.extra_cost_price * ingredient.quantite}}</strong>
+
                               </li>
                             </ul>
                           </div>
