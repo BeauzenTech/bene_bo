@@ -105,24 +105,27 @@
                       <div class="product-list">
                         <div style="display: flex; align-items: flex-start; margin: 5px 0;">
                           <span style="flex: 1; margin-right: 3px;"><strong>SOUS-TOTAL: </strong></span>
-                          <span style="flex: 0 0 auto; text-align: right;"><strong>{{(orderResponse.total_price - (orderResponse.total_price * 2.60/100)).toFixed(2) }} CHF</strong></span>
+                          <!-- <span style="flex: 0 0 auto; text-align: right;"><strong>{{(orderResponse.total_price - (orderResponse.total_price * 2.60/100)).toFixed(2) }} CHF</strong></span> -->
+                          <span style="flex: 0 0 auto; text-align: right;"><strong>{{orderResponse.total_price + getDiscountValue(orderResponse) }} CHF</strong></span>
+
                         </div>
-                        <div style="display: flex; align-items: flex-start; margin: 5px 0;">
-                          <span style="flex: 1; margin-right: 3px;"><strong>2.60% TVA </strong></span>
-                          <span style="flex: 0 0 auto; text-align: right;"><strong>{{(orderResponse.total_price * 2.60/100).toFixed(2)}} CHF</strong></span>
-                        </div>
-                        <div style="display: flex; align-items: flex-start; margin: 5px 0;">
+                        <div style="display: flex; align-items: flex-start; margin: 5px 0;" v-if="orderResponse.discountValue != ''">
                           <span style="flex: 1; margin-right: 3px;"><strong>RABAIS: </strong></span>
-                          <span style="flex: 0 0 auto; text-align: right;" v-if="orderResponse.discountValue != ''"><strong>{{  orderResponse.discountValue ?? "-" }} {{ orderResponse.discountType === 'fixed' ? 'CHF' : '%' }}</strong></span>
+                          <span style="flex: 0 0 auto; text-align: right;" v-if="orderResponse.discountValue != ''"><strong>-{{  getDiscountValue(orderResponse) }} CHF</strong></span>
                           <span style="flex: 0 0 auto; text-align: right;" v-else><strong>0 CHF</strong></span>
                         </div>
+                        <div style="display: flex; align-items: flex-start; margin: 5px 0;">
+                          <span style="flex: 1; margin-right: 3px;"><strong>Y COMPRIS TVA (2.60%)</strong></span>
+                          <span style="flex: 0 0 auto; text-align: right;"><strong>{{(orderResponse.total_price * 2.60/100).toFixed(2)}} CHF</strong></span>
+                        </div>
+                        
                         <div style="display: flex; margin: 5px 0;" v-if="orderResponse.restMinimumOrder != '0'">
-                          <span style="flex: 1; margin-right: 5px;"><strong>FRAIS SUPP.: </strong></span>
+                          <span style="flex: 1; margin-right: 5px;"><strong>FRAIS SUPPLÉMENTAIRES: </strong></span>
                           <span style="flex-shrink: 0; text-align: right;" v-if="orderResponse.restMinimumOrder != ''"><strong>{{  orderResponse.restMinimumOrder ?? "-" }} CHF</strong></span>
                           <span style="flex-shrink: 0; text-align: right;" v-else><strong>0 CHF</strong></span>
                         </div>
                         <div style="display: flex; align-items: flex-start; margin: 5px 0;">
-                          <span style="flex: 1; margin-right: 3px;"><strong>TOTAL BRUT:  </strong></span>
+                          <span style="flex: 1; margin-right: 3px;"><strong>TOTAL:  </strong></span>
                           <span style="flex: 0 0 auto; text-align: right;"><strong>{{ orderResponse.total_price }} CHF</strong></span>
                         </div>
                         <div style="display: flex; align-items: flex-start; margin: 5px 0;" v-if="methodePaiementSelected.length > 0">
@@ -246,6 +249,17 @@ export default defineComponent({
     };
   },
   methods: {
+    getDiscountValue(order: OrderModel): number {
+      let discountValue = 0;
+      if(order.discountValue !== '' && order.discountType == 'fixed'){
+        discountValue = Number(order.discountValue);
+      }
+      else if(order.discountValue !== '' && order.discountType == 'percentage'){
+        discountValue = Number(order.total_price) - (Number(order.total_price) * (Number(order.discountValue)/100));
+      }
+      
+      return discountValue;
+    },
     clearData(): void {
       this.orderResponse = null;
       (this as any).listeMethode = [];

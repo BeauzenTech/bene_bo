@@ -425,26 +425,27 @@
                 SOUS-TOTAL
               </span>
               <span class="d-block text-black fw-bolder fw-medium">
-                {{(orderResponse.total_price - (orderResponse.total_price *  2.60/100)).toFixed(2)}} CHF
+                {{(orderResponse.total_price + getDiscountValue(orderResponse)) }} CHF
+              </span>
+            </li>
+            <li class="d-flex align-items-center justify-content-between" v-if="orderResponse.discountValue != ''">
+              <span class="d-block text-primary fw-bolder fw-medium">
+                RABAIS
+              </span>
+              <span class="d-block text-primary fw-bolder fw-medium">
+                -{{  getDiscountValue(orderResponse) }} CHF
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-black fw-bolder fw-medium">
-                2.60% TVA
+               Y COMPRIS TVA (2.60%)
               </span>
               <span class="d-block text-black fw-bolder fw-medium">
                {{(orderResponse.total_price *  2.60/100).toFixed(2)}} CHF
               </span>
             </li>
-            <li class="d-flex align-items-center justify-content-between">
-              <span class="d-block text-primary fw-bolder fw-medium">
-                RABAIS
-              </span>
-              <span class="d-block text-primary fw-bolder fw-medium">
-               0 CHF
-              </span>
-            </li>
-            <li class="d-flex align-items-center justify-content-between">
+           
+            <li class="d-flex align-items-center justify-content-between" v-if="orderResponse.restMinimumOrder != '0'">
               <span class="d-block text-primary fw-bolder fw-medium">
                 FRAIS SUPPLÉMENTAIRES
               </span>
@@ -455,7 +456,7 @@
 
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-primary fw-bolder fw-medium">
-                TOTAL BRUT
+                TOTAL
               </span>
               <span class="d-block text-primary fw-bolder fw-medium">
                {{orderResponse.total_price}} CHF
@@ -871,26 +872,26 @@
                           <div class="product-list">
                             <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                               <span><strong>SOUS-TOTAL: </strong></span>
-                              <span style="text-align: right;"><strong>{{(orderResponse.total_price - (orderResponse.total_price * 2.60/100)).toFixed(2) }} CHF</strong></span>
+                              <span style="text-align: right;"><strong>{{orderResponse.total_price + getDiscountValue(orderResponse) }} CHF</strong></span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin: 5px 0;" v-if="orderResponse.discountValue != ''">
+                              <span><strong>RABAIS: </strong></span>
+                              <span style="text-align: right;" v-if="orderResponse.discountValue != ''"><strong>-{{  getDiscountValue(orderResponse) }} CHF</strong></span>
+                              <span style="text-align: right;" v-else><strong>0 CHF</strong></span>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin: 5px 0;">
-                              <span><strong>2.60% TVA </strong></span>
+                              <span><strong>Y COMPRIS TVA (2.60%) </strong></span>
                               <span style="text-align: right;"><strong>{{(orderResponse.total_price * 2.60/100).toFixed(2)}} CHF</strong></span>
                             </div>
-                            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
-                              <span><strong>RABAIS: </strong></span>
-                              <span style="text-align: right;" v-if="orderResponse.discountValue != ''"><strong>{{  orderResponse.discountValue ?? "-" }} {{ orderResponse.discountType === 'fixed' ? 'CHF' : '%' }}</strong></span>
-                              <span style="text-align: right;" v-else><strong>0 CHF</strong></span>
-
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+                            
+                            <div style="display: flex; justify-content: space-between; margin: 5px 0;" v-if="orderResponse.restMinimumOrder != '0'">
                               <span><strong>FRAIS SUPPLÉMENTAIRES: </strong></span>
-                              <span style="text-align: right;" v-if="orderResponse.restMinimumOrder != ''"><strong>{{  orderResponse.restMinimumOrder ?? "-" }} CHF</strong></span>
+                              <span style="text-align: right;" v-if="orderResponse.restMinimumOrder != '0'"><strong>{{  orderResponse.restMinimumOrder ?? "-" }} CHF</strong></span>
                               <span style="text-align: right;" v-else><strong>0 CHF</strong></span>
 
                             </div>
                             <div style="display: flex; justify-content: space-between; margin: 5px 0;">
-                              <span><strong>TOTAL BRUT:  </strong></span>
+                              <span><strong>TOTAL:  </strong></span>
                               <span style="text-align: right;"><strong>{{ orderResponse.total_price }} CHF</strong></span>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin: 5px 0;"  v-if="methodePaiementSelected.length > 0">
@@ -998,6 +999,17 @@ export default defineComponent({
   },
 
   methods: {
+    getDiscountValue(order: OrderModel): number {
+      let discountValue = 0;
+      if(order.discountValue !== '' && order.discountType == 'fixed'){
+        discountValue = Number(order.discountValue);
+      }
+      else if(order.discountValue !== '' && order.discountType == 'percentage'){
+        discountValue = Number(order.total_price) - (Number(order.total_price) * (Number(order.discountValue)/100));
+      }
+      
+      return discountValue;
+    },
         extraireParenthese(texte: string): string {
       // L'expression régulière cherche des parenthèses qui contiennent au moins un caractère
       // (un chiffre, un espace, une lettre, etc.).
