@@ -857,7 +857,7 @@
                                     class="text-decoration-none list-unstyled"
                                 >
                                   <!-- <strong>x{{ ingredient.quantite }} {{ ingredient.name }} {{extraireCmValeur(ingredient.size, item.productID.categorieID?.id)}}</strong> -->
-                                  <strong>x{{ ingredient.quantite }} {{ ingredient.name }} {{((ingredient.extra_cost_price * ingredient.quantite) + ' CHF')}}</strong>
+                                  <strong>x{{ ingredient.quantite }} {{ ingredient.name }} ({{((ingredient.extra_cost_price * ingredient.quantite) + ' CHF')}})</strong>
 
                                 </li>
                               </ul>

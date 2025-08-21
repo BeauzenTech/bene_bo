@@ -21,7 +21,7 @@
                   <div class="receipts"  id="recu-pdf">
                     <div class="receipt">
                       <div class="logo-container">
-                        <img src="https://res.cloudinary.com/dmxs8btps/image/upload/v1755765444/ttpjntx3u2xloclzd61t.png" class="airliner-logo"/>
+                        <img src="https://res.cloudinary.com/dmxs8btps/image/upload/v1755765444/ttpjntx3u2xloclzd61t.png" class="airliner-logo" width="150px"/>
                       </div>
                       <div class="route">
                         <h2><strong>Livraison de pizzas {{orderResponse.restaurantID.name}}</strong></h2>
@@ -92,7 +92,7 @@
                                   class="text-decoration-none list-unstyled"
                               >
                                 <!-- <strong>x{{ ingredient.quantite }} {{ ingredient.name }} {{extraireCmValeur(ingredient.size, item.productID.categorieID?.id)}}</strong> -->
-                                <strong>x{{ ingredient.quantite }} {{ ingredient.name }} {{((ingredient.extra_cost_price * ingredient.quantite) + ' CHF')}}</strong>
+                                <strong>x{{ ingredient.quantite }} {{ ingredient.name }} ({{((ingredient.extra_cost_price * ingredient.quantite) + ' CHF')}})</strong>
 
                               </li>
                             </ul>
@@ -408,13 +408,13 @@ export default defineComponent({
       }
  /* NOUVEAUX STYLES FLEXBOX POUR LE CONTENEUR DU LOGO */
 #recu-pdf .logo-container {
-  width: 100%;
+  width: 120%;
   margin-bottom: 20px; /* Espace sous le logo, ajustez si besoin */
   /* optionnel: background-color: #f0f0f0; pour voir les limites du conteneur si vous déboguez */
 }
 
 #recu-pdf .airliner-logo {
-  width: 100%;
+  width: 120%;
 }
 
       #recu-pdf .route {
