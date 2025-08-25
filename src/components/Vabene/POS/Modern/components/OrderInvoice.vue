@@ -1285,6 +1285,16 @@ const handlePlaceOrder = async () => {
     const customerID = selectedCustomer.value?.id || customerInfo.value.id;
     console.log('Customer ID:', customerID)
 
+    const renderEmail = ()=>{
+      if(selectedCustomer.value?.email){
+        return selectedCustomer.value?.email
+      } else if(selectedCustomer.value?.user?.email){
+        return selectedCustomer.value?.user?.email
+      } else {
+        return restaurantID === 'fd9d1677-f994-473a-9939-908cf3145bd4' ? 'client07morges@gmail.com' : 'client07penthaz@gmail.com';
+      }
+    }
+
     // Préparer les données de commande selon le format de l'API
     const orderData = {
       coupon: appliedCoupon.value?.code || "",
@@ -1298,8 +1308,8 @@ const handlePlaceOrder = async () => {
       guest_first_name: customerInfo.value.firstName,
       civilite: selectedCustomer.value?.civilite || "monsieur",
       guest_last_name: customerInfo.value.lastName,
-      guest_email: selectedCustomer.value?.email || selectedCustomer.value?.user?.email || restaurantID === 'fd9d1677-f994-473a-9939-908cf3145bd4' ? 'client07morges@gmail.com' : 'client07penthaz@gmail.com',
-      guest_phone_number: customerInfo.value.phone,
+      guest_email: renderEmail(),
+      guest_phone_number: selectedCustomer?.value?.phoneNumber || customerInfo.value.phone,
       feature: cartFeatures, // L'API attend un array, pas un string
       order_type: storeOrderType.value, // Utiliser le type depuis le store
       numberRue: storeOrderType.value === 'delivery' ? deliveryAddress.value.numeroRue : restaurantInfo.value.numeroRue || "",
@@ -1355,6 +1365,11 @@ const handlePlaceOrder = async () => {
       couponValue: orderData.couponValue,
       couponType: orderData.couponType
     })
+
+    // console.log("Email ", selectedCustomer.value?.email);
+    
+    // console.log(orderData);
+    
 
     const response = await createPOSOrder(orderData)
 
