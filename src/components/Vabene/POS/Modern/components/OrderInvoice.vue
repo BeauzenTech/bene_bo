@@ -55,6 +55,11 @@
           </div>
         </div>
         <div class="form-group">
+          <label>Email</label>
+          <input v-model="customerInfo.email" type="text" placeholder="Email du client"
+            :class="['form-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
+        </div>
+        <div class="form-group">
           <label>Type de commande</label>
           <select v-model="storeOrderType" class="form-select">
             <option value="dine_in">Sur place</option>
@@ -494,7 +499,7 @@ const customerInfo = ref({
   firstName: '',
   lastName: '',
   phone: '',
-  email: ''
+  email: '-'
 })
 
 // État pour la recherche de clients
@@ -1283,10 +1288,12 @@ const handlePlaceOrder = async () => {
 
     // ID du client
     const customerID = selectedCustomer.value?.id || customerInfo.value.id;
-    console.log('Customer ID:', customerID)
+    console.log('Customer ID:', customerID);
 
     const renderEmail = ()=>{
-      if(selectedCustomer.value?.email){
+      if(customerInfo.value?.email){
+        return customerInfo.value?.email
+      } else if(selectedCustomer.value?.email){
         return selectedCustomer.value?.email
       } else if(selectedCustomer.value?.user?.email){
         return selectedCustomer.value?.user?.email
@@ -1305,8 +1312,8 @@ const handlePlaceOrder = async () => {
       restaurantID: restaurantID,
       paniers: transformCartForAPI(storeCart.value),
       userID: selectedCustomer.value?.user?.id || "", // ID utilisateur si client sélectionné
-      guest_first_name: customerInfo.value.firstName,
       civilite: selectedCustomer.value?.civilite || "monsieur",
+      guest_first_name: customerInfo.value.firstName,
       guest_last_name: customerInfo.value.lastName,
       guest_email: renderEmail(),
       guest_phone_number: selectedCustomer?.value?.phoneNumber || customerInfo.value.phone,
@@ -1364,13 +1371,8 @@ const handlePlaceOrder = async () => {
       coupon: orderData.coupon,
       couponValue: orderData.couponValue,
       couponType: orderData.couponType
-    })
-
-    // console.log("Email ", selectedCustomer.value?.email);
+    });
     
-    // console.log(orderData);
-    
-
     const response = await createPOSOrder(orderData)
 
     if (response.code === 200 || response.code === 201) {
