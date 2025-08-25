@@ -53,6 +53,14 @@
   <div v-if="lead.user" class="col-sm-8">{{ lead.user.city ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
+  <div class="col-sm-4 fw-bold">Rue</div>
+  <div v-if="lead.user" class="col-sm-8">{{ lead.user.address ?? '-' }}</div>
+</div>
+<div class="row mb-2 mt-4" v-if="lead">
+  <div class="col-sm-4 fw-bold">N° Rue</div>
+  <div v-if="lead.user" class="col-sm-8">{{ lead.user.numeroRue ?? '-' }}</div>
+</div>
+<div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Téléphone</div>
   <div v-if="lead.user" class="col-sm-8">{{ lead.user.phone_number != null  ? '+41'+lead.user.phone_number : '-' }}</div>
 </div>
