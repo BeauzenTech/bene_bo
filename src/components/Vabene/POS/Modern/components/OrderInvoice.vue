@@ -48,8 +48,11 @@
         </div>
         <div class="form-group">
           <label>Téléphone</label>
-          <input v-model="customerInfo.phone" type="tel" placeholder="Numéro de téléphone"
-            :class="['form-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
+          <div class="phone-input-container">
+            <span class="country-prefix">+41</span>
+            <input v-model="customerInfo.phone" type="tel" placeholder="Numéro de téléphone"
+              :class="['form-input', 'phone-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
+          </div>
         </div>
         <div class="form-group">
           <label>Type de commande</label>
@@ -1103,7 +1106,7 @@ const DEFAULT_CLIENTS = {
     email: 'client07morges@gmail.com',
     firstName: 'Client',
     lastName: 'Morges',
-    phoneNumber: '+41218882300',
+    phoneNumber: '218882300',
     address: 'Morges, 1110 - Place Saint-Louis 5',
     city: 'Morges',
     codePostal: '1110',
@@ -1120,7 +1123,7 @@ const DEFAULT_CLIENTS = {
     email: 'client07penthaz@gmail.com',
     firstName: 'Client',
     lastName: 'Penthaz',
-    phoneNumber: '+41218621313',
+    phoneNumber: '218621313',
     address: null,
     city: 'Penthaz',
     codePostal: null,
@@ -1759,6 +1762,47 @@ const handleDateChange = () => {
     &.client-selected {
       border: 1px solid #388D35;
       box-shadow: 0 0 0 2px rgba(56, 141, 53, 0.1);
+    }
+
+    .phone-input-container {
+      display: flex;
+      align-items: center;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: white;
+      transition: border-color 0.2s ease;
+
+      &:focus-within {
+        border-color: #388D35;
+        box-shadow: 0 0 0 2px rgba(56, 141, 53, 0.1);
+      }
+
+      &:has(.client-selected) {
+        border-color: #388D35;
+        box-shadow: 0 0 0 2px rgba(56, 141, 53, 0.1);
+      }
+
+      .country-prefix {
+        padding: 8px 12px 8px 12px;
+        background: #f8fafc;
+        border-right: 1px solid #e2e8f0;
+        font-size: 14px;
+        font-weight: 500;
+        color: #374151;
+        border-radius: 6px 0 0 6px;
+        white-space: nowrap;
+      }
+
+      .phone-input {
+        border: none;
+        border-radius: 0 6px 6px 0;
+        flex: 1;
+        
+        &:focus {
+          border: none;
+          box-shadow: none;
+        }
+      }
     }
 
     .customer-suggestions {
