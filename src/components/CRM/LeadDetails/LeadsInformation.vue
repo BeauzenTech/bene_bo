@@ -52,10 +52,10 @@
   <div class="col-sm-4 fw-bold">Localité</div>
   <div v-if="lead.user" class="col-sm-8">{{ lead.user.city ?? '-' }}</div>
 </div>
-<div class="row mb-2 mt-4" v-if="lead">
+<!-- <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Rue</div>
   <div v-if="lead.user" class="col-sm-8">{{ lead.user.address ?? '-' }}</div>
-</div>
+</div> -->
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Prénom</div>
   <div  v-if="lead.user" class="col-sm-8">{{ lead.user.first_name ?? '-' }}</div>
