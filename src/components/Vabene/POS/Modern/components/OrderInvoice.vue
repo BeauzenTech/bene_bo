@@ -2,29 +2,6 @@
   <div class="order-invoice">
     <!-- En-tête avec informations client -->
     <div class="invoice-header">
-      <!-- <div class="header-info">
-        <div class="cashier-info">
-          <div class="cashier-avatar">
-            👤
-          </div>
-          <div class="cashier-details">
-            <span class="cashier-name">Caissier</span>
-            <span class="shift-info">Service {{ getCurrentShift() }}</span>
-          </div>
-        </div>
-        <div class="invoice-number">
-          <span class="invoice-label">Facture</span>
-          <span class="invoice-id">#{{ getInvoiceNumber() }}</span>
-        </div>
-      </div> -->
-      <!-- Information restaurant -->
-      <!-- <div v-if="restaurantInfo" class="restaurant-info">
-        <div class="restaurant-name">{{ restaurantInfo.name }}</div>
-        <div class="restaurant-address">{{ restaurantInfo.address }} {{ restaurantInfo.numeroRue }}</div>
-        <div class="restaurant-city">{{ restaurantInfo.codePostalID?.numeroPostal }} {{
-          restaurantInfo.codePostalID?.ville }}</div>
-        <div class="restaurant-phone">{{ restaurantInfo.phoneNumber }}</div>
-      </div> -->
     </div>
 
     <!-- Informations client -->
