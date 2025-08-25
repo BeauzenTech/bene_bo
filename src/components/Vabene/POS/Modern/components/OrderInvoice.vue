@@ -1298,7 +1298,7 @@ const handlePlaceOrder = async () => {
       guest_first_name: customerInfo.value.firstName,
       civilite: selectedCustomer.value?.civilite || "monsieur",
       guest_last_name: customerInfo.value.lastName,
-      guest_email: selectedCustomer.value?.email || restaurantID === 'fd9d1677-f994-473a-9939-908cf3145bd4' ? 'client07morges@gmail.com' : 'client07penthaz@gmail.com',
+      guest_email: selectedCustomer.value?.email || selectedCustomer.value?.user?.email || restaurantID === 'fd9d1677-f994-473a-9939-908cf3145bd4' ? 'client07morges@gmail.com' : 'client07penthaz@gmail.com',
       guest_phone_number: customerInfo.value.phone,
       feature: cartFeatures, // L'API attend un array, pas un string
       order_type: storeOrderType.value, // Utiliser le type depuis le store
