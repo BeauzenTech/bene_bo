@@ -1039,7 +1039,7 @@ const selectDefaultClient = (restaurantID: string) => {
     
     // Sélectionner le client
     selectCustomer(customerModel)
-    console.log('Client par défaut sélectionné:', customerModel.firstName, customerModel.lastName)
+    console.log('Client par défaut sélectionné:', customerModel.firstName, customerModel.lastName, customerModel.id)
   }
 }
 
@@ -1061,7 +1061,7 @@ watch(storeOrderType, (newOrderType) => {
   if (newOrderType === 'dine_in' && restaurantInfo.value) {
     const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
     if (restaurantID && !selectedCustomer.value) {
-      selectDefaultClient(restaurantID)
+      selectDefaultClient(restaurantID);
     }
   } else if (newOrderType !== 'dine_in' && selectedCustomer.value) {
     // Vérifier si le client sélectionné est un client par défaut
@@ -1122,8 +1122,8 @@ onMounted(() => {
 // Clients par défaut selon le restaurant
 const DEFAULT_CLIENTS = {
   'fd9d1677-f994-473a-9939-908cf3145bd4': {
-    id: '94adffbc-fdea-43f2-b22f-005604',
-    email: 'clientmorges@vabenepizza.ch',
+    id: '',
+    email: 'client07morges@gmail.com',
     firstName: 'Client',
     lastName: 'Morges',
     phoneNumber: '+41218882300',
@@ -1139,8 +1139,8 @@ const DEFAULT_CLIENTS = {
     type: 'customer'
   },
   '515a4836-3e47-47c5-9b87-1cf4feefe247': {
-    id: '54391338-ad3f-4cbf-97ec-005751',
-    email: 'clientpenthaz@vabenepizza.ch',
+    id: '',
+    email: 'client07penthaz@gmail.com',
     firstName: 'Client',
     lastName: 'Penthaz',
     phoneNumber: '+41218621313',
@@ -1303,7 +1303,7 @@ const handlePlaceOrder = async () => {
     const cartFeatures = extractFeaturesFromCart(storeCart.value)
 
     // ID du client
-    const customerID = /* selectedCustomer.value?.id ||  */customerInfo.value.id;
+    const customerID = selectedCustomer.value?.id || customerInfo.value.id;
     console.log('Customer ID:', customerID)
 
     // Préparer les données de commande selon le format de l'API
@@ -1315,7 +1315,7 @@ const handlePlaceOrder = async () => {
       deliveryLocality: restaurantInfo.value.codePostalID?.ville || "",
       restaurantID: restaurantID,
       paniers: transformCartForAPI(storeCart.value),
-      userID: selectedCustomer.value?.user?.id || "", // ID utilisateur si client sélectionné
+      userID: selectedCustomer.value?.id || "", // ID utilisateur si client sélectionné
       guest_first_name: customerInfo.value.firstName,
       civilite: selectedCustomer.value?.civilite || "",
       guest_last_name: customerInfo.value.lastName,
