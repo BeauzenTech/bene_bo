@@ -429,7 +429,7 @@
         </div>
       </div>
 
-      <!-- Méthodes de paiement -->
+      <!-- Méthodes de paiement ! -->
       <div v-if="storeCart.length > 0" class="payment-section">
         <h3 class="section-title">Mode de paiement</h3>
 
