@@ -835,7 +835,6 @@ const loadCustomers = async () => {
       const response = await getCustomers(1, restaurantID)
       if (response.code === 200 && response.data?.items) {
         allCustomers.value = response.data.items
-        console.log(`✅ ${allCustomers.value.length} clients chargés pour la recherche`)
       }
     }
   } catch (error) {
@@ -1295,7 +1294,7 @@ const handlePlaceOrder = async () => {
       deliveryLocality: restaurantInfo.value.codePostalID?.ville || "",
       restaurantID: restaurantID,
       paniers: transformCartForAPI(storeCart.value),
-      userID: selectedCustomer.value?.id || "", // ID utilisateur si client sélectionné
+      userID: selectedCustomer.value?.user?.id || "", // ID utilisateur si client sélectionné
       guest_first_name: customerInfo.value.firstName,
       civilite: selectedCustomer.value?.civilite || "monsieur",
       guest_last_name: customerInfo.value.lastName,
