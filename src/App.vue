@@ -28,7 +28,7 @@
                         <h2><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'Va Bene pizza sàrl Morges' : 'Pizzeria Va Bene SA '}}</strong></h2>
                         <h2><strong>{{orderResponse.restaurantID.address}}</strong></h2>
                         <h2><strong>{{orderResponse.restaurantID.codePostalID.numeroPostal}} {{orderResponse.restaurantID.name}}</strong> </h2>
-                        <h2><strong>{{orderResponse.restaurantID.phoneNumber}}</strong></h2>
+                        <h2><strong>+41{{orderResponse.restaurantID.phoneNumber}}</strong></h2>
                         <h2><strong>{{orderResponse.restaurantID.taxe}}</strong></h2>
                       </div>
                       <span style=" margin: 1rem 0; width: 100%; color: #000;">------------------------------------------------------------------------</span>
@@ -38,7 +38,7 @@
                         <h2><strong>{{orderResponse.guest_first_name}} {{orderResponse.guest_last_name}}</strong></h2>
                         <h2><strong>{{orderResponse.npa ?? ''}} {{orderResponse.localite ?? ''}}</strong></h2>
                         <h2><strong>{{orderResponse.rue }} - {{orderResponse.numberRue}}</strong></h2>
-                        <h2><strong>{{orderResponse.guest_phone_number}}</strong></h2>
+                        <h2><strong>+41{{orderResponse.guest_phone_number}}</strong></h2>
                         <h2><strong>{{orderResponse.guest_email}}</strong></h2>
                       </div>
 
