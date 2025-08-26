@@ -39,7 +39,7 @@
                         <h2><strong>{{orderResponse.npa ?? ''}} {{orderResponse.localite ?? ''}}</strong></h2>
                         <h2><strong>{{orderResponse.rue }} - {{orderResponse.numberRue}}</strong></h2>
                         <h2><strong>{{orderResponse.guest_phone_number ? `+41${orderResponse.guest_phone_number}` : ""}}</strong></h2>
-                        <h2><strong>{{orderResponse.guest_email}}</strong></h2>
+                        <h2 v-if="!orderResponse?.guest_email?.includes('guest_')"><strong>{{orderResponse?.guest_email}}</strong></h2>
                       </div>
 
                       <span style=" margin: 1rem 0; width: 100%; color: #000;">------------------------------------------------------------------------</span>
@@ -261,6 +261,7 @@ export default defineComponent({
       
       return discountValue;
     },
+    formatInTimeZone,
     clearData(): void {
       this.orderResponse = null;
       (this as any).listeMethode = [];
@@ -538,7 +539,7 @@ export default defineComponent({
                 const file = new File([blob], "ticket.pdf", {
                   type: "application/pdf",
                 });
-                // window.open(url, '_blank');
+                window.open(url, '_blank');
                 this.launchPrint(file);
                
                 element.style.width = "";

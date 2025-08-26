@@ -1458,7 +1458,7 @@ const handlePlaceOrder = async () => {
       calculatedDiscountAmount: discountAmount.value
     });
     
-   /*  const response = await createPOSOrder(orderData)
+    const response = await createPOSOrder(orderData)
 
     if (response.code === 200 || response.code === 201) {
       toast.success('Commande créée avec succès!')
@@ -1498,7 +1498,7 @@ const handlePlaceOrder = async () => {
       emit('place-order', { success: true, orderData: response.data })
     } else {
       toast.error(response.message || 'Erreur lors de la création de la commande')
-    } */
+    }
   } catch (error: any) {
     console.error('Erreur lors de la création de la commande:', error)
     const errorMessage = error?.response?.data?.message || 'Erreur lors de la création de la commande'
