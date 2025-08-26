@@ -46,31 +46,38 @@
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">NPA</div>
-  <div v-if="lead.user" class="col-sm-8">{{ lead.user.postal_code ?? '-' }}</div>
+  <div v-if="lead.user" class="col-sm-8">{{ lead.user.postal_code ?? lead.code_postal ?? '-' }}</div>
+  <div v-else class="col-sm-8">{{ lead?.npa ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Localité</div>
   <div v-if="lead.user" class="col-sm-8">{{ lead.user.city ?? '-' }}</div>
+  <div v-else class="col-sm-8">{{ lead?.localite ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Rue</div>
   <div v-if="lead.user" class="col-sm-8">{{ lead.user.address ?? '-' }}</div>
+  <div v-else class="col-sm-8">{{ lead?.rue ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">N° Rue</div>
   <div v-if="lead.user" class="col-sm-8">{{ lead.user.numeroRue ?? '-' }}</div>
+  <div v-else class="col-sm-8">{{ lead?.numeroRue ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Téléphone</div>
   <div v-if="lead.user" class="col-sm-8">{{ lead.user.phone_number != null  ? '+41'+lead.user.phone_number : '-' }}</div>
+  <div v-else class="col-sm-8">{{ '+41'+lead?.phoneNumber ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Prénom</div>
   <div  v-if="lead.user" class="col-sm-8">{{ lead.user.first_name ?? '-' }}</div>
+  <div  v-else class="col-sm-8">{{ lead?.firstName ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Nom</div>
   <div v-if="lead.user" class="col-sm-8">{{ lead.user.last_name ?? '-' }}</div>
+  <div  v-else class="col-sm-8">{{ lead?.lastName ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Date de naissance</div>
@@ -79,6 +86,7 @@
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Email</div>
   <div v-if="lead.user" class="col-sm-8">{{ lead.user.email ?? '-' }}</div>
+  <div v-else class="col-sm-8">{{ lead?.email ?? '-' }}</div>
 </div>
 
     
