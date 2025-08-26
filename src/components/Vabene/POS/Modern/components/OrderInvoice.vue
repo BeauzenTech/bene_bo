@@ -54,11 +54,11 @@
               :class="['form-input', 'phone-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
           </div>
         </div>
-        <!-- <div class="form-group">
+        <div class="form-group">
           <label>Email</label>
-          <input v-model="customerInfo.email" type="text" placeholder="Email du client"
+          <input v-model="customerInfo.email" type="text" placeholder="Email du client" required
             :class="['form-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
-        </div> -->
+        </div>
         <div class="form-group">
           <label>Type de commande</label>
           <select v-model="storeOrderType" class="form-select">
@@ -802,7 +802,8 @@ const canPlaceOrder = computed(() => {
   const basicValidation = storeCart.value.length > 0 &&
     customerInfo.value.firstName.trim() !== '' &&
     customerInfo.value.lastName.trim() !== '' &&
-    customerInfo.value.phone.trim() !== ''
+    customerInfo.value.phone.trim() !== '' &&
+    customerInfo.value.email.trim() !== ''
   
   // Validation supplémentaire pour la livraison programmée
   if (storeOrderType.value === 'click_collect' && deliveryPreference.value === 'ulterieur') {
@@ -1283,6 +1284,11 @@ const handlePlaceOrder = async () => {
       return
     }
 
+    if (!customerInfo.value.email || !customerInfo.value.phone) {
+      toast.error('Veuiller remplir tous les champs!')
+      return
+    }
+
     // Extraire les features du panier
     const cartFeatures = extractFeaturesFromCart(storeCart.value)
 
@@ -1292,7 +1298,7 @@ const handlePlaceOrder = async () => {
 
     const renderEmail = ()=>{
       if(customerInfo.value?.email){
-        return customerInfo.value?.email
+        return customerInfo.value?.email;
       } else if(selectedCustomer.value?.email){
         return selectedCustomer.value?.email
       } else if(selectedCustomer.value?.user?.email){
