@@ -144,7 +144,7 @@
                 <i class="flaticon-envelope"></i>
                 Email:
               </div>
-              <span class="d-block text-paragraph fs-md-15 fs-lg-16">
+              <span v-if="!orderResponse?.guest_email?.includes('guest_')" class="d-block text-paragraph fs-md-15 fs-lg-16">
                 {{orderResponse.guest_email}}
               </span>
             </li>
@@ -508,7 +508,7 @@
               <span class="d-block text-paragraph fw-medium">
                 Email:
               </span>
-              <span class="d-block text-paragraph fw-medium">
+              <span v-if="!orderResponse?.guest_email?.includes('guest_')" class="d-block text-paragraph fw-medium">
                 <strong>{{orderResponse.guest_email ?? '-'}}</strong>
               </span>
             </li>
@@ -571,7 +571,7 @@
               <span class="d-block text-paragraph fw-medium">
                 Email:
               </span>
-              <span class="d-block text-paragraph fw-medium">
+              <span v-if="!orderResponse?.guest_email?.includes('guest_')" class="d-block text-paragraph fw-medium">
                 <strong>{{orderResponse.guest_email ?? '-'}}</strong>
               </span>
             </li>
@@ -807,7 +807,7 @@
                             <h2><strong>{{orderResponse.npa ?? ''}} {{orderResponse.localite ?? ''}}</strong></h2>
                             <h2><strong>{{orderResponse.rue }} - {{orderResponse.numberRue}}</strong></h2>
                             <h2><strong>{{orderResponse.guest_phone_number}}</strong></h2>
-                            <h2><strong>{{orderResponse.guest_email}}</strong></h2>
+                            <h2 v-if="!orderResponse?.guest_email?.includes('guest_')"><strong>{{orderResponse?.guest_email}}</strong></h2>
                           </div>
 
                           <hr class="dashed-line" />
