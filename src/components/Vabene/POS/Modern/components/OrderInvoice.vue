@@ -54,11 +54,11 @@
               :class="['form-input', 'phone-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
           </div>
         </div>
-        <div class="form-group">
+        <!-- <div class="form-group">
           <label>Email</label>
           <input v-model="customerInfo.email" type="text" placeholder="Email du client"
             :class="['form-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
-        </div>
+        </div> -->
         <div class="form-group">
           <label>Type de commande</label>
           <select v-model="storeOrderType" class="form-select">
@@ -499,7 +499,7 @@ const customerInfo = ref({
   firstName: '',
   lastName: '',
   phone: '',
-  email: '-'
+  email: ''
 })
 
 // État pour la recherche de clients
@@ -930,7 +930,7 @@ const searchCustomers = () => {
   }
 
   // Critères de recherche plus souples
-  if (firstName.length < 2 && lastName.length < 2 && phone.length < 3) {
+  if (firstName.length < 2 && lastName.length < 2 && phone.length < 3 && email.length < 3) {
     customerSuggestions.value = []
     return
   }
