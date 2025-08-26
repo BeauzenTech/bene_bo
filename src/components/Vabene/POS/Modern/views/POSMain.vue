@@ -39,7 +39,7 @@
     <PastaCustomizationModal v-if="showPastaModal" :product="selectedPastaProduct" :selected-size="selectedPastaSize"
       @close="closePastaModal" @add-to-cart="handleAddToCart" />
 
-    <PizzaCustomizationModal v-if="showPizzaModal" :product="selectedPizzaProduct" @close="closePizzaModal"
+    <PizzaCustomizationModal v-if="showPizzaModal" :product="selectedPizzaProduct" :initial-selected-size="selectedPizzaSize" @close="closePizzaModal"
       @add-to-cart="handleAddToCart" />
   </div>
 </template>
@@ -102,6 +102,7 @@ const selectedPastaSize = ref<ProductSize | null>(null)
 
 const showPizzaModal = ref(false)
 const selectedPizzaProduct = ref<Product | null>(null)
+const selectedPizzaSize = ref<ProductSize | null>(null)
 
 // État de chargement
 const isLoading = ref(false)
@@ -177,18 +178,26 @@ const handleCategoryChange = async (categoryId: string) => {
   await fetchProducts(categoryId)
 }
 
-const handleCustomizeProduct = (product: Product) => {
+const handleCustomizeProduct = (data: { product: Product; selectedSize: ProductSize | null }) => {
+  const { product, selectedSize } = data
   const productType = getSpecializedCategoryType(product)
+
+  console.log('🎯 Gestion personnalisation produit:', {
+    product: product.name,
+    productType,
+    selectedSize: selectedSize?.size,
+    sizeId: selectedSize?.id
+  })
 
   switch (productType) {
     case 'salad':
-      openSaladModal(product)
+      openSaladModal(product, selectedSize)
       break
     case 'pasta':
-      openPastaModal(product)
+      openPastaModal(product, selectedSize)
       break
     case 'pizza':
-      openPizzaModal(product)
+      openPizzaModal(product, selectedSize)
       break
     default:
       // Modal général
@@ -205,10 +214,16 @@ const handleCreatePizza = (selectedBase: string, selectedSize: string, sizeId: s
 }
 
 // Gestionnaires des modales spécialisées
-const openSaladModal = (product: Product) => {
+const openSaladModal = (product: Product, selectedSize: ProductSize | null = null) => {
   selectedSaladProduct.value = product
-  const defaultSize = product.sizes?.find(s => s.name === 'Normale') || product.sizes?.[0]
-  selectedSaladSize.value = defaultSize || null
+  selectedSaladSize.value = selectedSize || product.sizes?.find(s => s.name === 'Normale') || product.sizes?.[0] || null
+  
+  console.log('🥗 Ouverture modale salade:', {
+    product: product.name,
+    selectedSize: selectedSaladSize.value?.size,
+    sizeId: selectedSaladSize.value?.id
+  })
+  
   showSaladModal.value = true
 }
 
@@ -218,10 +233,16 @@ const closeSaladModal = () => {
   selectedSaladSize.value = null
 }
 
-const openPastaModal = (product: Product) => {
+const openPastaModal = (product: Product, selectedSize: ProductSize | null = null) => {
   selectedPastaProduct.value = product
-  const defaultSize = product.sizes?.find(s => s.name === 'Normale') || product.sizes?.[0]
-  selectedPastaSize.value = defaultSize || null
+  selectedPastaSize.value = selectedSize || product.sizes?.find(s => s.name === 'Normale') || product.sizes?.[0] || null
+  
+  console.log('🍝 Ouverture modale pâtes:', {
+    product: product.name,
+    selectedSize: selectedPastaSize.value?.size,
+    sizeId: selectedPastaSize.value?.id
+  })
+  
   showPastaModal.value = true
 }
 
@@ -231,14 +252,23 @@ const closePastaModal = () => {
   selectedPastaSize.value = null
 }
 
-const openPizzaModal = (product: Product) => {
+const openPizzaModal = (product: Product, selectedSize: ProductSize | null = null) => {
   selectedPizzaProduct.value = product
+  selectedPizzaSize.value = selectedSize
+  
+  console.log('🍕 Ouverture modale pizza:', {
+    product: product.name,
+    selectedSize: selectedSize?.size,
+    sizeId: selectedSize?.id
+  })
+  
   showPizzaModal.value = true
 }
 
 const closePizzaModal = () => {
   showPizzaModal.value = false
   selectedPizzaProduct.value = null
+  selectedPizzaSize.value = null
 }
 
 const handleAddToCart = (event: AddToCartEvent) => {

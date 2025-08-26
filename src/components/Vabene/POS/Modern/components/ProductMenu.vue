@@ -97,6 +97,7 @@
       :ingredients="createPizzaIngredients"
       :productId="currentPizzaProductId"
       :product="currentPizzaProduct"
+      :initial-selected-size="currentPizzaSelectedSize"
       @close="handleCreatePizzaClose"
       @add-to-cart="handleCreatePizzaAddToCart"
     />
@@ -125,7 +126,7 @@ const props = defineProps<{
 // Events
 const emit = defineEmits<{
   'add-to-cart': [event: AddToCartEvent]
-  'customize-product': [product: Product]
+  'customize-product': [data: { product: Product; selectedSize: ProductSize | null }]
 }>()
 
 // Store
@@ -370,7 +371,19 @@ const handleSizeSelection = (product: ProductModel, size: ProductSizesModel) => 
 
 const handleCustomize = (product: ProductModel) => {
   const transformedProduct = transformProduct(product)
-  emit('customize-product', transformedProduct)
+  const selectedSize = getSelectedSize(product)
+  
+  console.log('🔧 Ouverture modale de personnalisation:', {
+    product: product.name,
+    selectedSize: selectedSize?.size,
+    sizeId: selectedSize?.id
+  })
+  
+  // Émettre un objet contenant le produit et la taille sélectionnée
+  emit('customize-product', {
+    product: transformedProduct,
+    selectedSize: selectedSize
+  })
 }
 
 const handleQuickAdd = (product: ProductModel) => {
@@ -419,6 +432,9 @@ const currentPizzaProductId = ref('')
 // Produit Pizza sélectionné
 const currentPizzaProduct = ref<ProductModel | null>(null)
 
+// Taille sélectionnée pour la pizza personnalisée
+const currentPizzaSelectedSize = ref<ProductSize | null>(null)
+
 
 function handleAddToCart(product: ProductModel) {
   const specializedType = getSpecializedCategoryType(product);
@@ -427,8 +443,16 @@ function handleAddToCart(product: ProductModel) {
 
   // Détection stricte par id de catégorie pour la pizza personnalisée
   if (product.categorieID?.id === 'fd4a2c4e-49ef-48a5-9937-6f3a51122f9e') {
+    console.log('🍕 Ouverture CreatePizzaModal:', {
+      product: product.name,
+      selectedSize: selectedSize?.size,
+      sizeId: selectedSize?.id
+    })
+    
     showCreatePizzaModal.value = true
     currentPizzaProductId.value = product.id // stocker l'id du produit cliqué (classic ou sans gluten)
+    currentPizzaSelectedSize.value = selectedSize // stocker la taille sélectionnée
+    
     // Reset ingrédients sélectionnés à chaque ouverture
     createPizzaIngredients.value = INGREDIENTS_WITH_PRICING.map(ing => ({
       id: ing.id,
@@ -489,6 +513,7 @@ function handleCreatePizzaAddToCart(event: AddToCartEvent) {
 }
 function handleCreatePizzaClose() {
   showCreatePizzaModal.value = false
+  currentPizzaSelectedSize.value = null
 }
 
 const getSizeInCm = (size: string): string => {

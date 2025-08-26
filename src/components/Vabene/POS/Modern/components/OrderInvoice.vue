@@ -56,8 +56,18 @@
         </div>
         <div class="form-group">
           <label>Email</label>
-          <input v-model="customerInfo.email" type="text" placeholder="Email du client" required
-            :class="['form-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
+          <input 
+            v-model="customerInfo.email" 
+            type="email" 
+            placeholder="Email du client" 
+            required
+            :class="['form-input', { 'client-selected': selectedCustomer, 'invalid-email': customerInfo.email && !isValidEmail(customerInfo.email) }]" 
+            @input="handleCustomerSearch"
+            @blur="validateEmail"
+          />
+          <div v-if="customerInfo.email && !isValidEmail(customerInfo.email)" class="email-error">
+            Veuillez saisir une adresse email valide
+          </div>
         </div>
         <div class="form-group">
           <label>Type de commande</label>
@@ -403,7 +413,7 @@
         <div class="summary-lines">
           <div class="summary-row">
             <span class="label">Sous-total</span>
-            <span class="value">{{ formatPrice(orderSummaryWithDiscount.subtotal) }} CHF</span>
+            <span class="value">{{ formatPrice(props.orderSummary.subtotal) }} CHF</span>
           </div>
 
           <div class="summary-row" v-if="discountAmount > 0">
@@ -569,6 +579,22 @@ const isLoadingAddresses = ref(false)
 const toast = useToast()
 const store = useStore()
 
+// Fonction pour valider si un email est valide
+const isValidEmail = (email: string): boolean => {
+  if (!email || email.trim() === '') return false
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email.trim())
+}
+
+// Fonction pour valider l'email lors de la perte de focus
+const validateEmail = () => {
+  if (customerInfo.value.email && !isValidEmail(customerInfo.value.email)) {
+    console.log('⚠️ Email invalide saisi:', customerInfo.value.email)
+    // Optionnel: afficher un toast d'avertissement
+    // toast.warning('Email invalide. Un email unique sera généré pour cette commande.')
+  }
+}
+
 // Fonctions utilitaires pour la gestion des dates et horaires
 const getGMT2Date = (date?: Date) => {
   const now = date || new Date();
@@ -678,8 +704,10 @@ const selectedFeatures = computed(() => {
 // Computed pour le rabais
 const discountAmount = computed(() => {
   if (discountType.value === 'percentage') {
-  if (discountPercentage.value <= 0) return 0
-  return (props.orderSummary.subtotal * discountPercentage.value) / 100
+    if (discountPercentage.value <= 0) return 0
+    // Limiter le rabais en pourcentage à 100%
+    const maxDiscount = Math.min(discountPercentage.value, 100)
+    return (props.orderSummary.subtotal * maxDiscount) / 100
   } else {
     if (discountFixed.value <= 0) return 0
     // Le rabais fixe ne peut pas dépasser le sous-total
@@ -802,8 +830,7 @@ const canPlaceOrder = computed(() => {
   const basicValidation = storeCart.value.length > 0 &&
     customerInfo.value.firstName.trim() !== '' &&
     customerInfo.value.lastName.trim() !== '' &&
-    customerInfo.value.phone.trim() !== '' &&
-    customerInfo.value.email.trim() !== ''
+    customerInfo.value.phone.trim() !== '' 
   
   // Validation supplémentaire pour la livraison programmée
   if (storeOrderType.value === 'click_collect' && deliveryPreference.value === 'ulterieur') {
@@ -1084,6 +1111,23 @@ watch(storeCart, (newCart, oldCart) => {
   }
 }, { deep: true })
 
+// Watcher pour valider le rabais fixe quand le sous-total change
+watch(() => props.orderSummary.subtotal, (newSubtotal) => {
+  if (discountType.value === 'fixed' && discountFixed.value > newSubtotal) {
+    discountFixed.value = newSubtotal
+    console.log('Rabais fixe ajusté au nouveau sous-total:', newSubtotal)
+  }
+})
+
+// Watcher pour logger les changements de rabais
+watch([discountAmount, couponDiscountAmount, finalTotalWithCoupon], ([newDiscount, newCoupon, newTotal]) => {
+  console.log('Calculs de rabais mis à jour:', {
+    rabais: newDiscount,
+    coupon: newCoupon,
+    totalFinal: newTotal
+  })
+})
+
 onMounted(() => {
   loadRestaurantInfo()
   loadRestaurantDetails()
@@ -1284,7 +1328,7 @@ const handlePlaceOrder = async () => {
       return
     }
 
-    if (!customerInfo.value.email || !customerInfo.value.phone) {
+    if (!customerInfo.value.phone) {
       toast.error('Veuiller remplir tous les champs!')
       return
     }
@@ -1296,16 +1340,43 @@ const handlePlaceOrder = async () => {
     const customerID = selectedCustomer.value?.id || customerInfo.value.id;
     console.log('Customer ID:', customerID);
 
-    const renderEmail = ()=>{
-      if(customerInfo.value?.email){
-        return customerInfo.value?.email;
-      } else if(selectedCustomer.value?.email){
-        return selectedCustomer.value?.email
-      } else if(selectedCustomer.value?.user?.email){
-        return selectedCustomer.value?.user?.email
-      } else {
-        return restaurantID === 'fd9d1677-f994-473a-9939-908cf3145bd4' ? 'client07morges@gmail.com' : 'client07penthaz@gmail.com';
+    // Fonction pour générer un email unique pour les commandes sans email valide
+    const generateUniqueEmail = (): string => {
+      const timestamp = Date.now()
+      const randomId = Math.random().toString(36).substring(2, 8)
+      const restaurantSuffix = restaurantID === 'fd9d1677-f994-473a-9939-908cf3145bd4' ? 'morges' : 'penthaz'
+      return `guest_${timestamp}_${randomId}@${restaurantSuffix}.dummy.com`
+    }
+
+    const renderEmail = (): string => {
+      // Priorité 1: Email saisi manuellement (si valide)
+      if (customerInfo.value?.email && isValidEmail(customerInfo.value.email)) {
+        return customerInfo.value.email
       }
+      
+      // Priorité 2: Email du client sélectionné (si valide)
+      if (selectedCustomer.value?.email && isValidEmail(selectedCustomer.value.email)) {
+        return selectedCustomer.value.email
+      }
+      
+      // Priorité 3: Email de l'utilisateur du client sélectionné (si valide)
+      if (selectedCustomer.value?.user?.email && isValidEmail(selectedCustomer.value.user.email)) {
+        return selectedCustomer.value.user.email
+      }
+      
+      // Priorité 4: Email par défaut du restaurant (si valide)
+      /* const defaultEmail = restaurantID === 'fd9d1677-f994-473a-9939-908cf3145bd4' 
+        ? 'client07morges@gmail.com' 
+        : 'client07penthaz@gmail.com'
+      
+      if (isValidEmail(defaultEmail)) {
+        return defaultEmail
+      } */
+      
+      // Priorité 5: Générer un email unique pour éviter les conflits
+      const uniqueEmail = generateUniqueEmail()
+      console.log('📧 Email unique généré pour la commande:', uniqueEmail)
+      return uniqueEmail
     }
 
     // Préparer les données de commande selon le format de l'API
@@ -1378,8 +1449,16 @@ const handlePlaceOrder = async () => {
       couponValue: orderData.couponValue,
       couponType: orderData.couponType
     });
+    console.log("Rabais dans le payload:", {
+      discountType: orderData.discountType,
+      discount: orderData.discount,
+      discountFixed: orderData.discountFixed,
+      discountValue: orderData.discountValue,
+      discountAmount: orderData.discountAmount,
+      calculatedDiscountAmount: discountAmount.value
+    });
     
-    const response = await createPOSOrder(orderData)
+   /*  const response = await createPOSOrder(orderData)
 
     if (response.code === 200 || response.code === 201) {
       toast.success('Commande créée avec succès!')
@@ -1419,7 +1498,7 @@ const handlePlaceOrder = async () => {
       emit('place-order', { success: true, orderData: response.data })
     } else {
       toast.error(response.message || 'Erreur lors de la création de la commande')
-    }
+    } */
   } catch (error: any) {
     console.error('Erreur lors de la création de la commande:', error)
     const errorMessage = error?.response?.data?.message || 'Erreur lors de la création de la commande'
@@ -1470,6 +1549,9 @@ const handleDiscountChange = () => {
   } else if (discountPercentage.value > 100) {
     discountPercentage.value = 100
   }
+  
+  // Mettre à jour l'affichage en temps réel
+  console.log('Rabais en pourcentage mis à jour:', discountPercentage.value, '%')
 }
 
 // Gestionnaire pour le changement de rabais fixe
@@ -1478,6 +1560,14 @@ const handleFixedDiscountChange = () => {
   if (discountFixed.value < 0) {
     discountFixed.value = 0
   }
+  
+  // S'assurer que le rabais fixe ne dépasse pas le sous-total
+  if (discountFixed.value > props.orderSummary.subtotal) {
+    discountFixed.value = props.orderSummary.subtotal
+  }
+  
+  // Mettre à jour l'affichage en temps réel
+  console.log('Rabais fixe mis à jour:', discountFixed.value, 'CHF')
 }
 
 // Fonction pour appliquer un coupon
@@ -1731,6 +1821,18 @@ const handleDateChange = () => {
         cursor: not-allowed;
         opacity: 0.7;
       }
+
+      &.invalid-email {
+        border-color: #dc2626;
+        box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1);
+      }
+    }
+
+    .email-error {
+      font-size: 11px;
+      color: #dc2626;
+      margin-top: 4px;
+      font-weight: 500;
     }
 
     .postal-code-input-container {

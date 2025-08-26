@@ -116,6 +116,7 @@ const props = defineProps<{
   ingredients: Array<{ id: string, name: string, price: number, image: string, selected: boolean }>
   productId: string
   product: ProductModel | null
+  initialSelectedSize?: ProductSize | null
 }>()
 
 const emit = defineEmits<{
@@ -186,11 +187,19 @@ const availableSizes = computed(() => {
 // Initialiser quand la modale s'ouvre
 watch(() => props.visible, (isVisible) => {
   if (isVisible) {
-    // Réinitialiser la taille avec les vraies tailles du produit
-    const firstSize = availableSizes.value[0]
-    selectedSize.value = firstSize || null
-    selectedSizeId.value = firstSize?.id || ''
+    // Utiliser la taille sélectionnée si fournie, sinon la première taille disponible
+    const initialSize = props.initialSelectedSize || availableSizes.value[0]
+    selectedSize.value = initialSize || null
+    selectedSizeId.value = initialSize?.id || ''
     quantity.value = 1
+
+    console.log('🍕 Initialisation CreatePizzaModal:', {
+      product: props.product?.name,
+      initialSelectedSize: props.initialSelectedSize?.size,
+      initialSizeId: props.initialSelectedSize?.id,
+      finalSize: selectedSize.value?.size,
+      finalSizeId: selectedSize.value?.id
+    })
 
     // Créer une copie locale des ingrédients
     localIngredients.value = props.ingredients.map(ing => ({

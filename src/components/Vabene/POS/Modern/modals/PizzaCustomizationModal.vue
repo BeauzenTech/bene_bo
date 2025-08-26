@@ -88,6 +88,7 @@ const store = useStore();
 // Props
 const props = defineProps<{
   product: Product | null;
+  initialSelectedSize?: ProductSize | null;
 }>();
 
 // Events
@@ -250,9 +251,15 @@ const handleAddToCart = () => {
 // Watchers
 watch(() => props.product, (newProduct) => {
   if (newProduct?.sizes) {
-    const defaultSize = newProduct.sizes.find(s => s.name === 'Normale') || newProduct.sizes[0];
-    if (defaultSize) {
-      selectSize(defaultSize);
+    // Utiliser la taille sélectionnée si fournie, sinon la taille par défaut
+    const sizeToUse = props.initialSelectedSize || newProduct.sizes.find(s => s.name === 'Normale') || newProduct.sizes[0];
+    if (sizeToUse) {
+      selectSize(sizeToUse);
+      console.log('🍕 Taille initialisée dans PizzaCustomizationModal:', {
+        product: newProduct.name,
+        selectedSize: sizeToUse.size,
+        sizeId: sizeToUse.id
+      });
     }
   }
 
