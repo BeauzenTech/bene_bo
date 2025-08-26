@@ -86,7 +86,7 @@
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Email</div>
   <div v-if="lead.user" class="col-sm-8">{{ lead.user.email ?? '-' }}</div>
-  <div v-else class="col-sm-8">{{ lead?.email?.includes('guest') ? '-' : lead?.email }}</div>
+  <div v-else class="col-sm-8">{{ lead?.email?.includes('guest_') ? '-' : lead?.email }}</div>
 </div>
 
     
