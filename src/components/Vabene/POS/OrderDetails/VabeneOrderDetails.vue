@@ -797,7 +797,7 @@
                             <h2><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'Va Bene pizza sàrl Morges' : 'Pizzeria Va Bene SA '}}</strong></h2>
                             <h2><strong>{{orderResponse.restaurantID.address}}</strong></h2>
                             <h2><strong>{{orderResponse.restaurantID.codePostalID.numeroPostal}} {{orderResponse.restaurantID.name}}</strong> </h2>
-                            <h2><strong>{{orderResponse.restaurantID.phoneNumber}}</strong></h2>
+                            <h2><strong>+41{{orderResponse.restaurantID.phoneNumber}}</strong></h2>
                             <h2><strong>{{orderResponse.restaurantID.taxe}}</strong></h2>
                           </div>
                           <hr class="dashed-line" />
