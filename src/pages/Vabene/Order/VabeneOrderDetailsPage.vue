@@ -21,7 +21,6 @@ export default defineComponent({
   },
   mounted() {
     this.commandeID = this.$route.params.commandeID as string;
-    console.log('commandeID:', this.commandeID);
   },
 });
 </script>

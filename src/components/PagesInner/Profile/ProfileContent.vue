@@ -141,7 +141,6 @@ export default defineComponent({
 
       try {
         const response = await detailFranchise(FranchiseEnum.id) as ApiResponse<FranchiseModel>;
-        console.log(response)
         if (response.code === 200) {
           this.franchiseResponse = response.data as FranchiseModel;
           for (let i = 0; i < this.franchiseResponse.restaurants.length; i++) {
@@ -153,7 +152,7 @@ export default defineComponent({
 
 
         } else {
-          console.log(response.message)
+          console.error(response.message)
         }
       } catch (error) {
         console.error(error);

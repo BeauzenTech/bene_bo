@@ -59,7 +59,7 @@
           <!-- Price and add to cart -->
           <div class="product-actions">
             <div class="price-section">
-              <span class="price">{{ formatPrice(getCurrentPrice(product)) }}</span>
+              <span class="price">{{ formatPrice(productPrices[product.id] || 0) }}</span>
               <span v-if="currentOrderType === 'delivery'" class="delivery-price-indicator">
                 🚚 Prix de Livraison*
               </span>
@@ -290,19 +290,54 @@ const getSelectedSize = (product: ProductModel): ProductSize | null => {
   return null
 }
 
-const getCurrentPrice = (product: ProductModel): number => {
-  const selectedSize = getSelectedSize(product)
-  if (!selectedSize) {
-  // Prix par défaut si pas de taille
-  if (product.productSizes && product.productSizes.length > 0) {
-      const defaultSize = transformProductSize(product.productSizes[0])
-      return calculateItemTotalPrice(product, defaultSize)
-  }
-  return 0
-  }
+// Computed pour forcer la réactivité des prix
+const currentOrderType = computed(() => store.getters['orderType/selectedOrderType'] || 'dine_in')
 
-  return calculateItemTotalPrice(product, selectedSize)
-}
+// Computed pour forcer la réactivité des prix de tous les produits
+const productPrices = computed(() => {
+  // Ce computed se recalcule automatiquement quand currentOrderType ou props.products changent
+  const orderType = currentOrderType.value
+  
+  const prices: Record<string, number> = {}
+  
+  props.products.forEach(product => {
+    const selectedSize = getSelectedSize(product)
+    if (selectedSize) {
+      // Utiliser le bon prix selon le type de commande actuel
+      const basePrice = orderType === 'delivery' && selectedSize.priceLivraison
+        ? Number(selectedSize.priceLivraison) || 0
+        : Number(selectedSize.price) || 0
+      
+      // IMPORTANT: Ne pas ajouter le coût des ingrédients dans l'affichage du menu
+      // Les ingrédients ne sont pas encore sélectionnés, on affiche juste le prix de base
+      prices[product.id] = basePrice
+      
+    } else if (product.productSizes && product.productSizes.length > 0) {
+      // Prix par défaut si pas de taille sélectionnée
+      const defaultSize = transformProductSize(product.productSizes[0])
+      const basePrice = orderType === 'delivery' && defaultSize.priceLivraison
+        ? Number(defaultSize.priceLivraison) || 0
+        : Number(defaultSize.price) || 0
+      
+      prices[product.id] = basePrice
+    } else {
+      prices[product.id] = 0
+    }
+  })
+  
+  return prices
+})
+
+// Watcher pour forcer le recalcul des prix quand le type de commande change
+watch(currentOrderType, (newOrderType, oldOrderType) => {
+  
+}, { immediate: false })
+
+// Watcher supplémentaire pour forcer la réactivité du computed productPrices
+watch(currentOrderType, () => {
+  // Forcer le recalcul du computed en touchant une propriété
+  // Le computed se recalculera automatiquement grâce à la réactivité de Vue
+}, { immediate: false })
 
 // Fonction pour calculer le prix total d'un item (similaire à celle du store cart)
 const calculateItemTotalPrice = (product: ProductModel, size: ProductSize): number => {
@@ -333,8 +368,9 @@ const transformProductSize = (size: ProductSizesModel): ProductSize => {
     id: size.id || '',
     name: size.size,
     size: size.size,
+    // IMPORTANT: Préserver les prix originaux
     price: size.price,
-    priceLivraison: size.priceLivraison || size.price,
+    priceLivraison: size.priceLivraison,
     created_at: new Date().toISOString()
   }
 }
@@ -373,13 +409,9 @@ const handleCustomize = (product: ProductModel) => {
   const transformedProduct = transformProduct(product)
   const selectedSize = getSelectedSize(product)
   
-  console.log('🔧 Ouverture modale de personnalisation:', {
-    product: product.name,
-    selectedSize: selectedSize?.size,
-    sizeId: selectedSize?.id
-  })
+
   
-  // Émettre un objet contenant le produit et la taille sélectionnée
+  // Émettre un objet contenant le produit et la taille sélectionnée (prix originaux)
   emit('customize-product', {
     product: transformedProduct,
     selectedSize: selectedSize
@@ -391,22 +423,20 @@ const handleQuickAdd = (product: ProductModel) => {
   const selectedSize = getSelectedSize(product)
 
   if (selectedSize) {
-    // Créer l'événement AddToCartEvent
+    // IMPORTANT: Ne pas modifier le prix, garder les données originales
+    // Le prix sera calculé dynamiquement dans le store cart selon le type de commande
+    
+    
+    // Créer l'événement AddToCartEvent avec les prix originaux
     const addToCartEvent: AddToCartEvent = {
       product: transformedProduct,
-      size: selectedSize,
+      size: selectedSize, // Prix originaux préservés
       quantity: 1,
-      ingredients: transformedProduct.ingredients.filter(ing => ing.isDefault).map(ing => ({
-        id: ing.id,
-        name: ing.name,
-        extra_cost_price: ing.price,
-        quantity: 1,
-        isDefault: ing.isDefault
-      })) as CartIngredient[],
-      supplements: [] as CartSupplement[],
+      ingredients: [],
+      supplements: [],
       notes: ''
     }
-
+    
     emit('add-to-cart', addToCartEvent)
   }
 }
@@ -443,11 +473,7 @@ function handleAddToCart(product: ProductModel) {
 
   // Détection stricte par id de catégorie pour la pizza personnalisée
   if (product.categorieID?.id === 'fd4a2c4e-49ef-48a5-9937-6f3a51122f9e') {
-    console.log('🍕 Ouverture CreatePizzaModal:', {
-      product: product.name,
-      selectedSize: selectedSize?.size,
-      sizeId: selectedSize?.id
-    })
+    
     
     showCreatePizzaModal.value = true
     currentPizzaProductId.value = product.id // stocker l'id du produit cliqué (classic ou sans gluten)
@@ -539,7 +565,7 @@ const extractPizzaSizesFromProducts = (products: ProductModel[]) => {
   }
 }
 
-// Initialiser les tailles sélectionnées pour chaque produit
+// Watcher pour forcer la réactivité quand les produits changent
 watch(() => props.products, (newProducts) => {
   if (newProducts) {
     // Extraire les tailles de pizza
@@ -554,15 +580,6 @@ watch(() => props.products, (newProducts) => {
     })
   }
 }, { immediate: true })
-
-// Computed pour forcer la réactivité des prix
-const currentOrderType = computed(() => store.getters['orderType/selectedOrderType'] || 'dine_in')
-
-// Watcher pour forcer le recalcul des prix quand le type de commande change
-watch(currentOrderType, () => {
-  // Forcer la réactivité en touchant les computed
-  // Les prix se recalculeront automatiquement grâce à la réactivité de Vue
-}, { immediate: false })
 </script>
 
 <style lang="scss" scoped>

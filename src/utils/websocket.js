@@ -8,6 +8,6 @@ const options = {
     minReconnectionDelay: 1000 + Math.random() * 4000,
 };
 
-const socket = new ReconnectingWebSocket('wss://backend.vabenepizza.ch/ws', [], options);
+const socket = new ReconnectingWebSocket('wss://localhost:8000/ws', [], options);
 
 export default socket;

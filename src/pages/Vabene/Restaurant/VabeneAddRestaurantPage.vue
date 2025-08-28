@@ -25,8 +25,6 @@ export default defineComponent({
   mounted() {
     this.action = this.$route.params.action as string;
     this.restaurantID = this.$route.params.restaurantID as string;
-    console.log('action:', this.action);
-    console.log('restaurantID:', this.restaurantID);
   },
 });
 </script>

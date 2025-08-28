@@ -33,7 +33,6 @@ export default defineComponent({
             axios
               .post("/upload-image", formData)
               .then((res: { data: { url: unknown } }) => {
-                console.log(res);
                 resolve(res.data.url);
               })
               .catch((err: unknown) => {

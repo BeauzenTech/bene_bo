@@ -401,7 +401,6 @@ export default defineComponent({
     async confirmationDeleteAction(user){
       try {
         const response = await deleteUser(user.id) as ApiResponse<any>;
-        //console.log(response)
         if (response.code === 201) {
           this.usersResponse = response;
           this.toast.success(response.message);
@@ -420,18 +419,15 @@ export default defineComponent({
     },
     async toggleUserActivation(user, status){
       //this.isLoading = true;
-      console.log(status)
       const payload = {
         'status': status
       }
       try {
         const response = await toggleActivationUser(user.id, payload) as ApiResponse<any>;
-        //console.log(response)
         if (response.code === 201) {
           this.usersResponse = response;
           if (response.data) {
             const responseDecoded = response.data
-            console.log(responseDecoded)
             this.toast.success(response.message);
 
           }
@@ -458,7 +454,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeUser(page) as ApiResponse<PaginatedUsers>;
-        console.log(response)
         if (response.code === 200) {
           this.usersResponse = response;
           if (response.data?.items) {

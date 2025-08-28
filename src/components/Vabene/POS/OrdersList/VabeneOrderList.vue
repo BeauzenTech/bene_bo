@@ -301,7 +301,6 @@ export default defineComponent({
     },
     selectionOrder(order) {
       this.orderSelected = order;
-      console.log(order)
       this.$router.push({
         name: "VabeneOrderDetailsPage",
         params: { commandeID: order.id }
@@ -310,7 +309,6 @@ export default defineComponent({
     async confirmationDeleteAction(order) {
       try {
         const response = await deleteUser(order.id) as ApiResponse<any>;
-        //console.log(response)
         if (response.code === 201) {
           this.orderResponse = response;
           this.toast.success(response.message);
@@ -329,18 +327,15 @@ export default defineComponent({
     },
     async toggleUserActivation(user, status) {
       //this.isLoading = true;
-      console.log(status)
       const payload = {
         'status': status
       }
       try {
         const response = await toggleActivationUser(user.id, payload) as ApiResponse<any>;
-        //console.log(response)
         if (response.code === 201) {
           this.orderResponse = response;
           if (response.data) {
             const responseDecoded = response.data
-            console.log(responseDecoded)
             this.toast.success(response.message);
 
           }
@@ -367,7 +362,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeOrder(page) as ApiResponse<PaginatedOrder>;
-        console.log(response)
         if (response.code === 200) {
           this.orderResponse = response;
           if (response.data?.items) {

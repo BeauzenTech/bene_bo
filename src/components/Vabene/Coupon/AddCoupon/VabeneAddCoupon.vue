@@ -217,16 +217,13 @@ export default defineComponent({
   },
   methods: {
     async toggleCategorieActivation(categorie, status){
-      console.log('tokk')
       const payload = {
         'status': status
       }
       try {
         const response = await disableCoupon(categorie.code, payload) as ApiResponse<any>;
-        console.log(response)
         if (response.code === 200) {
             const responseDecoded = response.data
-            console.log(responseDecoded)
             this.toast.success(response.message);
             this.clearData()
         } else {
@@ -268,7 +265,6 @@ export default defineComponent({
         }
         try {
           const response = await createCoupon(payload);
-          console.log(response);
           if (response.code === 200 || response.code === 201) {
             this.toast.success(response.message)
             this.clearData()
@@ -298,12 +294,10 @@ export default defineComponent({
           this.restaurantId = idResto;
         }
         const response = await listeCustomers(page, '1', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             const data = response.data.items;
             this.originalUsers = data.filter(item => item.user != null && item.user.deviceToken != null);
-            console.log("filter data: ", this.originalUsers);
           }
 
         } else {
@@ -326,7 +320,6 @@ export default defineComponent({
       }
       try {
         const response = await updateCoupon(categorieID, payload);
-        console.log(response);
         if (response.code === 200 || response.code === 201) {
           this.toast.success(response.message)
           this.clearData()
@@ -349,7 +342,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await detailCoupon(categorieID) as ApiResponse<CouponModel>;
-        console.log(response)
         if (response.code === 200) {
           if(response.data){
             this.categorieResponse = response.data;
@@ -370,12 +362,10 @@ export default defineComponent({
       }
     },
     async uploadLogo(){
-      console.log(this.categorieData);
       if(this.logoUpload && this.actionDetected === 'add'){
         this.isLoading = true;
         try {
           const response = await uploadFile(this.logoUpload);
-          console.log(response);
           if (response.code === 200 || response.code === 201) {
             await this.createNewCategorie()
           } else {
@@ -404,7 +394,6 @@ export default defineComponent({
     },
 
     handleInput(event, type) {
-      console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
       switch (type){
         case 'value':
@@ -489,20 +478,17 @@ export default defineComponent({
       const newValue = newVal as string
       this.categorieData.destination.push(newValue)
       this.userSelected = null;
-      console.log('individuel: ', this.categorieData.destination)
     },
     sendingType(this: any, newVal){
       if (!newVal) return
       const newValue = newVal as string
       this.sendingType = newVal as string
-      console.log(this.sendingType)
       if(newValue == 'Groupé'){
         for(let i=0; i<this.originalUsers.length; i++){
           this.categorieData.destination.push(this.originalUsers[i].user.deviceToken);
         }
       }
       this.userSelected = null;
-      console.log('tous: ', this.categorieData.destination)
     },
   }
 

@@ -519,7 +519,6 @@ export default defineComponent({
           this.additionalNote.splice(index, 1);
         }
       }
-      console.log(this.additionalNote)
     },
     toggleDeleAllOptions(){
       this.addtionPointrineDine = false
@@ -540,7 +539,6 @@ export default defineComponent({
           this.additionalNote.splice(index, 1);
         }
       }
-      console.log(this.additionalNote)
     },
     toggleSucrePoudre() {
       const sucre = "Sucre glace";
@@ -554,7 +552,6 @@ export default defineComponent({
           this.additionalNote.splice(index, 1);
         }
       }
-      console.log(this.additionalNote)
     },
     cleanAndTruncateHtmlText(html: string): string {
       // Supprimer les balises HTML
@@ -612,7 +609,6 @@ export default defineComponent({
     },
 
     removeSizeVariation(sizeSelectedSelected: ProductSizesModel) {
-      console.log(sizeSelectedSelected)
       if (!sizeSelectedSelected) return;
       const index = this.allVariationsProduct.findIndex(
           sized => sized.size === sizeSelectedSelected.size
@@ -621,10 +617,7 @@ export default defineComponent({
       if (index !== -1) {
         this.allVariationsProduct.splice(index, 1);
         this.productData.variationsProduct.slice(index, 1)
-        console.log("variation supprimé du panier.")
-      } else {
-        console.log("Ce variation n'est pas dans le panier.")
-      }
+      } 
       if((this as any).$route.params.action == ActionCrud.EDIT){
         this.removeProductVariationProduct(this.productResponse?.id, sizeSelectedSelected.id)
       }
@@ -646,7 +639,6 @@ export default defineComponent({
         }
         try {
           const response = await updateVariationProduct(productID, payload);
-          console.log(response);
           if (response.code === 200) {
             this.toast.success(response.message)
             this.clearData()
@@ -668,7 +660,7 @@ export default defineComponent({
 
     },
     seeValue(){
-      console.log("potential payload: ", this.productData)
+      //("potential payload: ", this.productData)
     },
     clearData(){
       this.productData = {
@@ -708,7 +700,6 @@ export default defineComponent({
         }
         try {
           const response = await createProduct(payload);
-          console.log(response);
           if (response.code === 201) {
             this.toast.success(response.message)
             this.clearData()
@@ -736,7 +727,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await detailProduct(productID) as ApiResponse<ProductModel>;
-        console.log(response)
         if (response.code === 200) {
           if(response.data){
             this.productResponse = response.data;
@@ -807,7 +797,6 @@ export default defineComponent({
       }
       try {
         const response = await updateProduct(productID, payload);
-        console.log(response);
         if (response.code === 200) {
           this.toast.success(response.message)
           this.clearData()
@@ -830,12 +819,10 @@ export default defineComponent({
       }
     },
     async uploadLogo(){
-      console.log(this.productData);
       if(this.logoUpload && this.actionDetected === 'add'){
         this.isLoading = true;
         try {
           const response = await uploadFile(this.logoUpload);
-          console.log(response);
           if (response.code === 200 || response.code === 201) {
             this.productData.image_urls.push(response.data)
             await this.createNewProduct()
@@ -859,14 +846,11 @@ export default defineComponent({
       }
       else{
         if(this.logoUpload){
-          console.log("=> Enter")
           this.isLoading = true;
           try {
             const response = await uploadFile(this.logoUpload);
-            console.log(response);
             if (response.code === 200 || response.code === 201) {
               this.productData.image_urls = [response.data as string]
-              console.log("new data image add", this.productData.image_urls );
               await this.updateProduct(this.productResponse?.id);
             } else {
               this.toast.error(response.message)
@@ -895,11 +879,9 @@ export default defineComponent({
     async removeProductVariationProduct(productID, variationID) {
       try {
         const response = await removeVariationProduct(productID, variationID) as ApiResponse<any>;
-        console.log(response)
         if (response.code === 200) {
           if(response.data){
             const dt = response.data
-            console.log(response.message)
           }
         } else {
           this.toast.error(response.message);
@@ -913,15 +895,12 @@ export default defineComponent({
         liste: CategorieModel[],
         name: string
     ): CategorieModel | undefined{
-      console.log(liste)
-      console.log(name)
       return liste.find(categorie => categorie.name === name);
     },
     async fetchCategories(page = 1) {
       this.isLoading = true;
       try {
         const response = await listeCategorieActive(page, "0") as ApiResponse<PaginatedCategorie>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             this.originalCategories = response.data.items;
@@ -938,7 +917,6 @@ export default defineComponent({
     },
 
     handleInput(event, type) {
-      console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
       switch (type){
         case 'name':

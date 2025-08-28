@@ -588,10 +588,8 @@ export default defineComponent({
         "batiment": this.franchiseData.batiment,
         "numeroRue": this.franchiseData.numeroRue
       }
-      console.log(payload)
       try {
         const response = await createFranchise(payload);
-        console.log(response);
         if (response.code === 201) {
           this.toast.success(response.message)
           this.clearData()
@@ -623,10 +621,8 @@ export default defineComponent({
         "country": this.franchiseData.country,
         "logo": this.franchiseData.logo,
       }
-      console.log(payload)
       try {
         const response = await updateFranchise(franchiseID, payload);
-        console.log(response);
         if (response.code === 200) {
           this.toast.success(response.message)
           this.clearData()
@@ -654,7 +650,6 @@ export default defineComponent({
           this.isLoading = true;
           try {
             const response = await uploadFile(this.logoUpload);
-            console.log(response);
             if (response.code === 200 || response.code === 201) {
               this.franchiseData.logo = response.data
               await this.createNewFranchise()
@@ -679,7 +674,6 @@ export default defineComponent({
           this.isLoading = true;
           try {
             const response = await uploadFile(this.logoUpload);
-            console.log(response);
             if (response.code === 200 || response.code === 201) {
               this.franchiseData.logo = response.data
               await this.updateFranchise(this.franchiseResponse?.id)
@@ -708,7 +702,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await detailFranchise(franchiseID) as ApiResponse<FranchiseModel>;
-        console.log(response)
         if (response.code === 200) {
           if(response.data){
             this.franchiseResponse = response.data;
@@ -736,7 +729,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await fetchAllPostalCode();
-        console.log(response);
         if (response.code === 200) {
           this.allPostalCode = response.data
         } else {
@@ -756,7 +748,6 @@ export default defineComponent({
     },
 
     handleInput(event, type) {
-      console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
       switch (type){
         case 'email':
@@ -919,7 +910,6 @@ export default defineComponent({
     //         axios
     //           .post("/upload-image", formData)
     //           .then((res: { data: { url: unknown } }) => {
-    //             console.log(res);
     //             resolve(res.data.url);
     //           })
     //           .catch((err: unknown) => {

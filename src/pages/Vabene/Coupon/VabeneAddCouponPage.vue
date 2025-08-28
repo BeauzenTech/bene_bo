@@ -24,8 +24,6 @@ export default defineComponent({
   mounted() {
     this.action = this.$route.params.action as string;
     this.couponID = this.$route.params.couponID as string;
-    console.log('action:', this.action);
-    console.log('couponID:', this.couponID);
   },
 });
 </script>

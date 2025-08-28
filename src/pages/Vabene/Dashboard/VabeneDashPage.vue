@@ -261,7 +261,6 @@ export default defineComponent({
     async getReportAdmin(restaurantId?: string){
       try {
         const response = await reportVenteAdmin(restaurantId) as ApiResponse<SellModel>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data) {
             const dt = response.data as SellModel;

@@ -25,8 +25,6 @@ export default defineComponent({
   mounted() {
     this.action = this.$route.params.action as string;
     this.userID = this.$route.params.userID as string;
-    console.log('action:', this.action);
-    console.log('userID:', this.userID);
   },
 });
 </script>

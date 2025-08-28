@@ -295,7 +295,7 @@
               </div>
 
               <div class="item-price">
-                <span class="price">{{ formatPrice(item.totalPrice) }} CHF</span>
+                <span class="price">{{ formatPrice(item.totalPrice) }} CHF</span> 
               </div>
 
               <button class="remove-btn" @click="removeItem(item.localProductId)">
@@ -338,7 +338,7 @@
             <div class="min-order-message">
               <span class="min-order-icon">ℹ️</span>
               <span class="min-order-text">
-                Montant minimum de commande : <strong>{{ formatPrice(restaurantMinOrder) }} CHF</strong>
+                Montant minimum de commande :<strong>{{ formatPrice(restaurantMinOrder) }} CHF</strong>
                 <span v-if="minOrderSupplement > 0" class="min-order-warning">
                   (supplément de {{ formatPrice(minOrderSupplement) }} CHF appliqué)
                 </span>
@@ -478,7 +478,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import type { CartItem, OrderSummary, PaymentMethod } from '../types'
 import { createPOSOrder, detailRestaurant, getUserAddresses, applyCoupon, getRestaurantDetails, getAllPostalCodes } from '@/service/api'
-import { getCustomers } from '@/service/api'
+import { listeCustomers } from '@/service/api'
 import type { ApiResponse } from '@/models/Apiresponse'
 import type { RestaurantModel } from '@/models/restaurant.model'
 import type { CustomerModel } from '@/models/customer.model'
@@ -589,7 +589,6 @@ const isValidEmail = (email: string): boolean => {
 // Fonction pour valider l'email lors de la perte de focus
 const validateEmail = () => {
   if (customerInfo.value.email && !isValidEmail(customerInfo.value.email)) {
-    console.log('⚠️ Email invalide saisi:', customerInfo.value.email)
     // Optionnel: afficher un toast d'avertissement
     // toast.warning('Email invalide. Un email unique sera généré pour cette commande.')
   }
@@ -719,7 +718,6 @@ const discountAmount = computed(() => {
 const couponDiscountAmount = computed(() => {
   if (!appliedCoupon.value) return 0
   const amount = appliedCoupon.value.discountAmount || 0
-  console.log('Calcul du coupon:', amount)
   return amount
 })
 
@@ -731,12 +729,7 @@ const minOrderSupplement = computed(() => {
   const totalAfterCoupon = subtotalAfterDiscount - couponDiscountAmount.value
   const remainingAmount = Math.max(0, restaurantMinOrder.value - totalAfterCoupon)
   
-  console.log('Calcul du supplément minimum:', {
-    restaurantMinOrder: restaurantMinOrder.value,
-    subtotalAfterDiscount,
-    totalAfterCoupon,
-    remainingAmount
-  })
+  
   
   return remainingAmount
 })
@@ -748,16 +741,7 @@ const finalTotalWithCoupon = computed(() => {
   const totalWithSupplement = totalAfterCoupon + minOrderSupplement.value
   const finalTotal = Math.max(0, totalWithSupplement) // Ne peut pas être négatif
   
-  console.log('Calcul du total final:', {
-    subtotal: props.orderSummary.subtotal,
-    discountAmount: discountAmount.value,
-    couponAmount: couponDiscountAmount.value,
-    subtotalAfterDiscount,
-    totalAfterCoupon,
-    minOrderSupplement: minOrderSupplement.value,
-    totalWithSupplement,
-    finalTotal
-  })
+ 
   
   return finalTotal
 })
@@ -793,6 +777,29 @@ const formatPrice = (price: number | string | undefined): string => {
     return '0.00'
   }
   return numPrice.toFixed(2)
+}
+
+// Fonction pour masquer les emails
+const maskEmail = (email: string): string => {
+  if (!email || email.trim() === '') return ''
+  
+  const [localPart, domain] = email.split('@')
+  if (!domain) return email
+  
+  // Masquer la partie locale (garder le premier et dernier caractère)
+  let maskedLocal = localPart
+  if (localPart.length > 2) {
+    maskedLocal = localPart.charAt(0) + '*'.repeat(localPart.length - 2) + localPart.charAt(localPart.length - 1)
+  }
+  
+  // Masquer partiellement le domaine
+  const [domainName, extension] = domain.split('.')
+  let maskedDomain = domainName
+  if (domainName && domainName.length > 2) {
+    maskedDomain = domainName.charAt(0) + '*'.repeat(domainName.length - 2) + domainName.charAt(domainName.length - 1)
+  }
+  
+  return `${maskedLocal}@${maskedDomain}.${extension}`
 }
 
 const getCurrentShift = (): string => {
@@ -864,14 +871,20 @@ const canPlaceOrder = computed(() => {
 const loadCustomers = async () => {
   try {
     const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
+    
     if (restaurantID) {
-      const response = await getCustomers(1, restaurantID)
-      if (response.code === 200 && response.data?.items) {
+      const response = await listeCustomers(1, '1', restaurantID)
+  
+      if (response.code === 200 && response.data && response.data.items) {
         allCustomers.value = response.data.items
+      } else {
+        allCustomers.value = []
       }
+    } else {
+      console.error('❌ RestaurantID non trouvé dans localStorage')
     }
   } catch (error) {
-    console.error('Erreur lors du chargement des clients:', error)
+    allCustomers.value = []
   }
 }
 
@@ -887,7 +900,6 @@ const loadUserAddresses = async (userID: string) => {
     const response = await getUserAddresses(userID)
     if (response.code === 200 && response?.data?.items) {
       userAddresses.value = response.data.items
-      console.log(`✅ ${userAddresses.value.length} adresses chargées pour l'utilisateur`)
     } else {
       userAddresses.value = []
     }
@@ -930,7 +942,6 @@ const handleAddressSelection = (event: Event) => {
   
   selectedAddressId.value = addressId
   selectedPostalCode.value = null
-  console.log('Adresse sélectionnée:', address)
 }
 
 // Recherche de clients avec debounce
@@ -946,22 +957,22 @@ const handleCustomerSearch = () => {
 
 // Filtrer les clients selon la recherche
 const searchCustomers = () => {
+  
   const firstName = customerInfo.value.firstName.toLowerCase().trim()
   const lastName = customerInfo.value.lastName.toLowerCase().trim()
   const phone = customerInfo.value.phone.trim()
   const email = customerInfo.value.email.trim()
 
-  // Si le client est déjà sélectionné, ne pas afficher les suggestions
   if (selectedCustomer.value) {
     customerSuggestions.value = []
     return
   }
 
-  // Critères de recherche plus souples
   if (firstName.length < 2 && lastName.length < 2 && phone.length < 3 && email.length < 3) {
     customerSuggestions.value = []
     return
   }
+
 
   const results = allCustomers.value.filter(customer => {
     let matches = false
@@ -987,8 +998,7 @@ const searchCustomers = () => {
     }
 
     return matches
-  }).slice(0, 5) // Limiter à 5 suggestions
-
+  }).slice(0, 5) 
   customerSuggestions.value = results
 }
 
@@ -1051,7 +1061,6 @@ const selectDefaultClient = (restaurantID: string) => {
     
     // Sélectionner le client
     selectCustomer(customerModel)
-    console.log('Client par défaut sélectionné:', customerModel.firstName, customerModel.lastName, customerModel.id)
   }
 }
 
@@ -1105,7 +1114,6 @@ watch(storeCart, (newCart, oldCart) => {
     const newTotal = newCart.reduce((sum, item) => sum + (item.totalPrice || 0), 0)
     
     if (oldTotal !== newTotal) {
-      console.log(`💰 Prix du panier mis à jour: ${oldTotal} → ${newTotal} CHF`)
       // toast.info(`Prix mis à jour selon le type de commande`)
     }
   }
@@ -1115,24 +1123,19 @@ watch(storeCart, (newCart, oldCart) => {
 watch(() => props.orderSummary.subtotal, (newSubtotal) => {
   if (discountType.value === 'fixed' && discountFixed.value > newSubtotal) {
     discountFixed.value = newSubtotal
-    console.log('Rabais fixe ajusté au nouveau sous-total:', newSubtotal)
   }
 })
 
 // Watcher pour logger les changements de rabais
 watch([discountAmount, couponDiscountAmount, finalTotalWithCoupon], ([newDiscount, newCoupon, newTotal]) => {
-  console.log('Calculs de rabais mis à jour:', {
-    rabais: newDiscount,
-    coupon: newCoupon,
-    totalFinal: newTotal
-  })
+ 
 })
 
 onMounted(() => {
   loadRestaurantInfo()
   loadRestaurantDetails()
   loadAllPostalCodes()
-  loadCustomers()
+  loadCustomers() // Charger les clients au démarrage
   
   // Charger le type de commande depuis le store
   store.dispatch('orderType/loadFromStorage')
@@ -1194,7 +1197,6 @@ const loadRestaurantInfo = async () => {
       const response = await detailRestaurant(restaurantID) as ApiResponse<RestaurantModel>
       if (response.code === 200 && response.data) {
         restaurantInfo.value = response.data
-        console.log('Restaurant info loaded:', restaurantInfo.value)
         
         // Sélectionner le client par défaut si on est en mode "sur place"
         if (storeOrderType.value === 'dine_in') {
@@ -1216,8 +1218,6 @@ const loadRestaurantDetails = async () => {
       if (response.code === 200 && response.data) {
         restaurantDetails.value = response.data
         restaurantMinOrder.value = parseFloat(response.data.codePostalID?.minimumCommandeAmount || '0')
-        console.log('Restaurant details loaded:', response.data)
-        console.log('Montant minimum de commande:', restaurantMinOrder.value)
       }
     }
   } catch (error) {
@@ -1231,7 +1231,6 @@ const loadAllPostalCodes = async () => {
     const response = await getAllPostalCodes()
     if (response.code === 200 && response.data) {
       allPostalCodes.value = response.data
-      console.log(`${allPostalCodes.value.length} codes postaux chargés`)
     }
   } catch (error) {
     console.error('Erreur lors du chargement des codes postaux:', error)
@@ -1338,7 +1337,6 @@ const handlePlaceOrder = async () => {
 
     // ID du client
     const customerID = selectedCustomer.value?.id || customerInfo.value.id;
-    console.log('Customer ID:', customerID);
 
     // Fonction pour générer un email unique pour les commandes sans email valide
     const generateUniqueEmail = (): string => {
@@ -1375,7 +1373,6 @@ const handlePlaceOrder = async () => {
       
       // Priorité 5: Générer un email unique pour éviter les conflits
       const uniqueEmail = generateUniqueEmail()
-      console.log('📧 Email unique généré pour la commande:', uniqueEmail)
       return uniqueEmail
     }
 
@@ -1433,30 +1430,6 @@ const handlePlaceOrder = async () => {
         },
       ],
     }
-
-    console.log('Restaurant info utilisée:', {
-      name: restaurantInfo.value.name,
-      codePostal: restaurantInfo.value.codePostalID?.numeroPostal,
-      ville: restaurantInfo.value.codePostalID?.ville,
-      address: restaurantInfo.value.address,
-      numeroRue: restaurantInfo.value.numeroRue,
-      batiment: restaurantInfo.value.batiment
-    })
-    console.log('Payload de commande final:', orderData);
-    console.log("Supplements:", storeCart.value.map(item => item.supplements))
-    console.log("Coupon dans le payload:", {
-      coupon: orderData.coupon,
-      couponValue: orderData.couponValue,
-      couponType: orderData.couponType
-    });
-    console.log("Rabais dans le payload:", {
-      discountType: orderData.discountType,
-      discount: orderData.discount,
-      discountFixed: orderData.discountFixed,
-      discountValue: orderData.discountValue,
-      discountAmount: orderData.discountAmount,
-      calculatedDiscountAmount: discountAmount.value
-    });
     
     const response = await createPOSOrder(orderData)
 
@@ -1550,8 +1523,6 @@ const handleDiscountChange = () => {
     discountPercentage.value = 100
   }
   
-  // Mettre à jour l'affichage en temps réel
-  console.log('Rabais en pourcentage mis à jour:', discountPercentage.value, '%')
 }
 
 // Gestionnaire pour le changement de rabais fixe
@@ -1566,8 +1537,6 @@ const handleFixedDiscountChange = () => {
     discountFixed.value = props.orderSummary.subtotal
   }
   
-  // Mettre à jour l'affichage en temps réel
-  console.log('Rabais fixe mis à jour:', discountFixed.value, 'CHF')
 }
 
 // Fonction pour appliquer un coupon
@@ -1598,8 +1567,6 @@ const applyCouponCode = async () => {
       }
       appliedCoupon.value = couponData
       couponCode.value = ''
-      console.log('Coupon appliqué:', couponData)
-      console.log('Montant du coupon:', couponData.discountAmount)
       toast.success(response.message || 'Coupon appliqué avec succès')
     } else {
       toast.error(response.message || 'Code promo invalide')
@@ -1644,7 +1611,6 @@ const selectPostalCode = (postalCode: any) => {
   showPostalCodeSuggestions.value = false
   postalCodeSuggestions.value = []
   
-  console.log('Code postal sélectionné:', postalCode)
 }
 
 // Fonction pour gérer le changement du code postal

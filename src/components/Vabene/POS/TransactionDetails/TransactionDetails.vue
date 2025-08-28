@@ -701,11 +701,9 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await detailPaiement(paymentID) as ApiResponse<PaymentModel>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data) {
             this.paiementResponse = response.data;
-            console.log('response data: ', this.paiementResponse);
             await this.fetchListeMethodePaiement()
             await this.fetchOrderType()
             this.displayInvoire()
@@ -724,7 +722,6 @@ export default defineComponent({
       // this.isLoading = true;
       try {
         const response = await listeMethodePaiement(page) as ApiResponse<PaginatedMethodePaiement>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items && this.paiementResponse) {
             this.listeMethode = response.data.items;
@@ -743,13 +740,11 @@ export default defineComponent({
       // this.isLoading = true;
       try {
         const response = await listeOrderType(page) as ApiResponse<PaginatedOrderType>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items && this.paiementResponse) {
             this.listeOrderType = response.data.items;
 
             this.orderTypeSelected = this.getOrderTypeParType(response.data.items, this.paiementResponse.orderSelf.order_type)
-            console.log('orderType selected: ', this.orderTypeSelected);
           }
         } else {
           this.toast.error(response.message);
@@ -766,12 +761,10 @@ export default defineComponent({
 
       try {
         const response = await allStatusOrder() as ApiResponse<string[]>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data) {
 
             this.allOrderStatus = response.data
-            console.log('all orders status: ', this.allOrderStatus);
           }
         } else {
           this.toast.error(response.message);
@@ -784,11 +777,9 @@ export default defineComponent({
 
       try {
         const response = await allStatusPaiementOrder() as ApiResponse<string[]>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data) {
             this.allPaiementOrderStatus = response.data
-            console.log('all orders Paiement status: ', this.allPaiementOrderStatus);
           }
         } else {
           this.toast.error(response.message);
@@ -803,8 +794,6 @@ export default defineComponent({
         liste: MethodePaiementModel[],
         type: string
     ): MethodePaiementModel | undefined {
-      console.log(liste)
-      console.log(type)
       return liste.find(methode => methode.type === type);
     },
     getOrderTypeParType(

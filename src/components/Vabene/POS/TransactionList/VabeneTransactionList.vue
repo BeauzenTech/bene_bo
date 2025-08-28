@@ -414,8 +414,6 @@ export default defineComponent({
       liste: MethodePaiementModel[],
       type: string
     ): MethodePaiementModel | undefined {
-      console.log(liste);
-      console.log(type);
       return liste.find((methode) => methode.type === type);
     },
     async fetchListeMethodePaiement(page = 1) {
@@ -424,7 +422,6 @@ export default defineComponent({
         const response = (await listeMethodePaiement(
           page
         )) as ApiResponse<PaginatedMethodePaiement>;
-        console.log(response);
         if (response.code === 200) {
           if (response.data?.items && this.paiementResponse) {
             this.listeMethode = response.data.items;
@@ -450,7 +447,6 @@ export default defineComponent({
     },
     selectionPaiement(payment) {
       this.paymentSelected = payment;
-      console.log(payment);
       this.$router.push({
         name: "VabeneTransactionDetailsPage",
         params: { transactionID: payment.id },
@@ -459,7 +455,6 @@ export default defineComponent({
     async confirmationDeleteAction(payment) {
       try {
         const response = (await deleteUser(payment.id)) as ApiResponse<any>;
-        //console.log(response)
         if (response.code === 201) {
           this.paiementResponse = response;
           this.toast.success(response.message);
@@ -477,7 +472,6 @@ export default defineComponent({
     },
     async toggleUserActivation(user, status) {
       //this.isLoading = true;
-      console.log(status);
       const payload = {
         status: status,
       };
@@ -486,12 +480,10 @@ export default defineComponent({
           user.id,
           payload
         )) as ApiResponse<any>;
-        //console.log(response)
         if (response.code === 201) {
           this.paiementResponse = response;
           if (response.data) {
             const responseDecoded = response.data;
-            console.log(responseDecoded);
             this.toast.success(response.message);
           }
         } else {
@@ -516,7 +508,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = (await listePayment(page)) as ApiResponse<PaginatedPayment>;
-        console.log(response);
         if (response.code === 200) {
           this.paiementResponse = response;
           if (response.data?.items) {

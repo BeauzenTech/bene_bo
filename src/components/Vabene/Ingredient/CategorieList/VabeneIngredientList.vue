@@ -380,7 +380,6 @@ export default defineComponent({
     },
     selectForDetail(ingredient){
       this.ingredientSelected = ingredient;
-      console.log(ingredient)
       this.$router.push({
         name: "VabeneAddIngredientPage",
         params: { action: ActionCrud.EDIT, ingredientID: ingredient.id }
@@ -388,13 +387,11 @@ export default defineComponent({
     },
     selectForDelete(ingredient){
       this.ingredientSelected = ingredient;
-      console.log(ingredient)
 
     },
     async deleteFileUpload(fileID) {
       try {
         const response = await deleteFileUpload(fileID);
-        console.log(response);
         if (response.code === 200) {
           // this.toast.success(response.message)
 
@@ -413,7 +410,6 @@ export default defineComponent({
     },
     async confirmationDeleteAction(ingredient){
       const publicID = Commons.extractPublicId(ingredient.imageUrl)
-      console.log("publicID", publicID);
       try {
         const response = await deleteIngredient(ingredient.id) as ApiResponse<any>;
         await this.deleteFileUpload(publicID)
@@ -434,18 +430,15 @@ export default defineComponent({
     },
     async toggleIngredientActivation(ingredient, status){
       //this.isLoading = true;
-      console.log(status)
       const payload = {
         'status': status
       }
       try {
         const response = await toggleActivationIngredient(ingredient.id, payload) as ApiResponse<any>;
-        //console.log(response)
         if (response.code === 200) {
           this.ingredientResponse = response;
           if (response.data) {
             const responseDecoded = response.data
-            console.log(responseDecoded)
             this.toast.success(response.message);
           }
 
@@ -471,7 +464,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeIngredient(page, '0') as ApiResponse<PaginatedIngredient>;
-        console.log(response)
         if (response.code === 200) {
           this.ingredientResponse = response;
           if (response.data?.items) {

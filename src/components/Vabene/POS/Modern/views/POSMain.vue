@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useStore } from 'vuex'
 import CategoryNavigation from '../components/CategoryNavigation.vue'
 import ProductMenu from '../components/ProductMenu.vue'
@@ -130,6 +130,9 @@ const cart = computed(() => store?.getters?.['cart/cart'] || [])
 const cartTotal = computed(() => store?.getters?.['cart/cartTotal'] || 0)
 const cartCount = computed(() => store?.getters?.['cart/cartCount'] || 0)
 
+// Computed pour le type de commande
+const currentOrderType = computed(() => store?.getters?.['orderType/selectedOrderType'] || 'dine_in')
+
 // Calcul du résumé de commande
 const orderSummary = computed((): OrderSummary => {
   const subtotal = cart.value.reduce((sum: number, item: CartItem) => sum + (item.totalPrice || 0), 0)
@@ -182,13 +185,6 @@ const handleCustomizeProduct = (data: { product: Product; selectedSize: ProductS
   const { product, selectedSize } = data
   const productType = getSpecializedCategoryType(product)
 
-  console.log('🎯 Gestion personnalisation produit:', {
-    product: product.name,
-    productType,
-    selectedSize: selectedSize?.size,
-    sizeId: selectedSize?.id
-  })
-
   switch (productType) {
     case 'salad':
       openSaladModal(product, selectedSize)
@@ -218,11 +214,6 @@ const openSaladModal = (product: Product, selectedSize: ProductSize | null = nul
   selectedSaladProduct.value = product
   selectedSaladSize.value = selectedSize || product.sizes?.find(s => s.name === 'Normale') || product.sizes?.[0] || null
   
-  console.log('🥗 Ouverture modale salade:', {
-    product: product.name,
-    selectedSize: selectedSaladSize.value?.size,
-    sizeId: selectedSaladSize.value?.id
-  })
   
   showSaladModal.value = true
 }
@@ -237,11 +228,7 @@ const openPastaModal = (product: Product, selectedSize: ProductSize | null = nul
   selectedPastaProduct.value = product
   selectedPastaSize.value = selectedSize || product.sizes?.find(s => s.name === 'Normale') || product.sizes?.[0] || null
   
-  console.log('🍝 Ouverture modale pâtes:', {
-    product: product.name,
-    selectedSize: selectedPastaSize.value?.size,
-    sizeId: selectedPastaSize.value?.id
-  })
+
   
   showPastaModal.value = true
 }
@@ -255,12 +242,7 @@ const closePastaModal = () => {
 const openPizzaModal = (product: Product, selectedSize: ProductSize | null = null) => {
   selectedPizzaProduct.value = product
   selectedPizzaSize.value = selectedSize
-  
-  console.log('🍕 Ouverture modale pizza:', {
-    product: product.name,
-    selectedSize: selectedSize?.size,
-    sizeId: selectedSize?.id
-  })
+
   
   showPizzaModal.value = true
 }
@@ -272,6 +254,12 @@ const closePizzaModal = () => {
 }
 
 const handleAddToCart = (event: AddToCartEvent) => {
+  // Utiliser le bon prix selon le type de commande actuel
+  const isDelivery = currentOrderType.value === 'delivery'
+  const correctBasePrice = isDelivery && event.size.priceLivraison
+    ? parseFloat(event.size.priceLivraison) || 0
+    : parseFloat(event.size.price) || 0
+
   const cartItem: CartItem = {
     id: generateId(),
     productId: event.product.id,
@@ -279,7 +267,7 @@ const handleAddToCart = (event: AddToCartEvent) => {
     image: event.product.image,
     selectedSize: event.size,
     quantity: event.quantity,
-    basePrice: parseFloat(event.size.price),
+    basePrice: correctBasePrice,
     totalPrice: calculateItemTotal(event),
     ingredients: event.ingredients || [],
     supplements: event.supplements || [],
@@ -325,7 +313,6 @@ const handleRemoveItem = (itemId: string) => {
 
 const handlePlaceOrder = () => {
   // Logique pour finaliser la commande
-  console.log('Commande placée:', orderSummary.value)
   // Ici on pourrait ouvrir une modale de confirmation ou rediriger
 }
 
@@ -401,7 +388,6 @@ const fetchProducts = async (categoryId: string) => {
     const response = await listeRestaurantProduct(1, "0", categoryId) as ApiResponse<PaginatedRestaurantProduct>
 
     if (response.code === 200 && response.data?.items) {
-      // Extraire les produits des RestaurantProduct
       const extractedProducts = response.data.items.map((item: any) => item.product)
       products.value = extractedProducts
     } else {
@@ -457,7 +443,12 @@ const generateLocalProductId = (event: AddToCartEvent): string => {
 }
 
 const calculateItemTotal = (event: AddToCartEvent): number => {
-  const basePrice = parseFloat(event.size.price) || 0
+  // Utiliser le bon prix selon le type de commande actuel
+  const isDelivery = currentOrderType.value === 'delivery'
+  const basePrice = isDelivery && event.size.priceLivraison
+    ? parseFloat(event.size.priceLivraison) || 0
+    : parseFloat(event.size.price) || 0
+    
   const ingredientsPrice = event.ingredients.reduce((sum, ing) => {
     if (!ing.isDefault && ing.quantity > 0) {
       const ingPrice = typeof ing.extra_cost_price === 'string'
@@ -511,6 +502,10 @@ onMounted(async () => {
     fetchIngredients()
   ])
 })
+
+watch(currentOrderType, (newOrderType, oldOrderType) => {
+ 
+}, { immediate: false })
 </script>
 
 <style lang="scss" scoped>

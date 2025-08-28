@@ -21,7 +21,6 @@ export default defineComponent({
   },
   mounted() {
     this.transactionID = this.$route.params.transactionID as string;
-    console.log('transactionID:', this.transactionID);
   },
 });
 </script>

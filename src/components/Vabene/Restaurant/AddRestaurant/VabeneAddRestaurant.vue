@@ -607,7 +607,6 @@ export default defineComponent({
         }
         try {
           const response = await createRestaurant(payload);
-          console.log(response);
           if (response.code === 201 || response.code === 200) {
             this.toast.success(response.message)
             this.clearData()
@@ -658,7 +657,6 @@ export default defineComponent({
       }
       try {
         const response = await updateRestaurant(restaurantID, payload);
-        console.log(response);
         if (response.code === 201 || response.code === 200) {
           this.toast.success(response.message)
           this.clearData()
@@ -684,7 +682,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await fetchAllPostalCode();
-        console.log(response);
         if (response.code === 200) {
           this.allPostalCode = response.data
         } else {
@@ -707,7 +704,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await detailRestaurant(restaurantID) as ApiResponse<RestaurantModel>;
-        console.log(response)
         if (response.code === 200) {
           if(response.data){
             this.restaurantResponse = response.data;
@@ -736,7 +732,6 @@ export default defineComponent({
     },
 
     handleInput(event, type) {
-      console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
       switch (type){
         case 'firstName':
@@ -853,7 +848,6 @@ export default defineComponent({
     //         axios
     //           .post("/upload-image", formData)
     //           .then((res: { data: { url: unknown } }) => {
-    //             console.log(res);
     //             resolve(res.data.url);
     //           })
     //           .catch((err: unknown) => {

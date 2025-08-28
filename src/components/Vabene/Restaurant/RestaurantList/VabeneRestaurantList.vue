@@ -378,7 +378,6 @@ export default defineComponent({
     selectionRestaurant(restaurant, action){
       this.restaurantSelected = restaurant;
       if(action === ActionCrud.EDIT){
-        console.log(restaurant)
         this.$router.push({
           name: "VabeneAddRestaurantPage",
           params: { action: ActionCrud.EDIT ,restaurantID: restaurant.id }
@@ -396,7 +395,6 @@ export default defineComponent({
     async confirmationDeleteAction(restaurant){
       try {
         const response = await deleteRestaurant(restaurant.id) as ApiResponse<any>;
-        //console.log(response)
         if (response.code === 201 || response.code === 200) {
           this.restaurantResponse = response;
           this.toast.success(response.message);
@@ -415,18 +413,15 @@ export default defineComponent({
     },
     async toggleUserActivation(restaurant, status){
       //this.isLoading = true;
-      console.log(status)
       const payload = {
         'status': status
       }
       try {
         const response = await toggleRestaurant(restaurant.id, payload) as ApiResponse<any>;
-        //console.log(response)
         if (response.code === 201 || response.code === 200) {
           this.restaurantResponse = response;
           if (response.data) {
             const responseDecoded = response.data
-            console.log(responseDecoded)
             this.toast.success(response.message);
           }
         } else {
@@ -451,7 +446,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeRestaurant(page) as ApiResponse<PaginatedRestaurant>;
-        console.log(response)
         if (response.code === 200) {
           this.restaurantResponse = response;
           if (response.data?.items) {

@@ -25,8 +25,6 @@ export default defineComponent({
   mounted() {
     this.action = this.$route.params.action as string;
     this.notificationID = this.$route.params.notificationID as string;
-    console.log('action:', this.action);
-    console.log('notificationID:', this.notificationID);
   },
 });
 </script>

@@ -166,8 +166,6 @@ export default defineComponent({
         liste: ProductModel[],
         name: string
     ): ProductModel | undefined{
-      console.log(liste)
-      console.log(name)
       return liste.find(product => product.name === name);
     },
     async fetchProduct(page = 1, filter: string, categorieID: string) {
@@ -176,7 +174,6 @@ export default defineComponent({
       }
       try {
         const response = await listeProducts(page, "0" ,filter, payload) as ApiResponse<PaginatedProduct>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             this.originalProducts = response.data.items;
@@ -208,7 +205,6 @@ export default defineComponent({
       this.puttingAmount = 0
       try {
         const response = await averageReportSell(productID, restaurantID) as ApiResponse<AverageReportModel[]>;
-        console.log(response)
         if (response.code === 200 || response.code === 201) {
           this.topAverageResponse = response.data as AverageReportModel[];
           if(this.topAverageResponse.length > 0){
@@ -217,7 +213,6 @@ export default defineComponent({
               this.puttingAmount += Number(this.topAverageResponse[index].total_amount)
               const color = this.colorsIndexed[index % this.colorsIndexed.length];
                 // Met à jour le `y`
-              console.log(this.expected[0])
                 this.expected[0].name = this.topAverageResponse[0].product_name ?? '';
                 // Ajoute une valeur dans le `group`
                 this.expected[0].data.push(Number(this.topAverageResponse[index].average_quantity)); //
@@ -226,7 +221,6 @@ export default defineComponent({
             }
             this.amountTotal = Number(this.display.toFixed(2)); // string avec 2 décimales garanties
             this.average_amount = Number(this.puttingAmount.toFixed(2));
-            console.log('average', this.expected)
           }
 
         } else {
@@ -249,7 +243,6 @@ export default defineComponent({
   watch:{
     restaurantId(newVal, oldVal){
       if (typeof newVal === 'string' && newVal !== oldVal) {
-        console.log("Nouvelle option restaurant ID sélectionnée :", newVal);
         this.newRestoId = newVal;
         if(newVal !== 'all'){
           if(this.productSelected){
@@ -266,7 +259,6 @@ export default defineComponent({
     },
     productSelected(newVal, oldVal) {
       if (typeof newVal === 'string' && newVal !== oldVal) {
-        console.log("Nouvelle catégorie sélectionnée :", newVal);
         this.expected = [
           { name: "", data: [0, 5, 10, 15, 20] },
         ] as { name: string; data: number[] }[]

@@ -255,11 +255,7 @@ watch(() => props.product, (newProduct) => {
     const sizeToUse = props.initialSelectedSize || newProduct.sizes.find(s => s.name === 'Normale') || newProduct.sizes[0];
     if (sizeToUse) {
       selectSize(sizeToUse);
-      console.log('🍕 Taille initialisée dans PizzaCustomizationModal:', {
-        product: newProduct.name,
-        selectedSize: sizeToUse.size,
-        sizeId: sizeToUse.id
-      });
+
     }
   }
 

@@ -464,10 +464,8 @@ export default defineComponent({
           "numeroRue": this.userData.numeroRue,
           // "restaurantId": this.restaurantSelected?.id
         }
-        console.log(payload)
         try {
           const response = await createUser(payload);
-          console.log(response);
           if (response.code === 201) {
             this.toast.success(response.message)
             this.clearData()
@@ -504,7 +502,6 @@ export default defineComponent({
         }
         try {
           const response = await updateUserPassword(this.userResponse.id ,payload);
-          console.log(response);
           if (response.code === 201 || response.code === 200) {
             this.toast.success(response.message)
             setTimeout(() => {
@@ -545,7 +542,6 @@ export default defineComponent({
       }
       try {
         const response = await updateUser(userID ,payload);
-        console.log(response);
         if (response.code === 201) {
           this.toast.success(response.message)
           this.clearData()
@@ -571,7 +567,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await fetchAllPostalCode();
-        console.log(response);
         if (response.code === 200) {
           this.allPostalCode = response.data
         } else {
@@ -593,7 +588,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await detailUser(userID) as ApiResponse<UserModel>;
-        console.log(response)
         if (response.code === 200) {
           if(response.data){
             this.userResponse = response.data;
@@ -622,7 +616,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeRestaurant(page) as ApiResponse<PaginatedRestaurant>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             this.originalRestaurant = response.data.items;
@@ -639,7 +632,6 @@ export default defineComponent({
       }
     },
     handleInput(event, type) {
-      console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
       switch (type){
         case 'email':
@@ -774,7 +766,6 @@ export default defineComponent({
     //         axios
     //           .post("/upload-image", formData)
     //           .then((res: { data: { url: unknown } }) => {
-    //             console.log(res);
     //             resolve(res.data.url);
     //           })
     //           .catch((err: unknown) => {

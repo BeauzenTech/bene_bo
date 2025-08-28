@@ -336,7 +336,6 @@ export default defineComponent({
       this.ingredientSizeDefine = { size: '', price: '' };
     },
     removeSizeVariation(sizeSelectedSelected: IngredientSizeModel) {
-      console.log(sizeSelectedSelected)
       if (!sizeSelectedSelected) return;
       const index = this.allVariationsIngredientSize.findIndex(
           sized => sized.size === sizeSelectedSelected.size
@@ -346,8 +345,6 @@ export default defineComponent({
         this.allVariationsIngredientSize.splice(index, 1);
         this.ingredientData.ingredientSizeData.slice(index, 1)
 
-      } else {
-        console.log("Ce variation n'est pas dans le panier.")
       }
       if((this as any).$route.params.action == ActionCrud.EDIT){
        this.removeProductVariationIngredient(this.ingredientResponse?.id, sizeSelectedSelected.id)
@@ -361,7 +358,6 @@ export default defineComponent({
           }
           try {
             const response = await updateVariationIngredient(ingredientID, payload);
-            console.log(response);
             if (response.code === 200) {
               this.toast.success(response.message)
               this.clearData()
@@ -412,7 +408,6 @@ export default defineComponent({
         }
         try {
           const response = await createIngredient(payload);
-          console.log(response);
           if (response.code === 201) {
             this.toast.success(response.message)
             this.clearData()
@@ -441,7 +436,6 @@ export default defineComponent({
       }
       try {
         const response = await updateIngredient(ingredientID, payload);
-        console.log(response);
         if (response.code === 200) {
           this.toast.success(response.message)
           this.clearData()
@@ -464,7 +458,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await detailIngredient(ingredientID) as ApiResponse<IngredientModel>;
-        console.log(response)
         if (response.code === 200) {
           if(response.data){
             this.ingredientResponse = response.data;
@@ -487,12 +480,10 @@ export default defineComponent({
       }
     },
     async uploadLogo(){
-      console.log(this.ingredientData);
       if(this.logoUpload && this.actionDetected === 'add'){
         this.isLoading = true;
         try {
           const response = await uploadFile(this.logoUpload);
-          console.log(response);
           if (response.code === 200 || response.code === 201) {
             this.ingredientData.imageUrl = response.data
             await this.createNewIngredient()
@@ -523,11 +514,9 @@ export default defineComponent({
     async removeProductVariationIngredient(ingredientID, variationID) {
       try {
         const response = await deleteIngredientVariation(ingredientID, variationID) as ApiResponse<any>;
-        console.log(response)
         if (response.code === 200) {
           if(response.data){
             const dt = response.data
-            console.log(response.message)
           }
         } else {
           this.toast.error(response.message);
@@ -538,7 +527,6 @@ export default defineComponent({
       }
     },
     handleInput(event, type) {
-      console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
       switch (type){
         case 'name':

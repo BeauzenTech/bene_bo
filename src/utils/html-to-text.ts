@@ -339,8 +339,6 @@ export function extractTextPreview(
  *
  * @example
  * ```typescript
- * console.log(hasHtmlTags('<p>Hello</p>')); // true
- * console.log(hasHtmlTags('Hello world')); // false
  * ```
  */
 export function hasHtmlTags(text: string): boolean {

@@ -158,7 +158,6 @@ export default {
       this.isLoading = true;
       try {
         const response = await loginCheck(this.userData);
-        console.log(response.token);
         if (response.code === 200) {
           localStorage.setItem(UserGeneralKey.USER_TOKEN, response.token)
           this.toast.success(response.message)
@@ -187,9 +186,7 @@ export default {
       this.isLoading = true;
       try {
         const response = await getUserData();
-        console.log(response);
         if (response.code === 200) {
-          console.log("response.data", response.data)
          UserGeneralKey.saveUserDatA(response.data)
         } else {
           this.toast.error(response.message)
@@ -206,7 +203,6 @@ export default {
       }
     },
     handleInput(event, type) {
-      console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
       switch (type){
         case 'email':

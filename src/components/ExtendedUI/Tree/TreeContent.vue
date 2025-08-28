@@ -219,16 +219,12 @@ export default defineComponent({
       },
     ]);
     const onNodeExpanded = (node, state) => {
-      console.log("state: ", state);
-      console.log("node: ", node);
     };
 
     const onUpdate = (nodes) => {
-      console.log("nodes:", nodes);
     };
 
     const onNodeClick = (node) => {
-      console.log(node);
     };
 
     return {
@@ -439,16 +435,12 @@ export default defineComponent({
       },
     ]);
     const onNodeExpanded = (node, state) => {
-      console.log("state: ", state);
-      console.log("node: ", node);
     };
 
     const onUpdate = (nodes) => {
-      console.log("nodes:", nodes);
     };
 
     const onNodeClick = (node) => {
-      console.log(node);
     };
 
     return {

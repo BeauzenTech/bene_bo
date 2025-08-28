@@ -132,13 +132,23 @@ const cart: Module<CartState, RootState> = {
     calculateItemTotalPrice({ rootGetters }, { item }: { item: CartItem }) {
       if (!item.selectedSize) return 0
 
-      // Récupérer le type de commande depuis le store orderType
-      const isDelivery = rootGetters['orderType/isDelivery'] || false
+      // Récupérer le type de commande actuel depuis le store orderType
+      const currentOrderType = rootGetters['orderType/selectedOrderType'] || 'dine_in'
+      const isDelivery = currentOrderType === 'delivery'
+
 
       // Prix de base selon le type de commande
-      const basePrice = isDelivery && item.selectedSize.priceLivraison
-        ? Number(item.selectedSize.priceLivraison) || 0
-        : Number(item.selectedSize.price) || 0
+      // IMPORTANT: Utiliser les prix originaux selon le type de commande actuel
+      let basePrice = 0
+      
+      if (isDelivery) {
+        // Pour la livraison, utiliser priceLivraison s'il existe, sinon price
+        basePrice = Number(item.selectedSize.priceLivraison) || Number(item.selectedSize.price) || 0
+      } else {
+        // Pour les autres types (sur place, à emporter), utiliser price
+        basePrice = Number(item.selectedSize.price) || 0
+      }
+
 
       // Coût des ingrédients ajoutés (non par défaut)
       // Support pour les deux formats : Ingredients (store) et ingredients (POS moderne)
@@ -159,18 +169,32 @@ const cart: Module<CartState, RootState> = {
         return total
       }, 0)
 
-      return basePrice + ingredientsPrice + supplementsPrice
+      const totalPrice = basePrice + ingredientsPrice + supplementsPrice
+      
+      return totalPrice
     },
     
     async addToCart({ commit, dispatch }, { item }: { item: CartItem }) {
-      // Si l'item a déjà un totalPrice calculé (comme dans le POS moderne), on l'utilise
-      let totalPrice = item.totalPrice
-      
-      if (!totalPrice || totalPrice === 0) {
-        totalPrice = await dispatch('calculateItemTotalPrice', { item })
+      // IMPORTANT: Ne pas modifier les prix originaux de la taille
+      // Garder les prix originaux (price et priceLivraison) intacts
+      const originalSize = {
+        ...item.selectedSize,
+        // S'assurer que les prix originaux sont préservés
+        price: item.selectedSize.price,
+        priceLivraison: item.selectedSize.priceLivraison
       }
       
-      commit('ADD_TO_CART', { item, totalPrice })
+      // Créer un nouvel item avec la taille originale
+      const itemWithOriginalSize = {
+        ...item,
+        selectedSize: originalSize
+      }
+      
+      // Calculer le prix avec le type de commande actuel
+      const totalPrice = await dispatch('calculateItemTotalPrice', { item: itemWithOriginalSize })
+      
+      
+      commit('ADD_TO_CART', { item: itemWithOriginalSize, totalPrice })
       dispatch('saveToStorage')
     },
     
@@ -336,25 +360,29 @@ const cart: Module<CartState, RootState> = {
     },
 
     // Recalculer tous les prix du panier quand le type de commande change
-    async recalculateAllPrices({ commit, dispatch, state }) {
-      console.log('🔄 Recalcul des prix du panier...')
+    async recalculateAllPrices({ commit, dispatch, state, rootGetters }) {
+      const currentOrderType = rootGetters['orderType/selectedOrderType'] || 'dine_in'
       
+      // Forcer le recalcul de TOUS les articles
       const updatedCart = await Promise.all(
-        state.cart.map(async (item) => {
+        state.cart.map(async (item, index) => {
+          const oldPrice = item.totalPrice
           const totalPrice = await dispatch('calculateItemTotalPrice', { item })
-          console.log(`📦 ${item.name}: ${item.totalPrice} → ${totalPrice} CHF`)
           return { ...item, totalPrice }
         })
       )
       
       // Calculer le nouveau total du panier
       const newTotal = updatedCart.reduce((total, item) => total + (item.totalPrice || 0), 0)
+      const oldTotal = state.total
+      
+      updatedCart.forEach((item, index) => {
+      })
       
       commit('SET_CART', updatedCart)
       commit('SET_TOTAL', newTotal)
       dispatch('saveToStorage')
       
-      console.log(`💰 Nouveau total du panier: ${newTotal} CHF`)
     }
   },
   

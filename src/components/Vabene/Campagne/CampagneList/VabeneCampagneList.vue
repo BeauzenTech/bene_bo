@@ -366,7 +366,6 @@ export default defineComponent({
     },
     selectForDetail(categorie){
       this.categorieSelected = categorie;
-      console.log(categorie)
       this.$router.push({
         name: "VabeneAddCampagePage",
         params: { action: ActionCrud.EDIT, campagneID: categorie.id }
@@ -374,7 +373,6 @@ export default defineComponent({
     },
     selectForDelete(categorie){
       this.categorieSelected = categorie;
-      console.log(categorie)
       // this.$router.push({
       //   name: "VabeneAddCategoriePage",
       //   params: { action: 'edit' }
@@ -383,7 +381,6 @@ export default defineComponent({
     async deleteFileUpload(fileID) {
       try {
         const response = await deleteFileUpload(fileID);
-        console.log(response);
         if (response.code === 200) {
           // this.toast.success(response.message)
 
@@ -402,7 +399,6 @@ export default defineComponent({
     },
     async confirmationDeleteAction(categorie){
       const publicID = Commons.extractPublicId(categorie.icone)
-      console.log("publicID", publicID);
       try {
         const response = await deleteCategorie(categorie.id) as ApiResponse<any>;
         await this.deleteFileUpload(publicID)
@@ -423,18 +419,15 @@ export default defineComponent({
     },
     async toggleCategorieActivation(categorie, status){
       //this.isLoading = true;
-      console.log(status)
       const payload = {
         'status': status
       }
       try {
         const response = await toggleActivationCategorie(categorie.id, payload) as ApiResponse<any>;
-        //console.log(response)
         if (response.code === 200) {
           this.categorieResponse = response;
           if (response.data) {
             const responseDecoded = response.data
-            console.log(responseDecoded)
             this.toast.success(response.message);
           }
 
@@ -460,7 +453,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeCampagne(page) as ApiResponse<PaginatedCampagne>;
-        console.log(response)
         if (response.code === 200) {
           this.categorieResponse = response;
           if (response.data?.items) {

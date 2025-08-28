@@ -212,7 +212,6 @@ export default defineComponent({
     },
 
     handleInput(event, type) {
-      console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
       switch (type){
         case 'code':

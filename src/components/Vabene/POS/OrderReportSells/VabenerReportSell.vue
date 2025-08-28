@@ -302,7 +302,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await detailRestaurant(restaurantID) as ApiResponse<RestaurantModel>;
-        console.log(response)
         if (response.code === 200) {
           if(response.data){
             const dt = response.data
@@ -328,7 +327,6 @@ export default defineComponent({
         this.isLoading = true;
         try {
           const response = await listeRestaurant(page) as ApiResponse<PaginatedRestaurant>;
-          console.log(response)
           if (response.code === 200) {
             if (response.data?.items) {
               this.originalRestaurant = [(this.fakeAllOptionFranchise as RestaurantModel), ...response.data.items];
@@ -348,12 +346,10 @@ export default defineComponent({
     async getReportAdmin(restaurantId?: string){
       try {
         const response = await reportVenteAdmin(restaurantId) as ApiResponse<SellModel>;
-        console.log('courbe calling', response)
         if (response.code === 200) {
           if (response.data) {
             const dt = response.data as SellModel;
             this.reportVente = dt.vente as RepportModelData[]
-            console.log('report sell: ', this.reportVente)
           }
         }
       } catch (error) {
@@ -430,7 +426,6 @@ export default defineComponent({
       else{
         this.getReportAdmin();
       }
-      console.log('restaurant selected: ',this.restaurantSelected)
     },
 
     // selectedPeriod(this: any, newVal){
@@ -442,7 +437,6 @@ export default defineComponent({
     //   else{
     //     this.getReportAdmin();
     //   }
-    //   console.log('restaurant selected: ',this.restaurantSelected)
     // },
 
   }

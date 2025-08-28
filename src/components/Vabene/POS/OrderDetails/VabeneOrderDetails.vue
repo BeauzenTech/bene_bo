@@ -1278,11 +1278,9 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await detailOrder(orderID) as ApiResponse<OrderModel>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data) {
             this.orderResponse = response.data;
-            console.log('response data: ', this.orderResponse);
             await this.fetchListeMethodePaiement()
             await this.fetchOrderType()
             this.displayInvoire()
@@ -1302,14 +1300,11 @@ export default defineComponent({
       // this.isLoading = true;
       try {
         const response = await listeMethodePaiement(page) as ApiResponse<PaginatedMethodePaiement>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items && this.orderResponse) {
             this.listeMethode = response.data.items;
             this.methodePaiementSelected = this.getMethodePaiementParType(response.data.items, this.orderResponse.paymentID.paymentMethod)
-            console.log('liste des methodes: ', this.listeMethode);
-            console.log('paiement methode: ', this.orderResponse.paymentID.paymentMethod);
-            console.log('methode Paiement selected: ', this.methodePaiementSelected);
+           
           }
         } else {
           this.toast.error(response.message);
@@ -1325,14 +1320,10 @@ export default defineComponent({
       // this.isLoading = true;
       try {
         const response = await listeOrderType(page) as ApiResponse<PaginatedOrderType>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items && this.orderResponse) {
             this.listeOrderType = response.data.items;
-            console.log('data orderType retrieve: ', this.listeOrderType)
-            console.log('orderType: ', this.orderResponse.order_type);
             this.orderTypeSelected = this.getOrderTypeParType(response.data.items, this.orderResponse.order_type)
-            console.log('orderType selected: ', this.orderTypeSelected);
           }
         } else {
           this.toast.error(response.message);
@@ -1349,11 +1340,9 @@ export default defineComponent({
 
       try {
         const response = await allStatusOrder() as ApiResponse<string[]>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data) {
             this.allOrderStatus = response.data
-            console.log('all orders status: ', this.allOrderStatus);
           }
         } else {
           this.toast.error(response.message);
@@ -1366,11 +1355,9 @@ export default defineComponent({
 
       try {
         const response = await allStatusPaiementOrder() as ApiResponse<string[]>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data) {
             this.allPaiementOrderStatus = response.data
-            console.log('all orders Paiement status: ', this.allPaiementOrderStatus);
           }
         } else {
           this.toast.error(response.message);
@@ -1386,12 +1373,10 @@ export default defineComponent({
     }
       try {
         const response = await updateOrder(this.orderResponse?.id, payload) as ApiResponse<OrderModel>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data) {
             this.toast.success(response.message);
             this.orderResponse = response.data
-            console.log('commande mise a jour: ',  this.orderResponse);
           }
           setTimeout(() =>  {
             window.location.reload()
@@ -1408,8 +1393,6 @@ export default defineComponent({
         liste: MethodePaiementModel[],
         type: string
     ): MethodePaiementModel[] {
-      console.log(liste)
-      console.log(type)
       return liste.filter(methode =>
           methode.type === type
       );

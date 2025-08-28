@@ -905,12 +905,10 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeCategorieActive(page, "0") as ApiResponse<PaginatedCategorie>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             this.originalCategories = response.data.items;
             this.categorieSelected = this.originalCategories[0];
-            console.log("categorie default: ", this.categorieSelected)
             if (this.userRole === UserRole.FRANCHISE) {
               await this.fetchProduct(1, "existing", this.categorieSelected.id);
             }
@@ -933,7 +931,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeProducts(page, "0", filter, payload) as ApiResponse<PaginatedProduct>;
-        console.log(response)
         if (response.code === 200) {
           this.productResponse = response;
           if (response.data?.items) {
@@ -956,7 +953,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeRestaurantProduct(page, "0", categoryId as string) as ApiResponse<PaginatedRestaurantProduct>;
-        console.log(response)
         if (response.code === 200) {
           this.productRestaurantResponse = response;
           if (response.data?.items) {
@@ -982,15 +978,12 @@ export default defineComponent({
       liste: MethodePaiementModel[],
       type: string
     ): MethodePaiementModel | undefined {
-      console.log(liste)
-      console.log(type)
       return liste.find(methode => methode.type === type);
     },
     async fetchListeMethodePaiement(page = 1) {
       // this.isLoading = true;
       try {
         const response = await listeMethodePaiement(page) as ApiResponse<PaginatedMethodePaiement>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             this.listeMethode = response.data.items;
@@ -1008,13 +1001,11 @@ export default defineComponent({
     },
     updateStepForm(value: number) {
       this.stepForm = value
-      console.log('step:', this.stepForm)
     },
     async fetchPostalCode() {
       this.isLoading = true;
       try {
         const response = await fetchAllPostalCode();
-        console.log(response);
         if (response.code === 200) {
           const postals = response.data as CodepostalModel[];
           this.allPostalCode = [...postals].sort((a, b) => {
@@ -1032,7 +1023,7 @@ export default defineComponent({
 
 
     seeValue() {
-      console.log("potential payload: ", this.newOrderData)
+      //("potential payload: ", this.newOrderData)
     },
     addIgredientToPanier(panier: CartModel) {
       if (!panier) return;
@@ -1091,21 +1082,15 @@ export default defineComponent({
       if (index !== -1) {
         this.newOrderData.paniers.splice(index, 1);
         this.simplyPanier.slice(indexSimply, 1)
-        console.log("Produit supprimé du panier.")
-      } else {
-        console.log("Ce produit n'est pas dans le panier.")
-      }
+      } 
     },
     incrementQuantityIngredient(panier: CartModel, ingredient: IngredientModel) {
 
       const cart = this.newOrderData.paniers.find(pan => pan.product_id.id === panier.product_id.id);
       const simplyCart = (this.simplyPanier as any[]).find(pan => pan.product_id === panier.product_id.id);
-      console.log(cart)
-      console.log(simplyCart)
+  
 
       if (cart && simplyCart) {
-        console.log('AllIngredient: ', cart.ingredient)
-        console.log('AllIngredient Simply: ', simplyCart.ingredient)
 
         const ingredientFinded = cart.ingredient.find(ing => ing.name === ingredient.name);
         const ingredientSimplyFinded = simplyCart.ingredient.find(ing => ing.name === ingredient.name);
@@ -1113,22 +1098,17 @@ export default defineComponent({
 
 
         if (ingredientFinded && ingredientSimplyFinded) {
-          console.log('ingredient trouvee', ingredientFinded);
-          console.log('ingredient trouvee', ingredientSimplyFinded);
           // Incrémente la quantité actuelle
           ingredientFinded.quantite = (ingredientFinded.quantite || 1) + 1;
           ingredientSimplyFinded.quantite = (ingredientFinded.quantite || 1) + 1;
         } else {
           // Ajoute l'ingrédient avec une quantité de 1 s'il n'existe pas encore
-          console.log('ingredient non trouvee', ingredientFinded);
-          console.log('ingredient non trouvee', ingredientSimplyFinded);
           ingredient.quantite = 1;
           simplyCart.ingredient.push(ingredientSimplyFinded);
           cart.ingredient.push(ingredient);
         }
-        console.log("Ingredient added: ", ingredientSimplyFinded)
       } else {
-        console.warn(`Aucun panier trouvé avec le product_id: ${panier.product_id.id}`);
+        this.toast.warning(`Aucun panier trouvé avec le product_id: ${panier.product_id.id}`);
       }
 
     },
@@ -1156,11 +1136,10 @@ export default defineComponent({
             symplyIngredientFinded.quantite = index
           }
         }
-        console.log("Ingredient deleted: ", symplyIngredientFinded)
 
       }
       else {
-        console.warn(`Aucun panier trouvé avec le product_id: ${panier.product_id.id}`);
+        this.toast.warning(`Aucun panier trouvé avec le product_id: ${panier.product_id.id}`);
       }
 
     },
@@ -1221,10 +1200,8 @@ export default defineComponent({
         "timeOrder": this.getWhenOrderType() === 'ulterieur' ? `${this.extraireDate(this.dateRecuperation)} ${this.orderHourRecuperation}` : '',
         "typeCustomer": this.organisationTypeSelected === 'Société' ? 'organisation' : 'customer',
       }
-      console.log("payload create order: ", payload)
       try {
         const response = await createNewOrder(payload);
-        console.log(response);
         if (response.code === 201) {
           const order = response.data as OrderModel;
           this.toast.success(response.message)
@@ -1255,7 +1232,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeIngredient(1, '1') as ApiResponse<PaginatedIngredient>;
-        console.log(response)
         if (response.code === 200) {
           this.ingredientResponse = response;
           if (response.data?.items) {
@@ -1275,7 +1251,6 @@ export default defineComponent({
       }
     },
     handleInput(event, type) {
-      console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
       switch (type) {
         case 'remarqueOrder':
@@ -1338,15 +1313,12 @@ export default defineComponent({
       liste: OrderTypeModel[],
       type: string
     ): OrderTypeModel | undefined {
-      console.log(liste)
-      console.log(type)
       return liste.find(methode => methode.type === type);
     },
     async fetchOrderType(page = 1) {
       // this.isLoading = true;
       try {
         const response = await listeOrderType(page) as ApiResponse<PaginatedOrderType>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             this.listeOrderType = response.data.items;
@@ -1366,7 +1338,6 @@ export default defineComponent({
       const userID = this.restaurantID === RestaurantEnum.RESTO_MORGES ? ClientEnum.CLIENT_MORGES : ClientEnum.CLIENT_PENTHAZ
       try {
         const response = await detailUser(userID) as ApiResponse<UserModel>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data) {
             this.customerRestauranInfo = response.data
@@ -1385,20 +1356,17 @@ export default defineComponent({
       liste: CodepostalModel[],
       numeroPostal: string
     ): CodepostalModel | undefined {
-      console.log(liste)
       return liste.find(postal => postal.numeroPostal === numeroPostal);
     },
     getCodePostalByVille(
       liste: CodepostalModel[],
       city: string
     ): CodepostalModel | undefined {
-      console.log(liste)
       return liste.find(postal => postal.numeroPostal === city);
     },
     async fetchDetailRestaurant() {
       try {
         const response = await detailRestaurant(this.restaurantID) as ApiResponse<RestaurantModel>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data) {
             const dt = response.data
@@ -1522,7 +1490,6 @@ export default defineComponent({
   watch: {
     useCustomerGenericInfos(newVal, oldVal) {
       if (typeof newVal === 'boolean' && newVal !== oldVal && newVal) {
-        console.log("utilisation des information client generique:", newVal);
         this.newOrderData.guest_first_name = this.customerRestauranInfo?.first_name as string
         this.newOrderData.guest_last_name = this.customerRestauranInfo?.last_name as string
         this.newOrderData.guest_phone_number = this.customerRestauranInfo?.phone_number as string
@@ -1531,21 +1498,18 @@ export default defineComponent({
     },
     // NPASelected(newVal, oldVal){
     //   if (typeof newVal === 'string' && newVal !== oldVal) {
-    //     console.log("Nouvelle NPA sélectionnée :", newVal);
     //     const NPA = this.getCodePostalByNumero(this.allPostalCode, newVal) ?? null;
     //     this.localitySelected = NPA?.ville ?? ''
     //   }
     // },
     // localitySelected(newVal, oldVal){
     //   if (typeof newVal === 'string' && newVal !== oldVal) {
-    //     console.log("Nouvelle locality sélectionnée :", newVal);
     //     const locality = this.getCodePostalByNumero(this.allPostalCode, newVal) ?? null;
     //     this.NPASelected = locality?.numeroPostal ?? ''
     //   }
     // },
     categorieSelected(newVal, oldVal) {
       if (typeof newVal === 'string' && newVal !== oldVal) {
-        console.log("Nouvelle catégorie sélectionnée :", newVal);
         this.categorieSelected = this.originalCategories.find(c => c.id === newVal) ?? null;
         if (this.userRole === UserRole.FRANCHISE) {
           this.fetchProduct(1, "existing", newVal); // ou newVal.id selon le besoin
@@ -1559,7 +1523,6 @@ export default defineComponent({
     orderTypeSelected(this: any, newVal) {
       if (!newVal) return
       this.orderTypeSelected = newVal as OrderTypeModel
-      console.log('ordertype selected: ', this.orderTypeSelected)
     },
     villeSelected(this: any, newVal) {
       if (!newVal) return
@@ -1617,10 +1580,9 @@ export default defineComponent({
               break
           }
           simplyCart.ingredient.push(ing);
-          console.log("Ingredient added: ", this.simplyCart)
         }
         else {
-          console.warn(`Ce ingredient existe deja dans ce panier: ${this.ingredientSelected?.name}`);
+          this.toast.warning(`Ce ingredient existe deja dans ce panier: ${this.ingredientSelected?.name}`);
         }
       }
       if (cart && this.ingredientSelected) {

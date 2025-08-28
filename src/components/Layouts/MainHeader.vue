@@ -564,7 +564,6 @@ export default defineComponent({
   },
 
   mounted() {
-    console.log("Component mounted.", this.userProfileIMG);
   }
 });
 </script>

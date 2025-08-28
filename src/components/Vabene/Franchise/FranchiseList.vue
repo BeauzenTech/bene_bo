@@ -290,7 +290,6 @@ export default defineComponent({
     async confirmationDeleteAction(franchise){
       try {
         const response = await deleteFranchise(franchise.id) as ApiResponse<any>;
-        //console.log(response)
         if (response.code === 201) {
           this.toast.success(response.message);
         } else {
@@ -307,17 +306,14 @@ export default defineComponent({
     },
     async toggleFranchiseActivation(franchise, status){
       //this.isLoading = true;
-      console.log(status)
       const payload = {
         'status': status
       }
       try {
         const response = await toggleActivationFranchise(franchise.id, payload) as ApiResponse<any>;
-        //console.log(response)
         if (response.code === 200) {
           if (response.data) {
             const responseDecoded = response.data
-            console.log(responseDecoded)
             this.toast.success(response.message);
 
           }
@@ -343,7 +339,6 @@ export default defineComponent({
     // async confirmationDeleteAction(franchise){
     //   try {
     //     const response = await deleteUser(user.id) as ApiResponse<any>;
-    //     //console.log(response)
     //     if (response.code === 201) {
     //       this.usersResponse = response;
     //       this.toast.success(response.message);
@@ -362,18 +357,15 @@ export default defineComponent({
     // },
     // async toggleUserActivation(user, status){
     //   //this.isLoading = true;
-    //   console.log(status)
     //   const payload = {
     //     'status': status
     //   }
     //   try {
     //     const response = await toggleActivationUser(user.id, payload) as ApiResponse<any>;
-    //     //console.log(response)
     //     if (response.code === 201) {
     //       this.usersResponse = response;
     //       if (response.data) {
     //         const responseDecoded = response.data
-    //         console.log(responseDecoded)
     //         this.toast.success(response.message);
     //
     //       }
@@ -398,7 +390,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listefranchises(page) as ApiResponse<PaginatedFrachises>;
-        console.log(response)
         if (response.code === 200) {
           this.franchiseResponse = response;
           if (response.data?.items) {

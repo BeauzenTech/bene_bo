@@ -354,14 +354,12 @@ export default defineComponent({
   methods: {
     async toggleProgrammeActivation(programme, status){
       //this.isLoading = true;
-      console.log(status)
       const payload = {
         'IDProgramme': programme.id,
         'status': status
       }
       try {
         const response = await toggleActivationProgramme(payload) as ApiResponse<any>;
-        //console.log(response)
         if (response.code === 201 || response.code === 200) {
           this.toast.success(response.message);
 
@@ -404,7 +402,6 @@ export default defineComponent({
     },
     selectForDetail(categorie){
       this.categorieSelected = categorie;
-      console.log(categorie)
       this.$router.push({
         name: "VabeneAddProgrammePage",
         params: { action: ActionCrud.EDIT, categorieID: categorie.id }
@@ -412,7 +409,6 @@ export default defineComponent({
     },
     selectForDelete(categorie){
       this.categorieSelected = categorie;
-      console.log(categorie)
       // this.$router.push({
       //   name: "VabeneAddCategoriePage",
       //   params: { action: 'edit' }
@@ -421,7 +417,6 @@ export default defineComponent({
     async deleteFileUpload(fileID) {
       try {
         const response = await deleteFileUpload(fileID);
-        console.log(response);
         if (response.code === 200) {
           // this.toast.success(response.message)
 
@@ -440,7 +435,6 @@ export default defineComponent({
     },
     async confirmationDeleteAction(categorie){
       const publicID = Commons.extractPublicId(categorie.icone)
-      console.log("publicID", publicID);
       try {
         const response = await deleteCategorie(categorie.id) as ApiResponse<any>;
         await this.deleteFileUpload(publicID)
@@ -461,13 +455,11 @@ export default defineComponent({
     },
     async toggleCategorieActivation(categorie, status){
       //this.isLoading = true;
-      console.log(status)
       const payload = {
         'status': status
       }
       try {
         const response = await toggleActivationCategorie(categorie.id, payload) as ApiResponse<any>;
-        //console.log(response)
         if (response.code === 200 || response.code === 201) {
           this.toast.success(response.message);
         }
@@ -490,7 +482,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeProgramme(page) as ApiResponse<PaginatedProgramme>;
-        console.log(response)
         if (response.code === 200) {
           this.categorieResponse = response;
           if (response.data?.items) {
@@ -552,7 +543,6 @@ export default defineComponent({
     selectedOption(newVal, oldVal) {
       if (typeof newVal === 'string' && newVal !== oldVal) {
         this.originalCategories = []
-        console.log("Nouvelle option sélectionnée :", newVal);
         this.selectedOption = newVal as string
         if(this.selectedOption === 'Parrainage'){
           for (let i = 0; i < this.parrainages.length; i++) {

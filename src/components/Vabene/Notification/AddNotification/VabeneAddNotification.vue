@@ -216,7 +216,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeRestaurant(page) as ApiResponse<PaginatedRestaurant>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             this.originalRestaurant = [(this.fakeAllOptionFranchise as RestaurantModel), ...response.data.items];
@@ -271,7 +270,6 @@ export default defineComponent({
       }
       try {
         const response = await createNotification(payload);
-        console.log(response);
         if (response.code === 200) {
           this.toast.success(response.message)
           this.clearData()
@@ -300,12 +298,10 @@ export default defineComponent({
           this.restaurantId = idResto;
         }
         const response = await listeCustomers(page, '0', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             const data = response.data.items;
             this.originalUsers = data.filter(item => item.user !== null && item.user.enableNotification  && item.user.deviceToken != null );
-            console.log("filter data: ", this.originalUsers);
           }
 
         } else {
@@ -322,12 +318,11 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeCustomers(1, '0', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             const data = response.data.items;
             this.originalUsers = data.filter(item => item.user !== null && item.user.enableNotification  && item.user.deviceToken != null );
-            console.log("filter data: ", this.originalUsers);          }
+                     }
 
         } else {
           this.toast.error(response.message);
@@ -348,7 +343,6 @@ export default defineComponent({
       }
       try {
         const response = await updateCategorie(categorieID, payload);
-        console.log(response);
         if (response.code === 200) {
           this.toast.success(response.message)
           this.clearData()
@@ -371,7 +365,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await detailCampagne(categorieID) as ApiResponse<CampagneModel>;
-        console.log(response)
         if (response.code === 200) {
           if(response.data){
             this.categorieResponse = response.data;
@@ -390,12 +383,10 @@ export default defineComponent({
       }
     },
     async uploadLogo(){
-      console.log(this.categorieData);
       if(this.logoUpload && this.actionDetected === 'add'){
         this.isLoading = true;
         try {
           const response = await uploadFile(this.logoUpload);
-          console.log(response);
           if (response.code === 200 || response.code === 201) {
             this.categorieData.icone = response.data
             await this.createNewCategorie()
@@ -425,7 +416,6 @@ export default defineComponent({
     },
 
     handleInput(event, type) {
-      console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
       switch (type){
         case 'title':
@@ -512,14 +502,12 @@ export default defineComponent({
       else{
         this.getCustomerByOption();
       }
-      console.log('restaurant selected: ',this.restaurantSelected)
     },
     userSelected(this: any, newVal){
       if (!newVal) return
       const newValue = newVal as string
       this.categorieData.destination.push(newValue)
       this.userSelected = null;
-      console.log('individuel: ', this.categorieData.destination)
     },
     sendingType(this: any, newVal){
       if (!newVal) return
@@ -530,7 +518,6 @@ export default defineComponent({
         }
       }
       this.userSelected = null;
-      console.log('tous: ', this.categorieData.destination)
     },
   }
 

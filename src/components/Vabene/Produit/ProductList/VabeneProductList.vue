@@ -627,7 +627,6 @@ export default defineComponent({
     selectForDetail(product){
       if(this.userRole === UserRole.FRANCHISE){
         this.productSelected = product;
-        console.log(product)
         this.$router.push({
           name: "VabeneAddProductPage",
           params: { action: ActionCrud.EDIT, productID: product.id }
@@ -637,13 +636,11 @@ export default defineComponent({
     },
     selectForDelete(product){
       this.productSelected = product;
-      console.log(product)
 
     },
     async deleteFileUpload(fileID) {
       try {
         const response = await deleteFileUpload(fileID);
-        console.log(response);
         if (response.code === 200) {
           // this.toast.success(response.message)
 
@@ -662,7 +659,6 @@ export default defineComponent({
     },
     async confirmationDeleteAction(product){
       const publicID = Commons.extractPublicId(product.image_urls[0])
-      console.log("publicID", publicID);
       try {
 
         const response = await deleteProductTemporary(product.id) as ApiResponse<any>;
@@ -670,9 +666,7 @@ export default defineComponent({
         if (response.code === 201) {
           this.productResponse = response;
           this.toast.success(response.message);
-        } else {
-          console.log(response.message)
-        }
+        } 
       } catch (error) {
         this.toast.error("Erreur lors du chargement des produits");
         console.error(error);
@@ -687,18 +681,15 @@ export default defineComponent({
     async toggleProductActivation(product, status){
       //this.isLoading = true;
       if(this.userRole === UserRole.FRANCHISE){
-        console.log(status)
         const payload = {
           'status': status
         }
         try {
           const response = await toggleActivationProduct(product.id, payload) as ApiResponse<any>;
-          //console.log(response)
           if (response.code === 200) {
             this.productResponse = response;
             if (response.data) {
               const responseDecoded = response.data
-              console.log(responseDecoded)
               this.toast.success(response.message);
             }
 
@@ -717,13 +708,11 @@ export default defineComponent({
         }
       }
       else{
-        console.log(status)
         const payload = {
           'status': status
         }
         try {
           const response = await toggleActivationProductRestaurant(product.id) as ApiResponse<any>;
-          //console.log(response)
           if (response.code === 200 || response.code === 201) {
             this.productResponse = response;
             this.toast.success(response.message);
@@ -746,7 +735,6 @@ export default defineComponent({
     },
     async toggleProductFeatureActivation(product){
       //this.isLoading = true;
-      console.log(product)
       const payload = {
         "isFavorite": product.isFavorite,
         "isVedette": product.isVedette,
@@ -755,12 +743,10 @@ export default defineComponent({
       }
       try {
         const response = await toggleActivationFeatureProduct(product.id, payload) as ApiResponse<any>;
-        //console.log(response)
         if (response.code === 200) {
           this.productResponse = response;
           if (response.data) {
             const responseDecoded = response.data
-            console.log(responseDecoded)
             this.toast.success(response.message);
           }
 
@@ -788,20 +774,16 @@ export default defineComponent({
         liste: CategorieModel[],
         name: string
     ): CategorieModel | undefined{
-      console.log(liste)
-      console.log(name)
       return liste.find(categorie => categorie.name === name);
     },
     async fetchCategories(page = 1) {
       this.isLoading = true;
       try {
         const response = await listeCategorieActive(page, "0") as ApiResponse<PaginatedCategorie>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             this.originalCategories = response.data.items;
             this.categorieSelected = this.originalCategories[0];
-            console.log("categorie default: ", this.categorieSelected)
             if(this.userRole === UserRole.FRANCHISE){
               await  this.fetchProduct(1, "existing", this.categorieSelected.id);
             }
@@ -826,7 +808,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeProducts(page, "1" ,filter, payload) as ApiResponse<PaginatedProduct>;
-        console.log(response)
         if (response.code === 200) {
           this.productResponse = response;
           if (response.data?.items) {
@@ -849,7 +830,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeRestaurantProduct(page, "1" , categoryId as string) as ApiResponse<PaginatedRestaurantProduct>;
-        console.log(response)
         if (response.code === 200) {
           this.productRestaurantResponse = response;
           if (response.data?.items) {
@@ -913,7 +893,6 @@ export default defineComponent({
   watch:{
     categorieSelected(newVal, oldVal) {
       if (typeof newVal === 'string' && newVal !== oldVal) {
-        console.log("Nouvelle catégorie sélectionnée :", newVal);
         this.categorieSelected = this.originalCategories.find(c => c.id === newVal) ?? null;
         if(this.userRole === UserRole.FRANCHISE){
           this.fetchProduct(1, "existing", newVal); // ou newVal.id selon le besoin

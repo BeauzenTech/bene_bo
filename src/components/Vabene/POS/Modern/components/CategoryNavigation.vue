@@ -36,29 +36,56 @@ const sortedCategories = computed(() => {
 })
 
 const getCategoryIcon = (categoryId: string): string => {
-  // Utiliser des emojis au lieu d'icônes FontAwesome pour éviter les dépendances
-  const icons: Record<string, string> = {
-    // Catégories VaBene
-    '0f142654-3109-4dcb-89d3-6b89b8eca35e': '🍝', // Pâtes
-    'aa5474aa-578e-4d0a-81b1-de15166a8766': '🥗', // Salades
-    'fddfda10-5cac-428b-9cb1-d6237258348c': '🍕', // Pizza
-    'bb9505b5-e5a8-4455-b53c-8cdca5c1ea98': '🥪', // Sandwich
-    'bb775c39-716f-4265-835c-c1b7bf2e29c0': '🥤', // Boisson
-    '1fc62599-32b9-4a98-859d-b9f27fdf9d57': '🍰', // Dessert
-    '4153440b-4048-4193-9d04-60d6f51ea19e': '🥟', // Panzerotti
-    'a06fa469-caa2-4c17-a4b7-0141d6eb66c9': '🍤', // Entrée
-    'fd4a2c4e-49ef-48a5-9937-6f3a51122f9e': '🍕', // Pizza personnalisée
+  // Trouver la catégorie par son ID
+  const category = props.categories.find(cat => cat.id === categoryId)
+  if (!category) return '🍽️'
+  
+  // Utiliser le nom de la catégorie pour déterminer l'icône
+  const categoryName = category.name.toLowerCase()
+  
+  // Mapping basé sur les noms de catégories (plus robuste)
+  const iconMap: Record<string, string> = {
+    // Catégories principales
+    'pâtes': '🍝',
+    'pasta': '🍝',
+    'salades': '🥗',
+    'salad': '🥗',
+    'pizza': '🍕',
+    'pizzas': '🍕',
+    'sandwich': '🥪',
+    'sandwiches': '🥪',
+    'boisson': '🥤',
+    'boissons': '🥤',
+    'beverages': '🥤',
+    'dessert': '🍰',
+    'desserts': '🍰',
+    'panzerotti': '🥟',
+    'entrée': '🍤',
+    'entrées': '🍤',
+    'appetizer': '🍤',
+    'appetizers': '🍤',
+    
     // Anciennes catégories pour compatibilité
-    breakfast: '🥓',
-    lunch: '🍔',
-    dinner: '🍗',
-    soup: '🍲',
-    desserts: '🍦',
-    sidedish: '🌶️',
-    appetizer: '🍤',
-    beverages: '🍷'
+    'breakfast': '🥓',
+    'lunch': '🍔',
+    'dinner': '🍗',
+    'soup': '🍲',
+    'sidedish': '🌶️',
+    'side dish': '🌶️',
+    'plats': '🍽️',
+    'dishes': '🍽️',
+    'menu': '🍽️'
   }
-  return icons[categoryId] || '🍽️'
+  
+  // Chercher une correspondance exacte ou partielle
+  for (const [key, icon] of Object.entries(iconMap)) {
+    if (categoryName.includes(key) || key.includes(categoryName)) {
+      return icon
+    }
+  }
+  
+  // Icône par défaut si aucune correspondance
+  return '🍽️'
 }
 </script>
 

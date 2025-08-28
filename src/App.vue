@@ -304,8 +304,6 @@ export default defineComponent({
         liste: MethodePaiementModel[],
         type: string
     ): MethodePaiementModel[] {
-      console.log(liste);
-      console.log(type);
       return liste.filter((methode) => methode.type === type);
     },
     getOrderTypeParType(
@@ -511,9 +509,8 @@ export default defineComponent({
 
         setTimeout(() => {
           const contentHeight = this.getHeightTicket() + ((this.orderResponse?.orderItems.length ?? 1 )  * 5)
-          console.log("contentHeight: ", contentHeight);
           const desiredHeight = Math.max(this.getHeightTicket(), contentHeight + 35); // Minimum 200mm, ou hauteur du contenu + un peu de marge
-          console.log("desiredHeight: ", desiredHeight);
+
           const opt = {
             margin: [2, 1, 2, 1],
             filename: `Facture_${this.getShortUuid(
@@ -588,22 +585,12 @@ export default defineComponent({
         const response = (await listeMethodePaiement(
             page
         )) as ApiResponse<PaginatedMethodePaiement>;
-        console.log(response);
         if (response.code === 200) {
           if (response.data?.items && this.orderResponse) {
             this.listeMethode = response.data.items;
             this.methodePaiementSelected = this.getMethodePaiementParType(
                 response.data.items,
                 this.orderResponse.paymentID.paymentMethod
-            );
-            console.log("liste des methodes: ", this.listeMethode);
-            console.log(
-                "paiement methode: ",
-                this.orderResponse.paymentID.paymentMethod
-            );
-            console.log(
-                "methode Paiement selected: ",
-                this.methodePaiementSelected
             );
           }
         } else {
@@ -624,17 +611,13 @@ export default defineComponent({
         const response = (await listeOrderType(
             page
         )) as ApiResponse<PaginatedOrderType>;
-        console.log(response);
         if (response.code === 200) {
           if (response.data?.items && this.orderResponse) {
             this.listeOrderType = response.data.items;
-            console.log("data orderType retrieve: ", this.listeOrderType);
-            console.log("orderType: ", this.orderResponse.order_type);
             this.orderTypeSelected = this.getOrderTypeParType(
                 response.data.items,
                 this.orderResponse.order_type
             );
-            console.log("orderType selected: ", this.orderTypeSelected);
           }
         } else {
           (this as any).toast.error(response.message);
@@ -653,11 +636,9 @@ export default defineComponent({
         const response = (await detailOrder(
             orderID
         )) as ApiResponse<OrderModel>;
-        console.log(response);
         if (response.code === 200) {
           if (response.data) {
             this.orderResponse = response.data;
-            console.log("response data: ", this.orderResponse);
             if (this.orderResponse) {
               await this.fetchListeMethodePaiement();
               await this.fetchOrderType();
@@ -673,7 +654,6 @@ export default defineComponent({
       }
     },
     async launchPrint(pdfFile: File): Promise<void> {
-      console.log("impression launch");
       try {
         await printTicketLocally(pdfFile);
         (this as any).toast.success("🎉 Ticket imprimé avec succès");
@@ -690,19 +670,14 @@ export default defineComponent({
         /*  // Initialize messaging
          const token = await requestNotificationPermission();
          if (token) {
-           console.log("Token Firebase sauvegardé :", token);
          }
 
          //Écoute les notifications reçues
          onMessageListener().then((payload) => {
-           console.log("Notification reçue en foreground :", payload);
            const notification = payload.notification;
            const data = payload.data || {};
            const title = notification?.title || "Pas de titre";
            const body = notification?.body || "Pas de message";
-           console.log("Titre :", title);
-           console.log("Message :", body);
-           console.log("Données :", data);
            // ✅ Lecture du son si interaction utilisateur préalable
            const audio = new Audio(notificationSound);
            audio.play().catch((err) => {
@@ -712,7 +687,6 @@ export default defineComponent({
            if ((this as any)?.toast?.info) {
              (this as any).toast.info(body);
            } else {
-             console.log("ℹ️ Toast info :", body);
            }
          }); */
       } else {
@@ -721,12 +695,10 @@ export default defineComponent({
     });
 
     socket.addEventListener("open", () => {
-      console.log("WebSocket connecté 🎉");
     });
 
     socket.addEventListener("message", (event) => {
       const data = JSON.parse(event.data);
-      console.log("Message reçu :", data);
       // ✅ Lecture du son si interaction utilisateur préalable
       const audio = new Audio(notificationSound);
       audio.play().catch((err) => {
@@ -741,19 +713,16 @@ export default defineComponent({
             data.order_id
         ) {
           const order_id = data.order_id;
-          console.log(this.restaurantId);
-          console.log("ok");
           this.fetchOrder(order_id);
         }
       }
     });
 
     socket.addEventListener("close", () => {
-      console.log("WebSocket fermé ❌");
     });
 
     socket.addEventListener("error", (error) => {
-      console.error("WebSocket erreur ⚠️", error);
+      
     });
   },
 
@@ -769,12 +738,9 @@ export default defineComponent({
       if (stateStoreInstance.open) {
         document.body.classList.remove("sidebar-show");
         document.body.classList.add("sidebar-hide");
-        console.log("show");
       } else {
         document.body.classList.remove("sidebar-hide");
         document.body.classList.add("sidebar-show");
-
-        console.log("hide");
       }
     });
     return {

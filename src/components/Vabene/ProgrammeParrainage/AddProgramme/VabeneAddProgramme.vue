@@ -185,7 +185,6 @@ export default defineComponent({
         let existe = false;
 
         for (let j = 0; j < b.length; j++) {
-          console.log(a[i].id === b[j].category.id)
           if (a[i].id === b[j].category.id) {
             existe = true;
             break;
@@ -203,11 +202,9 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeRestaurantCategorie(page, "0") as ApiResponse<PaginatedRestaurantCategory>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             this.originalRestaurantCategorie = response.data.items;
-            console.log( this.originalRestaurantCategorie)
             this.resteCategorieModel = this.filtrerElementsExclus(this.originalCategories, this.originalRestaurantCategorie)
           }
 
@@ -223,11 +220,9 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeCategorieActive(page, "0") as ApiResponse<PaginatedCategorie>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             this.originalCategories = response.data.items;
-            console.log(this.originalCategories)
             this.resteCategorieModel = this.filtrerElementsExclus(this.originalCategories, this.originalRestaurantCategorie)
           }
 
@@ -258,7 +253,6 @@ export default defineComponent({
        this.isLoading = true;
        try {
          const response = await addRestaurantCategorie(this.categorieSelected);
-         console.log(response);
          if (response.code === 201 || response.code === 200 ) {
            this.toast.success(response.message)
            this.clearData()
@@ -291,7 +285,6 @@ export default defineComponent({
         }
         try {
           const response = await createCategorie(payload);
-          console.log(response);
           if (response.code === 201) {
             this.toast.success(response.message)
             this.clearData()
@@ -321,7 +314,6 @@ export default defineComponent({
       }
       try {
         const response = await updateProgramme(categorieID, payload);
-        console.log(response);
         if (response.code === 200 || response.code === 201) {
           this.toast.success(response.message)
           this.clearData()
@@ -344,7 +336,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await detailProgramme(categorieID) as ApiResponse<ProgrammeModel>;
-        console.log(response)
         if (response.code === 200) {
           if(response.data){
             this.categorieResponse = response.data;
@@ -363,12 +354,10 @@ export default defineComponent({
       }
     },
     async uploadLogo(){
-      console.log(this.categorieData);
       if(this.logoUpload && this.actionDetected === 'add'){
         this.isLoading = true;
         try {
           const response = await uploadFile(this.logoUpload);
-          console.log(response);
           if (response.code === 200 || response.code === 201) {
             // this.categorieData.icone = response.data
             await this.createNewCategorie()
@@ -398,7 +387,6 @@ export default defineComponent({
     },
 
     handleInput(event, type) {
-      console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
       switch (type){
         case 'name':
@@ -482,7 +470,6 @@ export default defineComponent({
     else{
       // this.fetchCategories()
       // this.fetchCategoriesRestaurant()
-      // console.log('reste categorie', this.resteCategorieModel)
     }
 
     // const action = (this as any).$route.params.action

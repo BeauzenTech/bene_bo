@@ -130,14 +130,11 @@ export default defineComponent({
         liste: CategorieModel[],
         name: string
     ): CategorieModel | undefined{
-      console.log(liste)
-      console.log(name)
       return liste.find(categorie => categorie.name === name);
     },
     async fetchCategories(page = 1) {
       try {
         const response = await listeCategorieActive(page, "0") as ApiResponse<PaginatedCategorie>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             this.originalCategories = response.data.items;
@@ -165,7 +162,6 @@ export default defineComponent({
       this.display = 0
       try {
         const response = await topProductReportSell(categoryID, restaurantID) as ApiResponse<TopProductSellModel[]>;
-        console.log(response)
         if (response.code === 200) {
             this.topSellResponse = response.data as TopProductSellModel[];
             if(this.topSellResponse.length > 0){
@@ -201,7 +197,6 @@ export default defineComponent({
   watch:{
     restaurantId(newVal, oldVal){
       if (typeof newVal === 'string' && newVal !== oldVal) {
-        console.log("Nouvelle option restaurant ID sélectionnée :", newVal);
         this.newRestoId = newVal;
         if(newVal !== 'all'){
           if(this.categorieSelected){
@@ -218,7 +213,6 @@ export default defineComponent({
     },
     categorieSelected(newVal, oldVal) {
       if (typeof newVal === 'string' && newVal !== oldVal) {
-        console.log("Nouvelle catégorie sélectionnée :", newVal);
         this.expected = []
         this.amountTotal = 0
         this.categorieSelected = this.originalCategories.find(c => c.id === newVal) ?? null;

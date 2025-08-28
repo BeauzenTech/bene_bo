@@ -220,8 +220,6 @@ export default defineComponent({
         liste: MethodePaiementModel[],
         type: string
     ): MethodePaiementModel[] {
-      console.log(liste)
-      console.log(type)
       return liste.filter(methode =>
           methode.type === type
       );
@@ -238,14 +236,10 @@ export default defineComponent({
       // this.isLoading = true;
       try {
         const response = await listeMethodePaiement(page) as ApiResponse<PaginatedMethodePaiement>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             this.listeMethode = [(this.fakeAllMethodePaiement as MethodePaiementModel), ...response.data.items];
-            console.log('methodes:', this.listeMethode)
             this.methodePaiementSelected = this.getMethodePaiementParType(this.listeMethode, 'all')
-            console.log('liste des methodes: ', this.listeMethode);
-            console.log('methode Paiement selected: ', this.methodePaiementSelected);
           }
         } else {
           this.toast.error(response.message);
@@ -261,13 +255,10 @@ export default defineComponent({
       // this.isLoading = true;
       try {
         const response = await listeOrderType(page) as ApiResponse<PaginatedOrderType>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             this.listeOrderType = [(this.fakeAllOrderType as OrderTypeModel), ...response.data.items];
-            console.log('orderType: ', this.listeOrderType)
             this.orderTypeSelected = this.getOrderTypeParType(this.listeOrderType, 'all')
-            console.log('orderType selected: ', this.orderTypeSelected);
           }
         } else {
           this.toast.error(response.message);
@@ -289,11 +280,9 @@ export default defineComponent({
       return today.toISOString().split('T')[0]; // retourne "2025-06-25"
     },
     handleInput(event, type) {
-      console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
       switch (type){
         case 'startDate':
-          console.log(valueText)
           this.startDate = valueText
           if(this.productSelected){
             if(this.userRole === UserRole.FRANCHISE){
@@ -334,8 +323,6 @@ export default defineComponent({
         liste: ProductModel[],
         name: string
     ): ProductModel | undefined{
-      console.log(liste)
-      console.log(name)
       return liste.find(product => product.name === name);
     },
     async fetchProduct(page = 1, filter: string, categorieID: string) {
@@ -344,7 +331,6 @@ export default defineComponent({
       }
       try {
         const response = await listeProducts(page, "0" ,filter, payload) as ApiResponse<PaginatedProduct>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             await this.fetchOrderType(1)
@@ -357,7 +343,6 @@ export default defineComponent({
               await this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate,  'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
             }
             else{
-              console.log(this.restaurantIdStorage);
               await this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.restaurantIdStorage as string,  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
             }
 
@@ -376,7 +361,6 @@ export default defineComponent({
     async fetchNombreDeCommandeMoyenByProduct(productID: string, startDate: string, endDate: string, idRest: string, methodePaiement: string, orderType: string) {
       try {
         const response = await nombreCommandeParProduct(productID, startDate, endDate, idRest, methodePaiement, orderType) as ApiResponse<RatioModel>;
-        console.log(response)
         if (response.code === 200) {
           this.tauxMoyenCommande = response.data as RatioModel;
         } else {
@@ -404,7 +388,6 @@ export default defineComponent({
     orderTypeSelected(newVal, oldVal){
       if (typeof newVal === 'string' && newVal !== oldVal){
         this.orderTypeSelected = this.getOrderTypeParType(this.listeOrderType, newVal)
-        console.log("Nouvelle option orderType sélectionnée :", newVal);
         if(this.newRestaurantId !== 'all' && this.newRestaurantId){
           if(this.productSelected){
             this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId, this.methodePaiementSelected[0].type, newVal);
@@ -420,7 +403,6 @@ export default defineComponent({
     methodePaiementSelected(newVal, oldVal){
       if (typeof newVal === 'string' && newVal !== oldVal){
         this.methodePaiementSelected = this.getMethodePaiementParType(this.listeMethode, newVal)
-        console.log("Nouvelle option methode sélectionnée :", newVal);
         if(this.newRestaurantId !== 'all' && this.newRestaurantId){
           if(this.productSelected){
             this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId, newVal, this.orderTypeSelected[0].type);
@@ -435,7 +417,6 @@ export default defineComponent({
     },
     restaurantId(newVal, oldVal){
       if (typeof newVal === 'string' && newVal !== oldVal) {
-        console.log("Nouvelle option restaurant ID sélectionnée :", newVal);
         this.newRestaurantId = newVal;
         if(newVal !== 'all'){
           if(this.productSelected){
@@ -452,7 +433,6 @@ export default defineComponent({
     },
     productSelected(newVal, oldVal) {
       if (typeof newVal === 'string' && newVal !== oldVal) {
-        console.log("Nouvelle catégorie sélectionnée :", newVal);
         // this.expected = []
         // this.amountTotal = 0
         this.productSelected = this.originalProducts.find(c => c.id === newVal) ?? null;

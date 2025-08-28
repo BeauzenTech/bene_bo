@@ -124,8 +124,6 @@ const emit = defineEmits<{
   'add-to-cart': [event: AddToCartEvent]
 }>()
 
-console.log('Product:', props.product)
-
 // État local - SIMPLE ET DIRECT
 const selectedSizeId = ref('')
 const selectedSize = ref<ProductSize | null>(null)
@@ -193,13 +191,7 @@ watch(() => props.visible, (isVisible) => {
     selectedSizeId.value = initialSize?.id || ''
     quantity.value = 1
 
-    console.log('🍕 Initialisation CreatePizzaModal:', {
-      product: props.product?.name,
-      initialSelectedSize: props.initialSelectedSize?.size,
-      initialSizeId: props.initialSelectedSize?.id,
-      finalSize: selectedSize.value?.size,
-      finalSizeId: selectedSize.value?.id
-    })
+ 
 
     // Créer une copie locale des ingrédients
     localIngredients.value = props.ingredients.map(ing => ({
@@ -219,14 +211,10 @@ const selectSize = (size: ProductSize) => {
 }
 
 const toggleIngredient = (index: number) => {
-  console.log('Toggle ingredient called for index:', index)
-  console.log('Before toggle:', localIngredients.value[index].selected)
 
   // Modification directe de l'élément dans le tableau
   localIngredients.value[index].selected = !localIngredients.value[index].selected
 
-  console.log('After toggle:', localIngredients.value[index].selected)
-  console.log('Current localIngredients:', localIngredients.value.map(i => ({ name: i.name, selected: i.selected })))
 }
 
 const incrementQuantity = () => {

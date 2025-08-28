@@ -28,17 +28,14 @@ export const requestNotificationPermission = async (): Promise<
     const registration = await navigator.serviceWorker.register(
       "/firebase-messaging-sw.js"
     );
-    console.log("✅ Service Worker enregistré :", registration);
 
     const permission = Notification.permission;
 
     if (permission === "granted") {
-      console.log("✅ Permission déjà accordée");
       return await requestForToken(registration);
     } else if (permission === "default") {
       const permissionResult = await Notification.requestPermission();
       if (permissionResult === "granted") {
-        console.log("✅ Permission accordée après demande");
         return await requestForToken(registration);
       } else {
         console.error("❌ Permission refusée");
@@ -69,7 +66,6 @@ export const requestForToken = async (
         "BJHn3ttRwAVIQ0iVO2ZEiDXtyZxWi5IAPFK7fBzp8-qG_CUBg0uO1XEU_-zAKjkYnbnXHTidbEam2iTL2EZsdZ0",
       serviceWorkerRegistration: registration,
     });
-    console.log("✅ Token FCM reçu :", token);
     return token;
   } catch (error) {
     console.error("❌ Erreur lors de la récupération du token :", error);
@@ -80,7 +76,6 @@ export const requestForToken = async (
 export const onMessageListener = (): Promise<any> =>
   new Promise((resolve) => {
     onMessage(messaging, (payload) => {
-      console.log("📩 Notification reçue :", payload);
       resolve(payload);
     });
   });

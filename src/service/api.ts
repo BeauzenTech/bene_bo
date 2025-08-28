@@ -950,7 +950,6 @@ export const reportVenteAdmin = async (restaurantID?: string): Promise<ApiRespon
         ]
             .filter(Boolean) // retire les undefined
             .join('/');
-        console.log(url)
         const response = await apiClient.get(url);
         return response.data;
     } catch (error) {

@@ -399,7 +399,6 @@ export default defineComponent({
   },
   methods: {
     selectionOrder(order){
-      console.log(order)
       this.$router.push({
         name: "VabeneOrderDetailsPage",
         params: { commandeID: order.id }
@@ -412,8 +411,6 @@ export default defineComponent({
         liste: MethodePaiementModel[],
         type: string
     ): MethodePaiementModel[] {
-      console.log(liste)
-      console.log(type)
       return liste.filter(methode =>
           methode.type === type
       );
@@ -422,7 +419,6 @@ export default defineComponent({
       // this.isLoading = true;
       try {
         const response = await listeMethodePaiement(page) as ApiResponse<PaginatedMethodePaiement>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             this.listeMethode = response.data.items;
@@ -449,7 +445,6 @@ export default defineComponent({
       // this.isLoading = true;
       try {
         const response = await listeOrderType(page) as ApiResponse<PaginatedOrderType>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data?.items) {
             this.listeOrderType = response.data.items;
@@ -661,7 +656,7 @@ export default defineComponent({
     //     }
     //     try {
     //       const response = await createCategorie(payload);
-    //       console.log(response);
+  
     //       if (response.code === 201) {
     //         this.toast.success(response.message)
     //         this.clearData()
@@ -691,7 +686,6 @@ export default defineComponent({
     //   }
     //   try {
     //     const response = await updateCategorie(categorieID, payload);
-    //     console.log(response);
     //     if (response.code === 200) {
     //       this.toast.success(response.message)
     //       this.clearData()
@@ -714,7 +708,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await detailCustomer(categorieID) as ApiResponse<CustomerModel>;
-        console.log(response)
         if (response.code === 200) {
           if (response.data) {
             this.categorieResponse = response.data;
@@ -740,12 +733,10 @@ export default defineComponent({
       }
     },
     // async uploadLogo(){
-    //   console.log(this.categorieData);
     //   if(this.logoUpload && this.actionDetected === 'add'){
     //     this.isLoading = true;
     //     try {
     //       const response = await uploadFile(this.logoUpload);
-    //       console.log(response);
     //       if (response.code === 200 || response.code === 201) {
     //         this.categorieData.icone = response.data
     //         await this.createNewCategorie()
@@ -775,7 +766,6 @@ export default defineComponent({
     // },
 
     handleInput(event, type) {
-      console.log("Valeur en temps réel :", event.target.value);
       const valueText = event.target.value;
       switch (type) {
         case 'firstName':

@@ -26,7 +26,7 @@ import "vue-toastification/dist/index.css";
 const app = createApp(App).use(router).use(store);
 app.component("v-select", vSelect);
 app.use(BootstrapVueNext);
-app.use(VueApexCharts);
+app.use(VueApexCharts, {});
 const options: PluginOptions = {
   // You can set your default options here
 };

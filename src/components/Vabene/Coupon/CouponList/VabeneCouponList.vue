@@ -399,16 +399,13 @@ export default defineComponent({
       // The modal will open via data-bs-toggle="modal" in the template.
     },
     // async toggleCategorieActivation(categorie, status){
-    //   console.log('tokk')
     //   const payload = {
     //     'status': status
     //   }
     //   try {
     //     const response = await disableCoupon(categorie.code, payload) as ApiResponse<any>;
-    //     console.log(response)
     //     if (response.code === 200) {
     //       const responseDecoded = response.data
-    //       console.log(responseDecoded)
     //       this.toast.success(response.message);
     //       setTimeout(() =>  {
     //         this.fetchCategories(1);
@@ -448,7 +445,6 @@ export default defineComponent({
     },
     selectForDetail(categorie){
       this.categorieSelected = categorie;
-      console.log(categorie)
       this.$router.push({
         name: "VabeneAddCouponPage",
         params: { action: ActionCrud.EDIT, couponID: categorie.id }
@@ -458,7 +454,6 @@ export default defineComponent({
       if(categorie.id){
         this.categorieSelected = categorie
       }
-      console.log(categorie)
       // this.$router.push({
       //   name: "VabeneAddCategoriePage",
       //   params: { action: 'edit' }
@@ -467,7 +462,6 @@ export default defineComponent({
     async deleteFileUpload(fileID) {
       try {
         const response = await deleteFileUpload(fileID);
-        console.log(response);
         if (response.code === 200) {
           // this.toast.success(response.message)
 
@@ -517,7 +511,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeCoupon(page) as ApiResponse<PaginatedCoupon>;
-        console.log(response)
         if (response.code === 200) {
           this.categorieResponse = response;
           if (response.data?.items) {

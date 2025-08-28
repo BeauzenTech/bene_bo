@@ -207,17 +207,9 @@ const closeModal = () => {
 const handleAddToCart = () => {
   if (!props.product || !props.selectedSize) return
 
-  // Utiliser le bon prix selon le type de commande
-  const isDelivery = store.getters['orderType/isDelivery']
-  const correctPrice = isDelivery && props.selectedSize.priceLivraison 
-    ? parseFloat(props.selectedSize.priceLivraison) || 0
-    : parseFloat(props.selectedSize.price) || 0
-
-  // Créer une copie de la taille avec le bon prix
-  const sizeWithCorrectPrice = {
-    ...props.selectedSize,
-    price: correctPrice.toString()
-  }
+  // IMPORTANT: Ne pas modifier le prix, garder les données originales
+  // Le prix sera calculé dynamiquement dans le store cart selon le type de commande
+  
 
   // Ajouter les sauces sélectionnées au store features
   const selectedSauceNames = availableSauces
@@ -252,7 +244,7 @@ const handleAddToCart = () => {
 
   const event: AddToCartEvent = {
     product: props.product,
-    size: sizeWithCorrectPrice,
+    size: props.selectedSize, // Prix originaux préservés
     quantity: quantity.value,
     ingredients: cartIngredients,
     supplements: selectedSupplements,
