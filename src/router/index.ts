@@ -1,5 +1,5 @@
 import { createWebHistory, createRouter } from "vue-router";
-
+import { authGuard } from './guards';
 import EcommercePage from "../pages/Dashboard/EcommercePage.vue";
 import ProjectManagementPage from "../pages/Dashboard/ProjectManagementPage.vue";
 import SupportDeskPage from "../pages/Dashboard/SupportDeskPage.vue";
@@ -41,6 +41,7 @@ import ListViewPage from "../pages/SupportDesk/ListViewPage.vue";
 import CardViewPage from "../pages/SupportDesk/CardViewPage.vue";
 import ContactsPage from "../pages/SupportDesk/ContactsPage.vue";
 import TicketPreviewPage from "../pages/SupportDesk/TicketPreviewPage.vue";
+import TimezoneTest from "../components/TimezoneTest.vue";
 import ProjectsListPage from "../pages/Projects/ProjectsListPage.vue";
 import ProjectsGridPage from "../pages/Projects/ProjectsGridPage.vue";
 import CreateNewProjectPage from "../pages/Projects/CreateNewProjectPage.vue";
@@ -638,6 +639,11 @@ const routes = [
     component: TicketPreviewPage,
   },
   {
+    path: "/timezone-test",
+    name: "TimezoneTest",
+    component: TimezoneTest,
+  },
+  {
     path: "/projects-list",
     name: "ProjectsListPage",
     component: ProjectsListPage,
@@ -1230,6 +1236,7 @@ const routes = [
   },
 ];
 
+
 const router = createRouter({
   history: createWebHistory(),
   linkExactActiveClass: "active",
@@ -1238,5 +1245,8 @@ const router = createRouter({
     return { top: 0, behavior: "smooth" };
   },
 });
+
+// 🔐 Applique le guard d'authentification à toutes les routes
+router.beforeEach(authGuard);
 
 export default router;

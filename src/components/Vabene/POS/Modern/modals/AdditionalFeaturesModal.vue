@@ -52,14 +52,14 @@
         </div>
 
         <!-- Contrôle de quantité -->
-        <div class="quantity-section">
+        <!-- <div class="quantity-section">
           <label class="quantity-label">Quantité :</label>
           <div class="quantity-controls">
             <button @click="decrementQuantity" :disabled="quantity <= 1" class="quantity-btn">-</button>
             <span class="quantity-display">{{ quantity }}</span>
             <button @click="incrementQuantity" class="quantity-btn">+</button>
           </div>
-        </div>
+        </div> -->
       </div>
 
       <!-- Footer avec prix et actions -->
@@ -158,17 +158,27 @@ const closeModal = () => {
 const handleAddToCart = () => {
   if (!props.product || !props.selectedSize) return
 
-  // Utiliser le bon prix selon le type de commande
-  const isDelivery = store.getters['orderType/isDelivery']
-  const correctPrice = isDelivery && props.selectedSize.priceLivraison 
-    ? parseFloat(props.selectedSize.priceLivraison) || 0
-    : parseFloat(props.selectedSize.price) || 0
+  
 
-  // Créer une copie de la taille avec le bon prix
-  const sizeWithCorrectPrice = {
+  // ❌ ANCIEN CODE QUI MODIFIAIT LES PRIX :
+  // const isDelivery = store.getters['orderType/isDelivery']
+  // const correctPrice = isDelivery && props.selectedSize.priceLivraison 
+  //   ? parseFloat(props.selectedSize.priceLivraison) || 0
+  //   : parseFloat(props.selectedSize.price) || 0
+  // const sizeWithCorrectPrice = {
+  //   ...props.selectedSize,
+  //   price: correctPrice.toString()  // ← PROBLÈME : Écrasait le prix original !
+  // }
+
+  // ✅ NOUVEAU CODE : Préserver les prix originaux
+  // Le store cart se chargera de calculer le bon prix selon le type de commande
+  const sizeWithOriginalPrices = {
     ...props.selectedSize,
-    price: correctPrice.toString()
+    // Garder les prix originaux intacts
+    price: props.selectedSize.price,
+    priceLivraison: props.selectedSize.priceLivraison
   }
+
   
   // Ajouter l'option sélectionnée au store features
   if (selectedFeature.value) {
@@ -187,7 +197,7 @@ const handleAddToCart = () => {
   
   const event: AddToCartEvent = {
     product: props.product,
-    size: sizeWithCorrectPrice,
+    size: sizeWithOriginalPrices,  // ← Utiliser les prix originaux
     quantity: quantity.value,
     ingredients: cartIngredients,
     supplements: [],

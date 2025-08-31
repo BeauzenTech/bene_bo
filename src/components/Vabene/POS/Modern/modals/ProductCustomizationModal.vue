@@ -165,6 +165,7 @@ const selectedIngredients = ref<Record<string, number>>({})
 
 // Données calculées
 const showIngredients = computed(() => {
+
   return props.product?.type === 'Pizza' ||
     props.product?.ingredients && props.product.ingredients.length > 0
 })
@@ -175,6 +176,7 @@ const availableIngredients = computed(() => {
 })
 
 const modifiedIngredients = computed(() => {
+
   return availableIngredients.value
     .filter(ing => selectedIngredients.value[ing.id] > 0)
     .map(ing => ({
@@ -293,17 +295,28 @@ const closeModal = () => {
 const addToCart = () => {
   if (!props.product || !selectedSize.value) return
 
-  // Utiliser le bon prix selon le type de commande
-  const isDelivery = store.getters['orderType/isDelivery']
-  const correctPrice = isDelivery && selectedSize.value.priceLivraison 
-    ? parseFloat(selectedSize.value.priceLivraison) || 0
-    : parseFloat(selectedSize.value.price) || 0
 
-  // Créer une copie de la taille avec le bon prix
-  const sizeWithCorrectPrice = {
+
+  // ❌ ANCIEN CODE QUI MODIFIAIT LES PRIX :
+  // const isDelivery = store.getters['orderType/isDelivery']
+  // const correctPrice = isDelivery && selectedSize.value.priceLivraison 
+  //   ? parseFloat(selectedSize.value.priceLivraison) || 0
+  //   : parseFloat(selectedSize.value.price) || 0
+  // const sizeWithCorrectPrice = {
+  //   ...selectedSize.value,
+  //   price: correctPrice.toString()  // ← PROBLÈME : Écrasait le prix original !
+  // }
+
+  // ✅ NOUVEAU CODE : Préserver les prix originaux
+  // Le store cart se chargera de calculer le bon prix selon le type de commande
+  const sizeWithOriginalPrices = {
     ...selectedSize.value,
-    price: correctPrice.toString()
+    // Garder les prix originaux intacts
+    price: selectedSize.value.price,
+    priceLivraison: selectedSize.value.priceLivraison
   }
+
+
 
   const cartIngredients = modifiedIngredients.value.map(ing => ({
     id: ing.id,
@@ -317,7 +330,7 @@ const addToCart = () => {
 
   const addToCartEvent: AddToCartEvent = {
     product: props.product,
-    size: sizeWithCorrectPrice,
+    size: sizeWithOriginalPrices,  // ← Utiliser les prix originaux
     quantity: quantity.value,
     ingredients: cartIngredients,
     supplements: [],

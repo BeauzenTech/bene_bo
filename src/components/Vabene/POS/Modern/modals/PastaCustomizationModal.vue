@@ -162,22 +162,32 @@ const closeModal = () => {
 const handleAddToCart = () => {
   if (!props.product || !props.selectedSize) return
 
+
+
   // Ajouter le parmesan au store features s'il est sélectionné
   if (withParmesan.value) {
     store.dispatch('features/toggleFeature', parmesanSupplement.name)
   }
 
-  // Utiliser le bon prix selon le type de commande
-  const isDelivery = store.getters['orderType/isDelivery']
-  const correctPrice = isDelivery && props.selectedSize.priceLivraison 
-    ? parseFloat(props.selectedSize.priceLivraison) || 0
-    : parseFloat(props.selectedSize.price) || 0
+  // ❌ ANCIEN CODE QUI MODIFIAIT LES PRIX :
+  // const isDelivery = store.getters['orderType/isDelivery']
+  // const correctPrice = isDelivery && props.selectedSize.priceLivraison 
+  //   ? parseFloat(props.selectedSize.priceLivraison) || 0
+  //   : parseFloat(props.selectedSize.price) || 0
+  // const sizeWithCorrectPrice = {
+  //   ...props.selectedSize,
+  //   price: correctPrice.toString()  // ← PROBLÈME : Écrasait le prix original !
+  // }
 
-  // Créer une copie de la taille avec le bon prix
-  const sizeWithCorrectPrice = {
+  // ✅ NOUVEAU CODE : Préserver les prix originaux 
+  // Le store cart se chargera de calculer le bon prix selon le type de commande
+  const sizeWithOriginalPrices = {
     ...props.selectedSize,
-    price: correctPrice.toString()
+    // Garder les prix originaux intacts
+    price: props.selectedSize.price,
+    priceLivraison: props.selectedSize.priceLivraison
   }
+
 
   // Préparer les suppléments sélectionnés
   const selectedSupplements: CartSupplement[] = withParmesan.value ? [{
@@ -201,7 +211,7 @@ const handleAddToCart = () => {
 
   const event: AddToCartEvent = {
     product: props.product,
-    size: sizeWithCorrectPrice,
+    size: sizeWithOriginalPrices,  // ← Utiliser les prix originaux
     quantity: quantity.value,
     ingredients: cartIngredients,
     supplements: selectedSupplements,

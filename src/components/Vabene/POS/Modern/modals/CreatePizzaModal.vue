@@ -255,16 +255,13 @@ const CUSTOM_PIZZA_IMAGE = CustomPizzaImage
 const handleAddToCart = () => {
   if (!selectedSize.value) return
 
-  // Utiliser le bon prix selon le type de commande
-  const isDelivery = store.getters['orderType/isDelivery']
-  const correctPrice = isDelivery && selectedSize.value.priceLivraison 
-    ? parseFloat(selectedSize.value.priceLivraison) || 0
-    : parseFloat(selectedSize.value.price) || 0
-
-  // Créer une copie de la taille avec le bon prix
-  const sizeWithCorrectPrice = {
+  // ✅ NOUVEAU CODE : Préserver les prix originaux 
+  // Le store cart se chargera de calculer le bon prix selon le type de commande
+  const sizeWithOriginalPrices = {
     ...selectedSize.value,
-    price: correctPrice.toString()
+    // Garder les prix originaux intacts
+    price: selectedSize.value.price,
+    priceLivraison: selectedSize.value.priceLivraison
   }
 
   // Déterminer le nom selon l'ID du produit reçu
@@ -335,7 +332,7 @@ const handleAddToCart = () => {
       supplements: [],
       isAvailable: true
     },
-    size: sizeWithCorrectPrice,
+    size: sizeWithOriginalPrices,
     quantity: quantity.value,
     ingredients: cartIngredients,
     supplements: [],

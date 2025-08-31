@@ -107,7 +107,7 @@
                 {{ order.total_price || '-' }} CHF
               </td>
               <td v-if="order.orderItems.length > 0" class="shadow-none lh-1 fw-medium text-black-emphasis">
-                {{ formatInTimeZone(order.created_at, 'UTC', 'dd/MM/yyyy HH:mm') }}
+                {{ formatInTimeZone(order.created_at, 'Europe/Zurich', 'dd/MM/yyyy HH:mm') }}
 
               </td>
               <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">
@@ -254,6 +254,8 @@ export default defineComponent({
       // eslint-disable-next-line no-undef
       originalOrder: [] as OrderModel[], // Stockage des utilisateurs originaux
       orderSelected: null,
+      refreshInterval: null as NodeJS.Timeout | null, // Intervalle de rafraîchissement
+      lastRefreshTime: null as Date | null, // Dernier rafraîchissement
     }
   },
   computed: {
@@ -359,9 +361,16 @@ export default defineComponent({
       return UserGeneralKey.formatDateToFrenchLocale(date);
     },
     async fetchOrder(page = 1) {
-      this.isLoading = true;
+      // Ne pas afficher le loader pour les rafraîchissements automatiques
+      const isAutoRefresh = this.refreshInterval && !this.isLoading;
+      
+      if (!isAutoRefresh) {
+        this.isLoading = true;
+      }
+      
       try {
         const response = await listeOrder(page) as ApiResponse<PaginatedOrder>;
+        
         if (response.code === 200) {
           this.orderResponse = response;
           if (response.data?.items) {
@@ -370,12 +379,16 @@ export default defineComponent({
           if (response.data && response.data.pagination) {
             this.currentPage = response.data.pagination.current_page;
           }
+          
         } else {
-          this.toast.error(response.message);
+          if (!isAutoRefresh) {
+            this.toast.error(response.message);
+          }
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des restaurant");
-        console.error(error);
+        if (!isAutoRefresh) {
+          this.toast.error("Erreur lors du chargement des commandes");
+        } 
       } finally {
         this.isLoading = false;
       }
@@ -402,6 +415,35 @@ export default defineComponent({
       }
 
       return pages;
+    },
+    
+    // Méthode pour démarrer le rafraîchissement automatique
+    startAutoRefresh() {
+      // Nettoyer l'intervalle existant s'il y en a un
+      if (this.refreshInterval) {
+        clearInterval(this.refreshInterval);
+      }
+      
+      // Démarrer un nouvel intervalle toutes les 2 minutes (120000 ms)
+      this.refreshInterval = setInterval(() => {
+        this.lastRefreshTime = new Date();
+        this.fetchOrder(this.currentPage);
+      }, 120000); // 2 minutes
+      
+    },
+    
+    // Méthode pour arrêter le rafraîchissement automatique
+    stopAutoRefresh() {
+      if (this.refreshInterval) {
+        clearInterval(this.refreshInterval);
+        this.refreshInterval = null;
+      }
+    },
+    
+    // Méthode pour forcer un rafraîchissement manuel
+    forceRefresh() {
+      this.lastRefreshTime = new Date();
+      this.fetchOrder(this.currentPage);
     }
   },
   setup() {
@@ -410,6 +452,11 @@ export default defineComponent({
   },
   mounted() {
     this.fetchOrder();
+    this.startAutoRefresh(); // Démarrer le rafraîchissement automatique
+  },
+  
+  beforeUnmount() {
+    this.stopAutoRefresh(); // Nettoyer l'intervalle lors de la destruction du composant
   }
 });
 </script>

@@ -62,12 +62,12 @@
       <!-- Pied de page -->
       <div class="modal-footer">
         <div class="quantity-selector">
-          <span>Quantité:</span>
+          <!-- <span>Quantité:</span>
           <div class="quantity-controls">
             <button @click="quantity--" :disabled="quantity <= 1">➖</button>
             <span>{{ quantity }}</span>
             <button @click="quantity++">➕</button>
-          </div>
+          </div> -->
         </div>
         <button class="add-to-cart-btn" @click="handleAddToCart">
           Ajouter au panier - {{ formatPrice(totalPrice) }}
@@ -169,20 +169,24 @@ const basePrice = computed(() => {
 const ingredientsPrice = computed(() => {
   let price = 0;
   if (selectedSize.value) {
-    const sizeMap: Record<string, '24cm' | '33cm' | '40cm'> = {
+    const sizeMap: Record<string, '24cm' | '28cm' | '33cm' | '40cm'> = {
       'Petite': '24cm',
       'Normale': '33cm',
-      'Grande': '40cm'
+      'Grande': '40cm',
+      'Unique (28cm)': '28cm'  // ← Ajout du mapping manquant
     };
-    const currentSize = sizeMap[selectedSize.value.name];
+    const currentSize = sizeMap[selectedSize.value.name] || '33cm'; // ← Fallback vers 33cm
+
 
     for (const ingId in customIngredients.value) {
       const quantity = customIngredients.value[ingId];
       if (quantity > 0) {
         const ingredient = INGREDIENTS_WITH_PRICING.find(i => i.id === ingId);
+        
         if (ingredient && !ingredient.isDefault) {
-          price += (ingredient.pricing[currentSize] || 0) * quantity;
-        }
+          const ingredientPrice = (ingredient.pricing[currentSize] || 0) * quantity;
+          price += ingredientPrice;
+        } 
       }
     }
   }
@@ -199,17 +203,27 @@ const closeModal = () => emit('close');
 const handleAddToCart = () => {
   if (!props.product || !selectedSize.value) return;
 
-  // Utiliser le bon prix selon le type de commande
-  const isDelivery = store.getters['orderType/isDelivery']
-  const correctPrice = isDelivery && selectedSize.value.priceLivraison 
-    ? parseFloat(selectedSize.value.priceLivraison) || 0
-    : parseFloat(selectedSize.value.price) || 0
+ 
 
-  // Créer une copie de la taille avec le bon prix
-  const sizeWithCorrectPrice = {
+  // ❌ ANCIEN CODE QUI MODIFIAIT LES PRIX :
+  // const isDelivery = store.getters['orderType/isDelivery']
+  // const correctPrice = isDelivery && selectedSize.value.priceLivraison 
+  //   ? parseFloat(selectedSize.value.priceLivraison) || 0
+  //   : parseFloat(selectedSize.value.price) || 0
+  // const sizeWithCorrectPrice = {
+  //   ...selectedSize.value,
+  //   price: correctPrice.toString()  // ← PROBLÈME : Écrasait le prix original !
+  // }
+
+  // ✅ NOUVEAU CODE : Préserver les prix originaux
+  // Le store cart se chargera de calculer le bon prix selon le type de commande
+  const sizeWithOriginalPrices = {
     ...selectedSize.value,
-    price: correctPrice.toString()
+    // Garder les prix originaux intacts
+    price: selectedSize.value.price,
+    priceLivraison: selectedSize.value.priceLivraison
   }
+
 
   const finalIngredients: CartIngredient[] = Object.entries(customIngredients.value)
     .filter(([, quantity]) => quantity > 0)
@@ -218,12 +232,13 @@ const handleAddToCart = () => {
       const originalIngredient = props.product!.ingredients.find(i => i.id === id);
 
       // Mapping des tailles vers la notation en cm
-      const sizeMap: Record<string, '24cm' | '33cm' | '40cm'> = {
+      const sizeMap: Record<string, '24cm' | '28cm' | '33cm' | '40cm'> = {
         'Petite': '24cm',
         'Normale': '33cm',
-        'Grande': '40cm'
+        'Grande': '40cm',
+        'Unique (28cm)': '28cm'  // ← Ajout du mapping manquant
       };
-      const currentSizeInCm = sizeMap[selectedSize.value!.name] || '33cm';
+      const currentSizeInCm = sizeMap[selectedSize.value!.name] || '33cm'; // ← Fallback vers 33cm
       
       return {
         id: ingredientInfo.id,
@@ -237,7 +252,7 @@ const handleAddToCart = () => {
 
   const event: AddToCartEvent = {
     product: props.product,
-    size: sizeWithCorrectPrice,
+    size: sizeWithOriginalPrices,  // ← Utiliser les prix originaux
     quantity: quantity.value,
     ingredients: finalIngredients,
     supplements: [],

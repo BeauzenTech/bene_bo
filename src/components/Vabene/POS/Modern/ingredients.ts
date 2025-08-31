@@ -41,7 +41,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "11",
         name: "Jambon cuit",
-        pricing: { "24cm": 4, "33cm": 4, "40cm": 5 },
+        pricing: { "24cm": 4, "28cm": 4, "33cm": 4, "40cm": 5 },
         imageUrl: "/images/ingredients/jambon.png",
         type: "viande",
         isDefault: false,
@@ -50,7 +50,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "33",
         name: "Poitrine dinde",
-        pricing: { "24cm": 4, "33cm": 4, "40cm": 5 },
+        pricing: { "24cm": 4, "28cm": 4, "33cm": 4, "40cm": 5 },
         imageUrl: "/images/ingredients/poulet.png",
         type: "viande",
         isDefault: false,
@@ -59,7 +59,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "4",
         name: "Poulet grillé",
-        pricing: { "24cm": 5, "33cm": 5, "40cm": 6 },
+        pricing: { "24cm": 5, "28cm": 5, "33cm": 5, "40cm": 6 },
         imageUrl: "/images/ingredients/poulet.png",
         type: "viande",
         isDefault: false,
@@ -68,7 +68,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "14",
         name: "Lard",
-        pricing: { "24cm": 4, "33cm": 4, "40cm": 5 },
+        pricing: { "24cm": 4, "28cm": 4, "33cm": 4, "40cm": 5 },
         imageUrl: "/images/ingredients/lard.png",
         type: "viande",
         isDefault: false,
@@ -77,7 +77,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "34",
         name: "Merguez",
-        pricing: { "24cm": 5, "33cm": 5, "40cm": 6 },
+        pricing: { "24cm": 5, "28cm": 5, "33cm": 5, "40cm": 6 },
         imageUrl: "/images/ingredients/saucisse-epicee.png",
         type: "viande",
         isDefault: false,
@@ -86,7 +86,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "35",
         name: "Salami piquant",
-        pricing: { "24cm": 4, "33cm": 4, "40cm": 5 },
+        pricing: { "24cm": 4, "28cm": 4, "33cm": 4, "40cm": 5 },
         imageUrl: "/images/ingredients/lard.png",
         type: "viande",
         isDefault: false,
@@ -95,7 +95,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "36",
         name: "Bresaola",
-        pricing: { "24cm": 6, "33cm": 6, "40cm": 8 },
+        pricing: { "24cm": 6, "28cm": 6, "33cm": 6, "40cm": 8 },
         imageUrl: "/images/ingredients/pepperoni.png",
         type: "viande",
         isDefault: false,
@@ -124,7 +124,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "16",
         name: "Thon",
-        pricing: { "24cm": 3, "33cm": 3, "40cm": 4 },
+        pricing: { "24cm": 3,"28cm": 3, "33cm": 3, "40cm": 4 },
         imageUrl: "/images/ingredients/thon.png",
         type: "poisson",
         isDefault: false,
@@ -133,7 +133,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "15",
         name: "Anchois",
-        pricing: { "24cm": 3, "33cm": 3, "40cm": 4 },
+        pricing: { "24cm": 3, "28cm": 3, "33cm": 3, "40cm": 4 },
         imageUrl: "/images/ingredients/anchois.png",
         type: "poisson",
         isDefault: false,
@@ -142,7 +142,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "8",
         name: "Saumon fumé",
-        pricing: { "24cm": 6, "33cm": 6, "40cm": 8 },
+        pricing: { "24cm": 6, "28cm": 6, "33cm": 6, "40cm": 8 },
         imageUrl: "/images/ingredients/salomon.png",
         type: "poisson",
         isDefault: false,
@@ -151,7 +151,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "17",
         name: "Crevette",
-        pricing: { "24cm": 5, "33cm": 5, "40cm": 5 },
+        pricing: { "24cm": 5, "28cm": 5, "33cm": 5, "40cm": 5 },
         imageUrl: "/images/ingredients/crevette.png",
         type: "poisson",
         isDefault: false,
@@ -160,7 +160,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "39",
         name: "Fruit de mer",
-        pricing: { "24cm": 6, "33cm": 6, "40cm": 7 },
+        pricing: { "24cm": 6, "28cm": 6, "33cm": 6, "40cm": 7 },
         imageUrl: "/images/ingredients/crevette.png",
         type: "poisson",
         isDefault: false,
@@ -171,7 +171,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "18",
         name: "Champignon Blanc",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/champignon.png",
         type: "legume",
         isDefault: false,
@@ -180,7 +180,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "40",
         name: "Oignon rouge",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/oignon.png",
         type: "legume",
         isDefault: false,
@@ -189,7 +189,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "41",
         name: "Câpres",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/oignon.png",
         type: "legume",
         isDefault: false,
@@ -198,7 +198,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "42",
         name: "Artichauts",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/oignon.png",
         type: "legume",
         isDefault: false,
@@ -207,7 +207,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "43",
         name: "Oeuf dur",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/champignon.png",
         type: "legume",
         isDefault: false,
@@ -216,7 +216,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "44",
         name: "Olives",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/champignon.png",
         type: "legume",
         isDefault: false,
@@ -225,7 +225,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "21",
         name: "Poivron",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/poivron.png",
         type: "legume",
         isDefault: false,
@@ -234,7 +234,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "20",
         name: "Ananas",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/ananas.png",
         type: "legume",
         isDefault: false,
@@ -243,7 +243,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "25",
         name: "Aubergine",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/aubergine.png",
         type: "legume",
         isDefault: false,
@@ -252,7 +252,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "45",
         name: "Basilic",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/epinard.png",
         type: "legume",
         isDefault: false,
@@ -261,7 +261,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "46",
         name: "Roquette",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/arugula.png",
         type: "legume",
         isDefault: false,
@@ -270,7 +270,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "47",
         name: "Tomate Jaunes",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/tomate.png",
         type: "legume",
         isDefault: false,
@@ -279,7 +279,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "24",
         name: "Tomate Cérise",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/tomate-cerise.png",
         type: "legume",
         isDefault: false,
@@ -288,7 +288,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "32",
         name: "Épinards",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/epinard.png",
         type: "legume",
         isDefault: false,
@@ -297,7 +297,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "48",
         name: "Pignon",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/champignon.png",
         type: "legume",
         isDefault: false,
@@ -308,7 +308,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "49",
         name: "Fromage frais",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/fromage.png",
         type: "fromage",
         isDefault: false,
@@ -317,7 +317,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "50",
         name: "Gorgonzola",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/dorblu.png",
         type: "fromage",
         isDefault: false,
@@ -326,7 +326,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "51",
         name: "Grana Padano écaille",
-        pricing: { "24cm": 3, "33cm": 3, "40cm": 3 },
+        pricing: { "24cm": 3, "28cm": 3, "33cm": 3, "40cm": 3 },
         imageUrl: "/images/ingredients/fromage.png",
         type: "fromage",
         isDefault: false,
@@ -335,7 +335,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "5",
         name: "Ricotta",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/ricotta.png",
         type: "fromage",
         isDefault: false,
@@ -344,7 +344,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "52",
         name: "Mozzarella di Bufala",
-        pricing: { "24cm": 3, "33cm": 3, "40cm": 5 },
+        pricing: { "24cm": 3, "28cm": 3, "33cm": 3, "40cm": 5 },
         imageUrl: "/images/ingredients/fromage.png",
         type: "fromage",
         isDefault: false,
@@ -353,7 +353,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "53",
         name: "Burrata",
-        pricing: { "24cm": 4, "33cm": 4, "40cm": 6 },
+        pricing: { "24cm": 4, "28cm": 4, "33cm": 4, "40cm": 6 },
         imageUrl: "/images/ingredients/fromage.png",
         type: "fromage",
         isDefault: false,
@@ -364,7 +364,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "54",
         name: "Huile de Truffe",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/champignon.png",
         type: "huile",
         isDefault: false,
@@ -373,7 +373,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "55",
         name: "Huile à l'ail",
-        pricing: { "24cm": 1, "33cm": 1, "40cm": 1 },
+        pricing: { "24cm": 1, "28cm": 1, "33cm": 1, "40cm": 1 },
         imageUrl: "/images/ingredients/ail.png",
         type: "huile",
         isDefault: false,
@@ -382,7 +382,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "56",
         name: "Pesto basilic",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/epinard.png",
         type: "huile",
         isDefault: false,
@@ -391,7 +391,7 @@ export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     {
         id: "57",
         name: "Pesto pistache",
-        pricing: { "24cm": 2, "33cm": 2, "40cm": 2 },
+        pricing: { "24cm": 2, "28cm": 2, "33cm": 2, "40cm": 2 },
         imageUrl: "/images/ingredients/epinard.png",
         type: "huile",
         isDefault: false,

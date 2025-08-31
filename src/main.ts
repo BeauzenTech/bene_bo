@@ -6,6 +6,8 @@ import BootstrapVueNext from "bootstrap-vue-next";
 import VueApexCharts from "vue3-apexcharts";
 import { QuillEditor } from "@vueup/vue-quill";
 import Vue3Prism from "vue3-prism/lib/Vue3Prism.common.js";
+import { AuthService } from "./service/auth.service";
+import { initializeTimezone } from "./utils/timezone";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue-next/dist/bootstrap-vue-next.css";
@@ -33,4 +35,11 @@ const options: PluginOptions = {
 
 app.use(Toast, options);
 app.component("QuillEditor", QuillEditor).use(Vue3Prism);
+
+// 🔐 Démarre la vérification automatique des tokens expirés
+AuthService.startTokenExpirationCheck();
+
+// 🇨🇭 Initialise le fuseau horaire suisse
+initializeTimezone();
+
 app.mount("#app");

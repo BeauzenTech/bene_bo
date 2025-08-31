@@ -30,7 +30,7 @@
           <!-- Customize button for special products -->
           <div v-if="shouldShowCustomizeButton(product)" class="customize-section">
             <button @click="handleCustomize(product)" class="customize-btn">
-              ⚙️
+              
               <span>{{ getCustomizeButtonText(product) }}</span>
             </button>
           </div>
@@ -61,13 +61,13 @@
             <div class="price-section">
               <span class="price">{{ formatPrice(productPrices[product.id] || 0) }}</span>
               <span v-if="currentOrderType === 'delivery'" class="delivery-price-indicator">
-                🚚 Prix de Livraison*
+               Prix de Livraison*
               </span>
             </div>
             <div class="action-buttons">
               <!-- Add to cart button -->
               <button @click="handleAddToCart(product)" class="add-to-cart-btn">
-                🛒
+                
                 <span>Ajouter</span>
               </button>
             </div>
@@ -139,8 +139,13 @@ const selectedSizes = ref<{ [productId: string]: ProductSize }>({})
 const SPECIALIZED_CATEGORY_IDS = {
   PASTA: "0f142654-3109-4dcb-89d3-6b89b8eca35e",
   SALAD: "aa5474aa-578e-4d0a-81b1-de15166a8766",
-  PIZZA: "fddfda10-5cac-428b-9cb1-d6237258348c",
+  PIZZA: "fddfda10-5cac-428b-9cb1-d6237258348c"
 } as const
+
+const PIZZA_CATEGORY_IDS = [
+  "fddfda10-5cac-428b-9cb1-d6237258348c",
+  "2e1e5ee6-1081-45db-85c7-421498475cd9"
+]
 
 const CATS_IDS_DONT_SHOW_SIZE: string[] = [
   // L'ID de la catégorie Pizza était ici, empêchant l'affichage des tailles.
@@ -172,7 +177,7 @@ const filteredProducts = computed(() => {
 })
 
 const isPizzaCategory = computed(() => {
-  return props.category === SPECIALIZED_CATEGORY_IDS.PIZZA ||
+  return PIZZA_CATEGORY_IDS.includes(props.category) ||
     props.searchQuery.toLowerCase().includes('pizza')
 })
 
@@ -222,7 +227,7 @@ const requiresCustomization = (product: ProductModel): boolean => {
 }
 
 const shouldShowCustomizeButton = (product: ProductModel): boolean => {
-  return product.categorieID?.id === SPECIALIZED_CATEGORY_IDS.PIZZA;
+  return PIZZA_CATEGORY_IDS.includes(product.categorieID?.id);
 }
 
 const getCustomizeButtonText = (product: ProductModel): string => {
@@ -279,12 +284,17 @@ const hasMultipleSizes = (product: ProductModel): boolean => {
 
 const getSelectedSize = (product: ProductModel): ProductSize | null => {
   const selected = selectedSizes.value[product.id]
-  if (selected) return selected
+  if (selected) {
+    return selected
+  }
 
   // Taille par défaut
   if (product.productSizes && product.productSizes.length > 0) {
     const defaultSize = product.productSizes.find(s => s.size === 'Normale') || product.productSizes[0]
-    return transformProductSize(defaultSize)
+    const transformedSize = transformProductSize(defaultSize)
+    
+    
+    return transformedSize
   }
 
   return null
@@ -339,29 +349,7 @@ watch(currentOrderType, () => {
   // Le computed se recalculera automatiquement grâce à la réactivité de Vue
 }, { immediate: false })
 
-// Fonction pour calculer le prix total d'un item (similaire à celle du store cart)
-const calculateItemTotalPrice = (product: ProductModel, size: ProductSize): number => {
-  // Utiliser le computed pour la réactivité
-  const orderType = currentOrderType.value
 
-  // Prix de base selon le type de commande
-  const basePrice = orderType === 'delivery'
-    ? Number(size.priceLivraison) || Number(size.price) || 0
-    : Number(size.price) || 0
-
-  // Coût des ingrédients par défaut (non par défaut)
-  const ingredientsPrice = (product.Ingredients || []).reduce((total: number, ingredient: any) => {
-    if (!ingredient.isDefault && ingredient.quantity > 0) {
-      return total + (Number(ingredient.extra_cost_price) || 0) * ingredient.quantity
-    }
-    return total
-  }, 0)
-
-  // Coût des suppléments (pour l'instant 0 car pas de suppléments dans ProductMenu)
-  const supplementsPrice = 0
-
-  return basePrice + ingredientsPrice + supplementsPrice
-}
 
 const transformProductSize = (size: ProductSizesModel): ProductSize => {
   return {
@@ -419,10 +407,13 @@ const handleCustomize = (product: ProductModel) => {
 }
 
 const handleQuickAdd = (product: ProductModel) => {
+
   const transformedProduct = transformProduct(product)
   const selectedSize = getSelectedSize(product)
 
   if (selectedSize) {
+    
+    
     // IMPORTANT: Ne pas modifier le prix, garder les données originales
     // Le prix sera calculé dynamiquement dans le store cart selon le type de commande
     
@@ -436,6 +427,7 @@ const handleQuickAdd = (product: ProductModel) => {
       supplements: [],
       notes: ''
     }
+   
     
     emit('add-to-cart', addToCartEvent)
   }
@@ -471,10 +463,9 @@ function handleAddToCart(product: ProductModel) {
   const isGlutenFreePizza = product.name.toLowerCase().includes('gluten');
   const selectedSize = getSelectedSize(product)
 
+
   // Détection stricte par id de catégorie pour la pizza personnalisée
   if (product.categorieID?.id === 'fd4a2c4e-49ef-48a5-9937-6f3a51122f9e') {
-    
-    
     showCreatePizzaModal.value = true
     currentPizzaProductId.value = product.id // stocker l'id du produit cliqué (classic ou sans gluten)
     currentPizzaSelectedSize.value = selectedSize // stocker la taille sélectionnée
@@ -502,7 +493,12 @@ function handleAddToCart(product: ProductModel) {
   if (specializedType === 'pizza' && !isGlutenFreePizza) {
     handleCustomize(product);
   } else if (specializedType === 'pasta' || specializedType === 'salad') {
-    handleCustomize(product);
+    // Pour les pastas et salades, vérifier s'ils ont des options additionnelles
+    if (product.additionnal && product.additionnal.length > 0) {
+      handleCustomize(product);
+    } else {
+      handleQuickAdd(product);
+    }
   } else {
     handleQuickAdd(product);
   }
@@ -515,6 +511,8 @@ function handleAdditionalModalClose() {
 }
 
 function handleAdditionalAddToCart(event: any) {
+ 
+  
   emit('add-to-cart', {
     product: event.product,
     size: event.size,
@@ -534,6 +532,8 @@ function handleAdditionalAddToCart(event: any) {
 }
 
 function handleCreatePizzaAddToCart(event: AddToCartEvent) {
+
+  
   emit('add-to-cart', event)
   showCreatePizzaModal.value = false
 }
@@ -555,7 +555,7 @@ const getSizeInCm = (size: string): string => {
 const extractPizzaSizesFromProducts = (products: ProductModel[]) => {
   // Chercher un produit pizza avec des tailles
   const pizzaProduct = products.find(product => 
-    product.categorieID?.id === SPECIALIZED_CATEGORY_IDS.PIZZA && 
+    PIZZA_CATEGORY_IDS.includes(product.categorieID?.id) && 
     product.productSizes && 
     product.productSizes.length > 0
   )

@@ -35,6 +35,7 @@ export interface CustomerModel {
   promotions: boolean;
   newsletter: boolean;
   created_at: string;
+  user_addresses?: any[];
 }
 
 export interface PaginatedCustomers {

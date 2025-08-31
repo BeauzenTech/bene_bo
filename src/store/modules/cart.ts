@@ -19,7 +19,6 @@ export interface ItemSupplement {
 
 interface CartState {
   cart: CartItem[]
-  total: number
   minOrderSupplement?: number
 }
 
@@ -45,16 +44,11 @@ const cart: Module<CartState, RootState> = {
   
   state: (): CartState => ({
     cart: [],
-    total: 0
   }),
   
   mutations: {
     SET_CART(state, cart: CartItem[]) {
       state.cart = cart
-    },
-    
-    SET_TOTAL(state, total: number) {
-      state.total = total
     },
     
     ADD_TO_CART(state, { item, totalPrice }: { item: CartItem; totalPrice: number }) {
@@ -83,7 +77,6 @@ const cart: Module<CartState, RootState> = {
     
     CLEAR_CART(state) {
       state.cart = []
-      state.total = 0
     },
     
     INCREMENT_QUANTITY(state, { itemId, totalPrice }: { itemId: string; totalPrice: number }) {
@@ -136,19 +129,14 @@ const cart: Module<CartState, RootState> = {
       const currentOrderType = rootGetters['orderType/selectedOrderType'] || 'dine_in'
       const isDelivery = currentOrderType === 'delivery'
 
-
-      // Prix de base selon le type de commande
-      // IMPORTANT: Utiliser les prix originaux selon le type de commande actuel
       let basePrice = 0
       
       if (isDelivery) {
-        // Pour la livraison, utiliser priceLivraison s'il existe, sinon price
         basePrice = Number(item.selectedSize.priceLivraison) || Number(item.selectedSize.price) || 0
       } else {
-        // Pour les autres types (sur place, à emporter), utiliser price
+       
         basePrice = Number(item.selectedSize.price) || 0
       }
-
 
       // Coût des ingrédients ajoutés (non par défaut)
       // Support pour les deux formats : Ingredients (store) et ingredients (POS moderne)
@@ -170,6 +158,7 @@ const cart: Module<CartState, RootState> = {
       }, 0)
 
       const totalPrice = basePrice + ingredientsPrice + supplementsPrice
+
       
       return totalPrice
     },
@@ -183,6 +172,7 @@ const cart: Module<CartState, RootState> = {
         price: item.selectedSize.price,
         priceLivraison: item.selectedSize.priceLivraison
       }
+      
       
       // Créer un nouvel item avec la taille originale
       const itemWithOriginalSize = {
@@ -239,6 +229,22 @@ const cart: Module<CartState, RootState> = {
         commit('REMOVE_FROM_CART', item)
         dispatch('saveToStorage')
       }
+    },
+    
+    // Nouvelle action pour recalculer tous les prix du panier
+    async recalculateAllPrices({ commit, dispatch, getters }) {
+      const updatedCart: CartItem[] = []
+      
+      for (const item of getters.cart) {
+        const totalPrice = await dispatch('calculateItemTotalPrice', { item })
+        updatedCart.push({
+          ...item,
+          totalPrice: totalPrice
+        })
+      }
+      
+      commit('SET_CART', updatedCart)
+      dispatch('saveToStorage')
     },
     
     addIngredient({ commit, dispatch, getters }, { itemId, ingredient }: { itemId: string; ingredient: ItemIngredient }) {
@@ -333,7 +339,7 @@ const cart: Module<CartState, RootState> = {
           const parsed = JSON.parse(value)
           if (parsed.state && Array.isArray(parsed.state.cart)) {
             commit('SET_CART', parsed.state.cart)
-            commit('SET_TOTAL', parsed.state.total || 0)
+            // Ne pas mettre à jour le total manuellement, laisser le getter cartTotal faire le calcul
           }
         } catch (error) {
           console.error('Erreur lors du chargement du panier depuis le stockage local:', error)
@@ -348,8 +354,7 @@ const cart: Module<CartState, RootState> = {
       try {
         const cartData = {
           state: {
-            cart: state.cart,
-            total: state.total
+            cart: state.cart
           }
         }
         const value = JSON.stringify(cartData)
@@ -357,38 +362,11 @@ const cart: Module<CartState, RootState> = {
       } catch (error) {
         console.error('Erreur lors de la sauvegarde du panier dans le stockage local:', error)
       }
-    },
-
-    // Recalculer tous les prix du panier quand le type de commande change
-    async recalculateAllPrices({ commit, dispatch, state, rootGetters }) {
-      const currentOrderType = rootGetters['orderType/selectedOrderType'] || 'dine_in'
-      
-      // Forcer le recalcul de TOUS les articles
-      const updatedCart = await Promise.all(
-        state.cart.map(async (item, index) => {
-          const oldPrice = item.totalPrice
-          const totalPrice = await dispatch('calculateItemTotalPrice', { item })
-          return { ...item, totalPrice }
-        })
-      )
-      
-      // Calculer le nouveau total du panier
-      const newTotal = updatedCart.reduce((total, item) => total + (item.totalPrice || 0), 0)
-      const oldTotal = state.total
-      
-      updatedCart.forEach((item, index) => {
-      })
-      
-      commit('SET_CART', updatedCart)
-      commit('SET_TOTAL', newTotal)
-      dispatch('saveToStorage')
-      
     }
   },
   
   getters: {
     cart: (state) => state.cart,
-    total: (state) => state.total,
     cartCount: (state) => state.cart.reduce((count, item) => count + item.quantity, 0),
     cartTotal: (state) => state.cart.reduce((total, item) => total + (item.totalPrice || 0), 0),
     getItemById: (state) => (itemId: string) => state.cart.find(item => item.localProductId === itemId),

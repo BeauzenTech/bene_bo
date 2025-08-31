@@ -48,7 +48,7 @@
                       <div class="route">
                         <h2 v-if="orderTypeSelected.length > 0" style="font-weight: 600; font-size: 18px;"><strong>{{orderTypeSelected[0].libelle}}</strong></h2>
                         <h2><strong>{{orderResponse.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'TOUT DE SUITE'}}</strong></h2>
-                        <h2 v-if="orderResponse.DeliveryPreference != 'immediat'"><strong>{{formatInTimeZone(orderResponse.timeOrder, 'UTC', 'dd/MM/yyyy - HH:mm')}} </strong></h2>
+                        <h2 v-if="orderResponse.DeliveryPreference != 'immediat'"><strong>{{formatLocalDate(orderResponse.timeOrder, 'dd/MM/yyyy - HH:mm')}} </strong></h2>
                         <h2><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ orderResponse.nif : 'VBP'+ orderResponse.nif}}</strong></h2>
                         <!--                            <h2><strong>{{getLast6Digits(orderResponse.customer.id)}}</strong></h2>-->
 
@@ -203,6 +203,7 @@ import { PaymentStatus } from "@/enums/orderPaiementMethode.enum";
 import { RestaurantEnum } from "./enums/restaurant.enum";
 import { CategorieModel } from "./models/categorie.model";
 import { formatInTimeZone } from "date-fns-tz";
+import { formatLocalDate, initializeTimezone } from "@/utils/timezone";
 
 export default defineComponent({
   name: "App",
@@ -262,6 +263,7 @@ export default defineComponent({
       return discountValue;
     },
     formatInTimeZone,
+    formatLocalDate,
     clearData(): void {
       this.orderResponse = null;
       (this as any).listeMethode = [];
@@ -664,6 +666,9 @@ export default defineComponent({
     },
   },
   async mounted() {
+    // Initialiser le fuseau horaire
+    initializeTimezone();
+    
     document.body.classList.add("bg-body-secondary");
     isSupported().then(async (supported) => {
       if (supported) {

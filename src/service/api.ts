@@ -75,6 +75,29 @@ apiClient.interceptors.request.use(
     }
 );
 
+// 🔐 Interceptor de réponse : Gère l'expiration des tokens
+apiClient.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        // Vérifie si l'erreur est due à un token expiré (401 Unauthorized)
+        if (error.response && error.response.status === 401) {
+            console.warn('🔐 Token expiré détecté, déconnexion automatique...');
+            
+            // Déconnecte l'utilisateur
+            UserGeneralKey.logout();
+            
+            // Redirige vers la page de login
+            window.location.href = '/';
+            
+            return Promise.reject(new Error('Token expiré - Redirection vers la page de connexion'));
+        }
+        
+        return Promise.reject(error);
+    }
+);
+
 apiClientFormData.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem(UserGeneralKey.USER_TOKEN);
@@ -84,6 +107,29 @@ apiClientFormData.interceptors.request.use(
         return config;
     },
     (error) => {
+        return Promise.reject(error);
+    }
+);
+
+// 🔐 Interceptor de réponse pour FormData : Gère l'expiration des tokens
+apiClientFormData.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        // Vérifie si l'erreur est due à un token expiré (401 Unauthorized)
+        if (error.response && error.response.status === 401) {
+            console.warn('🔐 Token expiré détecté, déconnexion automatique...');
+            
+            // Déconnecte l'utilisateur
+            UserGeneralKey.logout();
+            
+            // Redirige vers la page de login
+            window.location.href = '/';
+            
+            return Promise.reject(new Error('Token expiré - Redirection vers la page de connexion'));
+        }
+        
         return Promise.reject(error);
     }
 );
@@ -555,11 +601,11 @@ export const updateOrder = async (orderID, orderData): Promise<ApiResponse<Order
     }
 };
 
-export const listePayment = async (page = 1): Promise<ApiResponse<PaginatedPayment>> => {
+export const listePayment = async (page = 1, limit = '20'): Promise<ApiResponse<PaginatedPayment>> => {
     // eslint-disable-next-line no-useless-catch
     try {
 
-        const response = await apiClient.get(`/initial/order/payment/all?page=${page}`);
+        const response = await apiClient.get(`/initial/order/payment/all?page=${page}&limit=${limit}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
@@ -1187,18 +1233,41 @@ export const detailNotification = async (notificationID): Promise<ApiResponse<No
 };
 
 
-export const listeCustomers = async (page = 1, usePagination: string, restaurantId?: string): Promise<ApiResponse<PaginatedCustomer>> => {
+export const listeCustomers = async (
+    page = 1, 
+    limit: string, 
+    restaurantId?: string,
+    searchFirstname?: string,
+    searchLastname?: string,
+    searchEmail?: string,
+    searchTel?: string
+): Promise<ApiResponse<PaginatedCustomer>> => {
     // eslint-disable-next-line no-useless-catch
     try {
+        const token = localStorage.getItem('USER_TOKEN');
         const url = [
-            `/v1/customer/all`,
-            usePagination,
+            `/v1/customer/all/${page}`,
             restaurantId,
         ]
             .filter(Boolean) // retire les undefined
             .join('/');
 
-        const response = await apiClient.get(`${url}?page=${page}`);
+        // Construction des paramètres de requête
+        const queryParams = new URLSearchParams({
+            limit: limit
+        });
+
+        // Ajout des paramètres de recherche optionnels
+        if (searchFirstname) queryParams.append('searchFirstname', searchFirstname);
+        if (searchLastname) queryParams.append('searchLastname', searchLastname);
+        if (searchEmail) queryParams.append('searchEmail', searchEmail);
+        if (searchTel) queryParams.append('searchTel', searchTel);
+
+        const response = await apiClient.get(`${url}?${queryParams.toString()}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         return new ApiResponse(
             response.data.code,
             response.data.message,

@@ -14,15 +14,23 @@
 <!--        </button>-->
       </div>
       <div class="d-flex align-items-center">
-        <form class="search-box position-relative me-15" @submit.prevent>
+        <form class="search-box position-relative me-15" @submit.prevent="handleSearch">
           <input
               v-model="searchQuery"
               type="text"
               class="form-control shadow-none text-black rounded-0 border-0"
               placeholder="Rechercher un client"
-              @input="currentPage = 1"
-
           />
+          <button
+              v-if="searchQuery"
+              type="button"
+              @click="handleClear"
+              class="bg-transparent text-muted transition p-0 border-0 position-absolute"
+              style="right: 40px; top: 50%; transform: translateY(-50%);"
+              title="Effacer la recherche"
+          >
+            <i class="fas fa-times"></i>
+          </button>
           <button
               type="submit"
               class="bg-transparent text-primary transition p-0 border-0"
@@ -30,6 +38,14 @@
             <i class="flaticon-search-interface-symbol"></i>
           </button>
         </form>
+        <button
+            v-if="hasActiveSearch"
+            @click="clearSearch"
+            class="btn btn-sm btn-outline-secondary ms-2"
+            title="Effacer la recherche"
+        >
+          <i class="fas fa-times"></i>
+        </button>
         <button
             class="dot-btn lh-1 position-relative top-3 bg-transparent border-0 shadow-none p-0 transition d-inline-block"
             type="button"
@@ -277,28 +293,21 @@ export default defineComponent({
       searchQuery: '', // Ajout du champ de recherche
       originalCategories: [] as CustomerModel[], // Stockage des utilisateurs originaux
       categorieSelected: null,
-      restaurantId: null as string | null
+      restaurantId: null as string | null,
+      // Paramètres de recherche
+      searchFirstname: '',
+      searchLastname: '',
+      searchEmail: '',
+      searchTel: ''
     }
   },
   computed: {
     allCategorie(): CustomerModel[] {
-      const categories: CustomerModel[] = this.originalCategories;
-      
-
-      // Filtrage par searchQuery
-      const filtered = this.searchQuery
-          ? categories.filter(categorie => {
-            const query = this.searchQuery.toLowerCase();
-            return (
-                categorie.firstName?.toLowerCase().includes(query) ||
-                categorie.lastName?.toLowerCase().includes(query)
-            )
-          })
-          : categories
-          
-
-      // Tri alphabétique par name
-      return filtered;
+      return this.originalCategories;
+    },
+    
+    hasActiveSearch(): boolean {
+      return !!(this.searchFirstname || this.searchLastname || this.searchEmail || this.searchTel);
     },
 
     pagination(): any {
@@ -306,7 +315,7 @@ export default defineComponent({
         current_page: 1,
         total_items: 0,
         total_pages: 1,
-        items_per_page: 8
+        items_per_page: 20
       };
     },
     paginationInfo(): string {
@@ -415,6 +424,54 @@ export default defineComponent({
       return UserGeneralKey.formatDateToFrenchLocale(date);
     },
   
+    handleSearch() {
+      // Parse la recherche pour déterminer le type
+      const query = this.searchQuery.trim().toLowerCase();
+      
+      // Reset tous les paramètres de recherche
+      this.searchFirstname = '';
+      this.searchLastname = '';
+      this.searchEmail = '';
+      this.searchTel = '';
+      
+      if (query) {
+        // Détection simple du type de recherche
+        if (query.includes('@')) {
+          // Probablement un email
+          this.searchEmail = query;
+        } else if (query.match(/^[\d\s\-+()]+$/)) {
+          // Probablement un numéro de téléphone
+          this.searchTel = query.replace(/\D/g, ''); // Garde seulement les chiffres
+        } else {
+          // Probablement un nom/prénom
+          const parts = query.split(' ');
+          if (parts.length > 1) {
+            this.searchFirstname = parts[0];
+          } else {
+            // Recherche dans prénom et nom
+            this.searchFirstname = query;
+          }
+        }
+      }
+      
+      this.currentPage = 1;
+      this.fetchCategories(1);
+    },
+    
+    clearSearch() {
+      this.handleClear();
+    },
+    
+    handleClear() {
+      this.searchQuery = '';
+      this.searchFirstname = '';
+      this.searchLastname = '';
+      this.searchEmail = '';
+      this.searchTel = '';
+      this.currentPage = 1;
+      this.fetchCategories(1);
+    },
+    
     async fetchCategories(page = 1) {
       this.isLoading = true;
       try {
@@ -423,7 +480,15 @@ export default defineComponent({
         if(idResto){
           this.restaurantId = idResto;
         }
-        const response = await listeCustomers(page, '1', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
+        const response = await listeCustomers(
+          page, 
+          '20', 
+          idResto ?? undefined,
+          this.searchFirstname || undefined,
+          this.searchLastname || undefined,
+          this.searchEmail || undefined,
+          this.searchTel || undefined
+        ) as ApiResponse<PaginatedCustomer>;
         if (response.code === 200) {
           this.categorieResponse = response;
           if (response.data?.items) {

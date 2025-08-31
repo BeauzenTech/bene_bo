@@ -85,21 +85,23 @@ export class UserGeneralKey {
     static formatDateToFrenchLocale(dateString: string): string {
         const date = new Date(dateString);
 
-        // Options pour le formatage de la date
+        // Options pour le formatage de la date avec fuseau horaire suisse
         const dateOptions: Intl.DateTimeFormatOptions = {
             day: '2-digit',
             month: '2-digit',
-            year: 'numeric'
+            year: 'numeric',
+            timeZone: 'Europe/Zurich'
         };
 
-        // Options pour le formatage de l'heure
+        // Options pour le formatage de l'heure avec fuseau horaire suisse
         const timeOptions: Intl.DateTimeFormatOptions = {
             hour: '2-digit',
             minute: '2-digit',
-            hour12: false // format 24h
+            hour12: false, // format 24h
+            timeZone: 'Europe/Zurich'
         };
 
-        // Formater la date et l'heure séparément
+        // Formater la date et l'heure séparément en heure suisse
         const formattedDate = date.toLocaleDateString('fr-FR', dateOptions);
         const formattedTime = date.toLocaleTimeString('fr-FR', timeOptions);
 

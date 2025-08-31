@@ -71,7 +71,7 @@
         </div>
         <div class="form-group">
           <label>Type de commande</label>
-          <select v-model="storeOrderType" class="form-select">
+          <select v-model="selectedOrderType" class="form-select">
             <option value="dine_in">Sur place</option>
             <option value="click_collect">À emporter</option>
             <option value="delivery">Livraison</option>
@@ -156,7 +156,7 @@
                   {{ time }}
                 </option>
               </select>
-              <div v-if="selectedDate === getGMT2Date().toISOString().split('T')[0] && getAvailableTimes.length === 0"
+              <div v-if="selectedDate === getSwissDate().toISOString().split('T')[0] && getAvailableTimes.length === 0"
                 class="time-info">
                 <span class="time-info-text">Aucune heure disponible aujourd'hui. Veuillez sélectionner demain.</span>
               </div>
@@ -236,18 +236,18 @@
       <div class="cart-section">
         <div class="section-header">
           <h3 class="section-title">Commande</h3>
-          <span class="item-count">{{ storeCart.length }} article(s)</span>
+          <span class="item-count">{{ cartItemsWithCorrectPrices?.length || 0 }} article(s)</span>
         </div>
 
         <div class="cart-items">
-          <div v-for="item in storeCart" :key="item.localProductId" class="cart-item">
+          <div v-for="item in validCartItems" :key="item?.localProductId || item?.id" class="cart-item">
             <div class="item-image">
               <img :src="item.image" :alt="item.name" />
             </div>
 
             <div class="item-details">
               <h4 class="item-name">{{ item.name }}</h4>
-              <p class="item-size">{{ item.selectedSize.size }}</p>
+              <p class="item-size">{{ item.selectedSize?.size }}</p>
 
               <!-- Ingrédients personnalisés -->
               <div v-if="hasCustomIngredients(item)" class="item-customization">
@@ -295,7 +295,7 @@
               </div>
 
               <div class="item-price">
-                <span class="price">{{ formatPrice(item.totalPrice) }} CHF</span> 
+                <span class="price">{{ formatPrice(item.calculatedTotalPrice || item.totalPrice) }} CHF</span> 
               </div>
 
               <button class="remove-btn" @click="removeItem(item.localProductId)">
@@ -305,9 +305,9 @@
           </div>
 
           <!-- Message panier vide -->
-          <div v-if="storeCart.length === 0" class="empty-cart">
+          <div v-if="!validCartItems || validCartItems.length === 0" class="empty-cart">
             <div class="empty-icon">
-              🛒
+              
             </div>
             <p>Panier vide</p>
             <span>Ajoutez des articles pour commencer</span>
@@ -413,7 +413,7 @@
         <div class="summary-lines">
           <div class="summary-row">
             <span class="label">Sous-total</span>
-            <span class="value">{{ formatPrice(props.orderSummary.subtotal) }} CHF</span>
+            <span class="value">{{ formatPrice(storeCartTotal) }} CHF</span>
           </div>
 
           <div class="summary-row" v-if="discountAmount > 0">
@@ -523,6 +523,34 @@ const storeOrderType = computed({
   get: () => store.getters['orderType/selectedOrderType'] || 'dine_in',
   set: (value) => store.dispatch('orderType/setOrderType', value)
 })
+
+// Variable locale pour le select
+const selectedOrderType = ref('dine_in')
+
+// Synchroniser avec le store au montage
+onMounted(() => {
+  store.dispatch('cart/clearCart')
+  selectedOrderType.value = store.getters['orderType/selectedOrderType'] || 'dine_in'
+  
+  loadRestaurantInfo()
+  loadRestaurantDetails()
+  loadAllPostalCodes()
+  // Ne pas charger tous les clients au démarrage, seulement quand l'utilisateur recherche
+  // loadCustomers()
+  //store.dispatch('orderType/loadFromStorage')
+
+
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement
+    if (!target.closest('.customer-form')) {
+      closeSuggestions()
+    }
+    if (!target.closest('.postal-code-input-container')) {
+      showPostalCodeSuggestions.value = false
+    }
+  })
+})
+
 const selectedPaymentMethod = ref<string>('pay_click_collect_cash')
 const taxRate = ref(2.6) // Taux de TVA suisse
 
@@ -595,17 +623,17 @@ const validateEmail = () => {
 }
 
 // Fonctions utilitaires pour la gestion des dates et horaires
-const getGMT2Date = (date?: Date) => {
+const getSwissDate = (date?: Date) => {
   const now = date || new Date();
-  const utc = now.getTime() + now.getTimezoneOffset() * 60000; // UTC en millisecondes
-  return new Date(utc + 2 * 3600000); // GMT+2 en millisecondes (2 heures = 2 * 3600000 ms)
+  // Utiliser le fuseau horaire de la Suisse (Europe/Zurich)
+  return new Date(now.toLocaleString("en-US", { timeZone: "Europe/Zurich" }));
 };
 
 // Utilitaires pour la gestion des horaires
 const getCurrentTime = () => {
-  // Utiliser GMT+2 (UTC+2)
-  const gmt2 = getGMT2Date();
-  return gmt2.getHours() * 60 + gmt2.getMinutes(); // Minutes depuis minuit en GMT+2
+  // Utiliser le fuseau horaire de la Suisse
+  const swissDate = getSwissDate();
+  return swissDate.getHours() * 60 + swissDate.getMinutes(); // Minutes depuis minuit en heure suisse
 };
 
 const parseTime = (timeString: string) => {
@@ -639,7 +667,7 @@ const getAvailableTimes = computed(() => {
       const timeInMinutes = hour * 60 + minute;
       
       // Si c'est aujourd'hui, vérifier que l'heure n'est pas passée
-      if (selectedDateValue === getGMT2Date().toISOString().split("T")[0]) {
+      if (selectedDateValue === getSwissDate().toISOString().split("T")[0]) {
         if (timeInMinutes > currentTime + 30) { // +30 minutes de marge
           times.push(timeString);
         }
@@ -654,8 +682,8 @@ const getAvailableTimes = computed(() => {
 });
 
 const getAvailableDates = computed(() => {
-  // Utiliser GMT+2 (UTC+2) pour déterminer les dates
-  const today = getGMT2Date();
+  // Utiliser le fuseau horaire de la Suisse pour déterminer les dates
+  const today = getSwissDate();
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
 
@@ -706,11 +734,11 @@ const discountAmount = computed(() => {
     if (discountPercentage.value <= 0) return 0
     // Limiter le rabais en pourcentage à 100%
     const maxDiscount = Math.min(discountPercentage.value, 100)
-    return (props.orderSummary.subtotal * maxDiscount) / 100
+    return (storeCartTotal.value * maxDiscount) / 100
   } else {
     if (discountFixed.value <= 0) return 0
     // Le rabais fixe ne peut pas dépasser le sous-total
-    return Math.min(discountFixed.value, props.orderSummary.subtotal)
+    return Math.min(discountFixed.value, storeCartTotal.value)
   }
 })
 
@@ -725,7 +753,7 @@ const couponDiscountAmount = computed(() => {
 const minOrderSupplement = computed(() => {
   if (storeOrderType.value !== 'delivery') return 0
   
-  const subtotalAfterDiscount = props.orderSummary.subtotal - discountAmount.value
+  const subtotalAfterDiscount = storeCartTotal.value - discountAmount.value
   const totalAfterCoupon = subtotalAfterDiscount - couponDiscountAmount.value
   const remainingAmount = Math.max(0, restaurantMinOrder.value - totalAfterCoupon)
   
@@ -736,7 +764,7 @@ const minOrderSupplement = computed(() => {
 
 // Computed pour le total final avec rabais, coupon et supplément minimum
 const finalTotalWithCoupon = computed(() => {
-  const subtotalAfterDiscount = props.orderSummary.subtotal - discountAmount.value
+  const subtotalAfterDiscount = storeCartTotal.value - discountAmount.value
   const totalAfterCoupon = subtotalAfterDiscount - couponDiscountAmount.value
   const totalWithSupplement = totalAfterCoupon + minOrderSupplement.value
   const finalTotal = Math.max(0, totalWithSupplement) // Ne peut pas être négatif
@@ -748,12 +776,12 @@ const finalTotalWithCoupon = computed(() => {
 
 // Computed pour le résumé avec rabais appliqué
 const orderSummaryWithDiscount = computed(() => {
-  const subtotalWithDiscount = props.orderSummary.subtotal - discountAmount.value
+  const subtotalWithDiscount = storeCartTotal.value - discountAmount.value
   const taxOnDiscountedSubtotal = (subtotalWithDiscount * taxRate.value) / 100 // TVA (affichage informatif uniquement)
   const totalWithDiscount = subtotalWithDiscount // Le total ne comprend pas la TVA
   
   return {
-    subtotal: props.orderSummary.subtotal,
+    subtotal: storeCartTotal.value,
     tax: taxOnDiscountedSubtotal,
     total: totalWithDiscount
   }
@@ -849,9 +877,10 @@ const canPlaceOrder = computed(() => {
   // Validation supplémentaire pour la livraison à domicile
   if (storeOrderType.value === 'delivery') {
     const deliveryValidation = deliveryAddress.value.rue.trim() !== '' && 
-      deliveryAddress.value.numeroRue.trim() !== '' &&
       deliveryAddress.value.npa.trim() !== '' &&
       deliveryAddress.value.localite.trim() !== ''
+    
+
     
     // Si c'est une livraison programmée, vérifier aussi la date et l'heure
     if (deliveryPreference.value === 'ulterieur') {
@@ -867,13 +896,26 @@ const canPlaceOrder = computed(() => {
   return basicValidation
 })
 
-// Charger tous les clients du restaurant
-const loadCustomers = async () => {
+// Charger les clients avec recherche
+const loadCustomers = async (searchParams?: {
+  searchFirstname?: string,
+  searchLastname?: string,
+  searchEmail?: string,
+  searchTel?: string
+}) => {
   try {
     const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
     
     if (restaurantID) {
-      const response = await listeCustomers(1, '1', restaurantID)
+      const response = await listeCustomers(
+        1, 
+        '50', 
+        restaurantID,
+        searchParams?.searchFirstname,
+        searchParams?.searchLastname,
+        searchParams?.searchEmail,
+        searchParams?.searchTel
+      )
   
       if (response.code === 200 && response.data && response.data.items) {
         allCustomers.value = response.data.items
@@ -935,7 +977,7 @@ const handleAddressSelection = (event: Event) => {
   // Remplir les champs avec l'adresse sélectionnée
   deliveryAddress.value = {
     rue: address.rue || '',
-    numeroRue: address.numeroLocalite || '',
+    numeroRue: (address.numeroLocalite === '0' || address.numeroLocalite === null) ? '' : (address.numeroLocalite || ''),
     npa: address.codePostal || '',
     localite: address.localite || ''
   }
@@ -955,11 +997,10 @@ const handleCustomerSearch = () => {
   }, 300)
 }
 
-// Filtrer les clients selon la recherche
-const searchCustomers = () => {
-  
-  const firstName = customerInfo.value.firstName.toLowerCase().trim()
-  const lastName = customerInfo.value.lastName.toLowerCase().trim()
+// Rechercher les clients via l'API
+const searchCustomers = async () => {
+  const firstName = customerInfo.value.firstName.trim()
+  const lastName = customerInfo.value.lastName.trim()
   const phone = customerInfo.value.phone.trim()
   const email = customerInfo.value.email.trim()
 
@@ -968,38 +1009,32 @@ const searchCustomers = () => {
     return
   }
 
-  if (firstName.length < 2 && lastName.length < 2 && phone.length < 3 && email.length < 3) {
+  // Vérifier si on a au moins un critère de recherche valide
+  const hasValidSearch = (firstName.length >= 2 || lastName.length >= 2 || phone.length >= 3 || email.length >= 3)
+  
+  if (!hasValidSearch) {
     customerSuggestions.value = []
     return
   }
 
+  try {
+    // Préparer les paramètres de recherche
+    const searchParams: any = {}
+    
+    if (firstName.length >= 2) searchParams.searchFirstname = firstName
+    if (lastName.length >= 2) searchParams.searchLastname = lastName
+    if (phone.length >= 3) searchParams.searchTel = phone.replace(/\D/g, '') // Garder seulement les chiffres
+    if (email.length >= 3) searchParams.searchEmail = email
 
-  const results = allCustomers.value.filter(customer => {
-    let matches = false
-
-    // Recherche par prénom
-    if (firstName.length >= 2) {
-      matches = matches || customer.firstName.toLowerCase().includes(firstName)
-    }
-
-    // Recherche par nom
-    if (lastName.length >= 2) {
-      matches = matches || customer.lastName.toLowerCase().includes(lastName)
-    }
-
-    // Recherche par téléphone
-    if (phone.length >= 3) {
-      matches = matches || customer.phoneNumber.includes(phone)
-    }
-
-    // Recherche par email
-    if (email.length >= 3) {
-      matches = matches || customer.email.includes(email)
-    }
-
-    return matches
-  }).slice(0, 5) 
-  customerSuggestions.value = results
+    // Appeler l'API avec les paramètres de recherche
+    await loadCustomers(searchParams)
+    
+    // Limiter les résultats à 5 suggestions
+    customerSuggestions.value = allCustomers.value
+  } catch (error) {
+    console.error('Erreur lors de la recherche de clients:', error)
+    customerSuggestions.value = []
+  }
 }
 
 // Sélectionner un client depuis les suggestions
@@ -1012,9 +1047,11 @@ const selectCustomer = (customer: CustomerModel) => {
   customerInfo.value.email = customer.email
   customerSuggestions.value = []
 
-  // Charger les adresses de l'utilisateur sélectionné
-  if (customer.user?.id) {
-    loadUserAddresses(customer.user.id)
+  // Utiliser les adresses du client sélectionné loadUserAddresses
+  if (customer.user_addresses && customer.user_addresses.length > 0) {
+    userAddresses.value = customer.user_addresses
+  } else {
+    userAddresses.value = []
   }
 }
 
@@ -1119,36 +1156,63 @@ watch(storeCart, (newCart, oldCart) => {
   }
 }, { deep: true })
 
-// Watcher pour valider le rabais fixe quand le sous-total change
-watch(() => props.orderSummary.subtotal, (newSubtotal) => {
+
+watch(storeCartTotal, (newSubtotal) => {
   if (discountType.value === 'fixed' && discountFixed.value > newSubtotal) {
     discountFixed.value = newSubtotal
   }
 })
 
+const updatePricesForOrderType = (newOrderType: string) => {
+  if (storeCart.value.length > 0) {
+    
+    const updatedCart = storeCart.value.map(item => {
+      let basePrice = 0
+      if(newOrderType === 'delivery'){
+        basePrice = Number(item.selectedSize?.priceLivraison) || 0
+      } else {
+        basePrice = Number(item.selectedSize?.price) || 0
+      }
+      
+      // Recalculer le prix total
+      const ingredientsPrice = (item.ingredients || []).reduce((total: number, ingredient: any) => {
+        if (!ingredient.isDefault && ingredient.quantity > 0) {
+          return total + (Number(ingredient.extra_cost_price) || 0) * ingredient.quantity
+        }
+        return total
+      }, 0)
+
+      const supplementsPrice = (item.supplements || []).reduce((total, supplement) => {
+        const supQuantity = (supplement as any).quantity || 0
+        if (supQuantity > 0) {
+          return total + (Number(supplement.extra_cost_price) || 0)
+        }
+        return total
+      }, 0)
+
+      const totalPrice = basePrice + ingredientsPrice + supplementsPrice
+      
+      return {
+        ...item,
+        totalPrice: totalPrice
+      }
+    })
+    
+    store.commit('cart/SET_CART', updatedCart)
+  }
+}
+
+// Watcher simple pour le type de commande
+watch(selectedOrderType, (newOrderType, oldOrderType) => {
+  if (newOrderType !== oldOrderType) {
+    store.dispatch('orderType/setOrderType', newOrderType)
+    updatePricesForOrderType(newOrderType)
+  }
+}, { immediate: false })
+
 // Watcher pour logger les changements de rabais
 watch([discountAmount, couponDiscountAmount, finalTotalWithCoupon], ([newDiscount, newCoupon, newTotal]) => {
  
-})
-
-onMounted(() => {
-  loadRestaurantInfo()
-  loadRestaurantDetails()
-  loadAllPostalCodes()
-  loadCustomers() // Charger les clients au démarrage
-  
-  // Charger le type de commande depuis le store
-  store.dispatch('orderType/loadFromStorage')
-
-  document.addEventListener('click', (event) => {
-    const target = event.target as HTMLElement
-    if (!target.closest('.customer-form')) {
-      closeSuggestions()
-    }
-    if (!target.closest('.postal-code-input-container')) {
-      showPostalCodeSuggestions.value = false
-    }
-  })
 })
 
 // Clients par défaut selon le restaurant
@@ -1533,8 +1597,8 @@ const handleFixedDiscountChange = () => {
   }
   
   // S'assurer que le rabais fixe ne dépasse pas le sous-total
-  if (discountFixed.value > props.orderSummary.subtotal) {
-    discountFixed.value = props.orderSummary.subtotal
+  if (discountFixed.value > storeCartTotal.value) {
+    discountFixed.value = storeCartTotal.value
   }
   
 }
@@ -1556,7 +1620,7 @@ const applyCouponCode = async () => {
     const response = await applyCoupon({
       coupon: couponCode.value.trim(),
       email: selectedCustomer.value?.email || customerInfo.value.email || '',
-      amount: String(props.orderSummary.subtotal)
+      amount: String(storeCartTotal.value)
     })
 
     if (response.code === 200) {
@@ -1635,6 +1699,80 @@ const handleDateChange = () => {
     }
   }
 }
+
+watch(storeOrderType, (newOrderType, oldOrderType) => {
+  if (newOrderType !== oldOrderType) {
+    storeCart.value.forEach((item, index) => {
+     // console.log("order Type refresh")
+    })
+    
+    // Forcer le recalcul de tous les prix du panier
+    store.dispatch('cart/recalculateAllPrices')
+  }
+}, { immediate: false })
+
+
+const cartItemsWithCorrectPrices = computed(() => {
+  const orderType = storeOrderType.value  // Utiliser le computed réactif du store
+  const isDelivery = orderType === 'delivery'
+  if (!storeCart.value || storeCart.value.length === 0) {
+    return []
+  }
+
+  return storeCart.value.map(item => {
+    if (!item || !item.selectedSize) {
+      return item
+    }
+    
+    let basePrice = 0
+    
+    const originalPrice = item.selectedSize?.price || 0
+    const originalPriceLivraison = item.selectedSize?.priceLivraison || 0
+    
+    if (isDelivery && originalPriceLivraison) {
+      basePrice = Number(originalPriceLivraison) || 0
+    } else {
+      basePrice = Number(originalPrice) || 0
+    }
+    
+    // Calculer le prix total avec les ingrédients et suppléments
+    const ingredientsPrice = (item.ingredients || []).reduce((total: number, ingredient: any) => {
+      if (!ingredient.isDefault && ingredient.quantity > 0) {
+        return total + (Number(ingredient.extra_cost_price) || 0) * ingredient.quantity
+      }
+      return total
+    }, 0)
+
+    const supplementsPrice = (item.supplements || []).reduce((total, supplement) => {
+      const supQuantity = (supplement as any).quantity || 0
+      if (supQuantity > 0) {
+        return total + (Number(supplement.extra_cost_price) || 0)
+      }
+      return total
+    }, 0)
+
+    const totalPrice = basePrice + ingredientsPrice + supplementsPrice
+    const calculatedTotalPrice = totalPrice * item.quantity
+
+    // Retourner l'item avec les prix calculés
+    return {
+      ...item,
+      totalPrice: totalPrice,
+      calculatedPrice: totalPrice,
+      calculatedTotalPrice: calculatedTotalPrice
+    }
+  })
+})
+
+
+
+const validCartItems = computed(() => {
+  return cartItemsWithCorrectPrices.value.filter(item => item && item.localProductId)
+})
+
+
+
+
 </script>
 
 <style lang="scss" scoped>

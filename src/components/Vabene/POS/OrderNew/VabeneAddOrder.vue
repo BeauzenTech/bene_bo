@@ -766,6 +766,11 @@ import { RestaurantModel } from "@/models/restaurant.model";
 import { RestaurantEnum } from "@/enums/restaurant.enum";
 import { ClientEnum } from "@/enums/client.enum";
 import { AxiosError } from "axios";
+import {
+  getAvailableTimes as getAvailableTimesUtil,
+  formatDateForPayload as formatDateForPayloadUtil,
+  initializeTimezone
+} from '@/utils/timezone'
 
 export default defineComponent({
   name: "VabeneAddOrder",
@@ -868,28 +873,8 @@ export default defineComponent({
       }
     },
     generateTimeSlots() {
-      const intervals = [
-        { start: "11:00", end: "14:00" },
-        { start: "18:00", end: "22:00" },
-      ];
-
-      const pad = n => n.toString().padStart(2, '0');
-      const toMinutes = t => {
-        const [h, m] = t.split(':').map(Number);
-        return h * 60 + m;
-      };
-      const toTime = m => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
-
-      this.availableTimes = [];
-
-      for (const { start, end } of intervals) {
-        let current = toMinutes(start);
-        const max = toMinutes(end);
-        while (current <= max) {
-          this.availableTimes.push(toTime(current) as string);
-          current += 15;
-        }
-      }
+      // Utiliser les nouvelles fonctions de fuseau horaire
+      this.availableTimes = getAvailableTimesUtil('', 11, 22, 15);
     },
     chooseProduct(product: ProductModel) {
       this.productSelected = product;
@@ -1197,7 +1182,7 @@ export default defineComponent({
         "numberRue": this.numberRueSelected,
         "deliveryPreference": this.getWhenOrderType(),
         "SpecialInstructions": this.remarqueOrder,
-        "timeOrder": this.getWhenOrderType() === 'ulterieur' ? `${this.extraireDate(this.dateRecuperation)} ${this.orderHourRecuperation}` : '',
+        "timeOrder": this.getWhenOrderType() === 'ulterieur' ? formatDateForPayloadUtil(this.extraireDate(this.dateRecuperation), this.orderHourRecuperation) : '',
         "typeCustomer": this.organisationTypeSelected === 'Société' ? 'organisation' : 'customer',
       }
       try {
@@ -1635,6 +1620,8 @@ export default defineComponent({
     }
   },
   created() {
+    // Initialiser le fuseau horaire
+    initializeTimezone();
     this.generateTimeSlots();
   },
   setup: () => {

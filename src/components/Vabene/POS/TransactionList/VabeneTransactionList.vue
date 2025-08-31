@@ -379,7 +379,7 @@ export default defineComponent({
           current_page: 1,
           total_items: 0,
           total_pages: 1,
-          items_per_page: 8,
+          items_per_page: 20,
         }
       );
     },
@@ -507,7 +507,7 @@ export default defineComponent({
     async fetchPaiement(page = 1) {
       this.isLoading = true;
       try {
-        const response = (await listePayment(page)) as ApiResponse<PaginatedPayment>;
+        const response = (await listePayment(page, '20')) as ApiResponse<PaginatedPayment>;
         if (response.code === 200) {
           this.paiementResponse = response;
           if (response.data?.items) {
