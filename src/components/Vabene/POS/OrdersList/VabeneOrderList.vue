@@ -107,7 +107,8 @@
                 {{ order.total_price || '-' }} CHF
               </td>
               <td v-if="order.orderItems.length > 0" class="shadow-none lh-1 fw-medium text-black-emphasis">
-                {{ formatInTimeZone(order.created_at, 'Europe/Zurich', 'dd/MM/yyyy HH:mm') }}
+                {{  formatInTimeZone(order?.created_at, 'UTC', 'dd/MM/yyyy HH:mm')}}
+                <!-- {{ formatInTimeZone(order.created_at, 'Europe/Zurich', 'dd/MM/yyyy HH:mm') }} -->
 
               </td>
               <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">

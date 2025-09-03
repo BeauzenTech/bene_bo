@@ -9,7 +9,7 @@
   <div v-if="!isLoading" class="col bg-white p-4">
     <div class="row" >
       <div class="col-xxl-7 col-xxxl-6" v-if="periodiqueReportCard">
-        <WhatHappening :orderAmount="String(periodiqueReportCard.currentMonth.value) ?? '0'" id="whatHappening" />
+        <WhatHappening :orderAmount="String(getCardValue(0) || '0')" id="whatHappening" />
       </div>
       <div class="col-xxl-5 col-xxxl-6">
         <div class="row">
@@ -22,15 +22,14 @@
 
     </div>
     <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 bg-white mb-8">
-      <div class="col mb-6">
+      <div class="col mb-6" v-if="periodiqueReportCard">
         <div class="card radius-10 border-start border-0 border-3 border-info">
           <div class="card-body">
             <div class="d-flex align-items-center">
-              <div v-if="periodiqueReportCard">
+              <div>
                 <p class="mb-0 text-secondary">Ventes cette semaine</p>
-                <h4 class="my-1 text-info">{{Math.floor(periodiqueReportCard.currentMonth.value)}} CHF</h4>
-                <p v-if="periodiqueReportCard.currentMonth.ratio" class="mb-0 font-13">{{periodiqueReportCard.currentMonth.ratio ?? '0'}} cette semaine</p>
-                <p v-else  class="mb-0 font-13">0</p>
+                <h4 class="my-1 text-info">{{getCardValue(0)}} CHF</h4>
+                <p class="mb-0 font-13">{{getCardRatio(0)}}%</p>
               </div>
               <div class="widgets-icons-2 rounded-circle bg-gradient-scooter text-white ms-auto"><i class="fa fa-shopping-cart"></i>
               </div>
@@ -43,10 +42,9 @@
           <div class="card-body">
             <div class="d-flex align-items-center">
               <div>
-                <p class="mb-0 text-secondary">Semaine passée</p>
-                <h4 class="my-1 text-danger">{{ Math.floor(periodiqueReportCard.lastWeek.value) }}</h4>
-                <p v-if="periodiqueReportCard.lastWeek.ratio" class="mb-0 font-13">{{periodiqueReportCard.lastWeek.ratio}}%</p>
-                <p v-else class="mb-0 font-13">0%</p>
+                <p class="mb-0 text-secondary">Semaine précédente</p>
+                <h4 class="my-1 text-danger">{{getCardValue(1)}}</h4>
+                <p class="mb-0 font-13">{{getCardRatio(1)}}%</p>
               </div>
               <div class="widgets-icons-2 rounded-circle bg-gradient-bloody text-white ms-auto"><i class="fa fa-dollar"></i>
               </div>
@@ -59,10 +57,9 @@
           <div class="card-body">
             <div class="d-flex align-items-center">
               <div>
-                <p class="mb-0 text-secondary">Mois passée</p>
-                <h4 class="my-1 text-primary">{{Math.floor(periodiqueReportCard.lastMonth.value)}}</h4>
-                <p v-if="periodiqueReportCard.lastMonth.ratio" class="mb-0 font-13">{{periodiqueReportCard.lastMonth.ratio}}%</p>
-                <p v-else class="mb-0 font-13">0%</p>
+                <p class="mb-0 text-secondary">Ce mois</p>
+                <h4 class="my-1 text-primary">{{getCardValue(2)}}</h4>
+                <p class="mb-0 font-13">{{getCardRatio(2)}}%</p>
 
               </div>
               <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto"><i class="fa fa-bar-chart"></i>
@@ -77,9 +74,8 @@
             <div class="d-flex align-items-center">
               <div>
                 <p class="mb-0 text-warning">Cette année</p>
-                <h4 class="my-1 text-warning">{{Math.floor(periodiqueReportCard.year.value)}} CHF</h4>
-                <p v-if="periodiqueReportCard.year.ratio" class="mb-0 font-13">{{periodiqueReportCard.year.ratio}}%</p>
-                <p v-else class="mb-0 font-13">0%</p>
+                <h4 class="my-1 text-warning">{{getCardValue(3)}} CHF</h4>
+                <p class="mb-0 font-13">{{getCardRatio(3)}}%</p>
               </div>
               <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto"><i class="fa fa-users"></i>
               </div>
@@ -98,7 +94,7 @@
         <span class="fw-medium text-muted fs-13 d-block mb-5 text-uppercase">
           {{getTitleForPeriod}}
         </span>
-        <h4 class="card-title fw-black mb-0">{{reportVente[selectedPeriod].data[0]}} CHF</h4>
+        <h4 class="card-title fw-black mb-0">{{getSelectedPeriodTotal}} CHF</h4>
       </div>
       <div
           class="card-select mt-10 mt-sm-0 d-inline-block d-sm-flex align-items-center ps-10 pe-10 pt-5 pb-5"
@@ -122,11 +118,12 @@
     </div>
     <div class="chart bg-white mt-4" v-if="reportVente && reportVente.length > 0" >
       <apexchart
+          :key="chartKey"
           type="line"
           height="374"
           id="weeklySalesChart"
           :options="weeklySalesChart"
-          :series="reportVente"
+          :series="formattedSeries"
       ></apexchart>
     </div>
   </div>
@@ -163,6 +160,7 @@ export default defineComponent({
       restaurantId: localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID) ?? null,
       isLoading: false,
       selectedPeriod: 2,
+      chartKey: 0,
       weeklySalesChart: {
         chart: {
           height: 374,
@@ -199,6 +197,7 @@ export default defineComponent({
           itemMargin: {
             horizontal: 10,
           },
+          showForSingleSeries: true,
         },
         grid: {
           show: true,
@@ -265,6 +264,7 @@ export default defineComponent({
           if (response.data) {
             const dt = response.data as SellModel;
             this.reportVente = dt.vente as RepportModelData[]
+            this.chartKey++; 
           }
         }
       } catch (error) {
@@ -287,10 +287,10 @@ export default defineComponent({
         this.isLoading = false
       }
     },
-    async getPeriodiqueReport(restaurantID?: string){
+    async getPeriodiqueReport(restaurantID?: string, filters?: any){
       this.isLoading = true
       try {
-        const response = await reportPeriodiqueCard(restaurantID) as ApiResponse<PeriodiqueCardReport>;
+        const response = await reportPeriodiqueCard(restaurantID, filters) as ApiResponse<PeriodiqueCardReport>;
         if (response.code === 200) {
           if (response.data) {
             this.periodiqueReportCard = response.data
@@ -302,6 +302,60 @@ export default defineComponent({
         this.isLoading = false
       }
     },
+    updateChartCategories() {
+      let categories: string[] = [];
+      switch (this.selectedPeriod) {
+        case 0: // Cette semaine
+        case 1: // Semaine précédente
+          categories = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+          break;
+        case 2: // Ce mois
+          categories = ["Semaine 1", "Semaine 2", "Semaine 3", "Semaine 4", "Semaine 5"];
+          break;
+        case 3: // Cette année
+          categories = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
+          break;
+        default:
+          categories = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+      }
+      this.weeklySalesChart.xaxis.categories = categories;
+      
+      // Mettre à jour les couleurs pour n'afficher que la couleur de la période sélectionnée
+      const colors = ["#3A8D35", "#F4D3AE", "#e31b23", "#2B2A3F"];
+      this.weeklySalesChart.colors = [colors[this.selectedPeriod] || "#3A8D35"];
+      
+      this.chartKey++; // Forcer la mise à jour du graphique
+    },
+    getCardValue(index: number): string {
+      
+      if (!this.reportVente || this.reportVente.length === 0) {
+        return "0";
+      }
+      
+      // Utiliser les données de reportVente au lieu de periodiqueReportCard
+      let value = 0;
+      switch (index) {
+        case 0: // Cette semaine
+          value = (this.reportVente[0] as any)?.total || 0;
+          break;
+        case 1: // Semaine précédente
+          value = (this.reportVente[1] as any)?.total || 0;
+          break;
+        case 2: // Ce mois
+          value = (this.reportVente[2] as any)?.total || 0;
+          break;
+        case 3: // Cette année
+          value = (this.reportVente[3] as any)?.total || 0;
+          break;
+      }
+      const result = Math.floor(value).toString();
+      return result;
+    },
+    getCardRatio(index: number): string {
+      if (!this.reportVente || this.reportVente.length === 0) return "0";
+      
+      return "0";
+    }
   },
 
   setup() {
@@ -309,15 +363,29 @@ export default defineComponent({
     return { toast };
   },
   async mounted(){
+      const defaultFilters = {
+        paymentMethod: 'all',
+        orderType: 'all',
+        startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        endDate: new Date().toISOString().split('T')[0]
+      };
+      
       if(this.userRole === UserRole.FRANCHISE){
         await this.getReportAdmin();
-        await this.getPeriodiqueReport()
+        await this.getPeriodiqueReport(undefined, defaultFilters)
       }
       else{
         await this.getReportAdmin(this.restaurantId as string);
-        await this.getPeriodiqueReport(this.restaurantId as string)
+        await this.getPeriodiqueReport(this.restaurantId as string, defaultFilters)
       }
-
+      
+      // Initialiser les catégories du graphique
+      this.updateChartCategories();
+  },
+  watch: {
+    selectedPeriod() {
+      this.updateChartCategories();
+    }
   },
   computed: {
     UserRole() {
@@ -330,6 +398,54 @@ export default defineComponent({
         case 2: return "RAPPORT DE VENTE CE MOIS-CI";
         default: return "RAPPORT DE VENTE CETTE SEMAINE";
       }
+    },
+    getSelectedPeriodTotal(): string {
+      if (!this.reportVente || this.reportVente.length === 0) {
+        return "0";
+      }
+      const selectedReport = this.reportVente[this.selectedPeriod];
+      if (!selectedReport || !selectedReport.data) {
+        return "0";
+      }
+      
+      // Calculer le total en additionnant toutes les valeurs
+      let total = 0;
+      if (Array.isArray(selectedReport.data)) {
+        // Si c'est un array, additionner toutes les valeurs
+        total = selectedReport.data.reduce((sum, value) => sum + (Number(value) || 0), 0);
+      } else if (typeof selectedReport.data === 'object') {
+        // Si c'est un objet, additionner toutes les valeurs
+        total = Object.values(selectedReport.data).reduce((sum, value) => sum + (Number(value) || 0), 0);
+      } else {
+        total = Number(selectedReport.data) || 0;
+      }
+      
+      return Math.floor(total).toString();
+    },
+    formattedSeries(): any[] {
+      if (!this.reportVente || this.reportVente.length === 0) {
+        return [];
+      }
+      
+      
+      // N'afficher que la série correspondant à la période sélectionnée
+      const selectedItem = this.reportVente[this.selectedPeriod];
+      if (!selectedItem) {
+        return [];
+      }
+      
+      // Convertir les données en format compatible ApexCharts
+      let data = selectedItem.data;
+      if (typeof data === 'object' && !Array.isArray(data)) {
+        data = Object.values(data);
+      }
+      
+      const formattedItem = {
+        name: selectedItem.name,
+        data: Array.isArray(data) ? data : [data]
+      };
+      
+      return [formattedItem]; // Retourner seulement la série sélectionnée
     }
   }
 });

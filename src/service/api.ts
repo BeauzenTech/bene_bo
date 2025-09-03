@@ -64,8 +64,8 @@ const apiTicketLocalFormData = axios.create({
 // 🔐 Interceptor de requête : Ajoute le token d'authentification
 apiClient.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem(UserGeneralKey.USER_TOKEN); // ou un autre système de stockage
-        if (token) {
+        const token = localStorage.getItem(UserGeneralKey.USER_TOKEN);
+        if (token && token !== 'undefined' && token !== 'null') {
             config.headers['Authorization'] = `Bearer ${token}`;
         }
         return config;
@@ -140,7 +140,14 @@ apiClientFormData.interceptors.response.use(
 // Fonction pour se connecter
 export const loginCheck = async (auth): Promise<ApiResponse<any>> =>{
     try {
-        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/login_check', auth);
+        // Pour la connexion, on n'utilise pas apiClient car il n'y a pas encore de token
+        const response: AxiosResponse<ApiResponse<any>> = await axios.post(`${apiConfig.baseURL}/login_check`, auth, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accepts': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            }
+        });
         return response.data
     } catch (error) {
         console.error("Erreur lors de la tentative de connection.", error);
@@ -493,14 +500,9 @@ export const createPOSOrder = async (orderData: any): Promise<ApiResponse<any>> 
 // Récupérer la liste des clients pour un restaurant
 export const getCustomers = async (page = 1, restaurantID: string): Promise<ApiResponse<any>> => {
     try {
-        const token = localStorage.getItem('USER_TOKEN');
+        // L'interceptor ajoute automatiquement le header Authorization
         const response: AxiosResponse<ApiResponse<any>> = await apiClient.get(
-            `/v1/customer/all/0/all`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            }
+            `/v1/customer/all/0/all`
         );
         return response.data;
     } catch (error) {
@@ -1019,7 +1021,15 @@ export const reportVenteRestaurant = async (restaurantID?: string): Promise<ApiR
     }
 };
 
-export const reportPeriodiqueCard = async (restaurantID?: string): Promise<ApiResponse<PeriodiqueCardReport>> => {
+export const reportPeriodiqueCard = async (
+    restaurantID?: string,
+    filters?: {
+        paymentMethod?: string;
+        orderType?: string;
+        startDate?: string;
+        endDate?: string;
+    }
+): Promise<ApiResponse<PeriodiqueCardReport>> => {
     // eslint-disable-next-line no-useless-catch
     try {
         const url = [
@@ -1028,7 +1038,34 @@ export const reportPeriodiqueCard = async (restaurantID?: string): Promise<ApiRe
         ]
             .filter(Boolean) // retire les undefined
             .join('/');
-        const response = await apiClient.get(url);
+        
+        // Utiliser des filtres par défaut si aucun filtre n'est fourni
+        const defaultFilters = {
+            paymentMethod: 'all',
+            orderType: 'all',
+            startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 jours en arrière
+            endDate: new Date().toISOString().split('T')[0] // aujourd'hui
+        };
+        
+        const finalFilters = filters || defaultFilters;
+        
+        // Construire les paramètres de requête
+        const queryParams = new URLSearchParams();
+        if (finalFilters.paymentMethod && finalFilters.paymentMethod !== 'all') {
+            queryParams.append('paymentMethod', finalFilters.paymentMethod);
+        }
+        if (finalFilters.orderType && finalFilters.orderType !== 'all') {
+            queryParams.append('orderType', finalFilters.orderType);
+        }
+        if (finalFilters.startDate) {
+            queryParams.append('startDate', finalFilters.startDate);
+        }
+        if (finalFilters.endDate) {
+            queryParams.append('endDate', finalFilters.endDate);
+        }
+        
+        const fullUrl = queryParams.toString() ? `${url}?${queryParams.toString()}` : url;
+        const response = await apiClient.get(fullUrl);
         return response.data;
     } catch (error) {
         throw error;
@@ -1244,7 +1281,7 @@ export const listeCustomers = async (
 ): Promise<ApiResponse<PaginatedCustomer>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const token = localStorage.getItem('USER_TOKEN');
+        // L'interceptor ajoute automatiquement le header Authorization
         const url = [
             `/v1/customer/all/${page}`,
             restaurantId,
@@ -1263,11 +1300,7 @@ export const listeCustomers = async (
         if (searchEmail) queryParams.append('searchEmail', searchEmail);
         if (searchTel) queryParams.append('searchTel', searchTel);
 
-        const response = await apiClient.get(`${url}?${queryParams.toString()}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
+        const response = await apiClient.get(`${url}?${queryParams.toString()}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,

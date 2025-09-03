@@ -1445,8 +1445,12 @@ const handlePlaceOrder = async () => {
       coupon: appliedCoupon.value?.code || "",
       couponValue: appliedCoupon.value?.discountAmount?.toString() || "0",
       couponType: appliedCoupon.value?.type || "",
-      codePostal: restaurantInfo.value.codePostalID?.numeroPostal || "",
-      deliveryLocality: restaurantInfo.value.codePostalID?.ville || "",
+      codePostal: storeOrderType.value === 'delivery' 
+        ? `${deliveryAddress.value.npa}`.trim()
+        : restaurantInfo.value.codePostalID?.numeroPostal,
+      deliveryLocality: storeOrderType.value === 'delivery' 
+        ? ` ${deliveryAddress.value.localite}`.trim()
+        : restaurantInfo.value.codePostalID?.ville,
       restaurantID: restaurantID,
       paniers: transformCartForAPI(storeCart.value),
       userID: selectedCustomer.value?.user?.id || "", // ID utilisateur si client sélectionné

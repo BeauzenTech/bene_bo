@@ -1,4 +1,6 @@
 export interface cardReport{
-    value: number
-    ratio: number
+    value: number | string
+    orders: number
+    productItems: number
+    ratio: number | null
 }

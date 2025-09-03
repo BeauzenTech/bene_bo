@@ -136,6 +136,7 @@ import { loginCheck, getUserData } from "@/service/api";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import { useToast } from "vue-toastification";
 import {UserGeneralKey} from "@/models/user.generalkey";
+import { debugToken, clearInvalidToken } from "@/utils/debug-token";
 
 
 export default {
@@ -157,27 +158,38 @@ export default {
     async authLogin() {
       this.isLoading = true;
       try {
+        // Nettoyer les tokens invalides avant la connexion
+        clearInvalidToken();
+        
         const response = await loginCheck(this.userData);
+        
         if (response.code === 200) {
-          localStorage.setItem(UserGeneralKey.USER_TOKEN, response.token)
-          this.toast.success(response.message)
-          await this.getUserData()
-          this.gotoHome()
+          // Vérifier la structure de la réponse pour trouver le token
+          const token = response.token || response.data?.token || response.data?.access_token;
+          
+          if (token) {
+            localStorage.setItem(UserGeneralKey.USER_TOKEN, token);
+            debugToken(); // Déboguer le token après stockage
+            this.toast.success(response.message);
+            await this.getUserData();
+            this.gotoHome();
+          } else {
+            console.error('🔐 Token non trouvé dans la réponse:', response);
+            this.toast.error('Token d\'authentification manquant dans la réponse');
+          }
         } else {
-         this.toast.error(response.message)
+          this.toast.error(response.message);
         }
       } catch (error) {
         if (error.response && error.response.data && error.response.data.message) {
            if(error.response.data.message === 'Invalid credentials.'){
-             this.toast.error('Nom utilisateur ou mot de passe invalid.')
+             this.toast.error('Nom utilisateur ou mot de passe invalid.');
            }
            else {
-             this.toast.error(error.response.data.message)
+             this.toast.error(error.response.data.message);
            }
-
         }
-
-        console.error(error);
+        console.error('🔐 Erreur de connexion:', error);
       } finally {
         this.isLoading = false;
       }
@@ -185,19 +197,25 @@ export default {
     async getUserData() {
       this.isLoading = true;
       try {
+        // Vérifier le token avant d'appeler getUserData
+        const token = localStorage.getItem(UserGeneralKey.USER_TOKEN);
+        
+        if (!token || token === 'undefined' || token === 'null') {
+          this.toast.error('Token d\'authentification manquant');
+          return;
+        }
+        
         const response = await getUserData();
         if (response.code === 200) {
-         UserGeneralKey.saveUserDatA(response.data)
+          UserGeneralKey.saveUserDatA(response.data);
         } else {
-          this.toast.error(response.message)
+          this.toast.error(response.message);
         }
       } catch (error) {
         if (error.response && error.response.data && error.response.data.message) {
-          this.toast.error(error.response.data.message)
-
+          this.toast.error(error.response.data.message);
         }
-
-        console.error(error);
+        console.error('🔐 Erreur getUserData:', error);
       } finally {
         this.isLoading = false;
       }
@@ -246,6 +264,12 @@ export default {
     return { toast }
   },
   mounted() {
+    // Nettoyer les tokens invalides au démarrage
+    const token = localStorage.getItem(UserGeneralKey.USER_TOKEN);
+    if (token === 'undefined' || token === 'null' || !token) {
+      localStorage.removeItem(UserGeneralKey.USER_TOKEN);
+    }
+    
     if(UserGeneralKey.isTokenValid()){
       this.gotoHome()
     }

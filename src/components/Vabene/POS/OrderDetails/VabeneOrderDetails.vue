@@ -425,10 +425,10 @@
                 SOUS-TOTAL
               </span>
               <span class="d-block text-black fw-bolder fw-medium">
-                {{(orderResponse.total_price + getDiscountValue(orderResponse)) }} CHF
+                {{ getSubtotalPrice(orderResponse)}} CHF
               </span>
             </li>
-            <li class="d-flex align-items-center justify-content-between" v-if="orderResponse.discountValue != ''">
+            <li class="d-flex align-items-center justify-content-between" v-if="orderResponse.discountValue != '0'">
               <span class="d-block text-primary fw-bolder fw-medium">
                 RABAIS
               </span>
@@ -441,7 +441,7 @@
                Y COMPRIS TVA (2.60%)
               </span>
               <span class="d-block text-black fw-bolder fw-medium">
-               {{(orderResponse.total_price *  2.60/100).toFixed(2)}} CHF
+               {{(orderResponse.total_price *  0.026).toFixed(2)}} CHF
               </span>
             </li>
            
@@ -815,7 +815,10 @@
                           <div class="route">
                             <h2><strong>{{orderTypeSelected[0]?.libelle ?? ''}}</strong></h2>
                             <h2><strong>{{orderResponse.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'TOUT DE SUITE'}}</strong></h2>
-                            <h2 v-if="orderResponse.DeliveryPreference != 'immediat'"><strong>{{convertDateCreate(orderResponse.timeOrder) ?? ''}} </strong></h2>
+                            <h2 v-if="orderResponse.DeliveryPreference != 'immediat'"><strong>
+                              {{ formatInTimeZone(orderResponse.timeOrder, 'UTC', 'dd/MM/yyyy - HH:mm') }}
+                              <!-- {{convertDateCreate(orderResponse.timeOrder) ?? ''}}  -->
+                            </strong></h2>
                             <h2><strong>{{orderResponse.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ orderResponse.nif : 'VBP'+ orderResponse.nif}}</strong></h2>
 <!--                            <h2><strong>{{getLast6Digits(orderResponse.customer.id)}}</strong></h2>-->
 
@@ -872,16 +875,16 @@
                           <div class="product-list">
                             <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                               <span><strong>SOUS-TOTAL: </strong></span>
-                              <span style="text-align: right;"><strong>{{orderResponse.total_price + getDiscountValue(orderResponse) }} CHF</strong></span>
+                              <span style="text-align: right;"><strong>{{getSubtotalPrice(orderResponse) }} CHF</strong></span>
                             </div>
-                            <div style="display: flex; justify-content: space-between; margin: 5px 0;" v-if="orderResponse.discountValue != ''">
+                            <div style="display: flex; justify-content: space-between; margin: 5px 0;" v-if="orderResponse.discountValue != '0'">
                               <span><strong>RABAIS: </strong></span>
-                              <span style="text-align: right;" v-if="orderResponse.discountValue != ''"><strong>-{{  getDiscountValue(orderResponse) }} CHF</strong></span>
+                              <span style="text-align: right;" v-if="orderResponse.discountValue != '0'"><strong>-{{  getDiscountValue(orderResponse) }} CHF</strong></span>
                               <span style="text-align: right;" v-else><strong>0 CHF</strong></span>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                               <span><strong>Y COMPRIS TVA (2.60%) </strong></span>
-                              <span style="text-align: right;"><strong>{{(orderResponse.total_price * 2.60/100).toFixed(2)}} CHF</strong></span>
+                              <span style="text-align: right;"><strong>{{(orderResponse.total_price * 0.026).toFixed(2)}} CHF</strong></span>
                             </div>
                             
                             <div style="display: flex; justify-content: space-between; margin: 5px 0;" v-if="orderResponse.restMinimumOrder != '0'">
@@ -999,15 +1002,18 @@ export default defineComponent({
   },
 
   methods: {
+    getSubtotalPrice(order: OrderModel): number {
+      const prices = order.orderItems.reduce((total, item) => total + item.total_price, 0);
+      return prices;
+    },
     getDiscountValue(order: OrderModel): number {
       let discountValue = 0;
       if(order.discountValue !== '' && order.discountType == 'fixed'){
         discountValue = Number(order.discountValue);
       }
       else if(order.discountValue !== '' && order.discountType == 'percentage'){
-        discountValue = Number(order.total_price) - (Number(order.total_price) * (Number(order.discountValue)/100));
+        discountValue = Number(order.total_price) - (Number(order.total_price) * (26/100));
       }
-      
       return discountValue;
     },
         extraireParenthese(texte: string): string {
@@ -1111,6 +1117,8 @@ export default defineComponent({
         background-color: #fff;
         border-radius: 10px 10px 20px 20px;
         box-shadow: none; /* Supprimer l'ombre portée pour un PDF plus propre, sauf si spécifiquement désiré */
+        box-sizing: border-box; /* S'assurer que padding et border sont inclus dans les dimensions */
+        overflow: visible; /* Permettre au contenu de déborder pour une mesure précise */
       }
  /* NOUVEAUX STYLES FLEXBOX POUR LE CONTENEUR DU LOGO */
       #recu-pdf .logo-container {
@@ -1202,17 +1210,44 @@ export default defineComponent({
 
         // Un petit délai pour s'assurer que les styles sont appliqués avant la capture
         setTimeout(() => {
-          // Calculer la hauteur du contenu pour le format jsPDF si vous voulez une hauteur dynamique
-          // Vous pourriez avoir besoin de rendre l'élément hors écran d'abord pour obtenir sa vraie hauteur.
-          // Pour l'instant, utilisons une hauteur fixe suffisamment grande.
-          // Une hauteur typique pour un A4 est de 297mm. Si votre ticket peut être très long,
-          // une hauteur de 500mm ou plus pourrait être nécessaire, et jsPDF paginera si elle est dépassée.
-          // Si vous voulez une SEULE et très longue page, définissez une très grande hauteur.
-          const contentHeight = 280 + ((this.orderResponse?.orderItems.length ?? 1 )  * 50)
-          const desiredHeight = Math.max(200, contentHeight + 20); // Minimum 200mm, ou hauteur du contenu + un peu de marge
+          // Calculer la hauteur réelle du contenu pour couper aux limites exactes
+          const receiptElement = element.querySelector('.receipt') as HTMLElement;
+          let actualHeight = 200; // Hauteur minimale par défaut
+          
+          if (receiptElement) {
+            // Obtenir les dimensions réelles du contenu
+            const rect = receiptElement.getBoundingClientRect();
+            const computedStyle = window.getComputedStyle(receiptElement);
+            
+            // Calculer la hauteur totale incluant padding et border
+            const paddingTop = parseFloat(computedStyle.paddingTop);
+            const paddingBottom = parseFloat(computedStyle.paddingBottom);
+            const borderTop = parseFloat(computedStyle.borderTopWidth);
+            const borderBottom = parseFloat(computedStyle.borderBottomWidth);
+            
+            // Calculer la hauteur réelle en incluant tous les éléments enfants
+            let totalHeight = rect.height;
+            
+            // Ajouter la hauteur des éléments qui pourraient déborder
+            const children = receiptElement.children;
+            for (let i = 0; i < children.length; i++) {
+              const child = children[i] as HTMLElement;
+              const childRect = child.getBoundingClientRect();
+              const childStyle = window.getComputedStyle(child);
+              const childMarginBottom = parseFloat(childStyle.marginBottom);
+              totalHeight = Math.max(totalHeight, childRect.bottom - rect.top + childMarginBottom);
+            }
+            
+            // Convertir les pixels en mm (1 inch = 25.4mm, 1 inch = 96px)
+            const pixelsToMm = 25.4 / 96;
+            const contentHeightInMm = (totalHeight + paddingTop + paddingBottom + borderTop + borderBottom) * pixelsToMm;
+            
+            // Ajouter une petite marge pour éviter que le contenu soit coupé
+            actualHeight = Math.max(200, contentHeightInMm + 5);
+          }
 
           const opt = {
-            margin: [5, 0, 5, 0], // Marges (Haut, Gauche, Bas, Droite) en mm (ex: 5mm de chaque côté)
+            margin: [2, 0, 2, 0], // Marges réduites (Haut, Gauche, Bas, Droite) en mm pour un découpage plus précis
             filename: `Facture_${this.getShortUuid(this.orderResponse!.id)}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: {
@@ -1221,10 +1256,12 @@ export default defineComponent({
               // Définir explicitement la largeur pour correspondre à la largeur du PDF afin d'éviter les problèmes de mise à l'échelle
               width: element.offsetWidth, // Utiliser la largeur rendue de l'élément
               windowWidth: element.offsetWidth, // Important pour une mise à l'échelle cohérente
+              height: receiptElement ? receiptElement.offsetHeight : undefined, // Utiliser la hauteur réelle du contenu
+              scrollX: 0, // Éviter les problèmes de scroll
+              scrollY: 0, // Éviter les problèmes de scroll
             },
-            // IMPORTANT: Ajuster la hauteur ici.
-            // Si contentHeight est disponible et précis, utilisez-le. Sinon, utilisez une hauteur fixe généreuse.
-            jsPDF: { unit: 'mm', format: [102, desiredHeight], orientation: 'portrait' }
+            // Utiliser la hauteur calculée dynamiquement pour couper aux limites exactes
+            jsPDF: { unit: 'mm', format: [102, actualHeight], orientation: 'portrait' }
           };
 
           html2pdf()
@@ -1480,8 +1517,9 @@ html, body {
 }
 #recu-pdf {
   max-width: 650px;
-  padding: 25px 30px;
+  padding: 25px 30px 0 30px; /* Supprimer le padding en bas */
   margin-top: 50%;
+  margin-bottom: 0; /* Supprimer toute marge en bas */
 }
 
 #recu-pdf .top {
@@ -1508,7 +1546,7 @@ html, body {
 #recu-pdf .receipts-wrapper {
   overflow: hidden;
   margin-top: -10px;
-  padding-bottom: 10px;
+  padding-bottom: 0; /* Supprimer le padding en bas pour correspondre au PDF */
 }
 
 #recu-pdf .receipts {
@@ -1532,6 +1570,9 @@ html, body {
   background-color: #fff;
   border-radius: 10px 10px 20px 20px;
   box-shadow: 1px 3px 8px 3px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box; /* S'assurer que padding et border sont inclus dans les dimensions */
+  overflow: visible; /* Permettre au contenu de déborder pour une mesure précise */
+  margin-bottom: 0; /* Supprimer toute marge en bas */
 }
 
 /* NOUVEAUX STYLES FLEXBOX POUR LE CONTENEUR DU LOGO */
@@ -1552,11 +1593,19 @@ html, body {
   margin: 5px 0;
 }
 
+#recu-pdf .route:last-child {
+  margin-bottom: 0; /* Supprimer la marge du dernier élément */
+}
+
 .dashed-line {
   border: none;
   border-top: 2px dashed #333; /* couleur personnalisable */
   margin: 1rem 0;
   width: 100%;
+}
+
+.dashed-line:last-child {
+  margin-bottom: 0; /* Supprimer la marge de la dernière ligne pointillée */
 }
 
 
@@ -1642,6 +1691,7 @@ html, body {
 
 #recu-pdf.product-list {
   margin-top: 10px;
+  margin-bottom: 0; /* Supprimer la marge en bas */
   font-family: 'Arial', sans-serif;
 }
 
@@ -1655,6 +1705,11 @@ html, body {
 #recu-pdf.product-list div {
   padding: 1px 0;
   border-bottom: 1px dashed #ddd;
+}
+
+#recu-pdf.product-list div:last-child {
+  border-bottom: none; /* Supprimer la bordure du dernier élément */
+  margin-bottom: 0; /* Supprimer la marge du dernier élément */
 }
 
 #recu-pdf.product-list span {

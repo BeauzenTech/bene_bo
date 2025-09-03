@@ -124,7 +124,7 @@
         <span class="fw-medium text-muted fs-13 d-block mb-5 text-uppercase">
           {{getTitleForPeriod}}
         </span>
-        <h4 class="card-title fw-black mb-0">{{reportVente[selectedPeriod].data[0]}} CHF</h4>
+        <h4 class="card-title fw-black mb-0">{{getSelectedPeriodTotal}} CHF</h4>
       </div>
       <div
         class="card-select mt-10 mt-sm-0 d-inline-block d-sm-flex align-items-center ps-10 pe-10 pt-5 pb-5"
@@ -148,11 +148,12 @@
     </div>
     <div class="chart" v-if="reportVente">
       <apexchart
+        :key="chartKey"
         type="line"
         height="374"
         id="weeklySalesChart"
         :options="weeklySalesChart"
-        :series="reportVente"
+        :series="formattedSeries"
       ></apexchart>
     </div>
   </div>
@@ -197,6 +198,7 @@ export default defineComponent({
       useRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
       restaurantIdStorage: localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID),
       selectedPeriod: 2,
+      chartKey: 0,
       weeklySalesChart: {
         chart: {
           height: 374,
@@ -387,6 +389,25 @@ export default defineComponent({
         this.isLoading = false
       }
     },
+    updateChartCategories() {
+      let categories: string[] = [];
+      switch (this.selectedPeriod) {
+        case 0: // Cette semaine
+        case 1: // Semaine précédente
+          categories = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+          break;
+        case 2: // Ce mois
+          categories = ["Semaine 1", "Semaine 2", "Semaine 3", "Semaine 4", "Semaine 5"];
+          break;
+        case 3: // Cette année
+          categories = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
+          break;
+        default:
+           categories = ["Semaine 1", "Semaine 2", "Semaine 3", "Semaine 4", "Semaine 5"];
+      }
+      this.weeklySalesChart.xaxis.categories = categories;
+      this.chartKey++; // Increment the key to force re-render
+    }
   },
   setup() {
     const toast = useToast();
@@ -401,6 +422,9 @@ export default defineComponent({
     }
     await this.getPeriodiqueReport()
     await this.fetchRestaurants()
+    
+    // Initialiser les catégories du graphique
+    this.updateChartCategories();
   },
 
   computed: {
@@ -414,6 +438,48 @@ export default defineComponent({
         case 2: return "RAPPORT DE VENTE CE MOIS-CI";
         default: return "RAPPORT DE VENTE CETTE SEMAINE";
       }
+    },
+    getSelectedPeriodTotal(): string {
+      if (!this.reportVente || this.reportVente.length === 0) {
+        return "0";
+      }
+      const selectedReport = this.reportVente[this.selectedPeriod];
+      if (!selectedReport || !selectedReport.data) {
+        return "0";
+      }
+      
+      // Calculer le total en additionnant toutes les valeurs
+      let total = 0;
+      if (Array.isArray(selectedReport.data)) {
+        total = selectedReport.data.reduce((sum, value) => sum + (Number(value) || 0), 0);
+      } else if (typeof selectedReport.data === 'object') {
+        total = Object.values(selectedReport.data).reduce((sum, value) => sum + (Number(value) || 0), 0);
+      } else {
+        total = Number(selectedReport.data) || 0;
+      }
+      
+      return Math.floor(total).toString();
+    },
+    formattedSeries(): any[] {
+      if (!this.reportVente || this.reportVente.length === 0) {
+        return [];
+      }
+      
+      // N'afficher que la série correspondant à la période sélectionnée
+      const selectedItem = this.reportVente[this.selectedPeriod];
+      if (!selectedItem) {
+        return [];
+      }
+      
+      let data = selectedItem.data;
+      if (typeof data === 'object' && !Array.isArray(data)) {
+        data = Object.values(data);
+      }
+      
+      return [{
+        name: selectedItem.name,
+        data: Array.isArray(data) ? data : [data]
+      }];
     }
   },
   watch:{
@@ -428,16 +494,17 @@ export default defineComponent({
       }
     },
 
-    // selectedPeriod(this: any, newVal){
-    //   if (!newVal) return
-    //   this.selectedPeriod = newVal as string;
-    //   if(this.restaurantSelected !== 'all'){
-    //     this.getReportAdmin(this.restaurantSelected);
-    //   }
-    //   else{
-    //     this.getReportAdmin();
-    //   }
-    // },
+    selectedPeriod(this: any, newVal){
+      if (!newVal) return
+      this.selectedPeriod = newVal as string;
+      this.updateChartCategories();
+      if(this.restaurantSelected !== 'all'){
+        this.getReportAdmin(this.restaurantSelected);
+      }
+      else{
+        this.getReportAdmin();
+      }
+    },
 
   }
 
