@@ -21,7 +21,7 @@
             <div class="col-md-4 mb-4">
               <div>
                 <label class="d-block text-black fw-semibold mb-10">
-                  Fin
+                  Fin 
                 </label>
                 <input
                     type="date"
@@ -279,22 +279,53 @@ export default defineComponent({
       const today = new Date();
       return today.toISOString().split('T')[0]; // retourne "2025-06-25"
     },
+    getTodayDateTime(): string {
+      // Utiliser le fuseau horaire suisse
+      const today = new Date();
+      const swissDate = new Date(today.toLocaleString("en-US", { timeZone: "Europe/Zurich" }));
+      const year = swissDate.getFullYear();
+      const month = String(swissDate.getMonth() + 1).padStart(2, '0');
+      const day = String(swissDate.getDate()).padStart(2, '0');
+      const hours = String(swissDate.getHours()).padStart(2, '0');
+      const minutes = String(swissDate.getMinutes()).padStart(2, '0');
+      const seconds = String(swissDate.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    },
+    getEndDateTime(dateString: string): string {
+      const selectedDate = new Date(dateString);
+      // Utiliser le fuseau horaire suisse pour aujourd'hui
+      const today = new Date();
+      const swissToday = new Date(today.toLocaleString("en-US", { timeZone: "Europe/Zurich" }));
+      
+      // Si c'est le jour même, utiliser l'heure actuelle en heure suisse
+      if (selectedDate.toDateString() === swissToday.toDateString()) {
+        return this.getTodayDateTime();
+      } else {
+        // Sinon, utiliser 23:59:59
+        const year = selectedDate.getFullYear();
+        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(selectedDate.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day} 23:59:59`;
+      }
+    },
     handleInput(event, type) {
       const valueText = event.target.value;
       switch (type){
         case 'startDate':
           this.startDate = valueText
           if(this.productSelected){
+            const startDateTime = `${this.startDate} 00:00:00`
+            const endDateTime = this.getEndDateTime(this.endDate)
             if(this.userRole === UserRole.FRANCHISE){
               if(this.newRestaurantId !== 'all'){
-                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? 'all',  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, startDateTime, endDateTime, this.newRestaurantId ?? 'all',  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
               }
               else{
-                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, 'all' ,this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, startDateTime, endDateTime, 'all' ,this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
               }
             }
             else{
-                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? 'all',  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, startDateTime, endDateTime, this.restaurantIdStorage ?? 'all',  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
             }
 
           }
@@ -302,16 +333,18 @@ export default defineComponent({
         case 'endDate':
           this.endDate = valueText
           if(this.productSelected){
+            const startDateTime = `${this.startDate} 00:00:00`
+            const endDateTime = this.getEndDateTime(this.endDate)
             if(this.userRole === UserRole.FRANCHISE){
               if(this.newRestaurantId !== 'all'){
-                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? 'all',  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, startDateTime, endDateTime, this.newRestaurantId ?? 'all',  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
               }
               else{
-                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate,  'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, startDateTime, endDateTime,  'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
               }
             }
             else{
-                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.restaurantIdStorage ?? 'all',  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, startDateTime, endDateTime, this.restaurantIdStorage ?? 'all',  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
             }
           }
           break
@@ -339,11 +372,13 @@ export default defineComponent({
             this.productSelected = this.originalProducts[0]
             this.startDate = this.getSameDayLastMonth()
             this.endDate = this.getTodayDate()
+            const startDateTime = `${this.startDate} 00:00:00`
+            const endDateTime = this.getEndDateTime(this.endDate)
             if(this.userRole === UserRole.FRANCHISE){
-              await this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate,  'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+              await this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, startDateTime, endDateTime,  'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
             }
             else{
-              await this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.restaurantIdStorage as string,  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+              await this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, startDateTime, endDateTime, this.restaurantIdStorage as string,  this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
             }
 
 
@@ -388,14 +423,14 @@ export default defineComponent({
     orderTypeSelected(newVal, oldVal){
       if (typeof newVal === 'string' && newVal !== oldVal){
         this.orderTypeSelected = this.getOrderTypeParType(this.listeOrderType, newVal)
-        if(this.newRestaurantId !== 'all' && this.newRestaurantId){
-          if(this.productSelected){
-            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId, this.methodePaiementSelected[0].type, newVal);
+        if(this.productSelected){
+          const startDateTime = `${this.startDate} 00:00:00`
+          const endDateTime = this.getEndDateTime(this.endDate)
+          if(this.newRestaurantId !== 'all' && this.newRestaurantId){
+            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, startDateTime, endDateTime, this.newRestaurantId, this.methodePaiementSelected[0].type, newVal);
           }
-        }
-        else{
-          if(this.productSelected){
-            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, 'all',this.methodePaiementSelected[0].type, newVal);
+          else{
+            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, startDateTime, endDateTime, 'all',this.methodePaiementSelected[0].type, newVal);
           }
         }
       }
@@ -403,14 +438,14 @@ export default defineComponent({
     methodePaiementSelected(newVal, oldVal){
       if (typeof newVal === 'string' && newVal !== oldVal){
         this.methodePaiementSelected = this.getMethodePaiementParType(this.listeMethode, newVal)
-        if(this.newRestaurantId !== 'all' && this.newRestaurantId){
-          if(this.productSelected){
-            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId, newVal, this.orderTypeSelected[0].type);
+        if(this.productSelected){
+          const startDateTime = `${this.startDate} 00:00:00`
+          const endDateTime = this.getEndDateTime(this.endDate)
+          if(this.newRestaurantId !== 'all' && this.newRestaurantId){
+            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, startDateTime, endDateTime, this.newRestaurantId, newVal, this.orderTypeSelected[0].type);
           }
-        }
-        else{
-          if(this.productSelected){
-            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, 'all', newVal, this.orderTypeSelected[0].type);
+          else{
+            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, startDateTime, endDateTime, 'all', newVal, this.orderTypeSelected[0].type);
           }
         }
       }
@@ -418,17 +453,16 @@ export default defineComponent({
     restaurantId(newVal, oldVal){
       if (typeof newVal === 'string' && newVal !== oldVal) {
         this.newRestaurantId = newVal;
-        if(newVal !== 'all'){
-          if(this.productSelected){
-            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, newVal, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+        if(this.productSelected){
+          const startDateTime = `${this.startDate} 00:00:00`
+          const endDateTime = this.getEndDateTime(this.endDate)
+          if(newVal !== 'all'){
+            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, startDateTime, endDateTime, newVal, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+          }
+          else{
+            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, startDateTime, endDateTime, 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
           }
         }
-        else{
-          if(this.productSelected){
-            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
-          }
-        }
-
       }
     },
     productSelected(newVal, oldVal) {
@@ -437,12 +471,14 @@ export default defineComponent({
         // this.amountTotal = 0
         this.productSelected = this.originalProducts.find(c => c.id === newVal) ?? null;
 
-        if(this.productSelected  && this.newRestaurantId !== 'all'){
-          this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, this.newRestaurantId ?? 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
-        }
-        else{
-          if(this.productSelected){
-            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, this.startDate, this.endDate, 'all' ,this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+        if(this.productSelected){
+          const startDateTime = `${this.startDate} 00:00:00`
+          const endDateTime = this.getEndDateTime(this.endDate)
+          if(this.newRestaurantId !== 'all'){
+            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, startDateTime, endDateTime, this.newRestaurantId ?? 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+          }
+          else{
+            this.fetchNombreDeCommandeMoyenByProduct(this.productSelected.id, startDateTime, endDateTime, 'all' ,this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
           }
         }
       }

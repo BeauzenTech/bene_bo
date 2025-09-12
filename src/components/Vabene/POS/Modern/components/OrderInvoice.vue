@@ -380,6 +380,18 @@
           </div>
         </div>
 
+        <!-- Bouton pour désactiver/réactiver le montant minimum -->
+        <div v-if="storeOrderType === 'delivery'" class="min-order-controls">
+          <button v-if="restaurantMinOrder > 0" type="button" class="btn-disable-min-order" @click="disableMinOrder">
+            <span class="btn-icon">🚫</span>
+            <span class="btn-text">Désactiver le montant minimum</span>
+          </button>
+          <button v-else type="button" class="btn-enable-min-order" @click="enableMinOrder">
+            <span class="btn-icon">✅</span>
+            <span class="btn-text">Réactiver le montant minimum</span>
+          </button>
+        </div>
+
         <!-- Champ de rabais -->
         <div class="discount-section">
           <div class="form-group">
@@ -477,7 +489,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import type { CartItem, OrderSummary, PaymentMethod } from '../types'
-import { createPOSOrder, detailRestaurant, getUserAddresses, applyCoupon, getRestaurantDetails, getAllPostalCodes } from '@/service/api'
+import { createPOSOrder, detailRestaurant, getUserAddresses, applyCoupon, getRestaurantDetails, getAllPostalCodes, calculateMinimumAmount } from '@/service/api'
 import { listeCustomers } from '@/service/api'
 import type { ApiResponse } from '@/models/Apiresponse'
 import type { RestaurantModel } from '@/models/restaurant.model'
@@ -581,8 +593,8 @@ const appliedCoupon = ref<any>(null)
 const isApplyingCoupon = ref<boolean>(false)
 
 // État pour le montant minimum de commande
-const restaurantMinOrder = ref<number>(0)
 const restaurantDetails = ref<any>(null)
+const restaurantMinOrder = ref<number>(0)
 
 // État pour les codes postaux
 const allPostalCodes = ref<any[]>([])
@@ -612,6 +624,16 @@ const isValidEmail = (email: string): boolean => {
   if (!email || email.trim() === '') return false
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(email.trim())
+}
+
+const getRestaurantMinOrder = async (codePostal: string, localite: string, restaurantID: string) : Promise<number> => {
+  try {
+    const response = await calculateMinimumAmount(codePostal, localite, restaurantID)
+    return response.data.minimum_commande_amount
+  } catch (error) {
+    console.error('Erreur lors du calcul du minimum de commande:', error)
+    return 0
+  }
 }
 
 // Fonction pour valider l'email lors de la perte de focus
@@ -749,6 +771,33 @@ const couponDiscountAmount = computed(() => {
   return amount
 })
 
+// Fonction pour charger le montant minimum de commande
+const loadRestaurantMinOrder = async () => {
+  if (storeOrderType.value === 'delivery' && deliveryAddress.value.npa) {
+    const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
+    if (restaurantID) {
+      try {
+        const minOrder = await getRestaurantMinOrder(deliveryAddress.value.npa, deliveryAddress.value.localite, restaurantID)
+        restaurantMinOrder.value = minOrder
+      } catch (error) {
+        console.error('Erreur lors du chargement du montant minimum:', error)
+        restaurantMinOrder.value = 0
+      }
+    }
+  }
+}
+
+const disableMinOrder = () => {
+  restaurantMinOrder.value = 0
+  console.log('🚫 Montant minimum désactivé par l\'utilisateur')
+}
+
+const enableMinOrder = async () => {
+  console.log('✅ Réactivation du montant minimum...')
+  await loadRestaurantMinOrder()
+  console.log('✅ Montant minimum réactivé:', restaurantMinOrder.value)
+}
+
 // Computed pour le supplément de montant minimum (livraison uniquement)
 const minOrderSupplement = computed(() => {
   if (storeOrderType.value !== 'delivery') return 0
@@ -756,8 +805,6 @@ const minOrderSupplement = computed(() => {
   const subtotalAfterDiscount = storeCartTotal.value - discountAmount.value
   const totalAfterCoupon = subtotalAfterDiscount - couponDiscountAmount.value
   const remainingAmount = Math.max(0, restaurantMinOrder.value - totalAfterCoupon)
-  
-  
   
   return remainingAmount
 })
@@ -1215,6 +1262,22 @@ watch([discountAmount, couponDiscountAmount, finalTotalWithCoupon], ([newDiscoun
  
 })
 
+// Watcher pour charger le montant minimum quand le code postal change
+watch(() => deliveryAddress.value.npa, (newNpa) => {
+  if (storeOrderType.value === 'delivery' && newNpa) {
+    loadRestaurantMinOrder()
+  }
+}, { immediate: false })
+
+// Watcher pour charger le montant minimum quand le type de commande change
+watch(storeOrderType, (newOrderType) => {
+  if (newOrderType === 'delivery' && deliveryAddress.value.npa) {
+    loadRestaurantMinOrder()
+  } else if (newOrderType !== 'delivery') {
+    restaurantMinOrder.value = 0
+  }
+}, { immediate: false })
+
 // Clients par défaut selon le restaurant
 const DEFAULT_CLIENTS = {
   'fd9d1677-f994-473a-9939-908cf3145bd4': {
@@ -1280,14 +1343,14 @@ const loadRestaurantDetails = async () => {
     if (restaurantID) {
       const response = await getRestaurantDetails(restaurantID)
       if (response.code === 200 && response.data) {
-        restaurantDetails.value = response.data
-        restaurantMinOrder.value = parseFloat(response.data.codePostalID?.minimumCommandeAmount || '0')
+        restaurantDetails.value = response.data;
       }
     }
   } catch (error) {
     console.error('Erreur lors du chargement des détails du restaurant:', error)
   }
 }
+
 
 // Charger tous les codes postaux
 const loadAllPostalCodes = async () => {
@@ -1497,6 +1560,14 @@ const handlePlaceOrder = async () => {
           cuisson: "Normal",
         },
       ],
+      additional_fees: [
+        {
+          type: storeOrderType.value,
+          amount: minOrderSupplement.value
+        }
+      ],
+      subtotal: storeCartTotal.value,
+      total: finalTotalWithCoupon.value,
     }
     
     const response = await createPOSOrder(orderData)
@@ -1679,6 +1750,10 @@ const selectPostalCode = (postalCode: any) => {
   showPostalCodeSuggestions.value = false
   postalCodeSuggestions.value = []
   
+  // Charger le montant minimum de commande pour ce code postal
+  if (storeOrderType.value === 'delivery') {
+    loadRestaurantMinOrder()
+  }
 }
 
 // Fonction pour gérer le changement du code postal
@@ -2463,6 +2538,78 @@ const validCartItems = computed(() => {
           color: #dc2626;
           font-weight: 500;
         }
+      }
+    }
+  }
+
+  .min-order-controls {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+
+    .btn-disable-min-order {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #fee2e2;
+      border: 1px solid #fca5a5;
+      border-radius: 6px;
+      color: #dc2626;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #fecaca;
+        border-color: #f87171;
+        transform: translateY(-1px);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+
+      .btn-icon {
+        font-size: 14px;
+      }
+
+      .btn-text {
+        white-space: nowrap;
+      }
+    }
+
+    .btn-enable-min-order {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #dcfce7;
+      border: 1px solid #86efac;
+      border-radius: 6px;
+      color: #166534;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #bbf7d0;
+        border-color: #4ade80;
+        transform: translateY(-1px);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+
+      .btn-icon {
+        font-size: 14px;
+      }
+
+      .btn-text {
+        white-space: nowrap;
       }
     }
   }

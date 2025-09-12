@@ -1,6 +1,9 @@
 <template>
   <BreadCrumb PageTitle="Détail de la commande" />
-  <VabeneOrderDetails :commandeID="commandeID!"/>
+  <VabeneOrderDetails v-if="localCommandeID" :commandeID="localCommandeID"/>
+  <div v-else class="loading-container">
+    <p>Chargement...</p>
+  </div>
 </template>
 
 <script lang="ts">
@@ -14,13 +17,32 @@ export default defineComponent({
     BreadCrumb,
     VabeneOrderDetails,
   },
+  props: {
+    commandeID: {
+      type: String as PropType<string>,
+      required: false,
+      default: null
+    }
+  },
   data() {
     return {
-      commandeID: null as string | null,
+      localCommandeID: null as string | null,
     };
   },
   mounted() {
-    this.commandeID = this.$route.params.commandeID as string;
+    // Utiliser la prop si fournie, sinon utiliser le paramètre de route
+    this.localCommandeID = this.commandeID || this.$route.params.commandeID as string;
   },
 });
 </script>
+
+<style scoped>
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 16px;
+  color: #666;
+}
+</style>

@@ -199,6 +199,7 @@ export default defineComponent({
       restaurantIdStorage: localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID),
       selectedPeriod: 2,
       chartKey: 0,
+      refreshInterval: null as NodeJS.Timeout | null,
       weeklySalesChart: {
         chart: {
           height: 374,
@@ -407,6 +408,36 @@ export default defineComponent({
       }
       this.weeklySalesChart.xaxis.categories = categories;
       this.chartKey++; // Increment the key to force re-render
+    },
+    startAutoRefresh() {
+      // Démarrer le rechargement automatique toutes les 2 minutes (120000 ms)
+      this.refreshInterval = setInterval(() => {
+        this.refreshData()
+      }, 120000) // 2 minutes
+    },
+    stopAutoRefresh() {
+      if (this.refreshInterval) {
+        clearInterval(this.refreshInterval)
+        this.refreshInterval = null
+        console.log('⏹️ Arrêt du rechargement automatique')
+      }
+    },
+    async refreshData() {
+      try {
+        if (this.useRole === UserRole.FRANCHISE) {
+          if (this.restaurantSelected && this.restaurantSelected !== 'all') {
+            await this.getReportAdmin(this.restaurantSelected)
+          } else {
+            await this.getReportAdmin()
+          }
+        } else {
+          await this.getReportAdmin(this.restaurantIdStorage ?? undefined)
+        }
+        await this.getPeriodiqueReport()
+        console.log('✅ Données de rapport rechargées avec succès')
+      } catch (error) {
+        console.error('❌ Erreur lors du rechargement des données:', error)
+      }
     }
   },
   setup() {
@@ -425,6 +456,13 @@ export default defineComponent({
     
     // Initialiser les catégories du graphique
     this.updateChartCategories();
+    
+    // Démarrer le rechargement automatique
+    this.startAutoRefresh();
+  },
+  beforeUnmount() {
+    // Arrêter le rechargement automatique quand le composant est détruit
+    this.stopAutoRefresh();
   },
 
   computed: {
@@ -486,6 +524,11 @@ export default defineComponent({
     restaurantSelected(this: any, newVal){
       if (!newVal) return
       this.restaurantSelected = newVal as string;
+      
+      // Redémarrer le rechargement automatique avec les nouveaux paramètres
+      this.stopAutoRefresh();
+      this.startAutoRefresh();
+      
       if(newVal !== 'all'){
          this.getReportAdmin(this.restaurantSelected);
       }
@@ -498,6 +541,11 @@ export default defineComponent({
       if (!newVal) return
       this.selectedPeriod = newVal as string;
       this.updateChartCategories();
+      
+      // Redémarrer le rechargement automatique avec les nouveaux paramètres
+      this.stopAutoRefresh();
+      this.startAutoRefresh();
+      
       if(this.restaurantSelected !== 'all'){
         this.getReportAdmin(this.restaurantSelected);
       }

@@ -341,7 +341,8 @@
                 Délai de livraison estimé
               </span>
               <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium" v-if="orderResponse">
-                {{orderResponse.timeOrder ? convertDateCreate(orderResponse.timeOrder) : 'TOUT DE SUITE'}}
+                <!-- {{ formatInTimeZone(orderResponse.timeOrder, 'Europe/Zurich', 'dd/MM/yyyy - HH:mm') }} -->
+            {{ orderResponse.timeOrder ? new Date(orderResponse.timeOrder).toLocaleString('fr-FR', { timeZone: 'Europe/Zurich', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'TOUT DE SUITE'}} 
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between" v-if="orderResponse.intructionOrder">
@@ -1308,7 +1309,21 @@ export default defineComponent({
       }
     },
     convertDateCreate(date: string): string {
-      return UserGeneralKey.formatDateToFrenchLocale(date);
+      // S'assurer que l'heure suisse est toujours affichée
+      const dateObj = new Date(date);
+      
+      // Options pour le formatage avec fuseau horaire suisse
+      const options: Intl.DateTimeFormatOptions = {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false, // format 24h
+        timeZone: 'Europe/Zurich' // Heure suisse
+      };
+      
+      return dateObj.toLocaleString('fr-FR', options);
     },
     formatInTimeZone,
     async fetchOrder(orderID) {
