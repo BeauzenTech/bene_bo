@@ -39,6 +39,22 @@
         <div v-if="showIngredients" class="ingredients-section">
           <h4 class="selection-title">Personnaliser les ingrédients</h4>
 
+          <!-- Information sur le fonctionnement -->
+          <div class="ingredients-info">
+            <div class="info-item">
+              <i class="fas fa-check-circle" style="color: #388D35;"></i>
+              <span>Les ingrédients marqués "Inclus" viennent avec le produit</span>
+            </div>
+            <div class="info-item">
+              <i class="fas fa-plus" style="color: #388D35;"></i>
+              <span>Mode Ajouter : ajoutez des ingrédients supplémentaires</span>
+            </div>
+            <div class="info-item">
+              <i class="fas fa-minus" style="color: #ef4444;"></i>
+              <span>Mode Retirer : retirez même les ingrédients inclus</span>
+            </div>
+          </div>
+
           <!-- Mode de personnalisation -->
           <div class="customize-mode">
             <button :class="['mode-btn', { active: customizeMode === 'add' }]" @click="customizeMode = 'add'">
@@ -53,15 +69,32 @@
 
           <!-- Liste des ingrédients -->
           <div class="ingredients-grid">
-            <div v-for="ingredient in availableIngredients" :key="ingredient.id" class="ingredient-item"
+            <div v-for="ingredient in availableIngredients" :key="ingredient.id" 
+              :class="['ingredient-item', { 
+                'default-ingredient': ingredient.isDefault,
+                'removed-default': ingredient.isDefault && getIngredientQuantity(ingredient.id) === 0,
+                'selected': getIngredientQuantity(ingredient.id) > 0
+              }]"
               @click="toggleIngredient(ingredient)">
+              
+              <!-- Badge pour ingrédient par défaut -->
+              <div v-if="ingredient.isDefault" class="default-badge">
+                <i class="fas fa-check-circle"></i>
+                <span>Inclus</span>
+              </div>
+
               <div class="ingredient-image">
                 <img :src="ingredient.image || '/images/ingredients/default.png'" :alt="ingredient.name" />
+                <!-- Overlay pour ingrédient retiré -->
+                <div v-if="ingredient.isDefault && getIngredientQuantity(ingredient.id) === 0" class="removed-overlay">
+                  <i class="fas fa-times"></i>
+                </div>
               </div>
 
               <div class="ingredient-info">
                 <span class="ingredient-name">{{ ingredient.name }}</span>
-                <span v-if="ingredient.price > 0" class="ingredient-price">+{{ formatPrice(ingredient.price) }} CHF</span>
+                <span v-if="ingredient.price > 0 && !ingredient.isDefault" class="ingredient-price">+{{ formatPrice(ingredient.price) }} CHF</span>
+                <span v-else-if="ingredient.isDefault" class="ingredient-price default-price">Inclus</span>
               </div>
 
               <div class="ingredient-controls">
@@ -259,8 +292,10 @@ const toggleIngredient = (ingredient: Ingredient) => {
   const currentQty = selectedIngredients.value[ingredient.id] || 0
 
   if (customizeMode.value === 'add') {
+    // Mode ajouter : ajouter l'ingrédient s'il n'est pas déjà présent
     selectedIngredients.value[ingredient.id] = currentQty > 0 ? currentQty : 1
   } else {
+    // Mode retirer : retirer l'ingrédient (même les ingrédients par défaut)
     selectedIngredients.value[ingredient.id] = 0
   }
 }
@@ -496,6 +531,32 @@ const addToCart = () => {
   margin: 0 0 1rem 0;
 }
 
+.ingredients-info {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 1rem;
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 4px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    i {
+      width: 12px;
+      text-align: center;
+    }
+  }
+}
+
 .customize-mode {
   display: flex;
   gap: 8px;
@@ -541,10 +602,48 @@ const addToCart = () => {
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
+    position: relative;
 
     &:hover {
       border-color: #388D35;
       background: #f8fafc;
+    }
+
+    &.default-ingredient {
+      border-color: #388D35;
+      background: #f0f9f0;
+    }
+
+    &.removed-default {
+      border-color: #ef4444;
+      background: #fef2f2;
+      opacity: 0.7;
+    }
+
+    &.selected {
+      border-color: #388D35;
+      background: #f0f9f0;
+    }
+
+    .default-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #388D35;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      z-index: 2;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+      i {
+        font-size: 8px;
+      }
     }
 
     .ingredient-image {
@@ -556,11 +655,27 @@ const addToCart = () => {
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
 
       img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+      }
+
+      .removed-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(239, 68, 68, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 16px;
+        border-radius: 6px;
       }
     }
 
@@ -580,6 +695,11 @@ const addToCart = () => {
         font-size: 11px;
         color: #388D35;
         font-weight: 500;
+
+        &.default-price {
+          color: #388D35;
+          font-weight: 600;
+        }
       }
     }
 

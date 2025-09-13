@@ -32,23 +32,69 @@
           </label>
         </div>
 
+        <!-- Information sur le fonctionnement -->
+        <div class="ingredients-info">
+          <div class="info-item">
+            <i class="fas fa-check-circle" style="color: #388D35;"></i>
+            <span>Les ingrédients marqués "Inclus" viennent avec la pizza</span>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-plus" style="color: #388D35;"></i>
+            <span>Mode Ajouter : ajoutez des ingrédients supplémentaires</span>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-minus" style="color: #ef4444;"></i>
+            <span>Mode Retirer : retirez même les ingrédients inclus</span>
+          </div>
+        </div>
+
+        <!-- Mode de personnalisation -->
+        <div class="customize-mode">
+          <button :class="['mode-btn', { active: customizeMode === 'add' }]" @click="customizeMode = 'add'">
+            <i class="fas fa-plus"></i>
+            Ajouter
+          </button>
+          <button :class="['mode-btn', { active: customizeMode === 'remove' }]" @click="customizeMode = 'remove'">
+            <i class="fas fa-minus"></i>
+            Retirer
+          </button>
+        </div>
+
         <!-- Sections d'ingrédients -->
         <div class="ingredients-container">
           <div v-for="(group, groupName) in groupedIngredients" :key="groupName" class="ingredient-group">
             <h4 class="group-title">{{ groupName }}</h4>
             <div class="ingredients-grid">
-              <div v-for="ingredient in group" :key="ingredient.id" class="ingredient-card">
+              <div v-for="ingredient in group" :key="ingredient.id" 
+                :class="['ingredient-card', { 
+                  'default-ingredient': ingredient.isDefault,
+                  'removed-default': ingredient.isDefault && getIngredientQuantity(ingredient.id) === 0,
+                  'selected': getIngredientQuantity(ingredient.id) > 0
+                }]"
+                @click="toggleIngredient(ingredient)">
+                
+                <!-- Badge pour ingrédient par défaut -->
+                <div v-if="ingredient.isDefault" class="default-badge">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Inclus</span>
+                </div>
+
                 <div class="ingredient-card-image">
-                  <img :src="ingredient.imageUrl" :alt="ingredient.name" />
+                  <img :src="ingredient.imageUrl || ingredient.image || '/images/ingredients/default.png'" :alt="ingredient.name" />
+                  <!-- Overlay pour ingrédient retiré -->
+                  <div v-if="ingredient.isDefault && getIngredientQuantity(ingredient.id) === 0" class="removed-overlay">
+                    <i class="fas fa-times"></i>
+                  </div>
                 </div>
                 <span class="ingredient-name">{{ ingredient.name }}</span>
+                <span v-if="ingredient.isDefault" class="ingredient-price default-price">Inclus</span>
                 <div class="ingredient-controls">
-                  <button @click="decrementIngredient(ingredient)" :disabled="getIngredientQuantity(ingredient.id) <= 0"
+                  <button @click.stop="decrementIngredient(ingredient)" :disabled="getIngredientQuantity(ingredient.id) <= 0"
                     style="display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; color: white; font-size: .6rem; font-weight: 600; cursor: pointer;">
                     ➖
                   </button>
                   <span>{{ getIngredientQuantity(ingredient.id) }}</span>
-                  <button @click="incrementIngredient(ingredient)"
+                  <button @click.stop="incrementIngredient(ingredient)"
                     style="display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; color: white; font-size: .6rem; font-weight: 600; cursor: pointer;">
                     ➕
                   </button>
@@ -102,6 +148,7 @@ const selectedSizeId = ref<string>('');
 const selectedSize = ref<ProductSize | null>(null);
 const quantity = ref(1);
 const customIngredients = ref<Record<string, number>>({});
+const customizeMode = ref<'add' | 'remove'>('add');
 
 // Fonctions utilitaires
 const formatPrice = (price: number): string => `${price.toFixed(2)} CHF`;
@@ -127,15 +174,32 @@ const selectSize = (size: ProductSize) => {
 
 // Logique des ingrédients
 const groupedIngredients = computed(() => {
-  const groups: Record<string, IngredientWithPricing[]> = {};
-  INGREDIENTS_WITH_PRICING
-    .filter(ing => ing.type !== 'base') // Exclure les ingrédients de base
-    .forEach(ing => {
-      if (!groups[ing.type]) {
-        groups[ing.type] = [];
-      }
-      groups[ing.type].push(ing);
-    });
+  const groups: Record<string, any[]> = {};
+  
+  // Utiliser les ingrédients spécifiques du produit s'ils existent
+  if (props.product?.ingredients && props.product.ingredients.length > 0) {
+    props.product.ingredients
+      .filter(ing => ing.isAvailable)
+      .forEach(ing => {
+        // Déterminer le type d'ingrédient (par défaut 'ingredient' si pas de type)
+        const type = (ing as any).type || 'ingredient';
+        if (!groups[type]) {
+          groups[type] = [];
+        }
+        groups[type].push(ing);
+      });
+  } else {
+    // Fallback vers INGREDIENTS_WITH_PRICING si pas d'ingrédients spécifiques
+    INGREDIENTS_WITH_PRICING
+      .filter(ing => ing.isAvailable)
+      .forEach(ing => {
+        if (!groups[ing.type]) {
+          groups[ing.type] = [];
+        }
+        groups[ing.type].push(ing);
+      });
+  }
+  
   return groups;
 });
 
@@ -143,15 +207,27 @@ const getIngredientQuantity = (ingredientId: string): number => {
   return customIngredients.value[ingredientId] || 0;
 };
 
-const incrementIngredient = (ingredient: IngredientWithPricing) => {
+const incrementIngredient = (ingredient: any) => {
   const currentQty = getIngredientQuantity(ingredient.id);
   customIngredients.value[ingredient.id] = (currentQty || 0) + 1;
 };
 
-const decrementIngredient = (ingredient: IngredientWithPricing) => {
+const decrementIngredient = (ingredient: any) => {
   const currentQty = getIngredientQuantity(ingredient.id);
   if (currentQty > 0) {
     customIngredients.value[ingredient.id] = currentQty - 1;
+  }
+};
+
+const toggleIngredient = (ingredient: any) => {
+  const currentQty = getIngredientQuantity(ingredient.id);
+
+  if (customizeMode.value === 'add') {
+    // Mode ajouter : ajouter l'ingrédient s'il n'est pas déjà présent
+    customIngredients.value[ingredient.id] = currentQty > 0 ? currentQty : 1;
+  } else {
+    // Mode retirer : retirer l'ingrédient (même les ingrédients par défaut)
+    customIngredients.value[ingredient.id] = 0;
   }
 };
 
@@ -169,23 +245,33 @@ const basePrice = computed(() => {
 const ingredientsPrice = computed(() => {
   let price = 0;
   if (selectedSize.value) {
-    const sizeMap: Record<string, '24cm' | '28cm' | '33cm' | '40cm'> = {
-      'Petite': '24cm',
-      'Normale': '33cm',
-      'Grande': '40cm',
-      'Unique (28cm)': '28cm'  // ← Ajout du mapping manquant
-    };
-    const currentSize = sizeMap[selectedSize.value.name] || '33cm'; // ← Fallback vers 33cm
-
-
     for (const ingId in customIngredients.value) {
       const quantity = customIngredients.value[ingId];
       if (quantity > 0) {
-        const ingredient = INGREDIENTS_WITH_PRICING.find(i => i.id === ingId);
+        // Chercher l'ingrédient dans les ingrédients du produit d'abord
+        let ingredient: any = props.product?.ingredients?.find(i => i.id === ingId);
+        
+        // Si pas trouvé, chercher dans INGREDIENTS_WITH_PRICING
+        if (!ingredient) {
+          ingredient = INGREDIENTS_WITH_PRICING.find(i => i.id === ingId);
+        }
         
         if (ingredient && !ingredient.isDefault) {
-          const ingredientPrice = (ingredient.pricing[currentSize] || 0) * quantity;
-          price += ingredientPrice;
+          // Si l'ingrédient a un prix direct
+          if (typeof ingredient.price === 'number') {
+            price += ingredient.price * quantity;
+          } else if ((ingredient as any).pricing) {
+            // Si l'ingrédient a un pricing par taille
+            const sizeMap: Record<string, '24cm' | '28cm' | '33cm' | '40cm'> = {
+              'Petite': '24cm',
+              'Normale': '33cm',
+              'Grande': '40cm',
+              'Unique (28cm)': '28cm'
+            };
+            const currentSize = sizeMap[selectedSize.value.name] || '33cm';
+            const ingredientPrice = ((ingredient as any).pricing[currentSize] || 0) * quantity;
+            price += ingredientPrice;
+          }
         } 
       }
     }
@@ -228,24 +314,39 @@ const handleAddToCart = () => {
   const finalIngredients: CartIngredient[] = Object.entries(customIngredients.value)
     .filter(([, quantity]) => quantity > 0)
     .map(([id, quantity]) => {
-      const ingredientInfo = INGREDIENTS_WITH_PRICING.find(i => i.id === id)!;
-      const originalIngredient = props.product!.ingredients.find(i => i.id === id);
+      // Chercher l'ingrédient dans les ingrédients du produit d'abord
+      let ingredientInfo: any = props.product!.ingredients?.find(i => i.id === id);
+      
+      // Si pas trouvé, chercher dans INGREDIENTS_WITH_PRICING
+      if (!ingredientInfo) {
+        ingredientInfo = INGREDIENTS_WITH_PRICING.find(i => i.id === id);
+      }
 
       // Mapping des tailles vers la notation en cm
       const sizeMap: Record<string, '24cm' | '28cm' | '33cm' | '40cm'> = {
         'Petite': '24cm',
         'Normale': '33cm',
         'Grande': '40cm',
-        'Unique (28cm)': '28cm'  // ← Ajout du mapping manquant
+        'Unique (28cm)': '28cm'
       };
-      const currentSizeInCm = sizeMap[selectedSize.value!.name] || '33cm'; // ← Fallback vers 33cm
+      const currentSizeInCm = sizeMap[selectedSize.value!.name] || '33cm';
+      
+      // Calculer le prix selon le type d'ingrédient
+      let extraCostPrice = 0;
+      if (ingredientInfo) {
+        if (typeof ingredientInfo.price === 'number') {
+          extraCostPrice = ingredientInfo.price;
+        } else if ((ingredientInfo as any).pricing) {
+          extraCostPrice = (ingredientInfo as any).pricing[currentSizeInCm] || 0;
+        }
+      }
       
       return {
-        id: ingredientInfo.id,
-        name: ingredientInfo.name,
-        extra_cost_price: ingredientInfo.pricing[currentSizeInCm] || 0,
+        id: ingredientInfo?.id || id,
+        name: ingredientInfo?.name || 'Ingrédient inconnu',
+        extra_cost_price: extraCostPrice,
         quantity,
-        isDefault: originalIngredient?.isDefault || ingredientInfo.isDefault || false,
+        isDefault: ingredientInfo?.isDefault || false,
         size: currentSizeInCm
       };
     });
@@ -274,15 +375,25 @@ watch(() => props.product, (newProduct) => {
     }
   }
 
-  // Initialiser avec les ingrédients par défaut du produit
+  // Initialiser avec les ingrédients par défaut
   const defaultIngredients: Record<string, number> = {};
-  if (newProduct?.ingredients) {
+  
+  // Utiliser les ingrédients spécifiques du produit s'ils existent
+  if (newProduct?.ingredients && newProduct.ingredients.length > 0) {
     newProduct.ingredients.forEach(ing => {
       if (ing.isDefault) {
         defaultIngredients[ing.id] = 1;
       }
     });
+  } else {
+    // Fallback vers INGREDIENTS_WITH_PRICING si pas d'ingrédients spécifiques
+    INGREDIENTS_WITH_PRICING.forEach(ing => {
+      if (ing.isDefault) {
+        defaultIngredients[ing.id] = 1;
+      }
+    });
   }
+  
   customIngredients.value = defaultIngredients;
 }, { immediate: true });
 </script>
@@ -398,23 +509,59 @@ watch(() => props.product, (newProduct) => {
   }
 }
 
-/* Actions des ingrédients */
-.ingredient-actions {
+/* Information sur le fonctionnement */
+.ingredients-info {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 1rem;
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 4px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    i {
+      width: 12px;
+      text-align: center;
+    }
+  }
+}
+
+/* Mode de personnalisation */
+.customize-mode {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 8px;
+  margin-bottom: 1rem;
 
-  .action-btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    border: 1px solid #388D35;
-    background-color: white;
-    color: #388D35;
-    font-weight: 500;
+  .mode-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: white;
     cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
 
-    &.add {
-      background-color: #388D35;
+    &:hover {
+      border-color: #388D35;
+    }
+
+    &.active {
+      background: #388D35;
+      border-color: #388D35;
       color: white;
     }
   }
@@ -448,15 +595,90 @@ watch(() => props.product, (newProduct) => {
   padding: 1rem;
   border-radius: 8px;
   background-color: #f9f9f9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
 
-  .ingredient-card-image img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
+  &:hover {
+    border-color: #388D35;
+    background: #f8fafc;
+  }
+
+  &.default-ingredient {
+    border: 1px solid #388D35;
+    background: #f0f9f0;
+  }
+
+  &.removed-default {
+    border: 1px solid #ef4444;
+    background: #fef2f2;
+    opacity: 0.7;
+  }
+
+  &.selected {
+    border: 1px solid #388D35;
+    background: #f0f9f0;
+  }
+
+  .default-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #388D35;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    z-index: 2;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    i {
+      font-size: 8px;
+    }
+  }
+
+  .ingredient-card-image {
+    position: relative;
+
+    img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+    }
+
+    .removed-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(239, 68, 68, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 16px;
+      border-radius: 50%;
+    }
   }
 
   .ingredient-name {
     font-weight: 500;
+  }
+
+  .ingredient-price {
+    font-size: 11px;
+    color: #388D35;
+    font-weight: 500;
+
+    &.default-price {
+      color: #388D35;
+      font-weight: 600;
+    }
   }
 
   .ingredient-controls {
