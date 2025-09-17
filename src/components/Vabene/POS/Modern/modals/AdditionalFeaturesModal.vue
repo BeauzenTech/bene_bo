@@ -86,6 +86,7 @@ import htmlToText from '@/utils/html-to-text';
 import type { Product, ProductSize, AddToCartEvent, CartSupplement, CartIngredient } from '../types'
 import { useStore } from 'vuex'
 
+
 const store = useStore()
 
 const props = defineProps<{

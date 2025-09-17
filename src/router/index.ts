@@ -191,6 +191,7 @@ import VabeneInfoFranchisePage from "@/pages/Vabene/Franchise/VabeneInfoFranchis
 import MotPasseOubliePage from "@/pages/Authentication/MotPasseOubliePage.vue";
 import VabeneAddCouponPage from "@/pages/Vabene/Coupon/VabeneAddCouponPage.vue";
 import VaBeneCouponListPage from "@/pages/Vabene/Coupon/VaBeneCouponListPage.vue";
+import VabeneIngredientBaseListPage from "@/pages/Vabene/IngredientBase/VabeneIngredientBaseListPage.vue";
 import VaBeneProgrammeAffiliationListPage from "@/pages/Vabene/Programme/VaBeneProgrammeAffiliationListPage.vue";
 import VabeneAddProgrammePage from "@/pages/Vabene/Programme/VabeneAddProgrammePage.vue";
 
@@ -435,6 +436,13 @@ const routes = [
       couponID: route.params.couponID ? String(route.params.couponID) : undefined
     })
   },
+
+        // Routes pour les ingrédients de base
+        {
+          path: "/ingredient-base-list",
+          name: "VabeneIngredientBaseListPage",
+          component: VabeneIngredientBaseListPage,
+        },
 
 
 

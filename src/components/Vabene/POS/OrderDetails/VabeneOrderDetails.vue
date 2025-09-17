@@ -342,7 +342,7 @@
               </span>
               <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium" v-if="orderResponse">
                 <!-- {{ formatInTimeZone(orderResponse.timeOrder, 'Europe/Zurich', 'dd/MM/yyyy - HH:mm') }} -->
-            {{ orderResponse.timeOrder ? new Date(orderResponse.timeOrder).toLocaleString('fr-FR', { timeZone: 'Europe/Zurich', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'TOUT DE SUITE'}} 
+            {{ orderResponse.timeOrder && isValidDate(orderResponse.timeOrder) ? new Date(orderResponse.timeOrder).toLocaleString('fr-FR', { timeZone: 'Europe/Zurich', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'TOUT DE SUITE'}} 
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between" v-if="orderResponse.intructionOrder">
@@ -1003,6 +1003,11 @@ export default defineComponent({
   },
 
   methods: {
+    isValidDate(dateString: string): boolean {
+      if (!dateString) return false;
+      const date = new Date(dateString);
+      return !isNaN(date.getTime());
+    },
     getSubtotalPrice(order: OrderModel): number {
       const prices = order.orderItems.reduce((total, item) => total + item.total_price, 0);
       return prices;

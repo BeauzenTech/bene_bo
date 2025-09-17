@@ -483,7 +483,7 @@ export default defineComponent({
         const response = await listeCustomers(
           page, 
           '20', 
-          idResto ?? undefined,
+          idResto ?? 'all',
           this.searchFirstname || undefined,
           this.searchLastname || undefined,
           this.searchEmail || undefined,

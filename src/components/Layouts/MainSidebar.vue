@@ -157,6 +157,14 @@
                 </li>
                 <li v-if="userRole === UserRole.FRANCHISE" class="sidebar-sub-menu-item">
                   <router-link
+                      to="/ingredient-base-list"
+                      class="sidebar-sub-menu-link"
+                  >
+                    Ingrédients de base
+                  </router-link>
+                </li>
+                <li v-if="userRole === UserRole.FRANCHISE" class="sidebar-sub-menu-item">
+                  <router-link
                       to="/affiliation-programmes"
                       class="sidebar-sub-menu-link"
                   >

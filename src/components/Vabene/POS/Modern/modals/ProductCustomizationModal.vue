@@ -83,34 +83,47 @@
                 <span>Inclus</span>
               </div>
 
-              <div class="ingredient-image">
-                <img :src="ingredient.image || '/images/ingredients/default.png'" :alt="ingredient.name" />
-                <!-- Overlay pour ingrédient retiré -->
-                <div v-if="ingredient.isDefault && getIngredientQuantity(ingredient.id) === 0" class="removed-overlay">
-                  <i class="fas fa-times"></i>
-                </div>
-              </div>
+               <div class="ingredient-image">
+                 <img :src="ingredient.image || '/images/ingredients/default.png'" :alt="ingredient.name" />
+                 <!-- Overlay pour ingrédient retiré -->
+                 <div v-if="ingredient.isDefault && getIngredientQuantity(ingredient.id) === 0" class="removed-overlay">
+                   <i class="fas fa-times"></i>
+                 </div>
+               </div>
 
-              <div class="ingredient-info">
-                <span class="ingredient-name">{{ ingredient.name }}</span>
-                <span v-if="ingredient.price > 0 && !ingredient.isDefault" class="ingredient-price">+{{ formatPrice(ingredient.price) }} CHF</span>
-                <span v-else-if="ingredient.isDefault" class="ingredient-price default-price">Inclus</span>
-              </div>
+               <div class="ingredient-info">
+                 <span class="ingredient-name">{{ ingredient.name }}</span>
+                 <span v-if="ingredient.price > 0 && !ingredient.isDefault" class="ingredient-price">+{{ formatPrice(ingredient.price) }} CHF</span>
+                 <span v-else-if="ingredient.isDefault" class="ingredient-price default-price">Inclus</span>
+               </div>
 
-              <div class="ingredient-controls">
-                <button v-if="getIngredientQuantity(ingredient.id) > 0" class="qty-btn decrease"
-                  @click.stop="decreaseIngredient(ingredient.id)">
-                  <i class="fas fa-minus"></i>
-                </button>
+               <!-- Contrôles pour les ingrédients de base (croix de retrait) -->
+               <div v-if="ingredient.isDefault" class="ingredient-base-controls">
+                 <button @click.stop="removeBaseIngredient(ingredient)" 
+                   @mousedown.stop
+                   @mouseup.stop
+                   class="remove-base-btn"
+                   title="Retirer cet ingrédient"
+                   style="z-index: 1000; position: relative;">
+                   <i class="fas fa-times"></i>
+                 </button>
+               </div>
 
-                <span v-if="getIngredientQuantity(ingredient.id) > 0" class="quantity">
-                  {{ getIngredientQuantity(ingredient.id) }}
-                </span>
+               <!-- Contrôles pour les autres ingrédients (quantité) -->
+               <div v-else class="ingredient-controls">
+                 <button v-if="getIngredientQuantity(ingredient.id) > 0" class="qty-btn decrease"
+                   @click.stop="decreaseIngredient(ingredient.id)">
+                   <i class="fas fa-minus"></i>
+                 </button>
 
-                <button class="qty-btn increase" @click.stop="increaseIngredient(ingredient.id)">
-                  <i class="fas fa-plus"></i>
-                </button>
-              </div>
+                 <span v-if="getIngredientQuantity(ingredient.id) > 0" class="quantity">
+                   {{ getIngredientQuantity(ingredient.id) }}
+                 </span>
+
+                 <button class="qty-btn increase" @click.stop="increaseIngredient(ingredient.id)">
+                   <i class="fas fa-plus"></i>
+                 </button>
+               </div>
             </div>
           </div>
         </div>
@@ -195,6 +208,7 @@ const customizeMode = ref<'add' | 'remove'>('add')
 const notes = ref('')
 const quantity = ref(1)
 const selectedIngredients = ref<Record<string, number>>({})
+const removedBaseIngredients = ref<Set<string>>(new Set())
 
 // Données calculées
 const showIngredients = computed(() => {
@@ -203,19 +217,75 @@ const showIngredients = computed(() => {
     props.product?.ingredients && props.product.ingredients.length > 0
 })
 
+const baseIngredients = computed(() => {
+  // Récupérer les ingrédients de base depuis ingredientsBaseNames
+  const product = props.product as any;
+  if (product?.ingredientsBaseNames && product.ingredientsBaseNames.length > 0) {
+    
+    // Créer des objets ingrédients à partir des noms
+    const baseIngs = product.ingredientsBaseNames.map((name: string, index: number) => ({
+      id: `base-${index}`,
+      name: name,
+      isDefault: true,
+      isAvailable: true,
+      price: 0,
+      type: 'Base',
+      image: '/images/ingredients/default.png',
+      imageUrl: '/images/ingredients/default.png'
+    }));
+    
+    return baseIngs;
+  }
+  return [];
+});
+
 const availableIngredients = computed(() => {
-  if (!props.product?.ingredients) return []
-  return props.product.ingredients.filter(ing => ing.isAvailable)
+  const allIngredients: any[] = [];
+  
+  // Ajouter d'abord les ingrédients de base (sauf ceux retirés)
+  if (baseIngredients.value.length > 0) {
+    const nonRemovedBaseIngredients = baseIngredients.value.filter(ing => !removedBaseIngredients.value.has(ing.id));
+    allIngredients.push(...nonRemovedBaseIngredients);
+  }
+  
+  // Utiliser les ingrédients spécifiques du produit s'ils existent
+  if (props.product?.ingredients && props.product.ingredients.length > 0) {
+    allIngredients.push(...props.product.ingredients.filter(ing => ing.isAvailable));
+  }
+  
+  return allIngredients;
 })
 
 const modifiedIngredients = computed(() => {
-
-  return availableIngredients.value
-    .filter(ing => selectedIngredients.value[ing.id] > 0)
-    .map(ing => ({
-      ...ing,
-      quantity: selectedIngredients.value[ing.id]
-    }))
+  const ingredients: any[] = [];
+  
+  // 1. Ajouter les ingrédients de base qui n'ont pas été retirés
+  if (baseIngredients.value.length > 0) {
+    baseIngredients.value
+      .filter(ing => !removedBaseIngredients.value.has(ing.id))
+      .forEach(ing => {
+        const quantity = selectedIngredients.value[ing.id] || 1; // Quantité par défaut = 1
+        ingredients.push({
+          ...ing,
+          quantity: quantity
+        });
+      });
+  }
+  
+  // 2. Ajouter les autres ingrédients sélectionnés
+  availableIngredients.value
+    .filter(ing => {
+      // Exclure les ingrédients de base (ils sont déjà traités ci-dessus)
+      return selectedIngredients.value[ing.id] > 0 && !ing.id.startsWith('base-');
+    })
+    .forEach(ing => {
+      ingredients.push({
+        ...ing,
+        quantity: selectedIngredients.value[ing.id]
+      });
+    });
+  
+  return ingredients;
 })
 
 const hasModifications = computed(() => {
@@ -285,19 +355,48 @@ const selectSize = (size: ProductSize) => {
 }
 
 const getIngredientQuantity = (ingredientId: string): number => {
-  return selectedIngredients.value[ingredientId] || 0
+  // Pour les ingrédients de base, la quantité par défaut est 1
+  if (ingredientId.startsWith('base-')) {
+    return selectedIngredients.value[ingredientId] || 1;
+  }
+  // Pour les autres ingrédients, la quantité par défaut est 0
+  return selectedIngredients.value[ingredientId] || 0;
 }
 
 const toggleIngredient = (ingredient: Ingredient) => {
-  const currentQty = selectedIngredients.value[ingredient.id] || 0
+  const currentQty = getIngredientQuantity(ingredient.id);
 
   if (customizeMode.value === 'add') {
     // Mode ajouter : ajouter l'ingrédient s'il n'est pas déjà présent
-    selectedIngredients.value[ingredient.id] = currentQty > 0 ? currentQty : 1
+    if (ingredient.isDefault) {
+      // Pour les ingrédients de base, on ajoute 1 à la quantité par défaut
+      selectedIngredients.value[ingredient.id] = currentQty + 1;
+    } else {
+      // Pour les autres ingrédients, on ajoute 1
+      selectedIngredients.value[ingredient.id] = currentQty > 0 ? currentQty + 1 : 1;
+    }
   } else {
     // Mode retirer : retirer l'ingrédient (même les ingrédients par défaut)
-    selectedIngredients.value[ingredient.id] = 0
+    if (ingredient.isDefault) {
+      // Pour les ingrédients de base, on peut les retirer complètement
+      selectedIngredients.value[ingredient.id] = 0;
+    } else {
+      // Pour les autres ingrédients, on les retire
+      selectedIngredients.value[ingredient.id] = 0;
+    }
   }
+}
+
+const removeBaseIngredient = (ingredient: Ingredient) => {
+  
+  // Ajouter l'ID de l'ingrédient à la liste des ingrédients retirés
+  if (ingredient.isDefault) {
+    removedBaseIngredients.value.add(ingredient.id);
+    
+    // Supprimer complètement l'ingrédient de selectedIngredients au lieu de mettre à 0
+    delete selectedIngredients.value[ingredient.id];
+  }
+  
 }
 
 const increaseIngredient = (ingredientId: string) => {
@@ -739,6 +838,36 @@ const addToCart = () => {
         color: #1e293b;
         min-width: 16px;
         text-align: center;
+      }
+    }
+
+    .ingredient-base-controls {
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .remove-base-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: #c82333;
+        transform: scale(1.1);
+      }
+
+      &:active {
+        transform: scale(0.95);
       }
     }
   }

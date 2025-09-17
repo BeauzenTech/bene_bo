@@ -173,6 +173,14 @@ const filteredProducts = computed(() => {
     )
   }
 
+  // Trier par ordre alphabétique
+  filtered = filtered.sort((a, b) => {
+    return a.name.localeCompare(b.name, 'fr', { 
+      numeric: true, 
+      sensitivity: 'base' 
+    })
+  })
+
   return filtered
 })
 
@@ -384,7 +392,8 @@ const transformProduct = (product: ProductModel): Product => {
     isPopular: product.isVedette,
     type: product.type,
     withoutGluten: product.isSelected, // Assuming this field represents gluten-free
-    additionnal: product.additionnal
+    additionnal: product.additionnal,
+    ingredientsBaseNames: product.ingredientsBaseNames || []
   }
 }
 

@@ -293,7 +293,7 @@ export default defineComponent({
         if(idResto){
           this.restaurantId = idResto;
         }
-        const response = await listeCustomers(page, '1', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
+        const response = await listeCustomers(page, '1', idResto ?? 'all') as ApiResponse<PaginatedCustomer>;
         if (response.code === 200) {
           if (response.data?.items) {
             const data = response.data.items;

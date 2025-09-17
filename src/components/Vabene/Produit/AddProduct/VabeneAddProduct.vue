@@ -135,8 +135,40 @@
                   label="name"
                   :reduce="categorie => categorie.id"
                   placeholder="Selectionner une categorie"
+                  @input="onCategoryChange"
               />
             </div>
+          </div>
+
+          <!-- Ingrédients de base pour Pizza -->
+          <div class="col-md-12" v-if="isPizzaCategory">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Ingrédients de base *
+              </label>
+              <button class="btn btn-outline-warning"
+                      type="button" 
+                      data-bs-toggle="modal" 
+                      data-bs-target="#contentModalScrollable_pizzaIngredients"
+              >
+                {{ actionDetected === 'edit' ? 'Mettre à jour ingrédients' : 'Ajouter des ingrédients de base' }}
+              </button>
+            </div>
+          <div class="mt-2">
+            <div v-if="allPizzaIngredients.length > 0" class="d-flex flex-wrap gap-1">
+              <span
+                  v-for="ingredient in allPizzaIngredients"
+                  :key="ingredient.id"
+                  class="badge bg-warning text-dark px-2 py-1 rounded-pill"
+                  style="font-size: 0.75rem;"
+              >
+                {{ ingredient.name }}
+              </span>
+            </div>
+            <span v-else class="text-muted small">
+              Aucun ingrédient sélectionné
+            </span>
+          </div>
           </div>
           <div class="col-md-12">
             <div class="form-group mb-15 mb-sm-20 mb-md-25">
@@ -417,7 +449,92 @@
       </div>
     </div>
 
-
+    <!-- Modal pour les ingrédients de base de la pizza -->
+    <div class="modal fade" id="contentModalScrollable_pizzaIngredients" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content flex-column justify-content-center">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5">Sélectionner les ingrédients de base de la pizza</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="flex-column">
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="form-group mb-15 mb-sm-20 mb-md-25">
+                    <label class="d-block text-black fw-semibold mb-10">
+                      Rechercher un ingrédient de base
+                    </label>
+                    <div class="position-relative">
+                      <input
+                          type="text"
+                          class="form-control shadow-none rounded-0 text-black"
+                          placeholder="Tapez pour rechercher un ingrédient..."
+                          v-model="searchIngredientQuery"
+                          @input="searchIngredients"
+                      />
+                      <i class="fas fa-search position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
+                    </div>
+                    <div v-if="searchResults.length > 0" class="mt-2">
+                      <div class="list-group">
+                        <button
+                            v-for="ingredient in searchResults"
+                            :key="ingredient.id"
+                            type="button"
+                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                            @click="selectIngredientFromSearch(ingredient)"
+                        >
+                          <span>{{ ingredient.name }}</span>
+                          <i class="fas fa-plus text-success"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div v-else-if="searchIngredientQuery && !isSearching" class="mt-2 text-muted">
+                      <small>Aucun ingrédient trouvé pour "{{ searchIngredientQuery }}"</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Affichage des ingrédients sélectionnés sous forme de badges -->
+              <div class="mt-3">
+                <label class="d-block text-black fw-semibold mb-10">
+                  Ingrédients sélectionnés
+                </label>
+                <div v-if="allPizzaIngredients && allPizzaIngredients.length > 0" class="d-flex flex-wrap gap-2">
+                  <span
+                      v-for="ingredient in allPizzaIngredients"
+                      :key="ingredient.id"
+                      class="badge bg-primary text-white d-flex align-items-center gap-2 px-3 py-2 rounded-pill"
+                      style="font-size: 0.875rem;"
+                  >
+                    {{ ingredient.name }}
+                    <button
+                        @click="removePizzaIngredient(ingredient)"
+                        type="button"
+                        class="btn-close btn-close-white"
+                        style="font-size: 0.6rem; margin-left: 0.25rem;"
+                        aria-label="Retirer l'ingrédient"
+                    ></button>
+                  </span>
+                </div>
+                <div v-else class="text-muted">
+                  <small>Aucun ingrédient sélectionné</small>
+                </div>
+              </div>
+              <div class="d-flex justify-content-center align-items-center mt-8">
+                <button @click="validatePizzaIngredients" 
+                        class="btn btn-primary btn-sm" 
+                        type="button"
+                        data-bs-dismiss="modal" 
+                        aria-label="Close">
+                  Valider
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div>
 </template>
@@ -432,7 +549,7 @@ import {
   detailIngredient, detailProduct, listeCategorieActive, removeVariationProduct,
   updateCategorie,
   updateIngredient, updateProduct, updateVariationProduct,
-  uploadFile
+  uploadFile, listeIngredient, listeIngredientBase
 } from "@/service/api";
 
 import {useToast} from "vue-toastification";
@@ -442,6 +559,7 @@ import {ApiResponse, PaginatedCategorie, PaginatedIngredient} from "@/models/Api
 import {CategorieModel} from "@/models/categorie.model";
 import {ActionCrud} from "@/enums/actionCrud.enum";
 import {IngredientModel} from "@/models/ingredient.model";
+import {IngredientBaseModel} from "@/models/ingredientBase.model";
 import {ProductSizesModel} from "@/models/productSizes.model";
 import {ProductModel} from "@/models/product.model";
 import EmptyTable from "@/components/Vabene/EmptyTable/EmptyTable.vue";
@@ -470,7 +588,6 @@ export default defineComponent({
       ingredientSelected: null as IngredientModel | null,
       ingredientResponse: null as ApiResponse<PaginatedIngredient> | null,
       originalIngredients: [] as IngredientModel[], // Stockage des utilisateurs originaux
-      searchIngredientQuery: '', // Ajout du champ de recherche
       additionalNote: [] as string[],
       addtionPointrineDine: false as boolean,
       deleteAllOptions: false as boolean,
@@ -484,7 +601,7 @@ export default defineComponent({
         additionnal: [] as string[],
         categorieID: '',
         image_urls: [] as string[],
-        ingredients: [],
+        ingredients: [] as string[],
         cookingTime: 0 as number,
         variationsProduct: [],
         ordered: ''
@@ -501,7 +618,15 @@ export default defineComponent({
         generalDescription: '',
         price: "",
         priceLivraison: ""
-      }
+      },
+      // Propriétés pour les ingrédients de pizza
+      allPizzaIngredients: [] as IngredientBaseModel[],
+      selectedIngredient: null as IngredientBaseModel | null,
+      availableIngredients: [] as IngredientBaseModel[],
+      searchIngredientQuery: '',
+      searchResults: [] as IngredientBaseModel[],
+      isSearching: false,
+      searchTimeout: null as NodeJS.Timeout | null
     }
   },
   methods: {
@@ -671,7 +796,7 @@ export default defineComponent({
         additionnal: [] as string[],
         categorieID: '',
         image_urls: [] as string[],
-        ingredients: [],
+        ingredients: [] as string[],
         cookingTime: 0 as number,
         variationsProduct: [],
         ordered: ''
@@ -692,6 +817,7 @@ export default defineComponent({
           "categorieID": this.productData.categorieID,
           "image_urls": this.productData.image_urls,
           "ingredients": this.productData.ingredients,
+          "ingredientsBase": this.productData.ingredients, // Ajout des ingrédients de base
           "cookingTime": parseFloat(String(this.productData.cookingTime)),
           "variationsProduct": this.productData.variationsProduct,
           "longDescription": this.productData.longDescription,
@@ -733,7 +859,7 @@ export default defineComponent({
             this.productData.name = this.productResponse.name;
             this.productData.type = this.productResponse.type;
             this.productData.description = this.productResponse.description;
-            this.productData.ingredients = [];
+            this.productData.ingredients = this.productResponse.Ingredients?.map(ing => ing.id) || [];
             this.productData.image_urls = this.productResponse.image_urls;
             this.productData.cookingTime = this.productResponse.cookingTime;
             this.productData.categorieID = this.productResponse.categorieID.id;
@@ -770,6 +896,11 @@ export default defineComponent({
                 description: ps.generalDescription ?? ps.description,
               }));
             }
+
+            // Charger les ingrédients de base existants si c'est une pizza
+            if (this.isPizzaCategory && this.productResponse.Ingredients && this.productResponse.Ingredients.length > 0) {
+              await this.loadExistingPizzaIngredients(this.productResponse.Ingredients.map(ing => ing.id));
+            }
           }
         } else {
           this.toast.error(response.message);
@@ -790,6 +921,7 @@ export default defineComponent({
         "categorieID": this.productData.categorieID,
         "image_urls": this.productData.image_urls,
         "ingredients": this.productData.ingredients,
+        "ingredientsBase": this.productData.ingredients, // Ajout des ingrédients de base
         "cookingTime": parseFloat(String(this.productData.cookingTime)),
         "longDescription": this.productData.longDescription,
         "additionnal": this.deleteAllOptions ? [] : this.additionalNote,
@@ -990,6 +1122,107 @@ export default defineComponent({
       }
 
       return true;
+    },
+
+    // Méthodes pour gérer les ingrédients de pizza
+    onCategoryChange(categoryId: string) {
+      // Vérifier si la catégorie sélectionnée est "Pizza"
+      const selectedCategory = this.originalCategories.find(cat => cat.id === categoryId);
+      if (selectedCategory && selectedCategory.name.toLowerCase() === 'pizza') {
+        this.loadAvailableIngredients();
+      }
+    },
+
+    async loadAvailableIngredients() {
+      try {
+        // Charger les ingrédients de base depuis l'API
+        const response = await listeIngredientBase(1) as ApiResponse<IngredientBaseModel[]>;
+        if (response.code === 200 && response.data) {
+          this.availableIngredients = response.data;
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des ingrédients de base:', error);
+        this.toast.error('Erreur lors du chargement des ingrédients de base');
+      }
+    },
+
+    async searchIngredients() {
+      if (this.searchTimeout) {
+        clearTimeout(this.searchTimeout);
+      }
+
+      this.searchTimeout = setTimeout(async () => {
+        if (this.searchIngredientQuery.trim().length < 2) {
+          this.searchResults = [];
+          return;
+        }
+
+        this.isSearching = true;
+        try {
+          const response = await listeIngredientBase(1, this.searchIngredientQuery.trim()) as ApiResponse<IngredientBaseModel[]>;
+          if (response.code === 200 && response.data) {
+            this.searchResults = response.data;
+          } else {
+            this.searchResults = [];
+          }
+        } catch (error) {
+          console.error('Erreur lors de la recherche:', error);
+          this.searchResults = [];
+        } finally {
+          this.isSearching = false;
+        }
+      }, 300);
+    },
+
+    selectIngredientFromSearch(ingredient: IngredientBaseModel) {
+      // Vérifier si l'ingrédient n'est pas déjà ajouté
+      const alreadyExists = this.allPizzaIngredients.some(
+        ing => ing.id === ingredient.id
+      );
+
+      if (alreadyExists) {
+        this.toast.warning('Cet ingrédient est déjà ajouté');
+        return;
+      }
+
+      this.allPizzaIngredients.push(ingredient);
+      this.searchIngredientQuery = '';
+      this.searchResults = [];
+      this.toast.success('Ingrédient ajouté avec succès');
+    },
+
+    removePizzaIngredient(ingredient: IngredientBaseModel) {
+      const index = this.allPizzaIngredients.findIndex(
+        ing => ing.id === ingredient.id
+      );
+      if (index !== -1) {
+        this.allPizzaIngredients.splice(index, 1);
+        this.toast.success('Ingrédient retiré avec succès');
+      }
+    },
+
+    validatePizzaIngredients() {
+      // Sauvegarder les ingrédients de base dans productData
+      this.productData.ingredients = this.allPizzaIngredients.map(ing => ing.id).filter(id => id !== undefined) as string[];
+      this.toast.success('Ingrédients de base validés');
+    },
+
+    async loadExistingPizzaIngredients(ingredientIds: string[]) {
+      try {
+        // Charger les détails des ingrédients de base existants
+        const existingIngredients: IngredientBaseModel[] = [];
+        for (const id of ingredientIds) {
+          // Chercher dans les ingrédients de base disponibles
+          const ingredient = this.availableIngredients.find(ing => ing.id === id);
+          if (ingredient) {
+            existingIngredients.push(ingredient);
+          }
+        }
+        this.allPizzaIngredients = existingIngredients;
+      } catch (error) {
+        console.error('Erreur lors du chargement des ingrédients existants:', error);
+        this.toast.error('Erreur lors du chargement des ingrédients existants');
+      }
     }
 
   },
@@ -1004,6 +1237,11 @@ export default defineComponent({
             (ingredient.name?.toLowerCase().includes(query))
         );
       });
+    },
+    isPizzaCategory() {
+      if (!this.productData.categorieID) return false;
+      const selectedCategory = this.originalCategories.find(cat => cat.id === this.productData.categorieID);
+      return selectedCategory && selectedCategory.name.toLowerCase() === 'pizza';
     },
     isFormValid() {
       return (
@@ -1032,6 +1270,7 @@ export default defineComponent({
       this.fetchDetailProduct((this as any).$route.params.productID)
     }
     this.fetchCategories(1)
+    this.loadAvailableIngredients() // Charger les ingrédients au démarrage
   }
 
 });

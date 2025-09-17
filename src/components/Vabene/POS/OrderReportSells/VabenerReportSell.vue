@@ -419,7 +419,6 @@ export default defineComponent({
       if (this.refreshInterval) {
         clearInterval(this.refreshInterval)
         this.refreshInterval = null
-        console.log('⏹️ Arrêt du rechargement automatique')
       }
     },
     async refreshData() {
@@ -434,7 +433,6 @@ export default defineComponent({
           await this.getReportAdmin(this.restaurantIdStorage ?? undefined)
         }
         await this.getPeriodiqueReport()
-        console.log('✅ Données de rapport rechargées avec succès')
       } catch (error) {
         console.error('❌ Erreur lors du rechargement des données:', error)
       }

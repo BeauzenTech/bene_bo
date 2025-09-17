@@ -789,13 +789,10 @@ const loadRestaurantMinOrder = async () => {
 
 const disableMinOrder = () => {
   restaurantMinOrder.value = 0
-  console.log('🚫 Montant minimum désactivé par l\'utilisateur')
 }
 
 const enableMinOrder = async () => {
-  console.log('✅ Réactivation du montant minimum...')
   await loadRestaurantMinOrder()
-  console.log('✅ Montant minimum réactivé:', restaurantMinOrder.value)
 }
 
 // Computed pour le supplément de montant minimum (livraison uniquement)
@@ -891,11 +888,11 @@ const getInvoiceNumber = (): string => {
 }
 
 const hasCustomIngredients = (item: CartItem): boolean => {
-  return item.ingredients.some(ing => !ing.isDefault && ing.quantity > 0)
+  return item.ingredients.some(ing => ing.quantity > 0)
 }
 
 const getCustomIngredients = (item: CartItem) => {
-  return item.ingredients.filter(ing => !ing.isDefault && ing.quantity > 0)
+  return item.ingredients.filter(ing => ing.quantity > 0)
 }
 
 const getPaymentIcon = (iconName: string): string => {

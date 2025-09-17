@@ -49,7 +49,7 @@
         </div>
 
         <!-- Mode de personnalisation -->
-        <div class="customize-mode">
+        <!-- <div class="customize-mode">
           <button :class="['mode-btn', { active: customizeMode === 'add' }]" @click="customizeMode = 'add'">
             <i class="fas fa-plus"></i>
             Ajouter
@@ -58,7 +58,7 @@
             <i class="fas fa-minus"></i>
             Retirer
           </button>
-        </div>
+        </div> -->
 
         <!-- Sections d'ingrédients -->
         <div class="ingredients-container">
@@ -88,7 +88,21 @@
                 </div>
                 <span class="ingredient-name">{{ ingredient.name }}</span>
                 <span v-if="ingredient.isDefault" class="ingredient-price default-price">Inclus</span>
-                <div class="ingredient-controls">
+                
+                <!-- Contrôles pour les ingrédients de base (croix de retrait) -->
+                <div v-if="ingredient.isDefault" class="ingredient-base-controls">
+                  <button @click.stop="removeBaseIngredient(ingredient)" 
+                    @mousedown.stop
+                    @mouseup.stop
+                    class="remove-base-btn"
+                    title="Retirer cet ingrédient"
+                    style="z-index: 1000; position: relative;">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                
+                <!-- Contrôles pour les autres ingrédients (quantité) -->
+                <div v-else class="ingredient-controls">
                   <button @click.stop="decrementIngredient(ingredient)" :disabled="getIngredientQuantity(ingredient.id) <= 0"
                     style="display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; color: white; font-size: .6rem; font-weight: 600; cursor: pointer;">
                     ➖
@@ -149,6 +163,7 @@ const selectedSize = ref<ProductSize | null>(null);
 const quantity = ref(1);
 const customIngredients = ref<Record<string, number>>({});
 const customizeMode = ref<'add' | 'remove'>('add');
+const removedBaseIngredients = ref<Set<string>>(new Set());
 
 // Fonctions utilitaires
 const formatPrice = (price: number): string => `${price.toFixed(2)} CHF`;
@@ -173,15 +188,45 @@ const selectSize = (size: ProductSize) => {
 };
 
 // Logique des ingrédients
+const baseIngredients = computed(() => {
+  // Récupérer les ingrédients de base depuis ingredientsBaseNames
+  const product = props.product as any;
+  if (product?.ingredientsBaseNames && product.ingredientsBaseNames.length > 0) {
+    
+    // Créer des objets ingrédients à partir des noms
+    const baseIngs = product.ingredientsBaseNames.map((name: string, index: number) => ({
+      id: `base-${index}`,
+      name: name,
+      isDefault: true,
+      isAvailable: true,
+      price: 0,
+      type: 'Base',
+      image: '/images/ingredients/default.png',
+      imageUrl: '/images/ingredients/default.png'
+    }));
+    
+    return baseIngs;
+  }
+  return [];
+});
+
 const groupedIngredients = computed(() => {
   const groups: Record<string, any[]> = {};
+  
+  // Ajouter d'abord les ingrédients de base dans le groupe "Base" (sauf ceux retirés)
+  if (baseIngredients.value.length > 0) {
+    const nonRemovedBaseIngredients = baseIngredients.value.filter(ing => !removedBaseIngredients.value.has(ing.id));
+
+    if (nonRemovedBaseIngredients.length > 0) {
+      groups['Base'] = nonRemovedBaseIngredients;
+    }
+  }
   
   // Utiliser les ingrédients spécifiques du produit s'ils existent
   if (props.product?.ingredients && props.product.ingredients.length > 0) {
     props.product.ingredients
       .filter(ing => ing.isAvailable)
       .forEach(ing => {
-        // Déterminer le type d'ingrédient (par défaut 'ingredient' si pas de type)
         const type = (ing as any).type || 'ingredient';
         if (!groups[type]) {
           groups[type] = [];
@@ -204,6 +249,11 @@ const groupedIngredients = computed(() => {
 });
 
 const getIngredientQuantity = (ingredientId: string): number => {
+  // Pour les ingrédients de base, la quantité par défaut est 1
+  if (ingredientId.startsWith('base-')) {
+    return customIngredients.value[ingredientId] || 1;
+  }
+  // Pour les autres ingrédients, la quantité par défaut est 0
   return customIngredients.value[ingredientId] || 0;
 };
 
@@ -224,11 +274,35 @@ const toggleIngredient = (ingredient: any) => {
 
   if (customizeMode.value === 'add') {
     // Mode ajouter : ajouter l'ingrédient s'il n'est pas déjà présent
-    customIngredients.value[ingredient.id] = currentQty > 0 ? currentQty : 1;
+    if (ingredient.isDefault) {
+      // Pour les ingrédients de base, on ajoute 1 à la quantité par défaut
+      customIngredients.value[ingredient.id] = currentQty + 1;
+    } else {
+      // Pour les autres ingrédients, on ajoute 1
+      customIngredients.value[ingredient.id] = currentQty > 0 ? currentQty + 1 : 1;
+    }
   } else {
     // Mode retirer : retirer l'ingrédient (même les ingrédients par défaut)
-    customIngredients.value[ingredient.id] = 0;
+    if (ingredient.isDefault) {
+      // Pour les ingrédients de base, on peut les retirer complètement
+      customIngredients.value[ingredient.id] = 0;
+    } else {
+      // Pour les autres ingrédients, on les retire
+      customIngredients.value[ingredient.id] = 0;
+    }
   }
+};
+
+const removeBaseIngredient = (ingredient: any) => {
+  
+  // Ajouter l'ID de l'ingrédient à la liste des ingrédients retirés
+  if (ingredient.isDefault) {
+    removedBaseIngredients.value.add(ingredient.id);
+    
+    // Supprimer complètement l'ingrédient de customIngredients au lieu de mettre à 0
+    delete customIngredients.value[ingredient.id];
+  }
+  
 };
 
 // Logique des prix
@@ -305,15 +379,46 @@ const handleAddToCart = () => {
   // Le store cart se chargera de calculer le bon prix selon le type de commande
   const sizeWithOriginalPrices = {
     ...selectedSize.value,
-    // Garder les prix originaux intacts
     price: selectedSize.value.price,
     priceLivraison: selectedSize.value.priceLivraison
   }
 
 
-  const finalIngredients: CartIngredient[] = Object.entries(customIngredients.value)
-    .filter(([, quantity]) => quantity > 0)
-    .map(([id, quantity]) => {
+  // Créer la liste finale des ingrédients
+  const finalIngredients: CartIngredient[] = [];
+  
+  const sizeMap: Record<string, '24cm' | '28cm' | '33cm' | '40cm'> = {
+    'Petite': '24cm',
+    'Normale': '33cm',
+    'Grande': '40cm',
+    'Unique (28cm)': '28cm'
+  };
+  const currentSizeInCm = sizeMap[selectedSize.value!.name] || '33cm';
+  
+  if (baseIngredients.value.length > 0) {
+    const nonRemovedBaseIngredients = baseIngredients.value.filter(ing => !removedBaseIngredients.value.has(ing.id));
+
+    nonRemovedBaseIngredients.forEach(ing => {
+      const quantity = customIngredients.value[ing.id] || 1; // Quantité par défaut = 1
+ 
+      finalIngredients.push({
+        id: ing.id,
+        name: ing.name,
+        extra_cost_price: 0, // Les ingrédients de base sont gratuits
+        quantity: quantity,
+        isDefault: ing.isDefault || false,
+        size: currentSizeInCm
+      });
+    });
+  }
+ 
+  // 2. Ajouter les autres ingrédients sélectionnés
+  Object.entries(customIngredients.value)
+    .filter(([id, quantity]) => {
+      // Exclure les ingrédients de base (ils sont déjà traités ci-dessus)
+      return quantity > 0 && !id.startsWith('base-');
+    })
+    .forEach(([id, quantity]) => {
       // Chercher l'ingrédient dans les ingrédients du produit d'abord
       let ingredientInfo: any = props.product!.ingredients?.find(i => i.id === id);
       
@@ -321,15 +426,6 @@ const handleAddToCart = () => {
       if (!ingredientInfo) {
         ingredientInfo = INGREDIENTS_WITH_PRICING.find(i => i.id === id);
       }
-
-      // Mapping des tailles vers la notation en cm
-      const sizeMap: Record<string, '24cm' | '28cm' | '33cm' | '40cm'> = {
-        'Petite': '24cm',
-        'Normale': '33cm',
-        'Grande': '40cm',
-        'Unique (28cm)': '28cm'
-      };
-      const currentSizeInCm = sizeMap[selectedSize.value!.name] || '33cm';
       
       // Calculer le prix selon le type d'ingrédient
       let extraCostPrice = 0;
@@ -340,16 +436,17 @@ const handleAddToCart = () => {
           extraCostPrice = (ingredientInfo as any).pricing[currentSizeInCm] || 0;
         }
       }
-      
-      return {
+
+      finalIngredients.push({
         id: ingredientInfo?.id || id,
         name: ingredientInfo?.name || 'Ingrédient inconnu',
         extra_cost_price: extraCostPrice,
         quantity,
         isDefault: ingredientInfo?.isDefault || false,
         size: currentSizeInCm
-      };
+      });
     });
+
 
   const event: AddToCartEvent = {
     product: props.product,
@@ -694,6 +791,36 @@ watch(() => props.product, (newProduct) => {
       border-radius: 50%;
       background: white;
       cursor: pointer;
+    }
+  }
+
+  .ingredient-base-controls {
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  .remove-base-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #c82333;
+      transform: scale(1.1);
+    }
+
+    &:active {
+      transform: scale(0.95);
     }
   }
 }

@@ -15,6 +15,7 @@ import {CouponModel} from "@/models/coupon.model";
 import {RestaurantCategoryModel} from "@/models/restaurantCategory.model";
 import {RestaurantProductModel} from "@/models/RestaurantProduct.model";
 import {ProgrammeModel} from "@/models/programme.model";
+import {IngredientBaseModel} from "@/models/ingredientBase.model";
 
 export class ApiResponse<T> {
     code?: number;
@@ -197,4 +198,12 @@ export interface PaginatedProgramme {
         total_pages: number;
         items_per_page: number;
     };
+}
+
+export interface PaginatedIngredientBase {
+    items: IngredientBaseModel[];
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
 }

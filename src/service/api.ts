@@ -29,6 +29,7 @@ import {RatioModel} from "@/models/ratio.model";
 import {ProgrammeModel} from "@/models/programme.model";
 import {ImpressionModel} from "@/models/impression.model";
 import {CouponModel} from "@/models/coupon.model";
+import { CreateIngredientBaseRequest, IngredientBaseModel, UpdateIngredientBaseRequest } from "@/models/ingredientBase.model";
 
 const apiClient = axios.create({
     baseURL: apiConfig.baseURL,
@@ -817,7 +818,7 @@ export const createIngredient = async (ingredientData): Promise<ApiResponse<any>
 export const listeIngredient = async (page = 1, usePagination: string): Promise<ApiResponse<PaginatedIngredient>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/v1/add/ingredient/filter/all/${usePagination}?page=${page}`);
+        const response = await apiClient.get(`/v1/ingredients-base?page=${page}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
@@ -1379,7 +1380,11 @@ export const tauxCommandeCategorie = async (
     orderType: string,
 ): Promise<ApiResponse<RatioModel>> => {
     try {
-        const url = `/v1/report_sale/tauxcommande/${categoryID}/${startDate}/${endDate}/${restaurantID}/${paymentMethode}/${orderType}`;
+        // Nettoyer les dates en remplaçant les espaces par des tirets et en supprimant les secondes
+        const cleanStartDate = startDate.replace(/\s/g, '-').replace(/:\d{2}$/, '');
+        const cleanEndDate = endDate.replace(/\s/g, '-').replace(/:\d{2}$/, '');
+        
+        const url = `/v1/report_sale/tauxcommande/${categoryID}/${cleanStartDate}/${cleanEndDate}/${restaurantID}/${paymentMethode}/${orderType}`;
         const response = await apiClient.get(url);
 
         return new ApiResponse(
@@ -1391,6 +1396,7 @@ export const tauxCommandeCategorie = async (
         throw error;
     }
 };
+
 
 /* eslint-disable */
 export const nombreCommandeParProduct = async (
@@ -1459,6 +1465,109 @@ export const deleteFileUpload = async (public_idData): Promise<ApiResponse<void>
         return response.data;
     } catch (error) {
         console.error('Erreur lors de la suppression du fichier uploader', error);
+        throw error;
+    }
+};
+
+export const calculateMinimumAmount = async (codePostal: string,localite: string, restaurantId: string): Promise<ApiResponse<any>> => {
+    try {
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.get(`/v1/zone/calculate-minimum-amount?codePostal=${codePostal}&localite=${localite}&restaurantId=${restaurantId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Erreur lors du calcul du minimum de commande', error);
+        throw error;
+    }
+};
+
+// ==================== INGRÉDIENTS DE BASE ====================
+
+/* eslint-disable */
+export const listeIngredientBase = async (
+    page: number = 1,
+    search?: string
+): Promise<ApiResponse<IngredientBaseModel[]>> => {
+    try {
+        let url = `/v1/ingredients-base?page=${page}`;
+        if (search) {
+            url += `&search=${encodeURIComponent(search)}`;
+        }
+        const response = await apiClient.get(url);
+
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const detailIngredientBase = async (
+    ingredientBaseID: string
+): Promise<ApiResponse<IngredientBaseModel>> => {
+    try {
+        const url = `/v1/ingredients-base/${ingredientBaseID}`;
+        const response = await apiClient.get(url);
+
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const createIngredientBase = async (
+    payload: CreateIngredientBaseRequest
+): Promise<ApiResponse<IngredientBaseModel>> => {
+    try {
+        const url = `/v1/ingredients-base`;
+        const response = await apiClient.post(url, payload);
+
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const updateIngredientBase = async (
+    ingredientBaseID: string,
+    payload: UpdateIngredientBaseRequest
+): Promise<ApiResponse<IngredientBaseModel>> => {
+    try {
+        const url = `/v1/ingredients-base/${ingredientBaseID}`;
+        const response = await apiClient.put(url, payload);
+
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const deleteIngredientBase = async (
+    ingredientBaseID: string
+): Promise<ApiResponse<void>> => {
+    try {
+        const url = `/v1/ingredients-base/${ingredientBaseID}`;
+        const response = await apiClient.delete(url);
+
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
         throw error;
     }
 };

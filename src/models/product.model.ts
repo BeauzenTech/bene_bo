@@ -22,4 +22,5 @@ export interface ProductModel {
     isSelected: boolean;
     created_at: string;
     ordered: string;
+    ingredientsBaseNames?: string[];
 }
