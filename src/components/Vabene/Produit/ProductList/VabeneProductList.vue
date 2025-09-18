@@ -4,7 +4,7 @@
         class="card-head box-shadow bg-white d-lg-flex align-items-center justify-content-between p-15 p-sm-20 p-md-25"
     >
       <div class="d-sm-flex align-items-center">
-        <Button  v-if="userRole === UserRole.FRANCHISE"
+        <button  v-if="userRole === UserRole.FRANCHISE"
             @click="gotoCreate"
             class="default-btn position-relative transition border-0 fw-medium text-white pt-11 pb-11 ps-25 pe-25 pt-md-12 pb-md-12 ps-md-30 pe-md-30 rounded-1 bg-success fs-md-15 fs-lg-16 d-inline-block me-10 mb-10 mb-lg-0"
             type="button"
@@ -13,7 +13,7 @@
 
              Ajouter
 
-        </Button>
+        </button>
         <div class="col-md-12">
           <div class="form-group   position-relative transition">
             <v-select

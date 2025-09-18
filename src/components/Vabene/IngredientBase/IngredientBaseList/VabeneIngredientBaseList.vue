@@ -4,14 +4,14 @@
         class="card-head box-shadow bg-white d-lg-flex align-items-center justify-content-between p-15 p-sm-20 p-md-25"
     >
       <div class="d-sm-flex align-items-center">
-        <Button
+        <button
             @click="gotoCreate"
             class="default-btn position-relative transition border-0 fw-medium text-white pt-11 pb-11 ps-25 pe-25 pt-md-12 pb-md-12 ps-md-30 pe-md-30 rounded-1 bg-success fs-md-15 fs-lg-16 d-inline-block me-10 mb-10 mb-lg-0"
             type="button"
         >
           Ajouter un ingrédient de base
           <i class="flaticon-plus position-relative ms-5 fs-12"></i>
-        </Button>
+        </button>
       </div>
       <div class="d-flex align-items-center">
         <form class="search-box position-relative me-15" @submit.prevent>

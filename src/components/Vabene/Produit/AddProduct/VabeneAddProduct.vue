@@ -159,10 +159,17 @@
               <span
                   v-for="ingredient in allPizzaIngredients"
                   :key="ingredient.id"
-                  class="badge bg-warning text-dark px-2 py-1 rounded-pill"
+                  class="badge bg-warning text-dark px-2 py-1 rounded-pill d-flex align-items-center gap-1"
                   style="font-size: 0.75rem;"
               >
                 {{ ingredient.name }}
+                <button
+                    @click="removePizzaIngredient(ingredient)"
+                    type="button"
+                    class="btn-close btn-close-dark"
+                    style="font-size: 0.5rem; margin-left: 0.25rem;"
+                    aria-label="Retirer l'ingrédient"
+                ></button>
               </span>
             </div>
             <span v-else class="text-muted small">
@@ -601,7 +608,8 @@ export default defineComponent({
         additionnal: [] as string[],
         categorieID: '',
         image_urls: [] as string[],
-        ingredients: [] as string[],
+        ingredients: [] as string[], // Ingrédients normaux
+        ingredientsBase: [] as string[], // Ingrédients de base spécifiques (ex: pour pizza)
         cookingTime: 0 as number,
         variationsProduct: [],
         ordered: ''
@@ -796,7 +804,8 @@ export default defineComponent({
         additionnal: [] as string[],
         categorieID: '',
         image_urls: [] as string[],
-        ingredients: [] as string[],
+        ingredients: [] as string[], // Ingrédients normaux
+        ingredientsBase: [] as string[], // Ingrédients de base spécifiques (ex: pour pizza)
         cookingTime: 0 as number,
         variationsProduct: [],
         ordered: ''
@@ -810,6 +819,10 @@ export default defineComponent({
     },
     async createNewProduct() {
         this.isLoading = true;
+        
+        // Filtrer les IDs temporaires pour la création aussi
+        const validIngredientsBaseIds = (this.productData.ingredientsBase || []).filter(id => !id.startsWith('temp-'));
+        
         const payload = {
           "type": this.productData.type,
           "name": this.productData.name,
@@ -817,7 +830,7 @@ export default defineComponent({
           "categorieID": this.productData.categorieID,
           "image_urls": this.productData.image_urls,
           "ingredients": this.productData.ingredients,
-          "ingredientsBase": this.productData.ingredients, // Ajout des ingrédients de base
+          "ingredientsBase": validIngredientsBaseIds, // Seulement les IDs valides (pas les temp-)
           "cookingTime": parseFloat(String(this.productData.cookingTime)),
           "variationsProduct": this.productData.variationsProduct,
           "longDescription": this.productData.longDescription,
@@ -897,9 +910,24 @@ export default defineComponent({
               }));
             }
 
-            // Charger les ingrédients de base existants si c'est une pizza
-            if (this.isPizzaCategory && this.productResponse.Ingredients && this.productResponse.Ingredients.length > 0) {
-              await this.loadExistingPizzaIngredients(this.productResponse.Ingredients.map(ing => ing.id));
+            // Charger les ingrédients de base existants
+            if (this.productResponse.ingredientsBaseNames && this.productResponse.ingredientsBaseNames.length > 0) {
+              // Charger les noms des ingrédients de base pour l'affichage
+              this.allPizzaIngredients = this.productResponse.ingredientsBaseNames.map((name, index) => {
+                const baseIngredient = this.productResponse?.ingredientsBase?.[index];
+                return {
+                  id: baseIngredient?.id || `temp-${index}`,
+                  name: name,
+                  created_at: baseIngredient?.created_at || new Date().toISOString()
+                };
+              });
+              
+              // Charger les IDs des ingrédients de base dans productData.ingredientsBase
+              // Maintenant on utilise les vrais IDs du serveur
+              this.productData.ingredientsBase = this.productResponse.ingredientsBase
+                ?.map(ingredient => ingredient.id)
+                .filter((id): id is string => id !== undefined) || [];
+              
             }
           }
         } else {
@@ -914,6 +942,12 @@ export default defineComponent({
     },
     async updateProduct(productID) {
       this.isLoading = true;
+      
+      // Utiliser directement les IDs des ingrédients actuellement visibles dans l'interface
+      // productData.ingredientsBase est maintenant mis à jour en temps réel
+      const validIngredientsBaseIds = (this.productData.ingredientsBase || [])
+        .filter(id => !id.startsWith('temp-')); // Filtrer les IDs temporaires si il y en a encore
+      
       const payload = {
         "type": this.productData.type,
         "name": this.productData.name,
@@ -921,7 +955,7 @@ export default defineComponent({
         "categorieID": this.productData.categorieID,
         "image_urls": this.productData.image_urls,
         "ingredients": this.productData.ingredients,
-        "ingredientsBase": this.productData.ingredients, // Ajout des ingrédients de base
+        "ingredientsBase": validIngredientsBaseIds, // IDs des ingrédients de base (existants + nouveaux)
         "cookingTime": parseFloat(String(this.productData.cookingTime)),
         "longDescription": this.productData.longDescription,
         "additionnal": this.deleteAllOptions ? [] : this.additionalNote,
@@ -1186,6 +1220,11 @@ export default defineComponent({
       }
 
       this.allPizzaIngredients.push(ingredient);
+      
+      // Mettre à jour productData.ingredientsBase avec le nouvel ingrédient
+      const currentIngredientIds = this.allPizzaIngredients.map(ing => ing.id).filter(id => id !== undefined) as string[];
+      this.productData.ingredientsBase = currentIngredientIds;
+      
       this.searchIngredientQuery = '';
       this.searchResults = [];
       this.toast.success('Ingrédient ajouté avec succès');
@@ -1197,18 +1236,35 @@ export default defineComponent({
       );
       if (index !== -1) {
         this.allPizzaIngredients.splice(index, 1);
+        
+        // Retirer l'ingrédient de productData.ingredientsBase
+        const currentIngredientIds = this.allPizzaIngredients.map(ing => ing.id).filter(id => id !== undefined) as string[];
+        this.productData.ingredientsBase = currentIngredientIds;
+        
         this.toast.success('Ingrédient retiré avec succès');
       }
     },
 
     validatePizzaIngredients() {
-      // Sauvegarder les ingrédients de base dans productData
-      this.productData.ingredients = this.allPizzaIngredients.map(ing => ing.id).filter(id => id !== undefined) as string[];
+      // Sauvegarder les ingrédients de base dans productData.ingredientsBase
+      // Préserver les ingrédients existants et ajouter les nouveaux
+      const currentIngredientIds = this.allPizzaIngredients.map(ing => ing.id).filter(id => id !== undefined) as string[];
+      const existingIngredientIds = this.productData.ingredientsBase || [];
+      
+      // Fusionner les ingrédients existants avec les nouveaux (sans doublons)
+      const allIngredientIds = [...new Set([...existingIngredientIds, ...currentIngredientIds])];
+      this.productData.ingredientsBase = allIngredientIds;
+      
       this.toast.success('Ingrédients de base validés');
     },
 
     async loadExistingPizzaIngredients(ingredientIds: string[]) {
       try {
+        // S'assurer que les ingrédients de base sont chargés
+        if (this.availableIngredients.length === 0) {
+          await this.loadAvailableIngredients();
+        }
+        
         // Charger les détails des ingrédients de base existants
         const existingIngredients: IngredientBaseModel[] = [];
         for (const id of ingredientIds) {

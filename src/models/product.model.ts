@@ -23,4 +23,8 @@ export interface ProductModel {
     created_at: string;
     ordered: string;
     ingredientsBaseNames?: string[];
+    ingredientsBase?: Array<{
+        id?: string;
+        created_at?: string;
+    }>;
 }

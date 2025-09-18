@@ -1282,12 +1282,14 @@ export const listeCustomers = async (
 ): Promise<ApiResponse<PaginatedCustomer>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        // L'interceptor ajoute automatiquement le header Authorization
+
+        const restaurant = restaurantId !== undefined ? restaurantId : 'all';
+
         const url = [
             `/v1/customer/all/${page}`,
-            restaurantId,
+            restaurant,
         ]
-            .filter(Boolean) // retire les undefined
+            .filter(Boolean)
             .join('/');
 
         // Construction des paramètres de requête

@@ -297,11 +297,12 @@ export default defineComponent({
         if(idResto){
           this.restaurantId = idResto;
         }
-        const response = await listeCustomers(page, '0', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
+        const response = await listeCustomers(page, '500', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
         if (response.code === 200) {
           if (response.data?.items) {
             const data = response.data.items;
             this.originalUsers = data.filter(item => item.user !== null && item.user.enableNotification  && item.user.deviceToken != null );
+         
           }
 
         } else {
@@ -317,7 +318,7 @@ export default defineComponent({
     async getCustomerByOption(idResto?: string) {
       this.isLoading = true;
       try {
-        const response = await listeCustomers(1, '0', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
+        const response = await listeCustomers(1, '500', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
         if (response.code === 200) {
           if (response.data?.items) {
             const data = response.data.items;
