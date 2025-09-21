@@ -254,6 +254,8 @@ const closePizzaModal = () => {
 }
 
 const handleAddToCart = (event: AddToCartEvent) => {
+ 
+  
   // Utiliser le bon prix selon le type de commande actuel
   const isDelivery = currentOrderType.value === 'delivery'
   const correctBasePrice = isDelivery && event.size.priceLivraison
@@ -270,6 +272,7 @@ const handleAddToCart = (event: AddToCartEvent) => {
     basePrice: correctBasePrice,
     totalPrice: calculateItemTotal(event),
     ingredients: event.ingredients || [],
+    removedIngredients: event.removedIngredients || [],
     supplements: event.supplements || [],
     additionnal: (event as any).additionnal || [],
     notes: event.notes || '',

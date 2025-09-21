@@ -67,6 +67,7 @@ export interface CartItem {
   basePrice: number;
   totalPrice: number;
   ingredients: CartIngredient[];
+  removedIngredients?: CartIngredient[];
   supplements: CartSupplement[];
   notes?: string;
   localProductId: string;
@@ -97,6 +98,7 @@ export interface AddToCartEvent {
   size: ProductSize;
   quantity: number;
   ingredients: CartIngredient[];
+  removedIngredients?: CartIngredient[];
   supplements: CartSupplement[];
   notes?: string;
   additionnal?: string[];

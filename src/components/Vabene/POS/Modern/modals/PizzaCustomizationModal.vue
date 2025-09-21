@@ -97,7 +97,7 @@
                     class="remove-base-btn"
                     title="Retirer cet ingrédient"
                     style="z-index: 1000; position: relative;">
-                    <i class="fas fa-times"></i>
+                    x
                   </button>
                 </div>
                 
@@ -213,7 +213,7 @@ const baseIngredients = computed(() => {
 const groupedIngredients = computed(() => {
   const groups: Record<string, any[]> = {};
   
-  // Ajouter d'abord les ingrédients de base dans le groupe "Base" (sauf ceux retirés)
+  // Si on a des ingrédients de base depuis la base de données, on les affiche dans le groupe "Base"
   if (baseIngredients.value.length > 0) {
     const nonRemovedBaseIngredients = baseIngredients.value.filter(ing => !removedBaseIngredients.value.has(ing.id));
 
@@ -222,28 +222,16 @@ const groupedIngredients = computed(() => {
     }
   }
   
-  // Utiliser les ingrédients spécifiques du produit s'ils existent
-  if (props.product?.ingredients && props.product.ingredients.length > 0) {
-    props.product.ingredients
-      .filter(ing => ing.isAvailable)
-      .forEach(ing => {
-        const type = (ing as any).type || 'ingredient';
-        if (!groups[type]) {
-          groups[type] = [];
-        }
-        groups[type].push(ing);
-      });
-  } else {
-    // Fallback vers INGREDIENTS_WITH_PRICING si pas d'ingrédients spécifiques
-    INGREDIENTS_WITH_PRICING
-      .filter(ing => ing.isAvailable)
-      .forEach(ing => {
-        if (!groups[ing.type]) {
-          groups[ing.type] = [];
-        }
-        groups[ing.type].push(ing);
-      });
-  }
+  // TOUJOURS ajouter les autres ingrédients de INGREDIENTS_WITH_PRICING (sauf les "Base")
+  // Que ce soit avec ou sans ingrédients de base spécifiques
+  INGREDIENTS_WITH_PRICING
+    .filter(ing => ing.isAvailable && ing.type !== 'Base')
+    .forEach(ing => {
+      if (!groups[ing.type]) {
+        groups[ing.type] = [];
+      }
+      groups[ing.type].push(ing);
+    });
   
   return groups;
 });
@@ -386,6 +374,7 @@ const handleAddToCart = () => {
 
   // Créer la liste finale des ingrédients
   const finalIngredients: CartIngredient[] = [];
+  const removedIngredients: CartIngredient[] = [];
   
   const sizeMap: Record<string, '24cm' | '28cm' | '33cm' | '40cm'> = {
     'Petite': '24cm',
@@ -395,24 +384,40 @@ const handleAddToCart = () => {
   };
   const currentSizeInCm = sizeMap[selectedSize.value!.name] || '33cm';
   
+  // 1. Traiter les ingrédients de base
   if (baseIngredients.value.length > 0) {
-    const nonRemovedBaseIngredients = baseIngredients.value.filter(ing => !removedBaseIngredients.value.has(ing.id));
-
-    nonRemovedBaseIngredients.forEach(ing => {
-      const quantity = customIngredients.value[ing.id] || 1; // Quantité par défaut = 1
- 
-      finalIngredients.push({
-        id: ing.id,
-        name: ing.name,
-        extra_cost_price: 0, // Les ingrédients de base sont gratuits
-        quantity: quantity,
-        isDefault: ing.isDefault || false,
-        size: currentSizeInCm
-      });
+    // Ingrédients de base retirés
+    removedBaseIngredients.value.forEach(removedId => {
+      const removedIngredient = baseIngredients.value.find(ing => ing.id === removedId);
+      if (removedIngredient) {
+        removedIngredients.push({
+          id: removedIngredient.id,
+          name: removedIngredient.name,
+          extra_cost_price: 0,
+          quantity: 1,
+          isDefault: true,
+          size: currentSizeInCm
+        });
+      }
     });
+
+    // Ingrédients de base conservés
+    // const nonRemovedBaseIngredients = baseIngredients.value.filter(ing => !removedBaseIngredients.value.has(ing.id));
+    // nonRemovedBaseIngredients.forEach(ing => {
+    //   const quantity = customIngredients.value[ing.id] || 1; // Quantité par défaut = 1
+ 
+    //   finalIngredients.push({
+    //     id: ing.id,
+    //     name: ing.name,
+    //     extra_cost_price: 0, // Les ingrédients de base sont gratuits
+    //     quantity: quantity,
+    //     isDefault: ing.isDefault || false,
+    //     size: currentSizeInCm
+    //   });
+    // });
   }
  
-  // 2. Ajouter les autres ingrédients sélectionnés
+  // 2. Ajouter les autres ingrédients sélectionnés (suppléments)
   Object.entries(customIngredients.value)
     .filter(([id, quantity]) => {
       // Exclure les ingrédients de base (ils sont déjà traités ci-dessus)
@@ -452,7 +457,8 @@ const handleAddToCart = () => {
     product: props.product,
     size: sizeWithOriginalPrices,  // ← Utiliser les prix originaux
     quantity: quantity.value,
-    ingredients: finalIngredients,
+    ingredients: finalIngredients,  // ← Ingrédients conservés/ajoutés (feature)
+    removedIngredients: removedIngredients,  // ← Ingrédients retirés
     supplements: [],
     notes: ''
   };

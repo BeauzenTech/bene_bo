@@ -164,6 +164,7 @@ const cart: Module<CartState, RootState> = {
     },
     
     async addToCart({ commit, dispatch }, { item }: { item: CartItem }) {
+      
       // IMPORTANT: Ne pas modifier les prix originaux de la taille
       // Garder les prix originaux (price et priceLivraison) intacts
       const originalSize = {

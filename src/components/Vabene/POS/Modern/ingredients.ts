@@ -9,33 +9,6 @@ export interface IngredientWithPricing extends Omit<Ingredient, 'price'> {
 // Liste complète des ingrédients avec leurs prix par taille
 export const INGREDIENTS_WITH_PRICING: IngredientWithPricing[] = [
     // Base offerte (prix 0 pour toutes les tailles)
-    {
-        id: "1",
-        name: "Sauce tomate",
-        pricing: { "24cm": 0, "33cm": 0, "40cm": 0 },
-        imageUrl: "/images/ingredients/sauce-tomate.png",
-        type: "base",
-        isDefault: true,
-        isAvailable: true,
-    },
-    {
-        id: "2",
-        name: "Mozzarella Fior di latte",
-        pricing: { "24cm": 0, "33cm": 0, "40cm": 0 },
-        imageUrl: "/images/ingredients/mozzarella.png",
-        type: "base",
-        isDefault: true,
-        isAvailable: true,
-    },
-    {
-        id: "23",
-        name: "Origan",
-        pricing: { "24cm": 0, "33cm": 0, "40cm": 0 },
-        imageUrl: "/images/ingredients/origan.png",
-        type: "base",
-        isDefault: true,
-        isAvailable: true,
-    },
 
     // Charcuterie/viande
     {

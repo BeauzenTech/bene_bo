@@ -479,7 +479,8 @@ export const deleteRestaurant = async (restaurantID: string): Promise<ApiRespons
 // Fonction pour créer d'une commande
 export const createNewOrder = async (orderData): Promise<ApiResponse<any>> =>{
     try {
-        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/initial/order', orderData);
+        console.log("orderData", orderData);
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/initial/order', []);
         return response.data;
     } catch (error) {
         console.error("Erreur lors de la creation d'une commande", error);

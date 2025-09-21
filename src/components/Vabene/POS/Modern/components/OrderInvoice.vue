@@ -259,6 +259,16 @@
                 </div>
               </div>
 
+              <!-- Ingrédients retirés -->
+              <div v-if="hasRemovedIngredients(item)" class="item-customization">
+                <span class="customization-label">Retiré:</span>
+                <div class="ingredients-list">
+                  <span v-for="ingredient in getRemovedIngredients(item)" :key="ingredient.id" class="ingredient-tag removed-ingredient">
+                    {{ ingredient.name }} ({{ ingredient.quantity }})
+                  </span>
+                </div>
+              </div>
+
               <!-- Options additionnelles -->
               <div v-if="item.additionnal && item.additionnal.length" class="item-customization">
                 <span class="customization-label">Options :</span>
@@ -421,6 +431,18 @@
           </div>
         </div>
 
+        <!-- Section Divers -->
+        <div class="divers-section">
+          <div class="form-group">
+            <label>Divers (CHF)</label>
+            <div class="discount-input-group">
+              <input v-model="diversAmount" type="number" min="0" step="0.01" placeholder="0.00"
+                class="discount-input" @input="handleDiversChange" />
+              <span class="discount-symbol">CHF</span>
+            </div>
+          </div>
+        </div>
+
 
         <div class="summary-lines">
           <div class="summary-row">
@@ -445,6 +467,11 @@
           <div class="summary-row" v-if="minOrderSupplement > 0">
             <span class="label">Supplément minimum de commande</span>
             <span class="value supplement-value">+{{ formatPrice(minOrderSupplement) }} CHF</span>
+          </div>
+
+          <div class="summary-row" v-if="diversAmount > 0">
+            <span class="label">Divers</span>
+            <span class="value divers-value">+{{ formatPrice(diversAmount) }} CHF</span>
           </div>
 
           <div class="summary-row">
@@ -586,6 +613,9 @@ const restaurantInfo = ref<RestaurantModel | null>(null)
 const discountType = ref<'percentage' | 'fixed'>('percentage')
 const discountPercentage = ref<number>(0)
 const discountFixed = ref<number>(0)
+
+// État pour le champ divers
+const diversAmount = ref<number>(0)
 
 // État pour les coupons
 const couponCode = ref<string>('')
@@ -806,14 +836,13 @@ const minOrderSupplement = computed(() => {
   return remainingAmount
 })
 
-// Computed pour le total final avec rabais, coupon et supplément minimum
+// Computed pour le total final avec rabais, coupon, supplément minimum et divers
 const finalTotalWithCoupon = computed(() => {
   const subtotalAfterDiscount = storeCartTotal.value - discountAmount.value
   const totalAfterCoupon = subtotalAfterDiscount - couponDiscountAmount.value
   const totalWithSupplement = totalAfterCoupon + minOrderSupplement.value
-  const finalTotal = Math.max(0, totalWithSupplement) // Ne peut pas être négatif
-  
- 
+  const totalWithDivers = totalWithSupplement + diversAmount.value
+  const finalTotal = Math.max(0, totalWithDivers) // Ne peut pas être négatif
   
   return finalTotal
 })
@@ -821,7 +850,8 @@ const finalTotalWithCoupon = computed(() => {
 // Computed pour le résumé avec rabais appliqué
 const orderSummaryWithDiscount = computed(() => {
   const subtotalWithDiscount = storeCartTotal.value - discountAmount.value
-  const taxOnDiscountedSubtotal = (subtotalWithDiscount * taxRate.value) / 100 // TVA (affichage informatif uniquement)
+  const subtotalWithDivers = subtotalWithDiscount + diversAmount.value
+  const taxOnDiscountedSubtotal = (subtotalWithDivers * taxRate.value) / 100 // TVA incluant le montant divers
   const totalWithDiscount = subtotalWithDiscount // Le total ne comprend pas la TVA
   
   return {
@@ -893,6 +923,14 @@ const hasCustomIngredients = (item: CartItem): boolean => {
 
 const getCustomIngredients = (item: CartItem) => {
   return item.ingredients.filter(ing => ing.quantity > 0)
+}
+
+const hasRemovedIngredients = (item: CartItem): boolean => {
+  return Boolean(item.removedIngredients && item.removedIngredients.length > 0)
+}
+
+const getRemovedIngredients = (item: CartItem) => {
+  return item.removedIngredients || []
 }
 
 const getPaymentIcon = (iconName: string): string => {
@@ -1381,6 +1419,32 @@ const transformCartForAPI = (cart: CartItem[]) => {
       })
     }
 
+    // Extraire les features pour ce produit spécifique
+    const productFeatures: string[] = []
+    
+    // Ajouter les ingrédients personnalisés comme features
+    const customIngredients = item.ingredients.filter(ing => !ing.isDefault && ing.quantity > 0)
+    customIngredients.forEach(ing => {
+      productFeatures.push(`${ing.name} (${ing.quantity})`)
+    })
+
+    // Ajouter les suppléments comme features
+    if (item.supplements && item.supplements.length > 0) {
+      item.supplements.forEach(supp => {
+        if (supp.quantity > 0) {
+          productFeatures.push(`${supp.name}${supp.quantity > 1 ? ` (${supp.quantity})` : ''}`)
+        }
+      })
+    }
+
+    // Extraire les noms des ingrédients retirés
+    const removedIngredientNames: string[] = []
+    if (item.removedIngredients && item.removedIngredients.length > 0) {
+      item.removedIngredients.forEach(removedIng => {
+        removedIngredientNames.push(removedIng.name)
+      })
+    }
+
     return {
       product_id: item.productId,
       specification_id: item.selectedSize.id,
@@ -1399,6 +1463,8 @@ const transformCartForAPI = (cart: CartItem[]) => {
         size: supp.size || "",
         quantite: supp.quantity,
       }))],
+      feature: productFeatures, // Tableau de strings pour ce produit
+      removedIngredients: removedIngredientNames // Tableau de strings pour ce produit
     }
   })
 }
@@ -1407,29 +1473,14 @@ const transformCartForAPI = (cart: CartItem[]) => {
 const extractFeaturesFromCart = (cart: CartItem[]): string[] => {
   const features: string[] = []
 
-  // Ajouter les features du store Vuex
+  // Ajouter les features du store Vuex (features globales)
   const storeFeatures = store?.getters?.['features/selectedFeatures'] || []
   features.push(...storeFeatures)
 
+  // Ajouter les features additionnelles de chaque produit
   cart.forEach(item => {
-    // Ajouter les features additionnelles si elles existent
     if (item.additionnal && item.additionnal.length > 0) {
       features.push(...item.additionnal)
-    }
-
-    // Ajouter les ingrédients personnalisés comme features
-    const customIngredients = item.ingredients.filter(ing => !ing.isDefault && ing.quantity > 0)
-    customIngredients.forEach(ing => {
-      features.push(`${ing.name} (${ing.quantity})`)
-    })
-
-    // Ajouter les suppléments comme features
-    if (item.supplements && item.supplements.length > 0) {
-      item.supplements.forEach(supp => {
-        if (supp.quantity > 0) {
-          features.push(`${supp.name}${supp.quantity > 1 ? ` (${supp.quantity})` : ''}`)
-        }
-      })
     }
   })
 
@@ -1512,14 +1563,13 @@ const handlePlaceOrder = async () => {
         ? ` ${deliveryAddress.value.localite}`.trim()
         : restaurantInfo.value.codePostalID?.ville,
       restaurantID: restaurantID,
-      paniers: transformCartForAPI(storeCart.value),
+      paniers: transformCartForAPI(storeCart.value), // Cette fonction inclut maintenant feature et removedIngredients pour chaque produit
       userID: selectedCustomer.value?.user?.id || "", // ID utilisateur si client sélectionné
       civilite: selectedCustomer.value?.civilite || "monsieur",
       guest_first_name: customerInfo.value.firstName,
       guest_last_name: customerInfo.value.lastName,
       guest_email: renderEmail(),
       guest_phone_number: selectedCustomer?.value?.phoneNumber || customerInfo.value.phone,
-      feature: cartFeatures, // L'API attend un array, pas un string
       order_type: storeOrderType.value, // Utiliser le type depuis le store
       numberRue: storeOrderType.value === 'delivery' ? deliveryAddress.value.numeroRue : restaurantInfo.value.numeroRue || "",
       deliveryPreference: deliveryPreference.value,
@@ -1548,6 +1598,7 @@ const handlePlaceOrder = async () => {
       discountType: discountType.value,
       discountValue: discountType.value === 'percentage' ? String(discountPercentage.value) : String(discountFixed.value),
       discountAmount: discountAmount.value > 0 ? discountAmount.value.toString() : "0",
+      divers: diversAmount.value > 0 ? diversAmount.value.toString() : "0",
       intructionOrder: [
         {
           demandeCouverts: false,
@@ -1595,6 +1646,9 @@ const handlePlaceOrder = async () => {
       discountType.value = 'percentage'
       discountPercentage.value = 0
       discountFixed.value = 0
+
+      // Réinitialiser le champ divers
+      diversAmount.value = 0
 
       // Réinitialiser le coupon
       appliedCoupon.value = null
@@ -1673,6 +1727,14 @@ const handleFixedDiscountChange = () => {
     discountFixed.value = storeCartTotal.value
   }
   
+}
+
+// Gestionnaire pour le changement de montant divers
+const handleDiversChange = () => {
+  // S'assurer que la valeur n'est pas négative
+  if (diversAmount.value < 0) {
+    diversAmount.value = 0
+  }
 }
 
 // Fonction pour appliquer un coupon
@@ -2312,6 +2374,11 @@ const validCartItems = computed(() => {
             color: #0369a1;
             padding: 2px 6px;
             border-radius: 4px;
+
+            &.removed-ingredient {
+              background: #fef2f2;
+              color: #dc2626;
+            }
           }
         }
       }
@@ -2459,6 +2526,10 @@ const validCartItems = computed(() => {
 
       &.supplement-value {
         color: #f59e0b;
+      }
+
+      &.divers-value {
+        color: #8b5cf6;
       }
     }
   }
@@ -2772,6 +2843,52 @@ const validCartItems = computed(() => {
     &:hover {
       color: #388D35;
     }
+  }
+
+  .discount-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .discount-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #388D35;
+      box-shadow: 0 0 0 2px rgba(56, 141, 53, 0.1);
+    }
+  }
+
+  .discount-symbol {
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    min-width: 20px;
+  }
+}
+
+.divers-section {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+
+  .form-group {
+    margin-bottom: 0;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
   }
 
   .discount-input-group {

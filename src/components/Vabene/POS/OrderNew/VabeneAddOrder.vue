@@ -1042,7 +1042,10 @@ export default defineComponent({
         product_id: productSelected.id,
         specification_id: size.id,
         quantity: quantity,
-        ingredient: []
+        optionSpecific: "",
+        ingredient: [],
+        feature: [],
+        removedIngredients: []
       }
 
       this.newOrderData.paniers.push(panier);
@@ -1146,8 +1149,19 @@ export default defineComponent({
     submitOrder() {
       this.createNewOrder()
     },
+    collectProductFeaturesAndRemovedIngredients() {
+      // Collecter les features et removedIngredients pour chaque produit
+      this.simplyPanier.forEach((panier: any) => {
+        // Pour l'instant, on utilise les données globales comme exemple
+        // Plus tard, on pourra ajouter des inputs spécifiques par produit
+        panier.feature = [this.remarqueOrder];
+        panier.removedIngredients = [];
+      });
+    },
     async createNewOrder() {
       this.isLoading = true;
+      // Collecter les features et removedIngredients par produit
+      this.collectProductFeaturesAndRemovedIngredients();
       if (this.newOrderData.intructionOrder.length === 0) {
         const newInstructionOrder: InstructionOrderModel = {
           demandeCouverts: this.orderDemandeCouvert,
@@ -1178,13 +1192,13 @@ export default defineComponent({
         "rue": this.rueSelected,
         "civilite": this.getCivilite(),
         "intructionOrder": this.newOrderData.intructionOrder,
-        "feature": [this.remarqueOrder],
         "numberRue": this.numberRueSelected,
         "deliveryPreference": this.getWhenOrderType(),
         "SpecialInstructions": this.remarqueOrder,
         "timeOrder": this.getWhenOrderType() === 'ulterieur' ? formatDateForPayloadUtil(this.extraireDate(this.dateRecuperation), this.orderHourRecuperation) : '',
         "typeCustomer": this.organisationTypeSelected === 'Société' ? 'organisation' : 'customer',
       }
+      console.log("payload", payload);
       try {
         const response = await createNewOrder(payload);
         if (response.code === 201) {

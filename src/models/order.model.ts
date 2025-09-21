@@ -46,4 +46,5 @@ export interface OrderModel {
   discountType: string;
   discountValue: string;
   restMinimumOrder: string;
+  divers?: string;
 }
