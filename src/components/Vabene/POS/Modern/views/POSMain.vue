@@ -410,11 +410,9 @@ const fetchIngredients = async () => {
   isLoadingIngredients.value = true
   try {
     const response = await listeIngredient(1, "0") as ApiResponse<PaginatedIngredient>
-
-    if (response.code === 200 && response.data?.items) {
-      ingredients.value = response.data.items
-    } else {
-      toast.error(response.message || "Erreur lors du chargement des ingrédients")
+    if (response.code === 200) {
+      toast.success(response.message || "Ingrédients chargés avec succès")
+      ingredients.value = response.data?.items || []
     }
   } catch (error) {
     console.error('Erreur lors du chargement des ingrédients:', error)
