@@ -489,7 +489,7 @@
               </span>
               <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
                 {{
-                  orderResponse.SpecialInstructions ?? orderResponse.feature[0]
+                  orderResponse.SpecialInstructions ?? (orderResponse.feature && orderResponse.feature[0]) ?? "-"
                 }}
               </span>
             </li>
