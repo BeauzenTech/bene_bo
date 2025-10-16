@@ -67,7 +67,9 @@ import {
   listeCategorieActive,
   listeRestaurantProduct,
   listeIngredient,
-  listeRestaurantCategorie
+  listeRestaurantCategorie,
+  getAllCategories,
+  getProductsByCategory
 } from '@/service/api'
 import type {
   ApiResponse,
@@ -124,6 +126,37 @@ const SPECIALIZED_CATEGORY_IDS = {
   SALAD: "aa5474aa-578e-4d0a-81b1-de15166a8766",
   PIZZA: "pizza",
 } as const
+
+// Fonction pour parser les tableaux sérialisés PHP
+const parsePhpSerializedArray = (serialized: string): string[] => {
+  try {
+    // Format attendu : a:2:{i:0;s:18:"Pointrine de Dinde";i:1;s:6:"Jambon";}
+    const arrayMatch = serialized.match(/^a:(\d+):\{/);
+    if (!arrayMatch) return [];
+    
+    const count = parseInt(arrayMatch[1]);
+    const items: string[] = [];
+    
+    // Parser chaque élément : i:0;s:18:"Pointrine de Dinde";
+    const itemRegex = /i:\d+;s:(\d+):"([^"]+)";/g;
+    let match;
+    
+    while ((match = itemRegex.exec(serialized)) !== null) {
+      const length = parseInt(match[1]);
+      const value = match[2];
+      
+      // Vérifier que la longueur correspond
+      if (value.length === length) {
+        items.push(value);
+      }
+    }
+    
+    return items;
+  } catch (error) {
+    console.warn('⚠️ Erreur parsing PHP sérialisé:', error);
+    return [];
+  }
+};
 
 // État du panier depuis Vuex (avec vérification de sécurité)
 const cart = computed(() => store?.getters?.['cart/cart'] || [])
@@ -326,15 +359,20 @@ const closeProductModal = () => {
 
 // Fonctions API
 const fetchCategories = async () => {
+  console.log('🔄 Début du chargement des catégories...')
   isLoading.value = true
   try {
     let transformedCategories: Category[] = []
 
-    if (userRole.value === UserRole.FRANCHISE) {
-      const response = await listeCategorieActive(1, "0") as ApiResponse<PaginatedCategorie>
+    // Essayer d'abord la nouvelle API getAllCategories
+    try {
+      console.log('📡 Tentative avec getAllCategories...')
+      const response = await getAllCategories(1, 50)
+      console.log('📡 Réponse getAllCategories:', response)
 
-      if (response.code === 200 && response.data?.items) {
-        transformedCategories = response.data.items.map((category: CategorieModel) => ({
+      if (response.code === 200 && response.data?.data) {
+        console.log('✅ Données reçues via getAllCategories:', response.data.data)
+        transformedCategories = response.data.data.map((category: CategorieModel) => ({
           id: category.id,
           name: category.name,
           description: category.description || '',
@@ -342,67 +380,192 @@ const fetchCategories = async () => {
           isActive: category.isActive !== false,
           ordered: category.ordered
         }))
+        console.log('🔄 Catégories transformées:', transformedCategories)
       } else {
-        toast.error(response.message || "Erreur lors du chargement des catégories")
-        return
+        throw new Error(`API getAllCategories échouée: ${response.message}`)
       }
-    } else {
-      const response = await listeRestaurantCategorie(1, "0")
-
-      if (response.code === 200 && response.data?.items) {
-        transformedCategories = response.data.items.map((item: any) => {
-          const category = item.category
-          return {
+    } catch (newApiError) {
+      console.warn('⚠️ Nouvelle API échouée, fallback vers l\'ancienne API:', newApiError)
+      
+      // Fallback vers l'ancienne API
+      console.log('🔄 Fallback vers l\'ancienne API pour les catégories...')
+      if (userRole.value === UserRole.FRANCHISE) {
+        console.log('📡 Utilisation de listeCategorieActive pour franchise')
+        const response = await listeCategorieActive(1, "0") as ApiResponse<PaginatedCategorie>
+        if (response.code === 200 && response.data?.items) {
+          transformedCategories = response.data.items.map((category: CategorieModel) => ({
             id: category.id,
             name: category.name,
             description: category.description || '',
             image: '/images/default-category.jpg',
             isActive: category.isActive !== false,
             ordered: category.ordered
-          }
-        })
+          }))
+        }
       } else {
-        toast.error(response.message || "Erreur lors du chargement des catégories")
-        return
+        console.log('📡 Utilisation de listeRestaurantCategorie pour restaurant')
+        const response = await listeRestaurantCategorie(1, "0")
+        if (response.code === 200 && response.data?.items) {
+          transformedCategories = response.data.items.map((item: any) => {
+            const category = item.category
+            return {
+              id: category.id,
+              name: category.name,
+              description: category.description || '',
+              image: '/images/default-category.jpg',
+              isActive: category.isActive !== false,
+              ordered: category.ordered
+            }
+          })
+        }
       }
     }
 
-    categories.value = transformedCategories.sort((a, b) => Number(a.ordered) - Number(b.ordered));
+    if (transformedCategories.length === 0) {
+      console.error('❌ Aucune catégorie trouvée avec aucune API')
+      toast.error("Aucune catégorie trouvée")
+      return
+    }
 
+    categories.value = transformedCategories.sort((a, b) => Number(a.ordered) - Number(b.ordered));
+    console.log('📋 Catégories finales:', categories.value)
 
     // Sélectionner la première catégorie par défaut
     if (transformedCategories.length > 0) {
       selectedCategory.value = transformedCategories[0].id
+      console.log('🎯 Catégorie sélectionnée:', selectedCategory.value)
       await fetchProducts(transformedCategories[0].id)
+    } else {
+      console.warn('⚠️ Aucune catégorie trouvée')
     }
   } catch (error) {
-    console.error('Erreur lors du chargement des catégories:', error)
+    console.error('❌ Erreur lors du chargement des catégories:', error)
     toast.error("Erreur lors du chargement des catégories")
   } finally {
     isLoading.value = false
+    console.log('✅ Chargement des catégories terminé')
   }
 }
 
 const fetchProducts = async (categoryId: string) => {
   if (!categoryId) return
 
+  console.log('🔄 Début du chargement des produits pour la catégorie:', categoryId)
   isLoadingProducts.value = true
   try {
-    const response = await listeRestaurantProduct(1, "0", categoryId) as ApiResponse<PaginatedRestaurantProduct>
+    let extractedProducts: ProductModel[] = []
 
-    if (response.code === 200 && response.data?.items) {
-      const extractedProducts = response.data.items.map((item: any) => item.product)
-      products.value = extractedProducts
-    } else {
-      toast.error(response.message || "Erreur lors du chargement des produits")
-      products.value = []
+    // Essayer d'abord la nouvelle API getProductsByCategory
+    try {
+      console.log('📡 Tentative avec getProductsByCategory...')
+      const response = await getProductsByCategory(categoryId, 1, 50)
+      console.log('📡 Réponse getProductsByCategory:', response)
+
+      if (response.code === 200 && response.data?.data) {
+        console.log('✅ Produits reçus via getProductsByCategory:', response.data.data)
+        // Transformer la structure des données pour correspondre au format attendu
+        extractedProducts = response.data.data.map((product: any) => {
+          // Gestion sécurisée du parsing JSON pour les images
+          let imageUrl = '/images/default-product.jpg'
+          try {
+            if (product.image_urls) {
+              console.log('🖼️ Image URLs brute:', product.image_urls)
+              const parsedImages = JSON.parse(product.image_urls)
+              console.log('🖼️ Images parsées:', parsedImages)
+              if (Array.isArray(parsedImages) && parsedImages.length > 0) {
+                imageUrl = parsedImages[0]
+                console.log('🖼️ Image sélectionnée:', imageUrl)
+              }
+            }
+          } catch (error) {
+            console.warn('⚠️ Erreur parsing image_urls:', error)
+            // Essayer de parser manuellement si le JSON est malformé
+            if (product.image_urls && typeof product.image_urls === 'string') {
+              // Chercher les URLs Cloudinary dans la chaîne
+              const cloudinaryMatch = product.image_urls.match(/https:\/\/res\.cloudinary\.com\/[^"]+/)
+              if (cloudinaryMatch) {
+                imageUrl = cloudinaryMatch[0]
+                console.log('🖼️ Image trouvée via regex:', imageUrl)
+              }
+            }
+          }
+
+          // Gestion sécurisée du parsing pour les options additionnelles (format PHP sérialisé)
+          let additionnalOptions = []
+          try {
+            if (product.additionnal) {
+              console.log('🔧 Parsing additionnal:', product.additionnal)
+              // Parser le format PHP sérialisé : a:2:{i:0;s:18:"Pointrine de Dinde";i:1;s:6:"Jambon";}
+              additionnalOptions = parsePhpSerializedArray(product.additionnal)
+              console.log('✅ Options additionnelles parsées:', additionnalOptions)
+            }
+          } catch (error) {
+            console.warn('⚠️ Erreur parsing additionnal:', error)
+            // Fallback : essayer de parser comme JSON
+            try {
+              additionnalOptions = JSON.parse(product.additionnal)
+            } catch (jsonError) {
+              console.warn('⚠️ Échec du parsing JSON aussi:', jsonError)
+            }
+          }
+
+          return {
+            ...product,
+            // Transformer les variations en sizes
+            sizes: product.variations?.map((variation: any) => ({
+              id: variation.id,
+              name: variation.size,
+              description: variation.description,
+              price: variation.takeawayPrice,
+              priceLivraison: variation.deliveryPrice,
+              isActive: variation.isActive
+            })) || [],
+            // S'assurer que les champs requis existent
+            image: imageUrl,
+            isActive: product.isActive === 1,
+            // Transformer les options additionnelles
+            additionnal: additionnalOptions,
+            // CRUCIAL: Mapper category_id vers categorieID pour le filtrage
+            categorieID: {
+              id: product.category_id,
+              name: product.category_name
+            }
+          }
+        })
+        console.log('🔄 Produits transformés:', extractedProducts)
+      } else {
+        throw new Error(`API getProductsByCategory échouée: ${response.message}`)
+      }
+    } catch (newApiError) {
+      console.warn('⚠️ Nouvelle API échouée, fallback vers l\'ancienne API:', newApiError)
+      
+      // Fallback vers l'ancienne API
+      const response = await listeRestaurantProduct(1, "0", categoryId) as ApiResponse<PaginatedRestaurantProduct>
+      console.log('📡 Réponse listeRestaurantProduct:', response)
+
+      if (response.code === 200 && response.data?.items) {
+        console.log('✅ Produits reçus via listeRestaurantProduct:', response.data.items)
+        extractedProducts = response.data.items.map((item: any) => item.product)
+      } else {
+        throw new Error(`API listeRestaurantProduct échouée: ${response.message}`)
+      }
     }
+
+    if (extractedProducts.length === 0) {
+      console.warn('⚠️ Aucun produit trouvé pour cette catégorie')
+      toast.warning("Aucun produit trouvé pour cette catégorie")
+    } else {
+      console.log('📋 Produits finaux:', extractedProducts)
+    }
+
+    products.value = extractedProducts
   } catch (error) {
-    console.error('Erreur lors du chargement des produits:', error)
+    console.error('❌ Erreur lors du chargement des produits:', error)
     toast.error("Erreur lors du chargement des produits")
     products.value = []
   } finally {
     isLoadingProducts.value = false
+    console.log('✅ Chargement des produits terminé')
   }
 }
 

@@ -44,14 +44,14 @@
 
 
           <!-- Size selection -->
-          <div v-if="hasMultipleSizes(product)" class="size-selection">
+          <div v-if="hasSizes(product)" class="size-selection">
             <div class="size-grid">
               <button v-for="size in getSortedProductSizes(product)" :key="size.id"
                 @click="handleSizeSelection(product, size)" :class="[
                   'size-btn',
                   { 'selected': getSelectedSize(product)?.id === size.id }
                 ]">
-                <span class="size-name">{{ size.size }}</span>
+                <span class="size-name">{{ size.name || size.size }}</span>
               </button>
             </div>
           </div>
@@ -155,22 +155,29 @@ const CATS_IDS_DONT_SHOW_SIZE: string[] = [
 
 // Computed
 const filteredProducts = computed(() => {
+  
   let filtered = props.products || []
 
   // Filtrer par catégorie
   if (props.category) {
-    filtered = filtered.filter(product =>
-      product.categorieID?.id === props.category
-    )
+    console.log('🔍 Filtrage par catégorie:', props.category)
+    filtered = filtered.filter(product => {
+      const categoryMatch = product.categorieID?.id === props.category
+      console.log(`📦 Produit "${product.name}" - categorieID: ${product.categorieID?.id}, match: ${categoryMatch}`)
+      return categoryMatch
+    })
+    console.log('📦 Produits après filtrage catégorie:', filtered.length)
   }
 
   // Filtrer par recherche
   if (props.searchQuery.trim()) {
     const query = props.searchQuery.toLowerCase().trim()
+    console.log('🔍 Filtrage par recherche:', query)
     filtered = filtered.filter(product =>
       product.name.toLowerCase().includes(query) ||
       (product.description && product.description.toLowerCase().includes(query))
     )
+    console.log('📦 Produits après filtrage recherche:', filtered.length)
   }
 
   // Trier par ordre alphabétique
@@ -181,6 +188,7 @@ const filteredProducts = computed(() => {
     })
   })
 
+  console.log('✅ Produits finaux filtrés:', filtered.length)
   return filtered
 })
 
@@ -254,6 +262,28 @@ const getCustomizeButtonText = (product: ProductModel): string => {
 }
 
 const getSortedProductSizes = (product: ProductModel): ProductSizesModel[] => {
+  // Vérifier d'abord le nouveau format sizes
+  if (product.sizes && product.sizes.length > 0) {
+    return [...product.sizes].sort((a, b) => {
+      const order = ["Petite", "Normale", "Grande"];
+      const secondOrder = ["33cl", "0.5l", "1.5l"];
+      const thirdOrder = ["24cm", "33cm", "40cm"];
+
+      const compareInOrder = (orderArr: string[]) => {
+        const aIndex = orderArr.indexOf(a.name);
+        const bIndex = orderArr.indexOf(b.name);
+
+        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+        if (aIndex !== -1) return -1;
+        if (bIndex !== -1) return 1;
+        return 0;
+      };
+
+      return compareInOrder(order) || compareInOrder(secondOrder) || compareInOrder(thirdOrder) || a.name.localeCompare(b.name);
+    });
+  }
+  
+  // Fallback vers l'ancien format productSizes
   if (!product.productSizes) return [];
 
   return [...product.productSizes].sort((a, b) => {
@@ -277,7 +307,20 @@ const getSortedProductSizes = (product: ProductModel): ProductSizesModel[] => {
 
 // Fonctions utilitaires
 const getProductImage = (product: ProductModel): string => {
-  return product.image_urls?.[0] || '/imgs/products/default-product.png'
+  // Vérifier d'abord le champ image (nouveau format)
+  if (product.image) {
+    console.log('🖼️ Image trouvée dans product.image:', product.image)
+    return product.image
+  }
+  
+  // Fallback vers l'ancien format
+  if (product.image_urls?.[0]) {
+    console.log('🖼️ Image trouvée dans product.image_urls:', product.image_urls[0])
+    return product.image_urls[0]
+  }
+  
+  console.log('🖼️ Aucune image trouvée, utilisation du défaut')
+  return '/imgs/products/default-product.png'
 }
 
 
@@ -285,7 +328,24 @@ const formatPrice = (price: number): string => {
   return `${price.toFixed(2)} CHF`
 }
 
+const hasSizes = (product: ProductModel): boolean => {
+  // Vérifier d'abord le nouveau format sizes
+  if (product.sizes && product.sizes.length > 0) {
+    return !CATS_IDS_DONT_SHOW_SIZE.includes(product.categorieID?.id)
+  }
+  
+  // Fallback vers l'ancien format productSizes
+  return product.productSizes && product.productSizes.length > 0 &&
+    !CATS_IDS_DONT_SHOW_SIZE.includes(product.categorieID?.id)
+}
+
 const hasMultipleSizes = (product: ProductModel): boolean => {
+  // Vérifier d'abord le nouveau format sizes
+  if (product.sizes && product.sizes.length > 1) {
+    return !CATS_IDS_DONT_SHOW_SIZE.includes(product.categorieID?.id)
+  }
+  
+  // Fallback vers l'ancien format productSizes
   return product.productSizes && product.productSizes.length > 1 &&
     !CATS_IDS_DONT_SHOW_SIZE.includes(product.categorieID?.id)
 }
@@ -296,13 +356,20 @@ const getSelectedSize = (product: ProductModel): ProductSize | null => {
     return selected
   }
 
-  // Taille par défaut
-  if (product.productSizes && product.productSizes.length > 0) {
-    const defaultSize = product.productSizes.find(s => s.size === 'Normale') || product.productSizes[0]
-    const transformedSize = transformProductSize(defaultSize)
-    
-    
-    return transformedSize
+  // Auto-sélectionner la première taille si disponible
+  const sizes = getSortedProductSizes(product)
+  if (sizes.length > 0) {
+    // Si c'est le nouveau format sizes, utiliser directement
+    if (product.sizes && product.sizes.length > 0) {
+      const firstSize = sizes[0] // Déjà dans le bon format
+      selectedSizes.value[product.id] = firstSize
+      return firstSize
+    } else {
+      // Ancien format, transformer
+      const firstSize = transformProductSize(sizes[0])
+      selectedSizes.value[product.id] = firstSize
+      return firstSize
+    }
   }
 
   return null
@@ -326,23 +393,36 @@ const productPrices = computed(() => {
         ? Number(selectedSize.priceLivraison) || 0
         : Number(selectedSize.price) || 0
       
+      console.log(`💰 Prix sélectionné pour ${product.name}:`, basePrice)
       // IMPORTANT: Ne pas ajouter le coût des ingrédients dans l'affichage du menu
       // Les ingrédients ne sont pas encore sélectionnés, on affiche juste le prix de base
       prices[product.id] = basePrice
       
+    } else if (product.sizes && product.sizes.length > 0) {
+      // Prix par défaut si pas de taille sélectionnée - utiliser le nouveau format sizes
+      const defaultSize = product.sizes[0]
+      const basePrice = orderType === 'delivery' && defaultSize.priceLivraison
+        ? Number(defaultSize.priceLivraison) || 0
+        : Number(defaultSize.price) || 0
+      
+      console.log(`💰 Prix par défaut (sizes) pour ${product.name}:`, basePrice, 'Taille:', defaultSize)
+      prices[product.id] = basePrice
     } else if (product.productSizes && product.productSizes.length > 0) {
-      // Prix par défaut si pas de taille sélectionnée
+      // Fallback vers l'ancien format productSizes
       const defaultSize = transformProductSize(product.productSizes[0])
       const basePrice = orderType === 'delivery' && defaultSize.priceLivraison
         ? Number(defaultSize.priceLivraison) || 0
         : Number(defaultSize.price) || 0
       
+      console.log(`💰 Prix par défaut (productSizes) pour ${product.name}:`, basePrice)
       prices[product.id] = basePrice
     } else {
+      console.log(`💰 Aucun prix trouvé pour ${product.name}`)
       prices[product.id] = 0
     }
   })
   
+  console.log('💰 Prix finaux:', prices)
   return prices
 })
 
@@ -387,6 +467,17 @@ const transformProduct = (product: ProductModel): Product => {
       isAvailable: ing.isAvailable,
       image: ing.imageUrl
     })) || [],
+    // Ajouter les ingrédients de base depuis ingredientdeBases
+    baseIngredients: (product as any).ingredientdeBases?.map((ing: any) => ({
+      id: ing.id,
+      name: ing.name,
+      image: ing.image_url,
+      isAvailable: ing.is_available === 1 || ing.is_available === true,
+      isDefault: ing.is_default === '1' || ing.is_default === true,
+      price: parseFloat(ing.extra_cost_price || '0'),
+      extra_cost_price: parseFloat(ing.extra_cost_price || '0'),
+      type: ing.type
+    })) || [],
     supplements: [],
     isAvailable: product.isAvailable,
     isPopular: product.isVedette,
@@ -406,9 +497,7 @@ const handleCustomize = (product: ProductModel) => {
   const transformedProduct = transformProduct(product)
   const selectedSize = getSelectedSize(product)
   
-
-  
-  // Émettre un objet contenant le produit et la taille sélectionnée (prix originaux)
+  // Émettre l'événement pour ouvrir le modal de personnalisation
   emit('customize-product', {
     product: transformedProduct,
     selectedSize: selectedSize
@@ -416,27 +505,36 @@ const handleCustomize = (product: ProductModel) => {
 }
 
 const handleQuickAdd = (product: ProductModel) => {
-
   const transformedProduct = transformProduct(product)
   const selectedSize = getSelectedSize(product)
 
+  console.log('🔧 handleQuickAdd appelé pour:', product.name)
+  console.log('🔧 product.additionnal (brut):', product.additionnal)
+  console.log('🔧 transformedProduct.additionnal:', transformedProduct.additionnal)
+  console.log('🔧 Type de transformedProduct.additionnal:', typeof transformedProduct.additionnal)
+  console.log('🔧 Longueur transformedProduct.additionnal:', transformedProduct.additionnal?.length)
+
+  // Si le produit a des options additionnelles, ouvrir le modal AdditionalFeaturesModal
+  if (transformedProduct.additionnal && transformedProduct.additionnal.length > 0) {
+    console.log('🎯 Produit avec options additionnelles, ouverture du modal AdditionalFeaturesModal')
+    additionalModalProduct.value = transformedProduct
+    additionalModalSize.value = selectedSize
+    showAdditionalModal.value = true
+    return
+  }
+
+  console.log('❌ Pas d\'options additionnelles, ajout direct au panier')
+
+  // Sinon, ajouter directement au panier
   if (selectedSize) {
-    
-    
-    // IMPORTANT: Ne pas modifier le prix, garder les données originales
-    // Le prix sera calculé dynamiquement dans le store cart selon le type de commande
-    
-    
-    // Créer l'événement AddToCartEvent avec les prix originaux
     const addToCartEvent: AddToCartEvent = {
       product: transformedProduct,
-      size: selectedSize, // Prix originaux préservés
+      size: selectedSize,
       quantity: 1,
       ingredients: [],
       supplements: [],
       notes: ''
     }
-   
     
     emit('add-to-cart', addToCartEvent)
   }

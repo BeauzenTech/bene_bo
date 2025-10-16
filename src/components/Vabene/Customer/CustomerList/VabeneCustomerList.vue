@@ -268,7 +268,7 @@ import {
   toggleActivationCategorie,
   deleteCategorie,
   deleteFileUpload,
-  listeCustomers
+  getAllCustomers
 } from "@/service/api";
 import {UserGeneralKey} from "@/models/user.generalkey";
 import {useToast} from "vue-toastification";
@@ -480,19 +480,23 @@ export default defineComponent({
         if(idResto){
           this.restaurantId = idResto;
         }
-        const response = await listeCustomers(
+        const response = await getAllCustomers(
           page, 
-          '20', 
-          idResto ?? 'all',
-          this.searchFirstname || undefined,
-          this.searchLastname || undefined,
-          this.searchEmail || undefined,
-          this.searchTel || undefined
-        ) as ApiResponse<PaginatedCustomer>;
+          20, 
+          this.searchFirstname || this.searchLastname || this.searchEmail || this.searchTel || undefined
+        );
         if (response.code === 200) {
-          this.categorieResponse = response;
-          if (response.data?.items) {
-            this.originalCategories = response.data.items;
+          // Transform the new API response to match the expected structure
+          const transformedResponse = {
+            ...response,
+            data: {
+              items: response.data?.data || [],
+              pagination: response.data?.pagination || {}
+            }
+          };
+          this.categorieResponse = transformedResponse;
+          if (response.data?.data) {
+            this.originalCategories = response.data.data;
             
           }
           if (response.data && response.data.pagination) {

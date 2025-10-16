@@ -141,7 +141,7 @@
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
 import type { Product, ProductSize, AddToCartEvent, CartIngredient } from '../types';
-import { INGREDIENTS_WITH_PRICING, IngredientWithPricing } from '../ingredients';
+import { getAllIngredients } from '@/service/api';
 
 const store = useStore();
 
@@ -164,6 +164,8 @@ const quantity = ref(1);
 const customIngredients = ref<Record<string, number>>({});
 const customizeMode = ref<'add' | 'remove'>('add');
 const removedBaseIngredients = ref<Set<string>>(new Set());
+const allIngredients = ref<any[]>([]);
+const isLoadingIngredients = ref(false);
 
 // Fonctions utilitaires
 const formatPrice = (price: number): string => `${price.toFixed(2)} CHF`;
@@ -189,10 +191,14 @@ const selectSize = (size: ProductSize) => {
 
 // Logique des ingrédients
 const baseIngredients = computed(() => {
-  // Récupérer les ingrédients de base depuis ingredientsBaseNames
+  // Utiliser les ingrédients de base du produit s'ils existent
+  if (props.product?.baseIngredients && props.product.baseIngredients.length > 0) {
+    return props.product.baseIngredients;
+  }
+  
+  // Fallback vers ingredientsBaseNames si pas de baseIngredients
   const product = props.product as any;
   if (product?.ingredientsBaseNames && product.ingredientsBaseNames.length > 0) {
-    
     // Créer des objets ingrédients à partir des noms
     const baseIngs = product.ingredientsBaseNames.map((name: string, index: number) => ({
       id: `base-${index}`,
@@ -218,30 +224,48 @@ const groupedIngredients = computed(() => {
     const nonRemovedBaseIngredients = baseIngredients.value.filter(ing => !removedBaseIngredients.value.has(ing.id));
 
     if (nonRemovedBaseIngredients.length > 0) {
-      groups['Base'] = nonRemovedBaseIngredients;
+      // S'assurer que les ingrédients de base ont un prix de 0
+      const baseIngredientsWithZeroPrice = nonRemovedBaseIngredients.map(ing => ({
+        ...ing,
+        price: 0,
+        extra_cost_price: 0
+      }));
+      groups['Base'] = baseIngredientsWithZeroPrice;
     }
   }
   
-  // TOUJOURS ajouter les autres ingrédients de INGREDIENTS_WITH_PRICING (sauf les "Base")
-  // Que ce soit avec ou sans ingrédients de base spécifiques
-  INGREDIENTS_WITH_PRICING
-    .filter(ing => ing.isAvailable && ing.type !== 'Base')
+  // Utiliser les ingrédients du backend au lieu de INGREDIENTS_WITH_PRICING
+  allIngredients.value
+    .filter(ing => ing.is_available && ing.type !== 'Base')
     .forEach(ing => {
       if (!groups[ing.type]) {
         groups[ing.type] = [];
       }
-      groups[ing.type].push(ing);
+      groups[ing.type].push({
+        id: ing.id,
+        name: ing.name,
+        imageUrl: ing.image_url,
+        type: ing.type,
+        isAvailable: ing.is_available,
+        isDefault: ing.is_default,
+        price: ing.extra_cost_price,
+        extra_cost_price: ing.extra_cost_price,
+        // Adapter le format pour la compatibilité
+        pricing: {
+          "24cm": ing.extra_cost_price,
+          "28cm": ing.extra_cost_price,
+          "33cm": ing.extra_cost_price,
+          "40cm": ing.extra_cost_price
+        }
+      });
     });
   
   return groups;
 });
 
 const getIngredientQuantity = (ingredientId: string): number => {
-  // Pour les ingrédients de base, la quantité par défaut est 1
-  if (ingredientId.startsWith('base-')) {
-    return customIngredients.value[ingredientId] || 1;
-  }
-  // Pour les autres ingrédients, la quantité par défaut est 0
+  // Pour tous les ingrédients, retourner la quantité dans customIngredients
+  // Les ingrédients de base ne sont plus automatiquement initialisés à 1
   return customIngredients.value[ingredientId] || 0;
 };
 
@@ -307,23 +331,36 @@ const basePrice = computed(() => {
 const ingredientsPrice = computed(() => {
   let price = 0;
   if (selectedSize.value) {
+    // Créer un Set des IDs des ingrédients de base pour les exclure
+    const baseIngredientIds = new Set(baseIngredients.value.map(ing => ing.id));
+    
     for (const ingId in customIngredients.value) {
       const quantity = customIngredients.value[ingId];
       if (quantity > 0) {
+        // Exclure les ingrédients de base du calcul du prix
+        if (baseIngredientIds.has(ingId)) {
+          continue; // Les ingrédients de base sont gratuits
+        }
+        
         // Chercher l'ingrédient dans les ingrédients du produit d'abord
         let ingredient: any = props.product?.ingredients?.find(i => i.id === ingId);
         
-        // Si pas trouvé, chercher dans INGREDIENTS_WITH_PRICING
+        // Si pas trouvé, chercher dans les ingrédients du backend
         if (!ingredient) {
-          ingredient = INGREDIENTS_WITH_PRICING.find(i => i.id === ingId);
+          ingredient = allIngredients.value.find(i => i.id === ingId);
         }
         
         if (ingredient && !ingredient.isDefault) {
-          // Si l'ingrédient a un prix direct
-          if (typeof ingredient.price === 'number') {
+          // Priorité 1: extra_cost_price du backend
+          if (ingredient.extra_cost_price !== undefined) {
+            price += ingredient.extra_cost_price * quantity;
+          }
+          // Priorité 2: prix direct
+          else if (typeof ingredient.price === 'number') {
             price += ingredient.price * quantity;
-          } else if ((ingredient as any).pricing) {
-            // Si l'ingrédient a un pricing par taille
+          } 
+          // Priorité 3: pricing par taille (pour compatibilité)
+          else if ((ingredient as any).pricing) {
             const sizeMap: Record<string, '24cm' | '28cm' | '33cm' | '40cm'> = {
               'Petite': '24cm',
               'Normale': '33cm',
@@ -344,6 +381,27 @@ const ingredientsPrice = computed(() => {
 const totalPrice = computed(() => {
   return (basePrice.value + ingredientsPrice.value) * quantity.value;
 });
+
+// Fonction pour charger les ingrédients depuis le backend
+const loadIngredients = async () => {
+  try {
+    isLoadingIngredients.value = true;
+    const response = await getAllIngredients(1, 100); // Récupérer tous les ingrédients
+    
+    if (response.code === 200 && response.data?.data) {
+      allIngredients.value = response.data.data;
+      console.log('✅ Ingrédients chargés depuis le backend:', allIngredients.value);
+    } else {
+      console.warn('⚠️ Aucun ingrédient trouvé dans la réponse');
+      allIngredients.value = [];
+    }
+  } catch (error) {
+    console.error('❌ Erreur lors du chargement des ingrédients:', error);
+    allIngredients.value = [];
+  } finally {
+    isLoadingIngredients.value = false;
+  }
+};
 
 // Actions
 const closeModal = () => emit('close');
@@ -427,17 +485,24 @@ const handleAddToCart = () => {
       // Chercher l'ingrédient dans les ingrédients du produit d'abord
       let ingredientInfo: any = props.product!.ingredients?.find(i => i.id === id);
       
-      // Si pas trouvé, chercher dans INGREDIENTS_WITH_PRICING
+      // Si pas trouvé, chercher dans les ingrédients du backend
       if (!ingredientInfo) {
-        ingredientInfo = INGREDIENTS_WITH_PRICING.find(i => i.id === id);
+        ingredientInfo = allIngredients.value.find(i => i.id === id);
       }
       
       // Calculer le prix selon le type d'ingrédient
       let extraCostPrice = 0;
       if (ingredientInfo) {
-        if (typeof ingredientInfo.price === 'number') {
+        // Priorité 1: extra_cost_price du backend
+        if (ingredientInfo.extra_cost_price !== undefined) {
+          extraCostPrice = ingredientInfo.extra_cost_price;
+        }
+        // Priorité 2: prix direct
+        else if (typeof ingredientInfo.price === 'number') {
           extraCostPrice = ingredientInfo.price;
-        } else if ((ingredientInfo as any).pricing) {
+        } 
+        // Priorité 3: pricing par taille
+        else if ((ingredientInfo as any).pricing) {
           extraCostPrice = (ingredientInfo as any).pricing[currentSizeInCm] || 0;
         }
       }
@@ -468,30 +533,37 @@ const handleAddToCart = () => {
 };
 
 // Watchers
-watch(() => props.product, (newProduct) => {
+watch(() => props.product, async (newProduct) => {
   if (newProduct?.sizes) {
     // Utiliser la taille sélectionnée si fournie, sinon la taille par défaut
     const sizeToUse = props.initialSelectedSize || newProduct.sizes.find(s => s.name === 'Normale') || newProduct.sizes[0];
     if (sizeToUse) {
       selectSize(sizeToUse);
-
     }
   }
+
+  // Charger les ingrédients depuis le backend
+  await loadIngredients();
 
   // Initialiser avec les ingrédients par défaut
   const defaultIngredients: Record<string, number> = {};
   
-  // Utiliser les ingrédients spécifiques du produit s'ils existent
+  // ❌ NE PAS initialiser automatiquement les ingrédients de base
+  // Ils sont affichés comme "inclus" mais ne doivent pas être comptés dans le prix
+  // tant que l'utilisateur ne les ajoute pas explicitement
+  
+  // Seulement initialiser les ingrédients non-base qui sont par défaut
   if (newProduct?.ingredients && newProduct.ingredients.length > 0) {
     newProduct.ingredients.forEach(ing => {
-      if (ing.isDefault) {
+      if (ing.isDefault && !ing.id.startsWith('base-')) {
         defaultIngredients[ing.id] = 1;
       }
     });
-  } else {
-    // Fallback vers INGREDIENTS_WITH_PRICING si pas d'ingrédients spécifiques
-    INGREDIENTS_WITH_PRICING.forEach(ing => {
-      if (ing.isDefault) {
+  } 
+  // Fallback vers les ingrédients du backend (non-base uniquement)
+  else {
+    allIngredients.value.forEach(ing => {
+      if (ing.is_default && ing.type !== 'Base') {
         defaultIngredients[ing.id] = 1;
       }
     });

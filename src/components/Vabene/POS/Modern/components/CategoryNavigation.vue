@@ -32,7 +32,10 @@ defineEmits<{
 }>()
 
 const sortedCategories = computed(() => {
-  return [...(props.categories || [])].sort((a, b) => Number(a.ordered) - Number(b.ordered))
+  console.log('📋 CategoryNavigation - Catégories reçues:', props.categories);
+  const sorted = [...(props.categories || [])].sort((a, b) => Number(a.ordered) - Number(b.ordered));
+  console.log('📋 CategoryNavigation - Catégories triées:', sorted);
+  return sorted;
 })
 
 const getCategoryIcon = (categoryId: string): string => {

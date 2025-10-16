@@ -48,6 +48,7 @@ export interface Product {
   category: string;
   sizes: ProductSize[];
   ingredients: Ingredient[];
+  baseIngredients?: Ingredient[];
   ingredientsBaseNames?: string[];
   supplements: Supplement[];
   isAvailable: boolean;

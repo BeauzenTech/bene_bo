@@ -1,4 +1,4 @@
 export const apiConfig = {
-    baseURL: "https://backend.vabenepizza.ch/api",
+    baseURL: "http://localhost:3000/api",
     localURL: "http://localhost:8080"
 }

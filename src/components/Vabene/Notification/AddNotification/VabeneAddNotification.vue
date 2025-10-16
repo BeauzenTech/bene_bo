@@ -145,7 +145,7 @@ import {
   updateCategorie,
   uploadFile,
   deleteFileUpload,
-  createCampagne, detailCampagne, listeUser, createNotification, listeCustomers, listeRestaurant
+  createCampagne, detailCampagne, listeUser, createNotification, getAllCustomers, listeRestaurant
 } from "@/service/api";
 
 import {useToast} from "vue-toastification";
@@ -297,10 +297,10 @@ export default defineComponent({
         if(idResto){
           this.restaurantId = idResto;
         }
-        const response = await listeCustomers(page, '500', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
+        const response = await getAllCustomers(page, 500);
         if (response.code === 200) {
-          if (response.data?.items) {
-            const data = response.data.items;
+          if (response.data?.data) {
+            const data = response.data.data;
             this.originalUsers = data.filter(item => item.user !== null && item.user.enableNotification  && item.user.deviceToken != null );
          
           }
@@ -318,10 +318,10 @@ export default defineComponent({
     async getCustomerByOption(idResto?: string) {
       this.isLoading = true;
       try {
-        const response = await listeCustomers(1, '500', idResto ?? undefined) as ApiResponse<PaginatedCustomer>;
+        const response = await getAllCustomers(1, 500);
         if (response.code === 200) {
-          if (response.data?.items) {
-            const data = response.data.items;
+          if (response.data?.data) {
+            const data = response.data.data;
             this.originalUsers = data.filter(item => item.user !== null && item.user.enableNotification  && item.user.deviceToken != null );
                      }
 

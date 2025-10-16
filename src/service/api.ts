@@ -271,10 +271,15 @@ export const toggleActivationUser = async (userID: string, userData): Promise<Ap
 // Fonction pour detail  d'un compte utilisateur
 export const fetchAllPostalCode = async (): Promise<ApiResponse<any>> => {
     try {
-        const response: AxiosResponse<ApiResponse<any>> = await apiClient.get(`/region/codePostal/all`);
+        const restaurantId = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
+        if (!restaurantId) {
+            throw new Error('Restaurant ID non trouvé dans le localStorage');
+        }
+        
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.get(`/v1/delivery/restaurant/${restaurantId}/postal-codes`);
         return response.data;
     } catch (error) {
-        console.error('Erreur lors de la recherche des  postalCode', error);
+        console.error('Erreur lors de la recherche des codes postaux', error);
         throw error;
     }
 };
@@ -319,7 +324,12 @@ export const getRestaurantDetails = async (restaurantID: string): Promise<ApiRes
 // Fonction pour récupérer tous les codes postaux
 export const getAllPostalCodes = async (): Promise<ApiResponse<any>> => {
     try {
-        const response: AxiosResponse<ApiResponse<any>> = await apiClient.get('/region/codePostal/all');
+        const restaurantId = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
+        if (!restaurantId) {
+            throw new Error('Restaurant ID non trouvé dans le localStorage');
+        }
+        
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.get(`/v1/delivery/restaurant/${restaurantId}/postal-codes`);
         return response.data;
     } catch (error) {
         console.error('Erreur lors de la récupération des codes postaux', error);
@@ -491,7 +501,7 @@ export const createNewOrder = async (orderData): Promise<ApiResponse<any>> =>{
 // Créer une commande POS simplifiée pour click_collect (sur place)
 export const createPOSOrder = async (orderData: any): Promise<ApiResponse<any>> => {
     try {
-        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/initial/order', orderData);
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/v1/orders', orderData);
         return response.data;
     } catch (error) {
         console.error("Erreur lors de la création d'une commande POS", error);
@@ -654,6 +664,79 @@ export const listeCategorie = async (page = 1, usePagination: string): Promise<A
             response.data.data
         );
     } catch (error) {
+        throw error;
+    }
+};
+
+// Nouvelle fonction pour récupérer toutes les catégories via l'endpoint v1/category/all
+export const getAllCategories = async (
+    page?: number, 
+    limit?: number, 
+    search?: string
+): Promise<ApiResponse<{ data: CategorieModel[], pagination: any }>> => {
+    try {
+        console.log('🔧 getAllCategories appelée avec:', { page, limit, search });
+        
+        const params = new URLSearchParams();
+        if (page) params.append('page', page.toString());
+        if (limit) params.append('limit', limit.toString());
+        if (search) params.append('search', search);
+
+        const url = `/v1/category/all?${params.toString()}`;
+        console.log('🌐 URL appelée:', url);
+        
+        const response = await apiClient.get(url);
+        console.log('📡 Réponse brute:', response.data);
+        
+        const result = new ApiResponse(
+            response.data.code,
+            response.data.message,
+            {
+                data: response.data.data,
+                pagination: response.data.pagination
+            }
+        );
+        
+        console.log('✅ Résultat final:', result);
+        return result;
+    } catch (error) {
+        console.error("❌ Erreur lors de la récupération des catégories", error);
+        throw error;
+    }
+};
+
+// Nouvelle fonction pour récupérer les produits par catégorie via l'endpoint v1/product/category/:categoryId
+export const getProductsByCategory = async (
+    categoryId: string,
+    page?: number,
+    limit?: number
+): Promise<ApiResponse<{ data: ProductModel[], pagination: any }>> => {
+    try {
+        console.log('🔧 getProductsByCategory appelée avec:', { categoryId, page, limit });
+        
+        const params = new URLSearchParams();
+        if (page) params.append('page', page.toString());
+        if (limit) params.append('limit', limit.toString());
+
+        const url = `/v1/product/category/${categoryId}?${params.toString()}`;
+        console.log('🌐 URL appelée:', url);
+        
+        const response = await apiClient.get(url);
+        console.log('📡 Réponse brute:', response.data);
+        
+        const result = new ApiResponse(
+            response.data.code,
+            response.data.message,
+            {
+                data: response.data.data,
+                pagination: response.data.pagination
+            }
+        );
+        
+        console.log('✅ Résultat final:', result);
+        return result;
+    } catch (error) {
+        console.error("❌ Erreur lors de la récupération des produits par catégorie", error);
         throw error;
     }
 };
@@ -1272,45 +1355,38 @@ export const detailNotification = async (notificationID): Promise<ApiResponse<No
 };
 
 
-export const listeCustomers = async (
-    page = 1, 
-    limit: string, 
-    restaurantId?: string,
-    searchFirstname?: string,
-    searchLastname?: string,
-    searchEmail?: string,
-    searchTel?: string
-): Promise<ApiResponse<PaginatedCustomer>> => {
-    // eslint-disable-next-line no-useless-catch
+export const getAllCustomers = async (
+    page?: number,
+    limit?: number,
+    search?: string
+): Promise<ApiResponse<{ data: CustomerModel[], pagination: any }>> => {
     try {
+        console.log('🔧 getAllCustomers appelée avec:', { page, limit, search });
 
-        const restaurant = restaurantId !== undefined ? restaurantId : 'all';
+        const params = new URLSearchParams();
+        if (page) params.append('page', page.toString());
+        if (limit) params.append('limit', limit.toString());
+        if (search) params.append('search', search);
 
-        const url = [
-            `/v1/customer/all/${page}`,
-            restaurant,
-        ]
-            .filter(Boolean)
-            .join('/');
+        const url = `/v1/customers/all?${params.toString()}`;
+        console.log('🌐 URL appelée:', url);
 
-        // Construction des paramètres de requête
-        const queryParams = new URLSearchParams({
-            limit: limit
-        });
+        const response = await apiClient.get(url);
+        console.log('📡 Réponse brute:', response.data);
 
-        // Ajout des paramètres de recherche optionnels
-        if (searchFirstname) queryParams.append('searchFirstname', searchFirstname);
-        if (searchLastname) queryParams.append('searchLastname', searchLastname);
-        if (searchEmail) queryParams.append('searchEmail', searchEmail);
-        if (searchTel) queryParams.append('searchTel', searchTel);
-
-        const response = await apiClient.get(`${url}?${queryParams.toString()}`);
-        return new ApiResponse(
+        const result = new ApiResponse(
             response.data.code,
             response.data.message,
-            response.data.data
+            {
+                data: response.data.data,
+                pagination: response.data.pagination
+            }
         );
+
+        console.log('✅ Résultat final:', result);
+        return result;
     } catch (error) {
+        console.error("❌ Erreur lors de la récupération des clients", error);
         throw error;
     }
 };
@@ -1571,6 +1647,45 @@ export const deleteIngredientBase = async (
             response.data.data
         );
     } catch (error) {
+        throw error;
+    }
+};
+
+// Nouvelle fonction pour récupérer tous les ingrédients via l'endpoint v1/ingredient/all
+export const getAllIngredients = async (
+    page?: number,
+    limit?: number,
+    search?: string,
+    type?: string
+): Promise<ApiResponse<{ data: any[], pagination: any }>> => {
+    try {
+        console.log('🔧 getAllIngredients appelée avec:', { page, limit, search, type });
+
+        const params = new URLSearchParams();
+        if (page) params.append('page', page.toString());
+        if (limit) params.append('limit', limit.toString());
+        if (search) params.append('search', search);
+        if (type) params.append('type', type);
+
+        const url = `/v1/ingredient/all?${params.toString()}`;
+        console.log('🌐 URL appelée:', url);
+
+        const response = await apiClient.get(url);
+        console.log('📡 Réponse brute:', response.data);
+
+        const result = new ApiResponse(
+            response.data.code,
+            response.data.message,
+            {
+                data: response.data.data,
+                pagination: response.data.pagination
+            }
+        );
+
+        console.log('✅ Résultat final:', result);
+        return result;
+    } catch (error) {
+        console.error("❌ Erreur lors de la récupération des ingrédients", error);
         throw error;
     }
 };

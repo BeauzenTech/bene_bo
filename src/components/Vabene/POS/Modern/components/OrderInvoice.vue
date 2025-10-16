@@ -13,7 +13,7 @@
           <span class="banner-icon">👤</span>
           <div class="banner-text">
             <span class="banner-title">Client enregistré sélectionné</span>
-            <span class="banner-subtitle">{{ selectedCustomer.firstName }} {{ selectedCustomer.lastName }}</span>
+            <span class="banner-subtitle">{{ selectedCustomer.first_name || selectedCustomer.firstName }} {{ selectedCustomer.last_name || selectedCustomer.lastName }}</span>
           </div>
         </div>
         <button @click="clearSelectedCustomer" class="banner-clear-btn">
@@ -34,8 +34,8 @@
             <div v-for="customer in customerSuggestions" :key="customer.id" class="customer-suggestion"
               @click="selectCustomer(customer)">
               <div class="suggestion-main">
-                <span class="suggestion-name">{{ customer.firstName }} {{ customer.lastName }}</span>
-                <span class="suggestion-phone">{{ customer.phoneNumber }}</span>
+                <span class="suggestion-name">{{ customer.first_name || customer.firstName }} {{ customer.last_name || customer.lastName }}</span>
+                <span class="suggestion-phone">{{ customer.phone_number || customer.phoneNumber }}</span>
               </div>
               <div class="suggestion-address">{{ customer.email }}</div>
             </div>
@@ -174,7 +174,7 @@
             <select v-model="selectedAddressId" class="form-select" @change="handleAddressSelection">
               <option value="">Nouvelle adresse</option>
               <option v-for="address in userAddresses" :key="address.id" :value="address.id">
-                {{ address.rue }} {{ address.numeroLocalite }}, {{ address.localite }}
+                {{ address.rue || address.address }} {{ address.numeroLocalite || address.numeroRue }}, {{ address.localite || address.city }}
               </option>
             </select>
           </div>
@@ -196,12 +196,12 @@
               <div v-if="showPostalCodeSuggestions" class="postal-code-suggestions">
                 <div 
                   v-for="postalCode in postalCodeSuggestions" 
-                  :key="postalCode.id" 
+                  :key="postalCode.code" 
                   class="postal-code-suggestion"
                   @click="selectPostalCode(postalCode)"
                 >
-                  <span class="postal-code-number">{{ postalCode.numeroPostal }}</span>
-                  <span class="postal-code-city">{{ postalCode.ville }}</span>
+                  <span class="postal-code-number">{{ postalCode.code }}</span>
+                  <span class="postal-code-city">{{ postalCode.locality }}</span>
           </div>
               </div>
             </div>
@@ -517,7 +517,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import type { CartItem, OrderSummary, PaymentMethod } from '../types'
 import { createPOSOrder, detailRestaurant, getUserAddresses, applyCoupon, getRestaurantDetails, getAllPostalCodes, calculateMinimumAmount } from '@/service/api'
-import { listeCustomers } from '@/service/api'
+import { getAllCustomers } from '@/service/api'
 import type { ApiResponse } from '@/models/Apiresponse'
 import type { RestaurantModel } from '@/models/restaurant.model'
 import type { CustomerModel } from '@/models/customer.model'
@@ -659,14 +659,14 @@ const isValidEmail = (email: string): boolean => {
 const getRestaurantMinOrder = async (codePostal: string, localite: string, restaurantID: string) : Promise<number> => {
   try {
     const response = await calculateMinimumAmount(codePostal, localite, restaurantID)
-    return response.data.minimum_commande_amount
+   
+    const minOrder = response?.data?.zone?.minimumOrderAmount || 0;
+    return minOrder
   } catch (error) {
-    console.error('Erreur lors du calcul du minimum de commande:', error)
     return 0
   }
 }
 
-// Fonction pour valider l'email lors de la perte de focus
 const validateEmail = () => {
   if (customerInfo.value.email && !isValidEmail(customerInfo.value.email)) {
     // Optionnel: afficher un toast d'avertissement
@@ -803,17 +803,25 @@ const couponDiscountAmount = computed(() => {
 
 // Fonction pour charger le montant minimum de commande
 const loadRestaurantMinOrder = async () => {
+  
   if (storeOrderType.value === 'delivery' && deliveryAddress.value.npa) {
     const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
+    console.log('🏪 restaurantID:', restaurantID)
+    
     if (restaurantID) {
       try {
+        console.log('🚀 Appel API getRestaurantMinOrder...')
         const minOrder = await getRestaurantMinOrder(deliveryAddress.value.npa, deliveryAddress.value.localite, restaurantID)
+        console.log('💰 Montant minimum récupéré:', minOrder)
         restaurantMinOrder.value = minOrder
+        console.log('✅ restaurantMinOrder.value mis à jour:', restaurantMinOrder.value)
       } catch (error) {
-        console.error('Erreur lors du chargement du montant minimum:', error)
+        console.error('❌ Erreur lors du chargement du montant minimum:', error)
         restaurantMinOrder.value = 0
       }
     }
+  } else {
+    console.log('⚠️ Conditions non remplies pour charger le montant minimum')
   }
 }
 
@@ -989,18 +997,26 @@ const loadCustomers = async (searchParams?: {
     const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
     
     if (restaurantID) {
-      const response = await listeCustomers(
+      // Construire le paramètre de recherche selon les critères disponibles
+      let searchQuery = ''
+      if (searchParams?.searchFirstname) {
+        searchQuery = searchParams.searchFirstname
+      } else if (searchParams?.searchLastname) {
+        searchQuery = searchParams.searchLastname
+      } else if (searchParams?.searchEmail) {
+        searchQuery = searchParams.searchEmail
+      } else if (searchParams?.searchTel) {
+        searchQuery = searchParams.searchTel
+      }
+
+      const response = await getAllCustomers(
         1, 
-        '50', 
-        restaurantID,
-        searchParams?.searchFirstname,
-        searchParams?.searchLastname,
-        searchParams?.searchEmail,
-        searchParams?.searchTel
+        50, 
+        searchQuery || undefined
       )
   
-      if (response.code === 200 && response.data && response.data.items) {
-        allCustomers.value = response.data.items
+      if (response.code === 200 && response.data && response.data.data) {
+        allCustomers.value = response.data.data
       } else {
         allCustomers.value = []
       }
@@ -1058,10 +1074,10 @@ const handleAddressSelection = (event: Event) => {
 
   // Remplir les champs avec l'adresse sélectionnée
   deliveryAddress.value = {
-    rue: address.rue || '',
-    numeroRue: (address.numeroLocalite === '0' || address.numeroLocalite === null) ? '' : (address.numeroLocalite || ''),
-    npa: address.codePostal || '',
-    localite: address.localite || ''
+    rue: address.rue || address.address || '',
+    numeroRue: (address.numeroLocalite === '0' || address.numeroLocalite === null) ? '' : (address.numeroLocalite || address.numeroRue || ''),
+    npa: address.codePostal || address.postal_code || '',
+    localite: address.localite || address.city || ''
   }
   
   selectedAddressId.value = addressId
@@ -1100,13 +1116,18 @@ const searchCustomers = async () => {
   }
 
   try {
-    // Préparer les paramètres de recherche
+    // Préparer les paramètres de recherche - priorité au prénom, puis nom, puis email, puis téléphone
     const searchParams: any = {}
     
-    if (firstName.length >= 2) searchParams.searchFirstname = firstName
-    if (lastName.length >= 2) searchParams.searchLastname = lastName
-    if (phone.length >= 3) searchParams.searchTel = phone.replace(/\D/g, '') // Garder seulement les chiffres
-    if (email.length >= 3) searchParams.searchEmail = email
+    if (firstName.length >= 2) {
+      searchParams.searchFirstname = firstName
+    } else if (lastName.length >= 2) {
+      searchParams.searchLastname = lastName
+    } else if (email.length >= 3) {
+      searchParams.searchEmail = email
+    } else if (phone.length >= 3) {
+      searchParams.searchTel = phone.replace(/\D/g, '') // Garder seulement les chiffres
+    }
 
     // Appeler l'API avec les paramètres de recherche
     await loadCustomers(searchParams)
@@ -1120,17 +1141,19 @@ const searchCustomers = async () => {
 }
 
 // Sélectionner un client depuis les suggestions
-const selectCustomer = (customer: CustomerModel) => {
+const selectCustomer = (customer: any) => {
   selectedCustomer.value = customer
   customerInfo.value.id = customer.id
-  customerInfo.value.firstName = customer.firstName
-  customerInfo.value.lastName = customer.lastName
-  customerInfo.value.phone = customer.phoneNumber
-  customerInfo.value.email = customer.email
+  customerInfo.value.firstName = customer.first_name || customer.firstName || ''
+  customerInfo.value.lastName = customer.last_name || customer.lastName || ''
+  customerInfo.value.phone = customer.phone_number || customer.phoneNumber || ''
+  customerInfo.value.email = customer.email || ''
   customerSuggestions.value = []
 
-  // Utiliser les adresses du client sélectionné loadUserAddresses
-  if (customer.user_addresses && customer.user_addresses.length > 0) {
+  // Utiliser les adresses du client sélectionné (nouveau format: listeAdresses)
+  if (customer.listeAdresses && customer.listeAdresses.length > 0) {
+    userAddresses.value = customer.listeAdresses
+  } else if (customer.user_addresses && customer.user_addresses.length > 0) {
     userAddresses.value = customer.user_addresses
   } else {
     userAddresses.value = []
@@ -1391,8 +1414,16 @@ const loadRestaurantDetails = async () => {
 const loadAllPostalCodes = async () => {
   try {
     const response = await getAllPostalCodes()
+    console.log('🔧 Réponse codes postaux:', response)
+    
     if (response.code === 200 && response.data) {
       allPostalCodes.value = response.data
+      console.log('📡 Codes postaux chargés:', allPostalCodes.value)
+      
+      // Afficher la structure du premier élément pour debug
+      if (allPostalCodes.value.length > 0) {
+        console.log('🔍 Structure du premier code postal:', allPostalCodes.value[0])
+      }
     }
   } catch (error) {
     console.error('Erreur lors du chargement des codes postaux:', error)
@@ -1445,10 +1476,37 @@ const transformCartForAPI = (cart: CartItem[]) => {
       })
     }
 
+    // Calculer le prix total du produit (prix de base + ingrédients + suppléments) * quantité
+    const basePrice = Number(item.selectedSize?.price || item.selectedSize?.priceLivraison || 0)
+    
+    // Calculer le prix des ingrédients personnalisés
+    const ingredientsPrice = item.ingredients.reduce((total, ing) => {
+      if (!ing.isDefault && ing.quantity > 0) {
+        return total + (Number(ing.extra_cost_price) || 0) * ing.quantity
+      }
+      return total
+    }, 0)
+    
+    // Calculer le prix des suppléments
+    const supplementsPrice = item.supplements.reduce((total, supp) => {
+      const supQuantity = (supp as any).quantity || 0
+      if (supQuantity > 0) {
+        return total + (Number(supp.extra_cost_price) || 0) * supQuantity
+      }
+      return total
+    }, 0)
+    
+    // Prix unitaire du produit (prix de base + ingrédients + suppléments)
+    const unitPrice = basePrice + ingredientsPrice + supplementsPrice
+    
+    // Prix total du produit (prix unitaire * quantité)
+    const productPrice = unitPrice * item.quantity
+
     return {
       product_id: item.productId,
       specification_id: item.selectedSize.id,
       quantity: item.quantity,
+      product_price: productPrice, // Prix total du produit (prix unitaire * quantité)
       optionSpecific: options.join(', ') || "",
       ingredient: [...item.ingredients.map(ing => ({
         name: ing.name,
@@ -1532,11 +1590,6 @@ const handlePlaceOrder = async () => {
         return selectedCustomer.value.email
       }
       
-      // Priorité 3: Email de l'utilisateur du client sélectionné (si valide)
-      if (selectedCustomer.value?.user?.email && isValidEmail(selectedCustomer.value.user.email)) {
-        return selectedCustomer.value.user.email
-      }
-      
       // Priorité 4: Email par défaut du restaurant (si valide)
       /* const defaultEmail = restaurantID === 'fd9d1677-f994-473a-9939-908cf3145bd4' 
         ? 'client07morges@gmail.com' 
@@ -1569,7 +1622,7 @@ const handlePlaceOrder = async () => {
       guest_first_name: customerInfo.value.firstName,
       guest_last_name: customerInfo.value.lastName,
       guest_email: renderEmail(),
-      guest_phone_number: selectedCustomer?.value?.phoneNumber || customerInfo.value.phone,
+      guest_phone_number: selectedCustomer?.value?.phone_number || selectedCustomer?.value?.phoneNumber || customerInfo.value.phone,
       order_type: storeOrderType.value, // Utiliser le type depuis le store
       numberRue: storeOrderType.value === 'delivery' ? deliveryAddress.value.numeroRue : restaurantInfo.value.numeroRue || "",
       deliveryPreference: deliveryPreference.value,
@@ -1599,6 +1652,7 @@ const handlePlaceOrder = async () => {
       discountValue: discountType.value === 'percentage' ? String(discountPercentage.value) : String(discountFixed.value),
       discountAmount: discountAmount.value > 0 ? discountAmount.value.toString() : "0",
       divers: diversAmount.value > 0 ? diversAmount.value.toString() : "0",
+      tvaAmount: formatPrice(orderSummaryWithDiscount.value.tax) || "0",
       intructionOrder: [
         {
           demandeCouverts: false,
@@ -1786,17 +1840,35 @@ const removeCoupon = () => {
 
 // Fonction pour rechercher des codes postaux
 const searchPostalCodes = (query: string) => {
+  console.log('🔍 Recherche codes postaux avec query:', query)
+  console.log('📊 Codes postaux disponibles:', allPostalCodes.value.length)
+  
   if (!query.trim() || query.length < 2) {
     postalCodeSuggestions.value = []
     showPostalCodeSuggestions.value = false
     return
   }
 
-  const results = allPostalCodes.value.filter(postalCode => 
-    postalCode.numeroPostal.includes(query) || 
-    postalCode.ville.toLowerCase().includes(query.toLowerCase())
-  ).slice(0, 10) // Limiter à 10 résultats
+  const results = allPostalCodes.value.filter(postalCode => {
+    // Protection contre les propriétés undefined
+    if (!postalCode) return false
+    
+    // Adapter selon la structure des données du nouvel endpoint
+    // Convertir en chaîne de caractères pour éviter les erreurs
+    const postalCodeStr = String(postalCode.code || postalCode.numeroPostal || postalCode.postal_code || '')
+    const cityStr = String(postalCode.locality || postalCode.ville || postalCode.city || postalCode.localite || '')
+    
+    const matches = postalCodeStr.includes(query) || 
+           cityStr.toLowerCase().includes(query.toLowerCase())
+    
+    if (matches) {
+      console.log('✅ Match trouvé:', { postalCodeStr, cityStr, postalCode })
+    }
+    
+    return matches
+  }).slice(0, 10) // Limiter à 10 résultats
 
+  console.log('🎯 Résultats trouvés:', results.length)
   postalCodeSuggestions.value = results
   showPostalCodeSuggestions.value = results.length > 0
 }
@@ -1804,8 +1876,14 @@ const searchPostalCodes = (query: string) => {
 // Fonction pour sélectionner un code postal
 const selectPostalCode = (postalCode: any) => {
   selectedPostalCode.value = postalCode
-  deliveryAddress.value.npa = postalCode.numeroPostal
-  deliveryAddress.value.localite = postalCode.ville
+  
+  // Adapter selon la structure des données du nouvel endpoint
+  // Convertir en chaîne de caractères pour éviter les erreurs
+  const postalCodeStr = String(postalCode.code || postalCode.numeroPostal || postalCode.postal_code || '')
+  const cityStr = String(postalCode.locality || postalCode.ville || postalCode.city || postalCode.localite || '')
+  
+  deliveryAddress.value.npa = postalCodeStr
+  deliveryAddress.value.localite = cityStr
   showPostalCodeSuggestions.value = false
   postalCodeSuggestions.value = []
   
@@ -1818,8 +1896,11 @@ const selectPostalCode = (postalCode: any) => {
 // Fonction pour gérer le changement du code postal
 const handlePostalCodeChange = () => {
   // Réinitialiser la sélection si l'utilisateur modifie manuellement
-  if (selectedPostalCode.value && deliveryAddress.value.npa !== selectedPostalCode.value.numeroPostal) {
-    selectedPostalCode.value = null
+  if (selectedPostalCode.value) {
+    const postalCodeStr = String(selectedPostalCode.value.code || selectedPostalCode.value.numeroPostal || selectedPostalCode.value.postal_code || '')
+    if (deliveryAddress.value.npa !== postalCodeStr) {
+      selectedPostalCode.value = null
+    }
   }
   
   // Rechercher des suggestions

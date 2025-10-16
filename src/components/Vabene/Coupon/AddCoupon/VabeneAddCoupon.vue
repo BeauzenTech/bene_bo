@@ -160,7 +160,7 @@ import {
   detailCampagne,
   listeUser,
   createNotification,
-  listeCustomers,
+  getAllCustomers,
   createCoupon,
   detailCoupon,
   updateCoupon, disableCoupon
@@ -293,10 +293,10 @@ export default defineComponent({
         if(idResto){
           this.restaurantId = idResto;
         }
-        const response = await listeCustomers(page, '1', idResto ?? 'all') as ApiResponse<PaginatedCustomer>;
+        const response = await getAllCustomers(page, 1);
         if (response.code === 200) {
-          if (response.data?.items) {
-            const data = response.data.items;
+          if (response.data?.data) {
+            const data = response.data.data;
             this.originalUsers = data.filter(item => item.user != null && item.user.deviceToken != null);
           }
 
