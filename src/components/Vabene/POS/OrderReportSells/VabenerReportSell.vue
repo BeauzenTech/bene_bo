@@ -39,82 +39,12 @@
           <div class="col-lg-6">
             <VabeneNombreCommandeProductDate :restaurantId="restaurantSelected ?? 'all'" />
           </div>
-          <div class="col-lg-6">
-            <VabeneTopProduitReportSell  :restaurantId="restaurantSelected ?? 'all'" />
-          </div>
-          <div class="col-lg-6">
+          <!-- <div class="col-lg-6">
             <VabeneAverageReportSell :restaurantId="restaurantSelected ?? 'all'" />
-          </div>
+          </div> -->
         </div>
 
       </div>
-<!--      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">-->
-<!--        <div class="col">-->
-<!--          <div class="card radius-10 border-start border-0 border-3 border-info">-->
-<!--            <div class="card-body">-->
-<!--              <div class="d-flex align-items-center">-->
-<!--                <div>-->
-<!--                  <p class="mb-0 text-secondary">Ventes cette semaine</p>-->
-<!--                  <h4 class="my-1 text-info">{{periodiqueReportCard.currentMonth.value}} CHF</h4>-->
-<!--                  <p v-if="periodiqueReportCard.currentMonth.ratio" class="mb-0 font-13">{{periodiqueReportCard.currentMonth.ratio ?? '0'}} cette semaine</p>-->
-<!--                  <p v-else  class="mb-0 font-13">0</p>-->
-<!--                </div>-->
-<!--                <div class="widgets-icons-2 rounded-circle bg-gradient-scooter text-white ms-auto"><i class="fa fa-shopping-cart"></i>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--        <div class="col">-->
-<!--          <div class="card radius-10 border-start border-0 border-3 border-danger">-->
-<!--            <div class="card-body">-->
-<!--              <div class="d-flex align-items-center">-->
-<!--                <div>-->
-<!--                  <p class="mb-0 text-secondary">Semaine passée</p>-->
-<!--                  <h4 class="my-1 text-danger">{{periodiqueReportCard.lastWeek.value}}</h4>-->
-<!--                  <p v-if="periodiqueReportCard.lastWeek.ratio" class="mb-0 font-13">{{periodiqueReportCard.lastWeek.ratio}}%</p>-->
-<!--                  <p v-else class="mb-0 font-13">0%</p>-->
-<!--                </div>-->
-<!--                <div class="widgets-icons-2 rounded-circle bg-gradient-bloody text-white ms-auto"><i class="fa fa-dollar"></i>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--        <div class="col">-->
-<!--          <div class="card radius-10 border-start border-0 border-3 border-success">-->
-<!--            <div class="card-body">-->
-<!--              <div class="d-flex align-items-center">-->
-<!--                <div>-->
-<!--                  <p class="mb-0 text-secondary">Mois passée</p>-->
-<!--                  <h4 class="my-1 text-primary">{{periodiqueReportCard.lastMonth.value}}</h4>-->
-<!--                  <p v-if="periodiqueReportCard.lastMonth.ratio" class="mb-0 font-13">{{periodiqueReportCard.lastMonth.ratio}}%</p>-->
-<!--                  <p v-else class="mb-0 font-13">0%</p>-->
-
-<!--                </div>-->
-<!--                <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto"><i class="fa fa-bar-chart"></i>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--        <div class="col">-->
-<!--          <div class="card radius-10 border-start border-0 border-3 border-warning">-->
-<!--            <div class="card-body">-->
-<!--              <div class="d-flex align-items-center">-->
-<!--                <div>-->
-<!--                  <p class="mb-0 text-warning">Cette année</p>-->
-<!--                  <h4 class="my-1 text-warning">{{periodiqueReportCard.year.value}} CHF</h4>-->
-<!--                  <p v-if="periodiqueReportCard.year.ratio" class="mb-0 font-13">{{periodiqueReportCard.year.ratio}}%</p>-->
-<!--                  <p v-else class="mb-0 font-13">0%</p>-->
-<!--                </div>-->
-<!--                <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto"><i class="fa fa-users"></i>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      </div>-->
     </div>
 
     <div
@@ -174,7 +104,6 @@ import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import {RepportModelData} from "@/models/report.model";
 import {PeriodiqueCardReport} from "@/models/periodiqueCardReport.model";
-import VabeneTopProduitReportSell from "@/components/Vabene/POS/OrderReportSells/VabeneTopProduitReportSell.vue";
 import VabeneAverageReportSell from "@/components/Vabene/POS/OrderReportSells/VabeneAverageReportSell.vue";
 import VabeneTauxOrderCategorieDate from "@/components/Vabene/POS/OrderReportSells/VabeneTauxOrderCategorieDate.vue";
 import VabeneNombreCommandeProductDate
@@ -185,8 +114,7 @@ import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 export default defineComponent({
   name: "VabenerReportSell",
   components: {
-    VabeneTopProduitReportSell,
-    VabeneAverageReportSell,
+    // VabeneAverageReportSell,
     VabeneTauxOrderCategorieDate,
     VabeneNombreCommandeProductDate,
     LoaderComponent
@@ -359,22 +287,22 @@ export default defineComponent({
         console.error(error);
       }
     },
-    async getReportRestaurant(restaurantID: string){
-      this.isLoading = true
-      try {
-        const response = await reportVenteRestaurant(restaurantID) as ApiResponse<SellModel>;
-        if (response.code === 200) {
-          if (response.data) {
-            const dt = response.data as SellModel;
-            this.reportVente = dt.vente as RepportModelData[]
-          }
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        this.isLoading = false
-      }
-    },
+    // async getReportRestaurant(restaurantID: string){
+    //   this.isLoading = true
+    //   try {
+    //     const response = await reportVenteRestaurant(restaurantID) as ApiResponse<SellModel>;
+    //     if (response.code === 200) {
+    //       if (response.data) {
+    //         const dt = response.data as SellModel;
+    //         this.reportVente = dt.vente as RepportModelData[]
+    //       }
+    //     }
+    //   } catch (error) {
+    //     console.error(error);
+    //   } finally {
+    //     this.isLoading = false
+    //   }
+    // },
     async getPeriodiqueReport(){
       this.isLoading = true
       try {

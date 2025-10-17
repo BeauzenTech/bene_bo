@@ -83,7 +83,7 @@
           </div>
         </div>
       </div>
-      <div v-if="tauxMoyenCommande" class="info d-flex align-items-center justify-content-between mt-15">
+      <!-- <div v-if="tauxMoyenCommande" class="info d-flex align-items-center justify-content-between mt-15">
         <span class="fs-13 d-block text-uppercase text-dark-emphasis fw-bold">
           NOMBRE DE COMMANDES (PRODUIT)
         </span>
@@ -105,7 +105,7 @@
               placeholder="produit"
           />
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
@@ -241,11 +241,8 @@ export default defineComponent({
             this.listeMethode = [(this.fakeAllMethodePaiement as MethodePaiementModel), ...response.data.items];
             this.methodePaiementSelected = this.getMethodePaiementParType(this.listeMethode, 'all')
           }
-        } else {
-          this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des methodes de paiement");
         console.error(error);
       } finally {
         // this.isLoading = false;
@@ -260,11 +257,8 @@ export default defineComponent({
             this.listeOrderType = [(this.fakeAllOrderType as OrderTypeModel), ...response.data.items];
             this.orderTypeSelected = this.getOrderTypeParType(this.listeOrderType, 'all')
           }
-        } else {
-          this.toast.error(response.message);
-        }
+        } 
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des types de commandes");
         console.error(error);
       } finally {
         // this.isLoading = false;
@@ -384,11 +378,8 @@ export default defineComponent({
 
 
           }
-        } else {
-          this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des categories");
         console.error(error);
       }
     },

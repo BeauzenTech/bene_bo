@@ -159,7 +159,7 @@ import {
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import { AxiosError } from 'axios';
-import {ApiResponse, PaginatedCategorie, PaginatedRestaurantCategory} from "@/models/Apiresponse";
+import {ApiResponse, PaginatedCategorie, PaginatedRestaurantCategory, PaginatedCategories, CategoriesApiResponse, CategoriesApiFullResponse} from "@/models/Apiresponse";
 import {CategorieModel} from "@/models/categorie.model";
 import {ActionCrud} from "@/enums/actionCrud.enum";
 import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
@@ -185,7 +185,7 @@ export default defineComponent({
   data(){
     return{
       userRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
-      originalRestaurantCategorie: [] as RestaurantCategoryModel[],
+      originalRestaurantCategorie: [] as CategorieModel[],
       originalCategories: [] as CategorieModel[],
       resteCategorieModel: [] as CategorieModel[],
       categorieSelected: null,
@@ -202,14 +202,14 @@ export default defineComponent({
   },
   methods: {
 
-    filtrerElementsExclus(a: CategorieModel[], b: RestaurantCategoryModel[]): CategorieModel[] {
+    filtrerElementsExclus(a: CategorieModel[], b: CategorieModel[]): CategorieModel[] {
       const resultat: CategorieModel[] = [];
 
       for (let i = 0; i < a.length; i++) {
         let existe = false;
 
         for (let j = 0; j < b.length; j++) {
-          if (a[i].id === b[j].category.id) {
+          if (a[i].id === b[j].id) {
             existe = true;
             break;
           }
@@ -225,10 +225,10 @@ export default defineComponent({
     async fetchCategoriesRestaurant(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeRestaurantCategorie(page, "0") as ApiResponse<PaginatedRestaurantCategory>;
+        const response = await listeRestaurantCategorie(page, "0") as CategoriesApiFullResponse;
         if (response.code === 200) {
-          if (response.data?.items) {
-            this.originalRestaurantCategorie = response.data.items;
+          if (response.data) {
+            this.originalRestaurantCategorie = response.data;
             this.resteCategorieModel = this.filtrerElementsExclus(this.originalCategories, this.originalRestaurantCategorie)
           }
 

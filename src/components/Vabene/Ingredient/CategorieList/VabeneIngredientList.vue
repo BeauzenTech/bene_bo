@@ -11,7 +11,7 @@
 
         >
 
-             Ajouter un ingredient
+             Ajouter un ingredient 
 
           <i class="flaticon-plus position-relative ms-5 fs-12"></i>
         </button>
@@ -90,7 +90,7 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
-              TAILLE(S)
+              PRIX SUPPLÉMENTAIRE
             </th>
 
 
@@ -142,11 +142,11 @@
                     class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
                 >
                   <img
-                      :src=" ingredient.imageUrl || require('@/assets/images/icon/jpg.png')"
+                      :src=" getIngredientImage(ingredient)"
                       class="rounded-circle me-8"
                       width="24"
                       height="24"
-                      alt="categorie"
+                      alt="ingredient"
                   />
                  
                 </div>
@@ -163,15 +163,15 @@
                 <input
                     class="form-check-input"
                     type="checkbox"
-                    v-model="ingredient.isAvailable"
-                    @change="toggleIngredientActivation(ingredient, ingredient.isAvailable)"
+                    :checked="getIngredientAvailability(ingredient)"
+                    @change="toggleIngredientActivation(ingredient, ($event.target as HTMLInputElement).checked)"
                 />
 
               </div>
             </td>
 
-            <td v-if="ingredient.ingredientSizes">
-              {{ ingredient.ingredientSizes.length  }} Taille(s)
+            <td>
+              {{ ingredient.extra_cost_price || 0 }} CHF
             </td>
 
 
@@ -311,7 +311,7 @@
 </template>
 <script lang="ts">
 import { defineComponent } from "vue";
-import {deleteFileUpload, deleteIngredient, listeIngredient, toggleActivationIngredient} from "@/service/api";
+import {deleteFileUpload, deleteIngredient, getAllIngredients, listeIngredient, toggleActivationIngredient} from "@/service/api";
 import {UserGeneralKey} from "@/models/user.generalkey";
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
@@ -333,17 +333,22 @@ export default defineComponent({
       isLoading: false,
       currentPage: 1 ,
       searchQuery: '', // Ajout du champ de recherche
+      searchTimeout: null as any, // Timeout pour la recherche
       originalIngredients: [] as IngredientModel[], // Stockage des utilisateurs originaux
       ingredientSelected: null,
     }
   },
   computed: {
     allIngredient(): IngredientModel[] {
-      const ingredients = this.ingredientResponse?.data?.items || this.originalIngredients;
+      console.log('ingredientResponse:', this.ingredientResponse);
+      console.log('originalIngredients:', this.originalIngredients);
+      
+      // Utiliser directement originalIngredients qui contient les données de l'API
+      const ingredients = this.originalIngredients;
       if (!this.searchQuery) return ingredients;
 
       const query = this.searchQuery.toLowerCase();
-      return ingredients.filter(ingredient => {
+      return ingredients.filter((ingredient: any) => {
         return (
             (ingredient.name?.toLowerCase().includes(query))
             );
@@ -369,6 +374,12 @@ export default defineComponent({
     }
   },
   methods: {
+    getIngredientImage(ingredient: any): string {
+      return ingredient.image_url || ingredient.imageUrl || require('@/assets/images/icon/jpg.png');
+    },
+    getIngredientAvailability(ingredient: any): boolean {
+      return ingredient.is_available || ingredient.isAvailable || false;
+    },
     getShortUuid(uuid: string): string {
       return uuid.split('-')[0];
     },
@@ -409,7 +420,7 @@ export default defineComponent({
       }
     },
     async confirmationDeleteAction(ingredient){
-      const publicID = Commons.extractPublicId(ingredient.imageUrl)
+      const publicID = Commons.extractPublicId(ingredient.image_url || ingredient.imageUrl)
       try {
         const response = await deleteIngredient(ingredient.id) as ApiResponse<any>;
         await this.deleteFileUpload(publicID)
@@ -420,7 +431,7 @@ export default defineComponent({
           this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des ingredient");
+        this.toast.error("Erreur lors du chargement des ingrédients");
         console.error(error);
       } finally {
         setTimeout(() =>  {
@@ -463,20 +474,39 @@ export default defineComponent({
     async fetchIngredients(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeIngredient(page, '0') as ApiResponse<PaginatedIngredient>;
+        const response = await getAllIngredients(page, 10, this.searchQuery) as any;
+        console.log('API Response:', response);
         if (response.code === 200) {
-          this.ingredientResponse = response;
-          if (response.data?.items) {
-            this.originalIngredients = response.data.items;
-          }
-          if (response.data && response.data.pagination) {
-            this.currentPage = response.data.pagination.current_page;
-          }
+          console.log('Raw response.data:', response.data);
+          // L'API retourne {data: Array(10), pagination: {...}}
+          const ingredientsData = Array.isArray(response.data.data) ? response.data.data : [];
+          console.log('ingredientsData:', ingredientsData);
+          
+          // Stocker directement les données dans originalIngredients
+          this.originalIngredients = ingredientsData;
+          console.log('After setting originalIngredients:', this.originalIngredients);
+          
+          // Créer la structure pour ingredientResponse
+          this.ingredientResponse = {
+            code: response.code,
+            message: response.message,
+            data: {
+              items: ingredientsData,
+              pagination: {
+                current_page: response.data.pagination?.page || 1,
+                total_items: response.data.pagination?.total || 0,
+                total_pages: response.data.pagination?.totalPages || 1,
+                items_per_page: response.data.pagination?.limit || 10
+              }
+            }
+          };
+          
+          this.currentPage = response.data.pagination?.page || 1;
         } else {
           this.toast.error(response.message);
-        }
+        } 
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des categories");
+        this.toast.error("Erreur lors du chargement des ingrédients");
         console.error(error);
       } finally {
         this.isLoading = false;
@@ -509,6 +539,15 @@ export default defineComponent({
   setup() {
     const toast = useToast();
     return { toast };
+  },
+  watch: {
+    searchQuery() {
+      // Déclencher la recherche avec un délai pour éviter trop d'appels
+      clearTimeout(this.searchTimeout);
+      this.searchTimeout = setTimeout(() => {
+        this.fetchIngredients(1);
+      }, 500);
+    }
   },
   mounted() {
    this.fetchIngredients();

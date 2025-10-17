@@ -24,7 +24,7 @@
       <div class="d-flex align-items-center">
         <form class="search-box position-relative me-15" @submit.prevent>
           <input v-model="searchQuery" type="text" class="form-control shadow-none text-black rounded-0 border-0"
-            placeholder="Rechercher une commande" @input="currentPage = 1" />
+            placeholder="Rechercher une commande" @input="handleSearch" />
           <button type="submit" class="bg-transparent text-primary transition p-0 border-0">
             <i class="flaticon-search-interface-symbol"></i>
           </button>
@@ -84,8 +84,7 @@
                   </div>
                   <div class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16">
                     <a href="#" @click="selectionOrder(order)">
-                      #{{ order.restaurantID.id === RestaurantEnum.RESTO_PENTHAZ ? 'VBP' + order.nif : 'VBM' + order.nif
-                      }}
+                      {{ getOrderTransactionReference(order) }}
                     </a>
                   </div>
                 </div>
@@ -97,18 +96,15 @@
                 <span v-if="order.order_type === 'delivery'" class="badge text-bg-success fs-13">À livrer</span>
               </td>
 
-              <td v-if="order.guest_first_name" class="shadow-none lh-1 fw-medium text-black-emphasis">
-                {{ order.guest_first_name.toUpperCase() || '-' }}
-              </td>
-              <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">
-                {{ order.guest_first_name || '-' }} {{ order.guest_last_name || '-' }}
+              <td class="shadow-none lh-1 fw-medium text-black-emphasis">
+                {{ getOrderCustomerName(order) }}
               </td>
               <td class="shadow-none lh-1 fw-medium text-black-emphasis ">
-                {{ order.total_price || '-' }} CHF
+                {{ getOrderTotal(order) }} CHF
               </td>
-              <td v-if="order.orderItems.length > 0" class="shadow-none lh-1 fw-medium text-black-emphasis">
-                {{  formatInTimeZone(order?.created_at, 'UTC', 'dd/MM/yyyy HH:mm')}}
-                <!-- {{ formatInTimeZone(order.created_at, 'Europe/Zurich', 'dd/MM/yyyy HH:mm') }} -->
+              <td v-if="getOrderItems(order).length > 0" class="shadow-none lh-1 fw-medium text-black-emphasis">
+              
+               {{ formatInTimeZone(order.created_at, 'Europe/Zurich', 'dd/MM/yyyy HH:mm') }} 
 
               </td>
               <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">
@@ -125,16 +121,16 @@
                 <span v-if="order.status === 'delivered'" class="badge text-bg-primary fs-13">Livré</span>
                 <span v-if="order.status === 'cancelled'" class="badge text-bg-danger fs-13">Annulé</span>
               </td>
-              <td class="shadow-none lh-1 fw-medium text-muted" v-if="order.paymentID">
-                <span v-if="order.paymentID.status === 'pending'" class="badge text-outline-danger">En attente de
+              <td class="shadow-none lh-1 fw-medium text-muted" v-if="getOrderPayment(order)">
+                <span v-if="getOrderPayment(order).status === 'pending'" class="badge text-outline-danger">En attente de
                   paiement</span>
-                <span v-if="order.paymentID.status === 'paid'" class="badge text-outline-primary">Payé</span>
-                <span v-if="order.paymentID.status === 'refunded'" class="badge text-outline-muted">A remboursé</span>
-                <span v-if="order.paymentID.status === 'cancelled'" class="badge text-outline-warning">Annuler</span>
+                <span v-if="getOrderPayment(order).status === 'paid'" class="badge text-outline-primary">Payé</span>
+                <span v-if="getOrderPayment(order).status === 'refunded'" class="badge text-outline-muted">A remboursé</span>
+                <span v-if="getOrderPayment(order).status === 'cancelled'" class="badge text-outline-warning">Annuler</span>
 
               </td>
               <td>
-                <span v-if="order.guest_phone_number" class="badge text-bg-secondary fs-13">{{ order.guest_phone_number != null ? '+41'+ order.guest_phone_number :  order.guest_phone_number  }}</span>
+                <span v-if="getOrderCustomerPhone(order) !== '-'" class="badge text-bg-secondary fs-13">{{ getOrderCustomerPhone(order) }}</span>
                 <span v-else class="badge text-black-emphasis fs-13">-</span>
               </td>
               <td class="shadow-none lh-1 fw-medium text-body-tertiary text-end pe-0">
@@ -257,6 +253,7 @@ export default defineComponent({
       orderSelected: null,
       refreshInterval: null as NodeJS.Timeout | null, // Intervalle de rafraîchissement
       lastRefreshTime: null as Date | null, // Dernier rafraîchissement
+      searchTimeout: null as ReturnType<typeof setTimeout> | null, // Timeout pour la recherche
     }
   },
   computed: {
@@ -264,34 +261,55 @@ export default defineComponent({
       return RestaurantEnum
     },
     allOrder(): OrderModel[] {
-      const orders = this.orderResponse?.data?.items || this.originalOrder;
-      if (!this.searchQuery) return orders;
-      const query = this.searchQuery.toLowerCase();
-      return orders.filter(order => {
-        return (
-          (order.id?.toLowerCase().includes(query)) ||
-          (order.status?.toLowerCase().includes(query)) ||
-          (order.address?.toLowerCase().includes(query)) ||
-          (order.rue?.includes(query)));
-      });
+      // Utiliser directement les données du serveur (recherche côté serveur)
+      return (this.orderResponse?.data as any)?.orders || this.originalOrder;
     },
 
     pagination(): any {
-      return this.orderResponse?.data?.pagination || {
-        current_page: 1,
-        total_items: 0,
-        total_pages: 1,
-        items_per_page: 8
+      if (!this.orderResponse) {
+        console.log('📋 No orderResponse yet');
+        return {
+          page: 1,
+          total: 0,
+          totalPages: 1,
+          limit: 10
+        };
+      }
+      
+      console.log('📋 Pagination orderResponse:', this.originalOrder);
+      const responsePagination = (this.orderResponse as any)?.pagination;
+      console.log('📋 Response pagination:', responsePagination);
+      console.log('📋 Full response:', this.orderResponse);
+      
+      // Si la pagination n'est pas trouvée au niveau racine, essayer dans data
+      const dataPagination = (this.orderResponse?.data as any)?.pagination;
+      const finalPagination = responsePagination || dataPagination;
+      
+      return finalPagination || {
+        page: 1,
+        total: 0,
+        totalPages: 1,
+        limit: 10
       };
     },
     paginationInfo(): string {
-      const { current_page, items_per_page, total_items } = this.pagination;
-      const start = (current_page - 1) * items_per_page + 1;
-      const end = Math.min(current_page * items_per_page, total_items);
-      return `Affichage de ${start} à ${end} sur ${total_items} résultats`;
+      const { page, limit, total } = this.pagination;
+      const start = (page - 1) * limit + 1;
+      const end = Math.min(page * limit, total);
+      
+      // Debug: afficher les valeurs de pagination
+      console.log('🔍 Pagination info:', { page, limit, total, start, end });
+      console.log('🔍 OrderResponse:', this.orderResponse);
+      
+      // Si total est 0, essayer de récupérer le nombre d'éléments depuis allOrder
+      const actualTotal = total || this.allOrder.length;
+      const actualStart = total > 0 ? start : 1;
+      const actualEnd = total > 0 ? end : this.allOrder.length;
+      
+      return `Affichage de ${actualStart} à ${actualEnd} sur ${actualTotal} résultats`;
     },
     totalPages(): number {
-      return this.pagination.total_pages;
+      return this.pagination.totalPages;
     }
   },
   methods: {
@@ -361,7 +379,7 @@ export default defineComponent({
     convertDateCreate(date: string): string {
       return UserGeneralKey.formatDateToFrenchLocale(date);
     },
-    async fetchOrder(page = 1) {
+    async fetchOrder(page = 1, search = '', status = '') {
       // Ne pas afficher le loader pour les rafraîchissements automatiques
       const isAutoRefresh = this.refreshInterval && !this.isLoading;
       
@@ -370,16 +388,20 @@ export default defineComponent({
       }
       
       try {
-        const response = await listeOrder(page) as ApiResponse<PaginatedOrder>;
+        const response = await listeOrder(page, 10, search, status) as ApiResponse<PaginatedOrder>;
         
         if (response.code === 200) {
           this.orderResponse = response;
-          if (response.data?.items) {
-            this.originalOrder = response.data.items;
+          
+          if ((response.data as any)?.data?.orders) {
+            this.originalOrder = (response.data as any)?.data?.orders as any;
           }
-          if (response.data && response.data.pagination) {
-            this.currentPage = response.data.pagination.current_page;
+          
+          // La pagination est au niveau racine de la réponse
+          if ((response.data as any)?.data?.pagination) {
+            this.currentPage = (response.data as any)?.data?.pagination.page;
           }
+          
           
         } else {
           if (!isAutoRefresh) {
@@ -396,16 +418,16 @@ export default defineComponent({
     },
     changePage(page: number) {
       if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
-        this.fetchOrder(page);
+        this.fetchOrder(page, this.searchQuery);
       }
     },
     generatePageNumbers(): number[] {
       const pages: number[] = [];
       const maxVisiblePages = 100;
-      const { current_page, total_pages } = this.pagination;
+      const { page, totalPages } = this.pagination;
 
-      let startPage = Math.max(1, current_page - Math.floor(maxVisiblePages / 2));
-      const endPage = Math.min(total_pages, startPage + maxVisiblePages - 1);
+      let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
+      const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
       if (endPage - startPage + 1 < maxVisiblePages) {
         startPage = Math.max(1, endPage - maxVisiblePages + 1);
@@ -428,7 +450,7 @@ export default defineComponent({
       // Démarrer un nouvel intervalle toutes les 2 minutes (120000 ms)
       this.refreshInterval = setInterval(() => {
         this.lastRefreshTime = new Date();
-        this.fetchOrder(this.currentPage);
+        this.fetchOrder(this.currentPage, this.searchQuery);
       }, 120000); // 2 minutes
       
     },
@@ -444,12 +466,67 @@ export default defineComponent({
     // Méthode pour forcer un rafraîchissement manuel
     forceRefresh() {
       this.lastRefreshTime = new Date();
-      this.fetchOrder(this.currentPage);
+      this.fetchOrder(this.currentPage, this.searchQuery);
+    },
+    
+    // Méthode pour gérer la recherche
+    handleSearch() {
+      this.currentPage = 1;
+      this.fetchOrder(1, this.searchQuery);
+    },
+    
+    // Méthodes helper pour accéder aux nouvelles propriétés
+    getOrderTransactionReference(order: any): string {
+      return order.transactionReference || order.nif || '-';
+    },
+    
+    getOrderCustomerName(order: any): string {
+      const customer = order.customer;
+      if (customer) {
+        return `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || '-';
+      }
+      return order.guest_first_name && order.guest_last_name 
+        ? `${order.guest_first_name} ${order.guest_last_name}` 
+        : '-';
+    },
+    
+    getOrderTotal(order: any): string {
+      return order.total || order.total_price || '-';
+    },
+    
+    getOrderItems(order: any): any[] {
+      return order.items || order.orderItems || [];
+    },
+    
+    getOrderPayment(order: any): any {
+      return order.payment || order.paymentID;
+    },
+    
+    getOrderCustomerPhone(order: any): string {
+      const customer = order.customer;
+      if (customer && customer.phone) {
+        return customer.phone;
+      }
+      return order.guest_phone_number || '-';
     }
   },
   setup() {
     const toast = useToast();
     return { toast };
+  },
+  watch: {
+    // Watcher pour la recherche avec debounce
+    searchQuery: {
+      handler(newQuery) {
+        // Debounce de 500ms pour éviter trop de requêtes
+        if (this.searchTimeout) {
+          clearTimeout(this.searchTimeout);
+        }
+        this.searchTimeout = setTimeout(() => {
+          this.handleSearch();
+        }, 500);
+      }
+    }
   },
   mounted() {
     this.fetchOrder();

@@ -374,15 +374,15 @@ export default defineComponent({
       const grouped: Record<string, any[]> = {};
 
       if(this.paiementResponse){
-        for (const item of this.paiementResponse.orderSelf.orderItems) {
-          const categoryName = item.productID?.categorieID?.name || "Sans catégorie";
+        // for (const item of this.paiementResponse.orderSelf.orderItems) {
+        //   const categoryName = item.productID?.categorieID?.name || "Sans catégorie";
 
-          if (!grouped[categoryName]) {
-            grouped[categoryName] = [];
-          }
+        //   if (!grouped[categoryName]) {
+        //     grouped[categoryName] = [];
+        //   }
 
-          grouped[categoryName].push(item);
-        }
+        //   grouped[categoryName].push(item);
+        // }
       }
       return grouped;
     },

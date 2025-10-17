@@ -239,7 +239,7 @@
               </div>
             </th>
             <td class="shadow-none lh-1 fw-medium text-black-emphasis">
-              {{ cat.category.name }}
+              {{ cat.name }}
             </td>
             <th
                 class="shadow-none lh-1 fw-medium text-black-emphasis title ps-0 text-capitalize"
@@ -250,7 +250,7 @@
                     class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
                 >
                   <img
-                      :src=" cat.category.icone || require('@/assets/images/icon/jpg.png')"
+                      :src=" cat.icone || require('@/assets/images/icon/jpg.png')"
                       class="rounded-circle me-8"
                       width="24"
                       height="24"
@@ -264,7 +264,7 @@
 
 
             <td class="shadow-none lh-1 fw-medium text-muted">
-              {{ convertDateCreate(cat.category.created_at)  }}
+              {{ convertDateCreate(cat.created_at)  }}
             </td>
 
             <td>
@@ -426,7 +426,7 @@ import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 import {useToast} from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import EmptyTable from "@/components/Vabene/EmptyTable/EmptyTable.vue";
-import {ApiResponse, PaginatedCategorie, PaginatedRestaurantCategory} from "@/models/Apiresponse";
+import {ApiResponse, PaginatedCategorie, PaginatedRestaurantCategory, PaginatedCategories, CategoriesApiResponse, CategoriesApiFullResponse} from "@/models/Apiresponse";
 import {PaginatedUsers} from "@/models/Apiresponse";
 import {CategorieModel} from "@/models/categorie.model";
 import {ActionCrud} from "@/enums/actionCrud.enum";
@@ -441,12 +441,13 @@ export default defineComponent({
     return{
       userRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
       categorieResponse: null as ApiResponse<PaginatedCategorie> | null,
-      categorieRestaurantResponse: null as ApiResponse<PaginatedRestaurantCategory> | null,
+      categorieRestaurantResponse: null as ApiResponse<CategoriesApiResponse> | null,
       isLoading: false,
       currentPage: 1 ,
       searchQuery: '', // Ajout du champ de recherche
+      searchTimeout: null as any, // Timeout pour la recherche
       originalCategories:  [] as CategorieModel[], // Stockage des utilisateurs originaux
-      originalRestaurantCategorie: [] as RestaurantCategoryModel[],
+      originalRestaurantCategorie: [] as CategorieModel[],
       categorieSelected: null,
     }
   },
@@ -457,42 +458,56 @@ export default defineComponent({
     allCategorie():  CategorieModel[] {
       const categories = this.categorieResponse?.data?.items || this.originalCategories;
 
+      // Vérifier que categories est un tableau valide
+      if (!Array.isArray(categories)) {
+        return [];
+      }
+
       // Filtrage par searchQuery
       const filtered = this.searchQuery
           ? categories.filter(categorie => {
+            if (!categorie || typeof categorie !== 'object') return false;
             const query = this.searchQuery.toLowerCase();
             return (
-                categorie.name?.toLowerCase().includes(query) ||
-                categorie.description?.toLowerCase().includes(query)
+                (categorie.name && categorie.name.toLowerCase().includes(query)) ||
+                (categorie.description && categorie.description.toLowerCase().includes(query))
             );
           })
           : categories;
 
-      // Tri alphabétique par name
+      // Tri alphabétique par name avec vérifications de sécurité
       return filtered.sort((a, b) => {
-        const nameA = a.name?.toLowerCase() || '';
-        const nameB = b.name?.toLowerCase() || '';
+        if (!a || !b) return 0;
+        const nameA = (a.name && typeof a.name === 'string') ? a.name.toLowerCase() : '';
+        const nameB = (b.name && typeof b.name === 'string') ? b.name.toLowerCase() : '';
         return nameA.localeCompare(nameB);
       });
     },
-    allRestaurantCategorie():  RestaurantCategoryModel[] {
-      const categories = this.categorieRestaurantResponse?.data?.items || this.originalRestaurantCategorie;
+    allRestaurantCategorie():  CategorieModel[] {
+      const categories = this.categorieRestaurantResponse?.data?.data || this.originalRestaurantCategorie;
+
+      // Vérifier que categories est un tableau valide
+      if (!Array.isArray(categories)) {
+        return [];
+      }
 
       // Filtrage par searchQuery
       const filtered = this.searchQuery
           ? categories.filter(categorie => {
+            if (!categorie || typeof categorie !== 'object') return false;
             const query = this.searchQuery.toLowerCase();
             return (
-                categorie.category.name?.toLowerCase().includes(query) ||
-                categorie.category.description?.toLowerCase().includes(query)
+                (categorie.name && categorie.name.toLowerCase().includes(query)) ||
+                (categorie.description && categorie.description.toLowerCase().includes(query))
             );
           })
           : categories;
 
-      // Tri alphabétique par name
+      // Tri alphabétique par name avec vérifications de sécurité
       return filtered.sort((a, b) => {
-        const nameA = a.category.name?.toLowerCase() || '';
-        const nameB = b.category.name?.toLowerCase() || '';
+        if (!a || !b) return 0;
+        const nameA = (a.name && typeof a.name === 'string') ? a.name.toLowerCase() : '';
+        const nameB = (b.name && typeof b.name === 'string') ? b.name.toLowerCase() : '';
         return nameA.localeCompare(nameB);
       });
     },
@@ -507,23 +522,36 @@ export default defineComponent({
         };
       }
       else{
-        return this.categorieRestaurantResponse?.data?.pagination || {
+        // Adapter la structure de pagination pour la nouvelle API
+        const pagination = this.categorieRestaurantResponse?.data?.pagination;
+        if (pagination) {
+          return {
+            current_page: pagination.page || 1,
+            total_items: pagination.total || 0,
+            total_pages: pagination.totalPages || 1,
+            items_per_page: pagination.limit || 10
+          };
+        }
+        return {
           current_page: 1,
           total_items: 0,
           total_pages: 1,
-          items_per_page: 8
+          items_per_page: 10
         };
       }
-
     },
     paginationInfo(): string {
-      const { current_page, items_per_page, total_items } = this.pagination;
+      const paginationData = this.pagination;
+      console.log('Pagination data:', paginationData);
+      const { current_page, items_per_page, total_items } = paginationData;
       const start = (current_page - 1) * items_per_page + 1;
       const end = Math.min(current_page * items_per_page, total_items);
       return `Affichage de ${start} à ${end} sur ${total_items} résultats`;
     },
     totalPages(): number {
-      return this.pagination.total_pages;
+      const totalPages = this.pagination.total_pages;
+      console.log('Total pages:', totalPages);
+      return totalPages || 1;
     }
   },
   methods: {
@@ -699,14 +727,32 @@ export default defineComponent({
     async fetchCategoriesRestaurant(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeRestaurantCategorie(page, "1") as ApiResponse<PaginatedRestaurantCategory>;
+        const response = await listeRestaurantCategorie(page, "1", this.searchQuery) as CategoriesApiFullResponse;
+        console.log('API Response:', response);
         if (response.code === 200) {
-          this.categorieRestaurantResponse = response;
-          if (response.data?.items) {
-            this.originalRestaurantCategorie = response.data.items;
-          }
-          if (response.data && response.data.pagination) {
-            this.currentPage = response.data.pagination.current_page;
+          // Vérifier que response.data existe et est un tableau
+          const categoriesData = Array.isArray(response.data) ? response.data : [];
+          
+          this.categorieRestaurantResponse = {
+            code: response.code,
+            message: response.message,
+            data: {
+              data: categoriesData,
+              pagination: response.pagination || {
+                total: categoriesData.length,
+                page: 1,
+                limit: 10,
+                totalPages: 1
+              }
+            }
+          };
+          
+          // Stocker les données originales
+          this.originalRestaurantCategorie = categoriesData;
+          
+          // Mettre à jour la page courante
+          if (response.pagination?.page) {
+            this.currentPage = response.pagination.page;
           }
         }
       } catch (error) {
@@ -748,6 +794,20 @@ export default defineComponent({
   setup() {
     const toast = useToast();
     return { toast };
+  },
+  watch: {
+    searchQuery() {
+      // Déclencher la recherche avec un délai pour éviter trop d'appels
+      clearTimeout(this.searchTimeout);
+      this.searchTimeout = setTimeout(() => {
+        if(this.userRole === UserRole.FRANCHISE){
+          this.fetchCategories();
+        }
+        else{
+          this.fetchCategoriesRestaurant(1);
+        }
+      }, 500);
+    }
   },
   mounted() {
     if(this.userRole === UserRole.FRANCHISE){

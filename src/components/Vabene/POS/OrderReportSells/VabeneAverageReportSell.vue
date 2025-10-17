@@ -185,11 +185,8 @@ export default defineComponent({
               await this.fetchAverageProductSell(this.productSelected.id as string, this.restaurantIdStorage ?? undefined);
             }
           }
-        } else {
-          this.toast.error(response.message);
-        }
+        } 
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des categories");
         console.error(error);
       }
     },

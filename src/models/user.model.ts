@@ -23,6 +23,7 @@ export interface UserModel {
     franchises: FranchiseModel[];
     restaurant: RestaurantModel
     enableNotification: boolean
+    restaurant_id: string
 }
 
 export type UserRole = 'ROLE_ADMIN' | 'ROLE_USER' | 'ROLE_FRANCHISE' | 'ROLE_RESTAURANT'; // Ajoutez tous les rôles possibles

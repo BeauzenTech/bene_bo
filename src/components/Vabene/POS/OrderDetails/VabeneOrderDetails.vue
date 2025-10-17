@@ -18,7 +18,7 @@
         >
           <div class="d-block">
             <h5 class="mb-0 fw-bold text-black ms-10 ms-md-15">
-              #{{ orderResponse.nif }}
+              {{ orderResponse.transactionReference }}
             </h5>
           </div>
           <h5 class="mb-0 fw-bold text-black ms-10 ms-md-15">
@@ -59,7 +59,7 @@
             </li>
             <li
               class="d-flex align-items-center justify-content-between"
-              v-if="orderResponse.DeliveryPreference !== 'immediat'"
+              v-if="orderResponse.DeliveryPreference !== 'immediat' && orderResponse.timeOrder"
             >
               <div
                 class="title text-black fs-md-15 fs-lg-16 fw-semibold position-relative"
@@ -69,11 +69,13 @@
               </div>
               <span class="d-block text-paragraph fs-md-15 fs-lg-16">
                 {{
-                  formatInTimeZone(
-                    orderResponse.timeOrder,
-                    "UTC",
-                    "dd/MM/yyyy - HH:mm"
-                  )
+                  orderResponse.timeOrder && isValidDate(orderResponse.timeOrder)
+                    ? formatInTimeZone(
+                        orderResponse.timeOrder,
+                        "UTC",
+                        "dd/MM/yyyy - HH:mm"
+                      )
+                    : "Non spécifiée"
                 }}
               </span>
             </li>
@@ -84,8 +86,8 @@
                 <i class="flaticon-atm"></i>
                 Méthode de paiement:
               </div>
-              <span
-                v-if="methodePaiementSelected.length > 0"
+                <span
+                  v-if="orderResponse.payment?.method"
                 class="d-flex align-items-center text-paragraph fs-md-15 fs-lg-16"
               >
                 <!--                <img-->
@@ -95,12 +97,12 @@
                 <!--                  style="width: 25px; height: 25px;"-->
                 <!--                />-->
 
-                {{ methodePaiementSelected[0]?.libelle ?? "" }}
+                {{ translatePaymentMethod(orderResponse.payment?.method) }}
               </span>
             </li>
             <li
               class="d-flex align-items-center justify-content-between"
-              v-if="orderTypeSelected.length > 0"
+              v-if="orderResponse?.order_type"
             >
               <div
                 class="title text-black fs-md-15 fs-lg-16 fw-semibold position-relative"
@@ -111,9 +113,9 @@
               <!--              <span class="d-block text-paragraph fs-md-15 fs-lg-16">-->
               <!--                  {{orderTypeSelected[0].libelle}}-->
               <!--              </span>-->
-              <span class="d-block badge text-bg-info fs-13">{{
-                orderTypeSelected[0]?.libelle ?? ""
-              }}</span>
+              <span class="d-block badge text-bg-info fs-13">
+                {{ translateOrderType(orderResponse.order_type) }}
+              </span>
             </li>
           </ul>
         </div>
@@ -154,8 +156,8 @@
               >
                 {{
                   orderResponse.typeCustomer === "customer"
-                    ? "Classique"
-                    : "Entreprise"
+                    ? "Entreprise"
+                    : "Classique"
                 }}
               </span>
             </li>
@@ -167,9 +169,9 @@
                 Nom & Prénom:
               </div>
               <span class="d-block text-paragraph fs-md-15 fs-lg-16">
-                {{ orderResponse.civilite }}
-                {{ orderResponse.guest_first_name }}
-                {{ orderResponse.guest_last_name }}
+                {{ orderResponse.civilite || '' }}
+                {{ orderResponse.customer?.first_name || orderResponse.guest_first_name || '' }}
+                {{ orderResponse.customer?.last_name || orderResponse.guest_last_name || '' }}
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
@@ -180,10 +182,10 @@
                 Email:
               </div>
               <span
-                v-if="!orderResponse?.guest_email?.includes('guest_')"
+                v-if="!orderResponse?.customer?.email?.includes('guest_') && !orderResponse?.guest_email?.includes('guest_')"
                 class="d-block text-paragraph fs-md-15 fs-lg-16"
               >
-                {{ orderResponse.guest_email }}
+                {{ orderResponse.customer?.email || orderResponse.guest_email }}
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
@@ -195,8 +197,8 @@
               </div>
               <span class="d-block text-paragraph fs-md-15 fs-lg-16">
                 {{
-                  orderResponse.guest_phone_number !== null
-                    ? "+41" + orderResponse.guest_phone_number
+                  orderResponse.customer?.phone || orderResponse.guest_phone_number
+                    ? "+41" + (orderResponse.customer?.phone || orderResponse.guest_phone_number)
                     : "-"
                 }}
               </span>
@@ -231,10 +233,7 @@
                 data-bs-target="#contentModalScrollable_facture"
               >
                 {{
-                  orderResponse.restaurantID.id === RestaurantEnum.RESTO_PENTHAZ
-                    ? "VBP" + orderResponse.nif
-                    : "VBM" + orderResponse.nif
-                }}
+                  orderResponse.transactionReference }}
               </span>
             </li>
 
@@ -326,35 +325,35 @@
                   </td>
                 </tr>
                 <tr
-                  v-else-if="!isLoading && orderResponse.orderItems.length > 0"
-                  v-for="orderItems in orderResponse.orderItems"
-                  :key="orderItems.id"
+                  v-else-if="!isLoading && orderResponse.items?.length > 0"
+                  v-for="(orderItems, index) in orderResponse.items"
+                  :key="index"
                 >
                   <th
-                    v-if="orderItems.productID"
+                    v-if="orderItems"
                     class="shadow-none fw-medium text-black product-title ps-0"
                   >
                     <span
                       class="d-flex align-items-center text-decoration-none text-black fs-md-15 fs-lg-16"
                     >
-                      <img
-                        :src="orderItems.productID.image_urls[0]"
-                        class="me-15"
-                        width="44"
-                        alt="product"
-                      />
-                      {{ orderItems.productID.name }} {{ orderItems.size }}
+                        <img
+                         :src="getProductImage(orderItems.product_image)"
+                          class="me-15"
+                          width="44"
+                          alt="product"
+                        />
+                      {{ orderItems.product_name }} {{ orderItems.size || '' }}
                     </span>
                   </th>
                   <td class="shadow-none lh-1 fw-medium text-paragraph">
                     x{{ orderItems.quantity }}
                   </td>
                   <td class="shadow-none lh-1 fw-medium text-paragraph">
-                    {{ orderItems.unit_price }} CHF
+                    {{ orderItems.product_price }} CHF
                   </td>
 
                   <td class="shadow-none lh-1 fw-medium text-paragraph pe-0">
-                    {{ orderItems.total_price }} CHF
+                    {{ (orderItems.product_price * orderItems.quantity) }} CHF
                   </td>
 
                   <td
@@ -368,9 +367,9 @@
                       type="button"
                       data-bs-toggle="modal"
                       data-bs-target="#contentModalScrollable_ingredient"
-                      v-if="orderItems.ingredients.length > 0"
+                      v-if="orderItems.ingredient?.length > 0"
                     >
-                      ({{ orderItems.ingredients.length }}) Ingredients
+                      ({{ orderItems.ingredient?.length }}) Ingredients
                     </button>
                     <span
                       v-else
@@ -408,7 +407,6 @@
                 class="d-block text-black fs-md-15 fs-lg-16 fw-medium"
                 v-if="orderResponse"
               >
-                <!-- {{ formatInTimeZone(orderResponse.timeOrder, 'Europe/Zurich', 'dd/MM/yyyy - HH:mm') }} -->
                 {{
                   orderResponse.timeOrder &&
                   isValidDate(orderResponse.timeOrder)
@@ -447,7 +445,7 @@
             </li>
             <li
               class="d-flex align-items-center justify-content-between"
-              v-if="orderResponse.intructionOrder.quantityCouverts"
+              v-if="orderResponse.intructionOrder && orderResponse.intructionOrder.quantityCouverts"
             >
               <span class="d-block text-paragraph fw-medium">
                 Quantité de couverts
@@ -459,7 +457,7 @@
 
             <li
               class="d-flex align-items-center justify-content-between"
-              v-if="orderResponse.intructionOrder.quantityCouverts"
+              v-if="orderResponse.intructionOrder && orderResponse.intructionOrder.quantityCouverts"
             >
               <span class="d-block text-paragraph fw-medium">
                 Doit-on trancher
@@ -521,20 +519,19 @@
 
             <!-- Liste des produits -->
             <li
-              v-for="(item, index) in orderResponse.orderItems"
+              v-for="(item, index) in orderResponse.items"
               :key="index"
               class="d-flex align-items-center justify-content-between pt-2"
             >
               <span>
                 <img
-                  :src="item.productID.image_urls[0]"
+                  :src="getProductImage(item.product_image)"
                   class="me-15"
                   width="44"
                   alt="product"
-                />{{ item.quantity }}x {{ item.productID.name
-                }}{{ item.size }}</span
+                />{{ item.quantity }}x {{ item.product_name || 'Produit' }}{{ item.size || '' }}</span
               >
-              <span>{{ item.total_price }} CHF</span>
+              <span>{{ (item.product_price * item.quantity) }} CHF</span>
             </li>
 
             <li class="d-flex align-items-center justify-content-between">
@@ -561,7 +558,7 @@
                 Y COMPRIS TVA (2.60%)
               </span>
               <span class="d-block text-black fw-bolder fw-medium">
-                {{ (orderResponse.total_price * 0.026).toFixed(2) }} CHF
+                {{ (parseFloat(orderResponse.total) * 0.026).toFixed(2) }} CHF
               </span>
             </li>
 
@@ -582,7 +579,7 @@
                 TOTAL
               </span>
               <span class="d-block text-primary fw-bolder fw-medium">
-                {{ orderResponse.total_price }} CHF
+                {{ orderResponse.total }} CHF
               </span>
             </li>
           </ul>
@@ -603,19 +600,19 @@
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> NPA: </span>
               <span class="d-block text-paragraph fw-medium">
-                <strong>{{ orderResponse.npa ?? "-" }}</strong>
+                <strong>{{ orderResponse.delivery?.postal_code || "-" }}</strong>
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> Localité: </span>
               <span class="d-block text-paragraph fw-medium">
-                <strong>{{ orderResponse.localite ?? "-" }}</strong>
+                <strong>{{ orderResponse.delivery?.locality || "-" }}</strong>
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> Téléphone: </span>
               <span class="d-block text-paragraph fw-medium">
-                <strong>{{ orderResponse.guest_phone_number ?? "-" }}</strong>
+                <strong>{{ orderResponse.customer?.phone || orderResponse.guest_phone_number || "-" }}</strong>
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
@@ -624,19 +621,19 @@
                 v-if="!orderResponse?.guest_email?.includes('guest_')"
                 class="d-block text-paragraph fw-medium"
               >
-                <strong>{{ orderResponse.guest_email ?? "-" }}</strong>
+                <strong>{{ orderResponse.customer?.email || orderResponse.guest_email || "-" }}</strong>
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> Rue: </span>
               <span class="d-block text-paragraph fw-medium">
-                <strong>{{ orderResponse.rue ?? "-" }}</strong>
+                <strong>{{ orderResponse.delivery?.rue || "-" }}</strong>
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> Nº: </span>
               <span class="d-block text-paragraph fw-medium">
-                <strong>{{ orderResponse.numberRue ?? "-" }}</strong>
+                <strong>{{ orderResponse.delivery?.numberRue || "-" }}</strong>
               </span>
             </li>
           </ul>
@@ -657,19 +654,19 @@
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> NPA: </span>
               <span class="d-block text-paragraph fw-medium">
-                <strong>{{ orderResponse.npa ?? "-" }}</strong>
+                <strong>{{ orderResponse?.delivery?.postal_code || "-" }}</strong>
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> Localité: </span>
               <span class="d-block text-paragraph fw-medium">
-                <strong>{{ orderResponse.localite ?? "-" }}</strong>
+                <strong>{{ orderResponse?.delivery?.locality || "-" }}</strong>
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> Téléphone: </span>
               <span class="d-block text-paragraph fw-medium">
-                <strong>{{ orderResponse.guest_phone_number ?? "-" }}</strong>
+                <strong>{{ orderResponse.customer?.phone || orderResponse.guest_phone_number || "-" }}</strong>
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
@@ -678,19 +675,19 @@
                 v-if="!orderResponse?.guest_email?.includes('guest_')"
                 class="d-block text-paragraph fw-medium"
               >
-                <strong>{{ orderResponse.guest_email ?? "-" }}</strong>
+                <strong>{{ orderResponse.customer?.email || orderResponse.guest_email || "-" }}</strong>
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> Rue: </span>
               <span class="d-block text-paragraph fw-medium">
-                <strong>{{ orderResponse.rue ?? "-" }}</strong>
+                <strong>{{ orderResponse?.delivery?.rue || "-" }}</strong>
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> Nº: </span>
               <span class="d-block text-paragraph fw-medium">
-                <strong>{{ orderResponse.numberRue ?? "-" }}</strong>
+                <strong>{{ orderResponse?.delivery?.numberRue || "-" }}</strong>
               </span>
             </li>
           </ul>
@@ -807,38 +804,38 @@
 
                 <span
                   class="d-block text-black fs-md-15 fs-lg-16 fw-medium"
-                  v-if="orderResponse.paymentID"
+                  v-if="orderResponse.payment"
                 >
                   <span
-                    v-if="orderResponse.paymentID.status === 'pending'"
+                    v-if="orderResponse.payment?.status === 'pending'"
                     class="badge text-outline-danger"
                   >
                     {{
-                      fetchStatusOrderPaiementFr(orderResponse.paymentID.status)
+                      fetchStatusOrderPaiementFr(orderResponse.payment?.status)
                     }}</span
                   >
                   <span
-                    v-if="orderResponse.paymentID.status === 'paid'"
+                    v-if="orderResponse.payment?.status === 'paid'"
                     class="badge text-outline-primary"
                   >
                     {{
-                      fetchStatusOrderPaiementFr(orderResponse.paymentID.status)
+                      fetchStatusOrderPaiementFr(orderResponse.payment?.status)
                     }}</span
                   >
                   <span
-                    v-if="orderResponse.paymentID.status === 'refunded'"
+                    v-if="orderResponse.payment?.status === 'refunded'"
                     class="badge text-outline-muted"
                   >
                     {{
-                      fetchStatusOrderPaiementFr(orderResponse.paymentID.status)
+                      fetchStatusOrderPaiementFr(orderResponse.payment?.status)
                     }}</span
                   >
                   <span
-                    v-if="orderResponse.paymentID.status === 'cancelled'"
+                    v-if="orderResponse.payment?.status === 'cancelled'"
                     class="badge text-outline-warning"
                   >
                     {{
-                      fetchStatusOrderPaiementFr(orderResponse.paymentID.status)
+                      fetchStatusOrderPaiementFr(orderResponse.payment?.status)
                     }}</span
                   >
                 </span>
@@ -856,96 +853,16 @@
           >
             <h5 class="mb-0 fw-bold text-black">Méthode de paiement</h5>
 
-            <div class="dropdown" v-if="listeMethode.length > 0">
+          
               <button
-                v-if="
-                  orderResponse.paymentID.paymentMethod ===
-                  'pay_click_collect_cash'
-                "
-                class="btn btn-danger btn-sm dropdown-toggle"
+                class="btn  btn-sm " :class="backgroundColorPaymentMethod(orderResponse.payment?.method)"
                 type="button"
-                data-bs-toggle="dropdown"
                 aria-expanded="false"
               >
                 {{
-                  fetchMethodePaiementOrderFr(
-                    orderResponse.paymentID.paymentMethod
-                  )
+                  translatePaymentMethod(orderResponse.payment?.method)
                 }}
               </button>
-              <button
-                v-if="
-                  orderResponse.paymentID.paymentMethod ===
-                  'pay_click_collect_carte'
-                "
-                class="btn btn-warning btn-sm dropdown-toggle"
-                type="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                {{
-                  fetchMethodePaiementOrderFr(
-                    orderResponse.paymentID.paymentMethod
-                  )
-                }}
-              </button>
-              <button
-                v-if="
-                  orderResponse.paymentID.paymentMethod === 'pay_delivery_cash'
-                "
-                class="btn btn-success btn-sm dropdown-toggle"
-                type="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                {{
-                  fetchMethodePaiementOrderFr(
-                    orderResponse.paymentID.paymentMethod
-                  )
-                }}
-              </button>
-              <button
-                v-if="
-                  orderResponse.paymentID.paymentMethod === 'pay_delivery_carte'
-                "
-                class="btn btn-close btn-sm dropdown-toggle"
-                type="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                {{
-                  fetchMethodePaiementOrderFr(
-                    orderResponse.paymentID.paymentMethod
-                  )
-                }}
-              </button>
-              <button
-                v-if="orderResponse.paymentID.paymentMethod === 'on_line'"
-                class="btn btn-info btn-sm dropdown-toggle"
-                type="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                {{
-                  fetchMethodePaiementOrderFr(
-                    orderResponse.paymentID.paymentMethod
-                  )
-                }}
-              </button>
-
-              <ul class="dropdown-menu">
-                <li v-for="methode in listeMethode" :key="methode.id">
-                  <a
-                    @click="
-                      updateStatusOrder(orderResponse.status, methode.type)
-                    "
-                    class="dropdown-item"
-                    href="#"
-                    >{{ methode.libelle }}</a
-                  >
-                </li>
-              </ul>
-            </div>
           </div>
         </div>
       </div>
@@ -1005,11 +922,11 @@
                 <tbody
                   v-if="
                     orderItemSelected &&
-                    orderItemSelected.ingredients.length > 0
+                    (orderItemSelected.ingredients?.length > 0 || orderItemSelected.ingredient?.length > 0)
                   "
                 >
                   <tr
-                    v-for="ingredient in orderItemSelected.ingredients"
+                    v-for="ingredient in (orderItemSelected.ingredients || orderItemSelected.ingredient)"
                     :key="ingredient.name"
                   >
                     <th class="shadow-none lh-1 fw-bold ps-0">
@@ -1090,7 +1007,7 @@
                           )
                         }}
                         <template
-                          v-if="orderResponse.order_type === 'delivery'"
+                          v-if="orderResponse.order_type === 'delivery' && orderResponse.timeOrder && isValidDate(orderResponse.timeOrder)"
                         >
                           <br />Livraison avant le
                           {{
@@ -1103,7 +1020,7 @@
                         </template>
                         <template
                           v-else-if="
-                            orderResponse.order_type === 'click_collect'
+                            orderResponse.order_type === 'click_collect' && orderResponse.timeOrder && isValidDate(orderResponse.timeOrder)
                           "
                         >
                           <br />À emporter avant le
@@ -1122,7 +1039,7 @@
                              <td class="left-cell">
                                <span class="order-reference">
                                  {{
-                                   orderResponse.restaurantID.id ===
+                                   orderResponse.restaurantID?.id ===
                                    RestaurantEnum.RESTO_MORGES
                                      ? "VBM" + orderResponse.nif
                                      : "VBP" + orderResponse.nif
@@ -1147,22 +1064,22 @@
                          <div class="client-info">
                            <span class="client-name"
                              ><strong
-                               >{{ orderResponse.guest_first_name }}
-                               {{ orderResponse.guest_last_name }}</strong
+                               >{{ orderResponse.customer?.first_name || orderResponse.guest_first_name }}
+                               {{ orderResponse.customer?.last_name || orderResponse.guest_last_name }}</strong
                              ></span
                            >
                            <span class="client-phone"
                              ><strong>{{
-                               orderResponse.guest_phone_number
+                               orderResponse.customer?.phone || orderResponse.guest_phone_number
                              }}</strong></span
                            >
                            <span
                              v-if="
-                               !orderResponse?.guest_email?.includes('guest_')
+                               !orderResponse?.customer?.email?.includes('guest_') && !orderResponse?.guest_email?.includes('guest_')
                              "
                              class="client-email"
                              ><strong>{{
-                               orderResponse?.guest_email
+                               orderResponse?.customer?.email || orderResponse?.guest_email
                              }}</strong></span
                            >
                          </div>
@@ -1199,7 +1116,7 @@
                            >
                              <div class="product-details">
                                <div class="product-name">
-                                 {{ item.quantity }}x {{ item.productID.name }} {{ item.size }}
+                                 {{ item.quantity }}x {{ item.product?.name || 'Produit' }} {{ item.size || '' }}
                                  <span v-if="item.optionSpecific">{{ item.optionSpecific }}</span>
                                </div>
                                <div class="product-price">
@@ -1210,16 +1127,16 @@
                              <!-- 🧂 Ingrédients -->
                              <ul
                                v-if="
-                                 item.ingredients &&
-                                 item?.ingredients?.length > 0
+                                 (item.ingredients && item?.ingredients?.length > 0) ||
+                                 (item.ingredient && item?.ingredient?.length > 0)
                                "
                                class="ingredients-list"
                              >
                                <li
-                                 v-for="ingredient in item.ingredients"
+                                 v-for="ingredient in (item.ingredients || item.ingredient)"
                                  :key="ingredient.id"
                                >
-                                 x{{ ingredient.quantite }} {{ ingredient.name }} (+{{ (ingredient.extra_cost_price * ingredient.quantite).toFixed(2) }} CHF)
+                                 x{{ ingredient.quantite || ingredient.quantity }} {{ ingredient.name }} (+{{ ((ingredient.extra_cost_price || 0) * (ingredient.quantite || ingredient.quantity || 1)).toFixed(2) }} CHF)
                                </li>
                              </ul>
                            </div>
@@ -1248,11 +1165,11 @@
                         </div>
                         <div class="price-row">
                           <span><strong>y compris T.V.A (2.6%)</strong></span>
-                          <span class="price-value">{{ (orderResponse.total_price * 0.026).toFixed(2) }} CHF</span>
+                          <span class="price-value">{{ (parseFloat(orderResponse.total) * 0.026).toFixed(2) }} CHF</span>
                         </div>
                         <div class="price-row total-row">
                           <span><strong>Total</strong></span>
-                          <span class="price-value">{{ orderResponse.total_price }} CHF</span>
+                          <span class="price-value">{{ orderResponse.total }} CHF</span>
                         </div>
                       </div>
 
@@ -1260,7 +1177,7 @@
                       <div class="payment-method" v-if="methodePaiementSelected.length > 0">
                         <div class="price-row">
                           <strong>Méthode de paiement :</strong>
-                          <span>{{ methodePaiementSelected[0]?.libelle ?? "" }}</span>
+                            <span>{{ (orderResponse.payment?.method || methodePaiementSelected[0]?.libelle) ?? "" }}</span>
                         </div>
                       </div>
                       <div class="route">
@@ -1268,7 +1185,7 @@
                           <strong
                             >Trancher:
                             {{
-                              orderResponse.intructionOrder.isTrancher
+                              orderResponse.intructionOrder?.isTrancher
                                 ? "OUI"
                                 : "NON"
                             }}</strong
@@ -1278,15 +1195,15 @@
                           <strong
                             >Couverts:
                             {{
-                              orderResponse.intructionOrder.quantityCouverts
+                              orderResponse.intructionOrder?.quantityCouverts || "-"
                             }}</strong
                           >
                           </div>
-                        <div class="instruction-row" v-if="orderResponse.SpecialInstructions">
+                        <div class="instruction-row" v-if="orderResponse.SpecialInstructions || orderResponse.feature">
                           <div><strong>(Commentaire :)</strong></div>
                           <div>
                             <strong>{{
-                              orderResponse.SpecialInstructions
+                              orderResponse.SpecialInstructions || orderResponse.feature?.[0] || "-"
                             }}</strong>
                           </div>
                         </div>
@@ -1294,28 +1211,27 @@
 
                       <div class="ticket-footer">
                         <span>{{
-                            orderResponse.restaurantID.id ===
-                            RestaurantEnum.RESTO_MORGES
-                              ? "Va Bene pizza sàrl Morges"
-                              : "Pizzeria Va Bene SA "
-                          }}
+                          orderResponse.restaurantID?.id ===
+                          RestaurantEnum.RESTO_MORGES
+                            ? "Va Bene pizza sàrl Morges"
+                            : "Pizzeria Va Bene SA "
+                        }}
                         </span>
                         <span>{{
-                            orderResponse.restaurantID.address
-                          }}
+                          orderResponse.restaurantID?.address || "-"
+                        }}
                         </span>
                         <span>{{
-                              orderResponse.restaurantID.codePostalID
-                                .numeroPostal
+                              orderResponse.restaurantID?.codePostalID?.numeroPostal || "-"
                             }}
-                            {{ orderResponse.restaurantID.name }}
+                            {{ orderResponse.restaurantID?.name || "-" }}
                         </span>
                         <span>{{
-                              orderResponse.restaurantID.phoneNumber
+                              orderResponse.restaurantID?.phoneNumber || "-"
                             }}
                         </span>
                         <span>
-                        {{ orderResponse.restaurantID.taxe }}
+                        {{ orderResponse.restaurantID?.taxe || "-" }}
                         </span>
                         <span>www.vabenepizza.ch</span>
                       </div>
@@ -1374,9 +1290,9 @@ export default defineComponent({
       const grouped: Record<string, any[]> = {};
 
       if (this.orderResponse) {
-        for (const item of this.orderResponse.orderItems) {
+        for (const item of this.orderResponse.items) {
           const categoryName =
-            item.productID?.categorieID?.name || "Sans catégorie";
+            item.product?.categorieID?.name || "Sans catégorie";
 
           if (!grouped[categoryName]) {
             grouped[categoryName] = [];
@@ -1407,7 +1323,7 @@ export default defineComponent({
       methodePaiementSelected: [] as MethodePaiementModel[],
       listeOrderType: [] as OrderTypeModel[],
       orderTypeSelected: [] as OrderTypeModel[],
-      orderItemSelected: null as OrderItemModel | null,
+      orderItemSelected: null as any,
       qrcode: null as string | null,
       allOrderStatus: [] as string[],
       allPaiementOrderStatus: [] as string[],
@@ -1421,8 +1337,8 @@ export default defineComponent({
       return !isNaN(date.getTime());
     },
     getSubtotalPrice(order: OrderModel): number {
-      const prices = order.orderItems.reduce(
-        (total, item) => total + item.total_price,
+      const prices = order.items.reduce(
+        (total, item) => total + (item.product_price * item.quantity),
         0
       );
       return prices;
@@ -1436,7 +1352,7 @@ export default defineComponent({
         order.discountType == "percentage"
       ) {
         discountValue =
-          Number(order.total_price) - Number(order.total_price) * (26 / 100);
+          Number(order.total) - Number(order.total) * (26 / 100);
       }
       return discountValue;
     },
@@ -1732,7 +1648,15 @@ export default defineComponent({
     getShortUuid(uuid: string): string {
       return uuid.split("-")[0];
     },
-    selectedOrderItem(orderItem: OrderItemModel) {
+    getProductImage(productImage: string): string {
+      try {
+        const images = JSON.parse(productImage);
+        return images[0] || '';
+      } catch (error) {
+        return '';
+      }
+    },
+    selectedOrderItem(orderItem: any) {
       this.orderItemSelected = orderItem;
     },
     displayInvoire() {
@@ -1774,9 +1698,8 @@ export default defineComponent({
         if (response.code === 200) {
           if (response.data) {
             this.orderResponse = response.data;
-            console.log("orderResponse", this.orderResponse);
-            await this.fetchListeMethodePaiement();
-            await this.fetchOrderType();
+           // await this.fetchListeMethodePaiement();
+           // await this.fetchOrderType();
             this.displayInvoire();
           }
         } else {
@@ -1800,7 +1723,7 @@ export default defineComponent({
             this.listeMethode = response.data.items;
             this.methodePaiementSelected = this.getMethodePaiementParType(
               response.data.items,
-              this.orderResponse.paymentID.paymentMethod
+              this.orderResponse.payment.method
             );
           }
         } else {
@@ -1838,20 +1761,20 @@ export default defineComponent({
       }
     },
 
-    async fetchAllStatusOrder() {
-      try {
-        const response = (await allStatusOrder()) as ApiResponse<string[]>;
-        if (response.code === 200) {
-          if (response.data) {
-            this.allOrderStatus = response.data;
-          }
-        } else {
-          this.toast.error(response.message);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    },
+    // async fetchAllStatusOrder() {
+    //   try {
+    //     const response = (await allStatusOrder()) as ApiResponse<string[]>;
+    //     if (response.code === 200) {
+    //       if (response.data) {
+    //         this.allOrderStatus = response.data;
+    //       }
+    //     } else {
+    //       this.toast.error(response.message);
+    //     }
+    //   } catch (error) {
+    //     console.error(error);
+    //   }
+    // },
     async fetchAllPaiementStatusOrder() {
       try {
         const response = (await allStatusPaiementOrder()) as ApiResponse<
@@ -1922,13 +1845,38 @@ export default defineComponent({
           return "Annulé";
       }
     },
-    fetchMethodePaiementOrderFr(methode: string) {
-      const dt = this.getMethodePaiementParType(this.listeMethode, methode);
-      if (dt.length > 0) {
-        return dt[0]?.libelle ?? "";
-      }
-      return "";
-    },
+
+   translatePaymentMethod(paymentMethod: string): string {
+    const translations = {
+      'pay_click_collect_cash': 'Paiement en espèces',
+      'pay_click_collect_carte': 'Paiement par carte',
+      'pay_delivery_cash': 'Paiement en espèces à la livraison',
+      'pay_delivery_carte': 'Paiement par carte à la livraison',
+      'on_line': 'Paiement en ligne'
+    };
+
+    return translations[paymentMethod] ?? '';
+  },
+
+  backgroundColorPaymentMethod(paymentMethod: string): string {
+    const translations = {
+      'pay_click_collect_cash': 'bg-danger',
+      'pay_click_collect_carte': 'bg-warning',
+      'pay_delivery_cash': 'bg-success',
+      'pay_delivery_carte': 'bg-secondary',
+      'on_line': 'bg-info'
+    };
+    return translations[paymentMethod] ?? 'bg-secondary';
+  },
+
+  translateOrderType(orderType: string): string {
+    const translations = {
+      'delivery': 'A Livrer',
+      'click_collect': 'A emporter',
+      'dine_in': 'Sur place'
+    };
+    return translations[orderType] || 'Non spécifié';
+  },  
     fetchStatusOrderPaiementFr(status: string) {
       switch (status) {
         case PaymentStatus.PENDING:
@@ -1953,14 +1901,35 @@ export default defineComponent({
   },
   mounted() {
     this.fetchOrder((this as any).$route.params.commandeID);
-    this.fetchAllStatusOrder();
-    this.fetchAllPaiementStatusOrder();
+    // this.fetchAllStatusOrder();
+    // this.fetchAllPaiementStatusOrder();
     this.displayInvoire();
-    document.addEventListener("hidden.bs.modal", function (event) {
-      document.body.classList.remove("modal-open"); // au cas où
+    
+    // Nettoyer les modals existants au montage
+    document.body.classList.remove("modal-open");
+    const backdrops = document.querySelectorAll(".modal-backdrop");
+    backdrops.forEach((el) => el.remove());
+    
+    // Ajouter l'event listener pour nettoyer les modals
+    const modalCleanupHandler = (event: Event) => {
+      document.body.classList.remove("modal-open");
       const backdrops = document.querySelectorAll(".modal-backdrop");
       backdrops.forEach((el) => el.remove());
-    });
+    };
+    document.addEventListener("hidden.bs.modal", modalCleanupHandler);
+    
+    // Stocker la référence pour pouvoir la supprimer plus tard
+    (this as any).modalCleanupHandler = modalCleanupHandler;
+  },
+  beforeUnmount() {
+    // Supprimer l'event listener pour éviter les fuites mémoire
+    if ((this as any).modalCleanupHandler) {
+      document.removeEventListener("hidden.bs.modal", (this as any).modalCleanupHandler);
+    }
+    // Nettoyer les modals avant de quitter
+    document.body.classList.remove("modal-open");
+    const backdrops = document.querySelectorAll(".modal-backdrop");
+    backdrops.forEach((el) => el.remove());
   },
 });
 </script>

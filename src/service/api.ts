@@ -6,7 +6,7 @@ import {
     ApiResponse, PaginatedCampagne, PaginatedCategorie, PaginatedCoupon, PaginatedCustomer,
     PaginatedFrachises, PaginatedIngredient, PaginatedMethodePaiement, PaginatedNotification,
     PaginatedOrder, PaginatedOrderType, PaginatedPayment, PaginatedProduct, PaginatedProgramme,
-    PaginatedRestaurant, PaginatedRestaurantCategory, PaginatedRestaurantProduct,
+    PaginatedRestaurant, PaginatedRestaurantCategory, PaginatedRestaurantProduct, PaginatedCategories, CategoriesApiResponse, CategoriesApiFullResponse,
     PaginatedUsers
 } from "@/models/Apiresponse";
 import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
@@ -523,7 +523,12 @@ export const getCustomers = async (page = 1, restaurantID: string): Promise<ApiR
     }
 };
 
-export const listeOrder = async (page = 1): Promise<ApiResponse<PaginatedOrder>> => {
+export const listeOrder = async (
+    page: number = 1, 
+    limit: number = 10, 
+    search?: string, 
+    status?: string
+): Promise<ApiResponse<PaginatedOrder>> => {
     // eslint-disable-next-line no-useless-catch
     try {
         const userID = localStorage.getItem(UserGeneralKey.USER_ID);
@@ -531,12 +536,26 @@ export const listeOrder = async (page = 1): Promise<ApiResponse<PaginatedOrder>>
         const role = localStorage.getItem(UserGeneralKey.USER_ROLE)
         const id = role === UserRole.FRANCHISE ? userID : restaurantID
         const owner = role === UserRole.FRANCHISE ? 'admin' : 'restaurant'
-        // https://posme.pharmakilivreservice.com/api/initial/v1/orders/admin?page=1
-        const response = await apiClient.get(`/initial/v1/orders/${owner}/${id}/1?page=${page}`);
+        
+        // Construire les paramètres de requête
+        const params = new URLSearchParams({
+            page: page.toString(),
+            limit: limit.toString()
+        });
+        
+        if (search) {
+            params.append('search', search);
+        }
+        
+        if (status) {
+            params.append('status', status);
+        }
+        
+        const response = await apiClient.get(`/v1/restaurants/${restaurantID}/orders?${params.toString()}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
-            response.data.data
+            response.data
         );
     } catch (error) {
         throw error;
@@ -548,7 +567,7 @@ export const detailOrder = async (orderID): Promise<ApiResponse<OrderModel>> => 
     try {
 
         // https://posme.pharmakilivreservice.com/api/initial/v1/orders/admin?page=1
-        const response = await apiClient.get(`/initial/v1/order/detail/${orderID}`);
+        const response = await apiClient.get(`/v1/orders/${orderID}`);
         return response.data;
     } catch (error) {
         throw error;
@@ -753,16 +772,17 @@ export const addRestaurantCategorie = async (categorieID: string): Promise<ApiRe
     }
 };
 
-export const listeRestaurantCategorie = async (page = 1, usePagination: string): Promise<ApiResponse<PaginatedRestaurantCategory>> => {
+export const listeRestaurantCategorie = async (
+    page = 1, 
+    usePagination: string, 
+    search?: string
+): Promise<CategoriesApiFullResponse> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
-        const response = await apiClient.get(`/restaurant/categories/${restaurantID}/1/${usePagination}?page=${page}`);
-        return new ApiResponse(
-            response.data.code,
-            response.data.message,
-            response.data.data
-        );
+        const limit = usePagination === '1' ? '10' : '1000'; // Si pagination activée, limite à 10, sinon 1000
+        const searchParam = search ? `&search=${encodeURIComponent(search)}` : '';
+        const response = await apiClient.get(`/v1/category/all?page=${page}&limit=${limit}${searchParam}`);
+        return response.data;
     } catch (error) {
         throw error;
     }
@@ -902,7 +922,7 @@ export const createIngredient = async (ingredientData): Promise<ApiResponse<any>
 export const listeIngredient = async (page = 1, usePagination: string): Promise<ApiResponse<PaginatedIngredient>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/v1/ingredients-base?page=${page}`);
+        const response = await apiClient.get(`/v1/ingredient/all`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
@@ -1078,7 +1098,7 @@ export const reportVenteAdmin = async (restaurantID?: string): Promise<ApiRespon
     // eslint-disable-next-line no-useless-catch
     try {
         const url = [
-            `/initial/order/report`,
+            `/statistics/restaurant`,
             restaurantID,
         ]
             .filter(Boolean) // retire les undefined
@@ -1093,13 +1113,7 @@ export const reportVenteAdmin = async (restaurantID?: string): Promise<ApiRespon
 export const reportVenteRestaurant = async (restaurantID?: string): Promise<ApiResponse<SellModel>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const url = [
-            `/initial/order/report`,
-            restaurantID,
-        ]
-            .filter(Boolean) // retire les undefined
-            .join('/');
-        const response = await apiClient.get(`/initial/order/report/${restaurantID}`);
+        const response = await apiClient.get(`/statistics/restaurant/${restaurantID}`);
         return response.data;
     } catch (error) {
         throw error;
@@ -1118,7 +1132,7 @@ export const reportPeriodiqueCard = async (
     // eslint-disable-next-line no-useless-catch
     try {
         const url = [
-            `initial/order/periodique_report`,
+            `/periodique_report`,
             restaurantID,
         ]
             .filter(Boolean) // retire les undefined
@@ -1450,6 +1464,32 @@ export const topProductReportSell = async (categoryID, restaurantID): Promise<Ap
 };
 
 /* eslint-disable */
+export const getAdvancedSalesReport = async (
+    restaurantId: string,
+    startDate: string,
+    endDate: string,
+    orderType: string,
+    paymentMethod: string,
+    deliveryType: string,
+): Promise<ApiResponse<any>> => {
+    try {
+        // Nettoyer les dates en remplaçant les espaces par des tirets et en supprimant les secondes
+        const cleanStartDate = startDate.replace(/\s/g, '-').replace(/:\d{2}$/, '');
+        const cleanEndDate = endDate.replace(/\s/g, '-').replace(/:\d{2}$/, '');
+        
+        const url = `/v1/report_sale/${restaurantId}/${cleanStartDate}/${cleanEndDate}/${orderType}/${paymentMethod}/${deliveryType}`;
+        const response = await apiClient.get(url);
+
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
 export const tauxCommandeCategorie = async (
     categoryID: string,
     startDate: string,

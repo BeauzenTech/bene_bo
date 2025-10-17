@@ -8,7 +8,7 @@
   </div>
   <div v-if="!isLoading" class="col bg-white p-4">
     <div class="row" >
-      <div class="col-xxl-7 col-xxxl-6" v-if="periodiqueReportCard">
+      <div class="col-xxl-7 col-xxxl-6">
         <WhatHappening :orderAmount="String(getCardValue(0) || '0')" id="whatHappening" />
       </div>
       <div class="col-xxl-5 col-xxxl-6">
@@ -142,7 +142,7 @@ import {reportPeriodiqueCard, reportVenteAdmin, reportVenteRestaurant} from "@/s
 import {ApiResponse} from "@/models/Apiresponse";
 import {SellModel} from "@/models/vente.model";
 import {useToast} from "vue-toastification";
-import VabeneNombreCommandeProductDate  from "@/components/Vabene/POS/OrderReportSells/VabeneNombreCommandeProductDate.vue";
+// import VabeneNombreCommandeProductDate  from "@/components/Vabene/POS/OrderReportSells/VabeneNombreCommandeProductDate.vue";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 
@@ -150,8 +150,8 @@ export default defineComponent({
   name: "VabeneDashPage",
   components: {
     LoaderComponent,
-    WhatHappening,
-    VabeneNombreCommandeProductDate
+    WhatHappening
+    // VabeneNombreCommandeProductDate
   },
   data(){
     return {
@@ -268,7 +268,7 @@ export default defineComponent({
           }
         }
       } catch (error) {
-        console.error(error);
+        console.error('Error fetching admin report:', error);
       }
     },
     async getReportRestaurant(restaurantID: string){
@@ -291,13 +291,15 @@ export default defineComponent({
       this.isLoading = true
       try {
         const response = await reportPeriodiqueCard(restaurantID, filters) as ApiResponse<PeriodiqueCardReport>;
+        console.log('Periodique report response:', response);
         if (response.code === 200) {
           if (response.data) {
             this.periodiqueReportCard = response.data
+            console.log('Periodique report card set:', this.periodiqueReportCard);
           }
         }
       } catch (error) {
-        console.error(error);
+        console.error('Error fetching periodique report:', error);
       } finally {
         this.isLoading = false
       }

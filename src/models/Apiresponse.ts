@@ -180,6 +180,41 @@ export interface PaginatedRestaurantCategory {
     };
 }
 
+// Nouveau type pour la nouvelle structure de l'API
+export interface PaginatedCategories {
+    items: CategorieModel[];
+    pagination: {
+        current_page: number;
+        total_items: number;
+        total_pages: number;
+        items_per_page: number;
+    };
+}
+
+// Type pour la réponse directe de l'API
+export interface CategoriesApiResponse {
+    data: CategorieModel[];
+    pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    };
+}
+
+// Type pour la réponse complète de l'API
+export interface CategoriesApiFullResponse {
+    code: number;
+    message: string;
+    data: CategorieModel[];
+    pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    };
+}
+
 export interface PaginatedRestaurantProduct {
     items: RestaurantProductModel[];
     pagination: {

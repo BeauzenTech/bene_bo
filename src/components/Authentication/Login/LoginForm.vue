@@ -162,7 +162,7 @@ export default {
         clearInvalidToken();
         
         const response = await loginCheck(this.userData);
-        
+        console.log("response", response);
         if (response.code === 200) {
           // Vérifier la structure de la réponse pour trouver le token
           const token = response.token || response.data?.token || response.data?.access_token;

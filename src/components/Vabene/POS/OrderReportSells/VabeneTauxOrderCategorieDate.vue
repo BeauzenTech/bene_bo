@@ -84,7 +84,7 @@
           </div>
         </div>
       </div>
-      <div v-if="tauxMoyenCommande" class="info d-flex align-items-center justify-content-between mt-15">
+      <!-- <div v-if="tauxMoyenCommande" class="info d-flex align-items-center justify-content-between mt-15">
         <span class="fs-13 d-block text-uppercase text-dark-emphasis fw-bold">
           NOMBRE DE COMMANDES (CATEGORIE)
         </span>
@@ -106,7 +106,7 @@
               placeholder="Categorie"
           />
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
@@ -115,11 +115,11 @@
 import {defineComponent, PropType} from "vue";
 import {CategorieModel} from "@/models/categorie.model";
 import {
-  listeCategorieActive,
   listeMethodePaiement,
   listeOrderType,
   tauxCommandeCategorie,
-  topProductReportSell
+  topProductReportSell,
+  getAdvancedSalesReport
 } from "@/service/api";
 import {ApiResponse, PaginatedCategorie, PaginatedMethodePaiement, PaginatedOrderType} from "@/models/Apiresponse";
 import {TopProductSellModel} from "@/models/TopProductSell.model";
@@ -237,11 +237,8 @@ export default defineComponent({
             this.listeMethode = [(this.fakeAllMethodePaiement as MethodePaiementModel), ...response.data.items];
             this.methodePaiementSelected = this.getMethodePaiementParType(this.listeMethode, 'all')
           }
-        } else {
-          this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des methodes de paiement");
         console.error(error);
       } finally {
         // this.isLoading = false;
@@ -256,11 +253,8 @@ export default defineComponent({
             this.listeOrderType = [(this.fakeAllOrderType as OrderTypeModel), ...response.data.items];
             this.orderTypeSelected = this.getOrderTypeParType(this.listeOrderType, 'all')
           }
-        } else {
-          this.toast.error(response.message);
-        }
+        } 
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des types de commandes");
         console.error(error);
       } finally {
         // this.isLoading = false;
@@ -314,14 +308,14 @@ export default defineComponent({
             const endDateTime = this.getEndDateTime(this.endDate)
             if(this.userRole === UserRole.FRANCHISE){
               if(this.newRestoId !== 'all'){
-                this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.newRestoId ?? 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.newRestoId ?? 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type, 'all');
               }
               else{
-                this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, 'all',this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, 'all',this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type, 'all');
               }
             }
             else{
-              this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.restaurantIdStorage ?? 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+              this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.restaurantIdStorage ?? 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type, 'all');
             }
 
           }
@@ -333,14 +327,14 @@ export default defineComponent({
               const endDateTime = this.getEndDateTime(this.endDate)
               if(this.userRole === UserRole.FRANCHISE){
                 if(this.newRestoId !== 'all'){
-                  this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.newRestoId ?? 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                  this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.newRestoId ?? 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type, 'all');
                 }
                 else{
-                  this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, 'all',this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                  this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, 'all',this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type, 'all');
                 }
               }
               else{
-                this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.restaurantIdStorage ?? 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+                this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.restaurantIdStorage ?? 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type, 'all');
               }
 
             }
@@ -355,45 +349,13 @@ export default defineComponent({
     ): CategorieModel | undefined{
       return liste.find(categorie => categorie.name === name);
     },
-    async fetchCategories(page = 1) {
+    async fetchTauxCommandeMoyenByCategorie(categoryID: string, startDate: string, endDate: string, idRest: string, methodePaiement: string, orderType: string, deliveryType: string = 'all') {
       try {
-        const response = await listeCategorieActive(page, "0") as ApiResponse<PaginatedCategorie>;
-        if (response.code === 200) {
-          if (response.data?.items) {
-            await this.fetchOrderType(1)
-            await this.fetchListeMethodePaiement(1)
-            this.originalCategories = response.data.items;
-            this.categorieSelected = this.originalCategories[0];
-            this.startDate = this.getSameDayLastMonth()
-            this.endDate = this.getTodayDate()
-            const startDateTime = `${this.startDate} 00:00:00`
-            const endDateTime = this.getEndDateTime(this.endDate)
-            if(this.userRole === UserRole.FRANCHISE){
-              await this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
-            }
-            else{
-              await this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.restaurantIdStorage ?? 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
-            }
-
-          }
-        } else {
-          this.toast.error(response.message);
-        }
-      } catch (error) {
-        this.toast.error("Erreur lors du chargement des categories");
-        console.error(error);
-      }
-    },
-    async fetchTauxCommandeMoyenByCategorie(categoryID: string, startDate: string, endDate: string, idRest: string, methodePaiement: string, orderType: string) {
-      try {
-        const response = await tauxCommandeCategorie(categoryID, startDate, endDate, idRest, methodePaiement, orderType) as ApiResponse<RatioModel>;
+        const response = await getAdvancedSalesReport(idRest, startDate, endDate, orderType, methodePaiement, deliveryType) as ApiResponse<RatioModel>;
         if (response.code === 200) {
           this.tauxMoyenCommande = response.data as RatioModel;
-        } else {
-          this.toast.error(response.message);
-        }
+        } 
       } catch (error) {
-        this.toast.error("Erreur lors du chargement du taux moyens");
         console.error(error);
       }
     },
@@ -403,10 +365,6 @@ export default defineComponent({
     const toast = useToast();
     return { toast };
   },
-  mounted() {
-    this.fetchCategories(1)
-
-  },
   watch:{
     orderTypeSelected(newVal, oldVal){
       if (typeof newVal === 'string' && newVal !== oldVal){
@@ -415,10 +373,10 @@ export default defineComponent({
           const startDateTime = `${this.startDate} 00:00:00`
           const endDateTime = this.getEndDateTime(this.endDate)
           if(this.newRestoId !== 'all' && this.newRestoId){
-            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.newRestoId, this.methodePaiementSelected[0].type, newVal);
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.newRestoId, this.methodePaiementSelected[0].type, newVal, 'all');
           }
           else{
-            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, 'all',this.methodePaiementSelected[0].type, newVal);
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, 'all',this.methodePaiementSelected[0].type, newVal, 'all');
           }
         }
       }
@@ -430,10 +388,10 @@ export default defineComponent({
           const startDateTime = `${this.startDate} 00:00:00`
           const endDateTime = this.getEndDateTime(this.endDate)
           if(this.newRestoId !== 'all' && this.newRestoId){
-            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.newRestoId, newVal, this.orderTypeSelected[0].type);
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.newRestoId, newVal, this.orderTypeSelected[0].type, 'all');
           }
           else{
-            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, 'all',newVal, this.orderTypeSelected[0].type);
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, 'all',newVal, this.orderTypeSelected[0].type, 'all');
           }
         }
       }
@@ -445,10 +403,10 @@ export default defineComponent({
           const startDateTime = `${this.startDate} 00:00:00`
           const endDateTime = this.getEndDateTime(this.endDate)
           if(newVal !== 'all'){
-            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, newVal, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, newVal, this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type, 'all');
           }
           else{
-            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, 'all',this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, 'all',this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type, 'all');
           }
         }
       }
@@ -463,14 +421,14 @@ export default defineComponent({
           const endDateTime = this.getEndDateTime(this.endDate)
           if(this.userRole === UserRole.FRANCHISE){
             if(this.newRestoId !== 'all'){
-              this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.newRestoId ?? 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+              this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.newRestoId ?? 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type, 'all');
             }
             else{
               this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
             }
           }
           else{
-            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.restaurantIdStorage ?? 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type);
+            this.fetchTauxCommandeMoyenByCategorie(this.categorieSelected.id, startDateTime, endDateTime, this.restaurantIdStorage ?? 'all', this.methodePaiementSelected[0].type, this.orderTypeSelected[0].type, 'all');
           }
         }
       }
