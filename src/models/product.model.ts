@@ -9,6 +9,7 @@ export interface ProductModel {
     type: string;
     image_urls: string[];
     categorieID: CategorieModel;
+    category_name: string;
     longDescription: string,
     additionnal: string[],
     isAvailable: boolean;
@@ -16,7 +17,7 @@ export interface ProductModel {
     cookingTime: number;
     productSizes: ProductSizesModel[];
     isDeleted: boolean;
-    isActive: boolean;
+    isActive: number;
     isFavorite: boolean;
     isVedette: boolean;
     isSelected: boolean;

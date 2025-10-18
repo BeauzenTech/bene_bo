@@ -131,16 +131,16 @@
               </div>
             </th>
             <td class="shadow-none lh-1 fw-medium text-black-emphasis">
-              {{ categorie.firstName }}  {{ categorie.lastName }}
+              {{ categorie.first_name }}  {{ categorie.last_name }} 
             </td>
             <td class="shadow-none lh-1 fw-medium text-black-emphasis">
-              {{ categorie.firstName }}
+              {{ categorie.email }}
             </td>
 
 
 
             <td class="shadow-none lh-1 fw-medium text-muted">
-              {{ categorie.phoneNumber ? '+41'+categorie.phoneNumber : '-' }}
+              {{ categorie?.phone_number ? categorie.phone_number : '-' }}
             </td>
 
 

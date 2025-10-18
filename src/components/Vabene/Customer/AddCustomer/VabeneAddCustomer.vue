@@ -711,10 +711,10 @@ export default defineComponent({
         if (response.code === 200) {
           if (response.data) {
             this.categorieResponse = response.data;
-            this.categorieData.firstName = this.categorieResponse.firstName;
-            this.categorieData.lastName = this.categorieResponse.lastName;
+            this.categorieData.firstName = this.categorieResponse.first_name;
+            this.categorieData.lastName = this.categorieResponse.last_name;
             this.categorieData.email = this.categorieResponse.email;
-            this.categorieData.phoneNumber = this.categorieResponse.phoneNumber;
+            this.categorieData.phoneNumber = this.categorieResponse.phone_number;
             this.categorieData.batiment = this.categorieResponse.batiment;
             this.categorieData.rue = this.categorieResponse.rue;
             this.categorieData.created_at = this.categorieResponse.created_at;

@@ -18,9 +18,9 @@ export interface CustomerUser {
 export interface CustomerModel {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
+  first_name: string;
+  last_name: string;
+  phone_number: string;
   address: string;
   city: string;
   codePostal: string | null;

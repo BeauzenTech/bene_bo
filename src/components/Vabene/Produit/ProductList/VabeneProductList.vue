@@ -136,151 +136,7 @@
               <LoaderComponent/>
             </td>
           </tr>
-          <tr v-else-if="!isLoading && allProducts.length > 0 && userRole === UserRole.FRANCHISE"
-              v-for="(product, index) in allProducts" :key="product.id"
-          >
-            <th
-                class="shadow-none lh-1 fw-medium text-black-emphasis title ps-0 text-capitalize"
-            >
-              <div class="d-flex align-items-center text-capitalize">
-                <div class="form-check mb-0 text-capitalize">
-                  <input
-                      class="form-check-input shadow-none"
-                      type="checkbox"
-                  />
-                </div>
-                <div
-                    class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
-                >
-                  <a href="#" @click="selectForDetail(product)">
-                    {{ index + 1}} - {{ getShortUuid(product.id) }}
-                  </a>
-
-
-                </div>
-              </div>
-            </th>
-            <td class="shadow-none lh-1 fw-medium text-black-emphasis">
-              <img
-                  :src=" product.image_urls[0] || require('@/assets/images/icon/jpg.png')"
-                  class="rounded-circle me-8 w-50 h-auto"
-                  width="24px"
-                  height="24px"
-                  alt="product"
-              />
-              {{ product.name }}
-            </td>
-
-
-            <th
-                class="shadow-none lh-1 fw-medium text-black-emphasis title ps-0 text-capitalize"
-            >
-              <span  class="badge text-bg-warning fs-13">{{product.categorieID.name}}</span>
-            </th>
-
-            <td class="shadow-none lh-1 fw-medium text-muted">
-              <!-- Toggle switch -->
-              <div class="form-check form-switch">
-                <input
-                    class="form-check-input"
-                    type="checkbox"
-                    v-model="product.isActive"
-                    @change="toggleProductActivation(product, product.isActive)"
-                />
-
-              </div>
-            </td>
-            <td v-if="product.productSizes">
-              {{ convertDateCreate(product.created_at) }}
-            </td>
-            <td class="shadow-none lh-1 fw-medium text-muted">
-              <!-- Toggle switch -->
-              <div class="form-check form-switch">
-                <input
-                    class="form-check-input"
-                    type="checkbox"
-                    v-model="product.isFavorite"
-                    @change="toggleProductFeatureActivation(product)"
-                />
-
-              </div>
-            </td>
-
-
-
-            <td class="shadow-none lh-1 fw-medium text-muted">
-              <!-- Toggle switch -->
-              <div class="form-check form-switch">
-                <input
-                    class="form-check-input"
-                    type="checkbox"
-                    v-model="product.isVedette"
-                    @change="toggleProductFeatureActivation(product)"
-                />
-
-              </div>
-            </td>
-
-            <td v-if="product.productSizes">
-              {{ product.productSizes.length  }} Taille(s)
-            </td>
-
-            <td v-if="product.productSizes">
-              {{ product.cookingTime  }} minutes
-            </td>
-
-
-            <td
-                class="shadow-none lh-1 fw-medium text-body-tertiary text-end pe-0"
-            >
-              <div class="dropdown">
-                <button
-                    class="dropdown-toggle lh-1 bg-transparent border-0 shadow-none p-0 transition"
-                    type="button"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                >
-                  <i class="flaticon-dots"></i>
-                </button>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a
-                        class="dropdown-item d-flex align-items-center"
-                        href="javascript:void(0);"
-                        @click="selectForDetail(product)"
-                    ><i
-                        class="flaticon-view lh-1 me-8 position-relative top-1"
-                    ></i>
-                      Voir</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                        class="dropdown-item d-flex align-items-center"
-                        href="javascript:void(0);"
-                        @click="selectForDetail(product)"
-                    ><i
-                        class="flaticon-pen lh-1 me-8 position-relative top-1"
-                    ></i>
-                      Editer</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                        class="dropdown-item d-flex align-items-center"
-                        data-bs-toggle="modal" data-bs-target="#confirmModal"
-                        href="javascript:void(0);"
-                        @click="selectForDelete(product)"
-                    ><i
-                        class="flaticon-delete lh-1 me-8 position-relative top-1"
-                    ></i>
-                      Supprimer</a
-                    >
-                  </li>
-                </ul>
-              </div>
-            </td>
-          </tr>
+        
           <tr v-else-if="!isLoading && allRestaurantProducts.length > 0 && userRole === UserRole.RESTAURANT"
               v-for="(pr, index) in allRestaurantProducts" :key="pr.id"
           >
@@ -298,7 +154,7 @@
                     class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
                 >
                   <a href="#" @click="selectForDetail(pr)">
-                    {{ index + 1}} - {{ getShortUuid(pr.product.id) }}
+                    {{ index + 1}} - {{ getShortUuid(String(pr.product?.id || pr.id)) }}
                   </a>
 
 
@@ -307,20 +163,19 @@
             </th>
             <td class="shadow-none lh-1 fw-medium text-black-emphasis">
               <img
-                  :src=" pr.product.image_urls[0] || require('@/assets/images/icon/jpg.png')"
+                  :src=" getProductImageUrl(pr)"
                   class="rounded-circle me-8 w-50 h-auto"
                   width="24px"
                   height="24px"
-                  alt="product"
               />
-              {{ pr.product.name }}
+              {{ getProductName(pr) }}
             </td>
 
 
             <th
                 class="shadow-none lh-1 fw-medium text-black-emphasis title ps-0 text-capitalize"
             >
-              <span  class="badge text-bg-warning fs-13">{{pr.product.categorieID.name}}</span>
+              <span  class="badge text-bg-warning fs-13">{{getProductCategoryName(pr)}}</span>
             </th>
 
             <td class="shadow-none lh-1 fw-medium text-muted">
@@ -329,14 +184,14 @@
                 <input
                     class="form-check-input"
                     type="checkbox"
-                    v-model="pr.isActive"
-                    @change="toggleProductActivation(pr, pr.isActive)"
+                    :checked="getProductAvailability(pr)"
+                    @change="handleProductActivationChange(pr, $event)"
                 />
 
               </div>
             </td>
-            <td v-if="pr.product.productSizes">
-              {{ convertDateCreate(pr.product.created_at) }}
+            <td v-if="hasProductSizes(pr)">
+              {{ convertDateCreate(getProductCreatedAt(pr)) }}
             </td>
 <!--            <td class="shadow-none lh-1 fw-medium text-muted">-->
 <!--              &lt;!&ndash; Toggle switch &ndash;&gt;-->
@@ -366,12 +221,12 @@
 <!--              </div>-->
 <!--            </td>-->
 
-            <td v-if="pr.product.productSizes">
-              {{ pr.product.productSizes.length  }} Taille(s)
+            <td v-if="hasProductSizes(pr)">
+              {{ getProductSizesCount(pr) }} Taille(s)
             </td>
 
-            <td v-if="pr.product.productSizes">
-              {{ pr.product.cookingTime  }} minutes
+            <td v-if="hasProductSizes(pr)">
+              {{ getProductCookingTime(pr) }} minutes
             </td>
 
 
@@ -513,10 +368,11 @@
 import { defineComponent } from "vue";
 import {
   deleteFileUpload,
-  deleteIngredient, deleteProductTemporary, listeCategorie, listeCategorieActive,
+  deleteIngredient, deleteProductTemporary, listeCategorie, getAllCategories,
   listeIngredient,
   listeProducts, listeRestaurantProduct, toggleActivationFeatureProduct,
-  toggleActivationIngredient, toggleActivationProduct, toggleActivationProductRestaurant
+  toggleActivationIngredient, toggleActivationProduct, toggleActivationProductRestaurant,
+  getProductsByCategory
 } from "@/service/api";
 import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 import {useToast} from "vue-toastification";
@@ -615,6 +471,49 @@ export default defineComponent({
     }
   },
   methods: {
+    getProductImageUrl(product: any): string {
+      try {
+        // Gérer le cas où image_urls est une chaîne JSON
+        let imageUrls = product.product?.image_urls || product.image_urls;
+        
+        if (typeof imageUrls === 'string') {
+          imageUrls = JSON.parse(imageUrls);
+        }
+        
+        if (Array.isArray(imageUrls) && imageUrls.length > 0) {
+          return imageUrls[0];
+        }
+        
+        return require('@/assets/images/icon/jpg.png');
+      } catch (error) {
+        return require('@/assets/images/icon/jpg.png');
+      }
+    },
+    getProductName(product: any): string {
+      return product.name || 'N/A';
+    },
+    getProductCategoryName(product: any): string {
+      return product?.category_name || 'N/A';
+    },
+    hasProductSizes(product: any): boolean {
+      return !!(product.variations);
+    },
+    getProductCreatedAt(product: any): string {
+      return product?.updated_at || '';
+    },
+    getProductSizesCount(product: any): number {
+      return product.variations?.length || 0;
+    },
+    getProductCookingTime(product: any): number {
+      return product.cookingTime || 0;
+    },
+    getProductAvailability(product: any): boolean {
+      return Number(product.isActive) === 1;
+    },
+    handleProductActivationChange(product: any, event: Event): void {
+      const target = event.target as HTMLInputElement;
+      this.toggleProductActivation(product, target.checked);
+    },
     getShortUuid(uuid: string): string {
       return uuid.split('-')[0];
     },
@@ -779,20 +678,20 @@ export default defineComponent({
     async fetchCategories(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeCategorieActive(page, "0") as ApiResponse<PaginatedCategorie>;
-        if (response.code === 200) {
-          if (response.data?.items) {
-            this.originalCategories = response.data.items;
+        const response = await getAllCategories(1, 50) as any;
+        console.log('Categories API Response:', response?.data);
+        if (response?.code === 200) {
+          const categoriesData = Array.isArray(response.data?.data) ? response.data?.data : [];
+          this.originalCategories = categoriesData;
             this.categorieSelected = this.originalCategories[0];
+          this.toast.success(response?.message);
+          
             if(this.userRole === UserRole.FRANCHISE){
-              await  this.fetchProduct(1, "existing", this.categorieSelected.id);
+            await this.fetchProduct(1, "existing", this.categorieSelected.id);
             }
             else{
               await this.fetchRestaurantProduct(1, this.categorieSelected.id)
             }
-          }
-        } else {
-          this.toast.error(response.message);
         }
       } catch (error) {
         this.toast.error("Erreur lors du chargement des categories");
@@ -802,25 +701,40 @@ export default defineComponent({
       }
     },
     async fetchProduct(page = 1, filter: string, categorieID?: string) {
-      const payload = {
-        "categorieID": categorieID
-      }
       this.isLoading = true;
       try {
-        const response = await listeProducts(page, "1" ,filter, payload) as ApiResponse<PaginatedProduct>;
+        if (!categorieID) {
+          this.toast.error("ID de catégorie manquant");
+          return;
+        }
+        const response = await getProductsByCategory(categorieID, page, 10) as any;
         if (response.code === 200) {
-          this.productResponse = response;
-          if (response.data?.items) {
-            this.originalProducts = response.data.items;
-          }
-          if (response.data && response.data.pagination) {
-            this.currentPage = response.data.pagination.current_page;
-          }
+          const productsData = Array.isArray(response.data) ? response.data : [];
+          
+          // Stocker directement les données dans originalProducts
+          this.originalProducts = productsData;
+          
+          // Créer la structure pour productResponse
+          this.productResponse = {
+            code: response.code,
+            message: response.message,
+            data: {
+              items: productsData,
+              pagination: {
+                current_page: response.pagination?.page || 1,
+                total_items: response.pagination?.total || 0,
+                total_pages: response.pagination?.totalPages || 1,
+                items_per_page: response.pagination?.limit || 10
+              }
+            }
+          };
+          
+          this.currentPage = response.pagination?.page || 1;
         } else {
           this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des categories");
+        this.toast.error("Erreur lors du chargement des produits");
         console.error(error);
       } finally {
         this.isLoading = false;
@@ -829,20 +743,38 @@ export default defineComponent({
     async fetchRestaurantProduct(page = 1, categoryId: string) {
       this.isLoading = true;
       try {
-        const response = await listeRestaurantProduct(page, "1" , categoryId as string) as ApiResponse<PaginatedRestaurantProduct>;
+        const response = await getProductsByCategory(categoryId, page, 10) as any;
+        console.log('Restaurant Products API Response:', response);
+        console.log('Response data:', response.data);
         if (response.code === 200) {
-          this.productRestaurantResponse = response;
-          if (response.data?.items) {
-            this.originalRestaurantProducts = response.data.items;
-          }
-          if (response.data && response.data.pagination) {
-            this.currentPage = response.data.pagination.current_page;
-          }
+          // L'API retourne {data: Array, pagination: {...}} dans response.data
+          const productsData = Array.isArray(response.data.data) ? response.data.data : [];
+          console.log('Products data:', productsData);
+          
+          // Stocker directement les données dans originalRestaurantProducts
+          this.originalRestaurantProducts = productsData;
+          
+          // Créer la structure pour productRestaurantResponse
+          this.productRestaurantResponse = {
+            code: response.code,
+            message: response.message,
+            data: {
+              items: productsData,
+              pagination: {
+                current_page: response.data.pagination?.page || 1,
+                total_items: response.data.pagination?.total || 0,
+                total_pages: response.data.pagination?.totalPages || 1,
+                items_per_page: response.data.pagination?.limit || 10
+              }
+            }
+          };
+          
+          this.currentPage = response.data.pagination?.page || 1;
         } else {
           this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des categories");
+        this.toast.error("Erreur lors du chargement des produits");
         console.error(error);
       } finally {
         this.isLoading = false;
@@ -861,7 +793,6 @@ export default defineComponent({
             this.fetchRestaurantProduct(page, this.categorieSelected.id)
           }
         }
-
       }
     },
     generatePageNumbers(): number[] {
