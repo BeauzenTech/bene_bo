@@ -160,24 +160,19 @@ const filteredProducts = computed(() => {
 
   // Filtrer par catégorie
   if (props.category) {
-    console.log('🔍 Filtrage par catégorie:', props.category)
     filtered = filtered.filter(product => {
       const categoryMatch = product.categorieID?.id === props.category
-      console.log(`📦 Produit "${product.name}" - categorieID: ${product.categorieID?.id}, match: ${categoryMatch}`)
       return categoryMatch
     })
-    console.log('📦 Produits après filtrage catégorie:', filtered.length)
   }
 
   // Filtrer par recherche
   if (props.searchQuery.trim()) {
     const query = props.searchQuery.toLowerCase().trim()
-    console.log('🔍 Filtrage par recherche:', query)
     filtered = filtered.filter(product =>
       product.name.toLowerCase().includes(query) ||
       (product.description && product.description.toLowerCase().includes(query))
     )
-    console.log('📦 Produits après filtrage recherche:', filtered.length)
   }
 
   // Trier par ordre alphabétique
@@ -188,7 +183,6 @@ const filteredProducts = computed(() => {
     })
   })
 
-  console.log('✅ Produits finaux filtrés:', filtered.length)
   return filtered
 })
 
@@ -309,17 +303,14 @@ const getSortedProductSizes = (product: ProductModel): ProductSizesModel[] => {
 const getProductImage = (product: ProductModel): string => {
   // Vérifier d'abord le champ image (nouveau format)
   if (product.image) {
-    console.log('🖼️ Image trouvée dans product.image:', product.image)
     return product.image
   }
   
   // Fallback vers l'ancien format
   if (product.image_urls?.[0]) {
-    console.log('🖼️ Image trouvée dans product.image_urls:', product.image_urls[0])
     return product.image_urls[0]
   }
   
-  console.log('🖼️ Aucune image trouvée, utilisation du défaut')
   return '/imgs/products/default-product.png'
 }
 
@@ -393,9 +384,6 @@ const productPrices = computed(() => {
         ? Number(selectedSize.priceLivraison) || 0
         : Number(selectedSize.price) || 0
       
-      console.log(`💰 Prix sélectionné pour ${product.name}:`, basePrice)
-      // IMPORTANT: Ne pas ajouter le coût des ingrédients dans l'affichage du menu
-      // Les ingrédients ne sont pas encore sélectionnés, on affiche juste le prix de base
       prices[product.id] = basePrice
       
     } else if (product.sizes && product.sizes.length > 0) {
@@ -405,7 +393,6 @@ const productPrices = computed(() => {
         ? Number(defaultSize.priceLivraison) || 0
         : Number(defaultSize.price) || 0
       
-      console.log(`💰 Prix par défaut (sizes) pour ${product.name}:`, basePrice, 'Taille:', defaultSize)
       prices[product.id] = basePrice
     } else if (product.productSizes && product.productSizes.length > 0) {
       // Fallback vers l'ancien format productSizes
@@ -414,15 +401,12 @@ const productPrices = computed(() => {
         ? Number(defaultSize.priceLivraison) || 0
         : Number(defaultSize.price) || 0
       
-      console.log(`💰 Prix par défaut (productSizes) pour ${product.name}:`, basePrice)
       prices[product.id] = basePrice
     } else {
-      console.log(`💰 Aucun prix trouvé pour ${product.name}`)
       prices[product.id] = 0
     }
   })
   
-  console.log('💰 Prix finaux:', prices)
   return prices
 })
 
@@ -508,22 +492,13 @@ const handleQuickAdd = (product: ProductModel) => {
   const transformedProduct = transformProduct(product)
   const selectedSize = getSelectedSize(product)
 
-  console.log('🔧 handleQuickAdd appelé pour:', product.name)
-  console.log('🔧 product.additionnal (brut):', product.additionnal)
-  console.log('🔧 transformedProduct.additionnal:', transformedProduct.additionnal)
-  console.log('🔧 Type de transformedProduct.additionnal:', typeof transformedProduct.additionnal)
-  console.log('🔧 Longueur transformedProduct.additionnal:', transformedProduct.additionnal?.length)
-
-  // Si le produit a des options additionnelles, ouvrir le modal AdditionalFeaturesModal
   if (transformedProduct.additionnal && transformedProduct.additionnal.length > 0) {
-    console.log('🎯 Produit avec options additionnelles, ouverture du modal AdditionalFeaturesModal')
     additionalModalProduct.value = transformedProduct
     additionalModalSize.value = selectedSize
     showAdditionalModal.value = true
     return
   }
 
-  console.log('❌ Pas d\'options additionnelles, ajout direct au panier')
 
   // Sinon, ajouter directement au panier
   if (selectedSize) {

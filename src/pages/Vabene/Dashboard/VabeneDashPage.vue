@@ -291,11 +291,10 @@ export default defineComponent({
       this.isLoading = true
       try {
         const response = await reportPeriodiqueCard(restaurantID, filters) as ApiResponse<PeriodiqueCardReport>;
-        console.log('Periodique report response:', response);
+      
         if (response.code === 200) {
           if (response.data) {
-            this.periodiqueReportCard = response.data
-            console.log('Periodique report card set:', this.periodiqueReportCard);
+            this.periodiqueReportCard = response.data;
           }
         }
       } catch (error) {

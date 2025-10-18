@@ -14,7 +14,6 @@ Le graphique ne se mettait pas à jour quand l'utilisateur changeait de période
 ```javascript
 watch: {
   selectedPeriod() {
-    console.log('🔄 Changement de période détecté:', this.selectedPeriod);
     this.updateChartCategories();
     this.forceChartUpdate();
   }
@@ -32,7 +31,6 @@ forceChartUpdate() {
         categories: this.chartCategories
       }
     };
-    console.log('🔄 Graphique mis à jour pour la période:', this.selectedPeriod);
   });
 }
 ```

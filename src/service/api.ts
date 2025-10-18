@@ -489,7 +489,6 @@ export const deleteRestaurant = async (restaurantID: string): Promise<ApiRespons
 // Fonction pour créer d'une commande
 export const createNewOrder = async (orderData): Promise<ApiResponse<any>> =>{
     try {
-        console.log("orderData", orderData);
         const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/initial/order', []);
         return response.data;
     } catch (error) {
@@ -694,18 +693,14 @@ export const getAllCategories = async (
     search?: string
 ): Promise<ApiResponse<{ data: CategorieModel[], pagination: any }>> => {
     try {
-        console.log('🔧 getAllCategories appelée avec:', { page, limit, search });
-        
         const params = new URLSearchParams();
         if (page) params.append('page', page.toString());
         if (limit) params.append('limit', limit.toString());
         if (search) params.append('search', search);
 
         const url = `/v1/category/all?${params.toString()}`;
-        console.log('🌐 URL appelée:', url);
         
         const response = await apiClient.get(url);
-        console.log('📡 Réponse brute:', response.data);
         
         const result = new ApiResponse(
             response.data.code,
@@ -716,7 +711,6 @@ export const getAllCategories = async (
             }
         );
         
-        console.log('✅ Résultat final:', result);
         return result;
     } catch (error) {
         console.error("❌ Erreur lors de la récupération des catégories", error);
@@ -731,17 +725,13 @@ export const getProductsByCategory = async (
     limit?: number
 ): Promise<ApiResponse<{ data: ProductModel[], pagination: any }>> => {
     try {
-        console.log('🔧 getProductsByCategory appelée avec:', { categoryId, page, limit });
-        
         const params = new URLSearchParams();
         if (page) params.append('page', page.toString());
         if (limit) params.append('limit', limit.toString());
 
         const url = `/v1/product/category/${categoryId}?${params.toString()}`;
-        console.log('🌐 URL appelée:', url);
         
         const response = await apiClient.get(url);
-        console.log('📡 Réponse brute:', response.data);
         
         const result = new ApiResponse(
             response.data.code,
@@ -752,7 +742,6 @@ export const getProductsByCategory = async (
             }
         );
         
-        console.log('✅ Résultat final:', result);
         return result;
     } catch (error) {
         console.error("❌ Erreur lors de la récupération des produits par catégorie", error);
@@ -1375,7 +1364,6 @@ export const getAllCustomers = async (
     search?: string
 ): Promise<ApiResponse<{ data: CustomerModel[], pagination: any }>> => {
     try {
-        console.log('🔧 getAllCustomers appelée avec:', { page, limit, search });
 
         const params = new URLSearchParams();
         if (page) params.append('page', page.toString());
@@ -1383,10 +1371,8 @@ export const getAllCustomers = async (
         if (search) params.append('search', search);
 
         const url = `/v1/customers/all?${params.toString()}`;
-        console.log('🌐 URL appelée:', url);
 
         const response = await apiClient.get(url);
-        console.log('📡 Réponse brute:', response.data);
 
         const result = new ApiResponse(
             response.data.code,
@@ -1397,7 +1383,6 @@ export const getAllCustomers = async (
             }
         );
 
-        console.log('✅ Résultat final:', result);
         return result;
     } catch (error) {
         console.error("❌ Erreur lors de la récupération des clients", error);
@@ -1699,7 +1684,6 @@ export const getAllIngredients = async (
     type?: string
 ): Promise<ApiResponse<{ data: any[], pagination: any }>> => {
     try {
-        console.log('🔧 getAllIngredients appelée avec:', { page, limit, search, type });
 
         const params = new URLSearchParams();
         if (page) params.append('page', page.toString());
@@ -1708,10 +1692,8 @@ export const getAllIngredients = async (
         if (type) params.append('type', type);
 
         const url = `/v1/ingredient/all?${params.toString()}`;
-        console.log('🌐 URL appelée:', url);
 
         const response = await apiClient.get(url);
-        console.log('📡 Réponse brute:', response.data);
 
         const result = new ApiResponse(
             response.data.code,
@@ -1722,7 +1704,6 @@ export const getAllIngredients = async (
             }
         );
 
-        console.log('✅ Résultat final:', result);
         return result;
     } catch (error) {
         console.error("❌ Erreur lors de la récupération des ingrédients", error);

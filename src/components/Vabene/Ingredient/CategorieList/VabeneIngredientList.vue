@@ -340,8 +340,6 @@ export default defineComponent({
   },
   computed: {
     allIngredient(): IngredientModel[] {
-      console.log('ingredientResponse:', this.ingredientResponse);
-      console.log('originalIngredients:', this.originalIngredients);
       
       // Utiliser directement originalIngredients qui contient les données de l'API
       const ingredients = this.originalIngredients;
@@ -475,18 +473,10 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await getAllIngredients(page, 10, this.searchQuery) as any;
-        console.log('API Response:', response);
         if (response.code === 200) {
-          console.log('Raw response.data:', response.data);
-          // L'API retourne {data: Array(10), pagination: {...}}
           const ingredientsData = Array.isArray(response.data.data) ? response.data.data : [];
-          console.log('ingredientsData:', ingredientsData);
-          
-          // Stocker directement les données dans originalIngredients
+         
           this.originalIngredients = ingredientsData;
-          console.log('After setting originalIngredients:', this.originalIngredients);
-          
-          // Créer la structure pour ingredientResponse
           this.ingredientResponse = {
             code: response.code,
             message: response.message,

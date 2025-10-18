@@ -111,7 +111,6 @@ onMounted(() => {
   
   // Utiliser les fonctions
   const timezone = getCurrentTimezone()
-  console.log(`Fuseau horaire détecté: ${timezone}`)
 })
 </script>
 ```

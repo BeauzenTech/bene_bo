@@ -806,23 +806,16 @@ const loadRestaurantMinOrder = async () => {
   
   if (storeOrderType.value === 'delivery' && deliveryAddress.value.npa) {
     const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
-    console.log('🏪 restaurantID:', restaurantID)
     
     if (restaurantID) {
       try {
-        console.log('🚀 Appel API getRestaurantMinOrder...')
         const minOrder = await getRestaurantMinOrder(deliveryAddress.value.npa, deliveryAddress.value.localite, restaurantID)
-        console.log('💰 Montant minimum récupéré:', minOrder)
         restaurantMinOrder.value = minOrder
-        console.log('✅ restaurantMinOrder.value mis à jour:', restaurantMinOrder.value)
       } catch (error) {
-        console.error('❌ Erreur lors du chargement du montant minimum:', error)
         restaurantMinOrder.value = 0
       }
     }
-  } else {
-    console.log('⚠️ Conditions non remplies pour charger le montant minimum')
-  }
+  } 
 }
 
 const disableMinOrder = () => {
@@ -1414,16 +1407,11 @@ const loadRestaurantDetails = async () => {
 const loadAllPostalCodes = async () => {
   try {
     const response = await getAllPostalCodes()
-    console.log('🔧 Réponse codes postaux:', response)
     
     if (response.code === 200 && response.data) {
       allPostalCodes.value = response.data
-      console.log('📡 Codes postaux chargés:', allPostalCodes.value)
       
-      // Afficher la structure du premier élément pour debug
-      if (allPostalCodes.value.length > 0) {
-        console.log('🔍 Structure du premier code postal:', allPostalCodes.value[0])
-      }
+      
     }
   } catch (error) {
     console.error('Erreur lors du chargement des codes postaux:', error)
@@ -1717,7 +1705,6 @@ const handlePlaceOrder = async () => {
       toast.error(response.message || 'Erreur lors de la création de la commande')
     }
   } catch (error: any) {
-    console.error('Erreur lors de la création de la commande:', error)
     const errorMessage = error?.response?.data?.message || 'Erreur lors de la création de la commande'
     toast.error(errorMessage)
   } finally {
@@ -1824,7 +1811,6 @@ const applyCouponCode = async () => {
       toast.error(response.message || 'Code promo invalide')
     }
   } catch (error) {
-    console.error('Erreur lors de l\'application du coupon:', error)
     toast.error('Code promo invalide')
   } finally {
     isApplyingCoupon.value = false
@@ -1840,8 +1826,6 @@ const removeCoupon = () => {
 
 // Fonction pour rechercher des codes postaux
 const searchPostalCodes = (query: string) => {
-  console.log('🔍 Recherche codes postaux avec query:', query)
-  console.log('📊 Codes postaux disponibles:', allPostalCodes.value.length)
   
   if (!query.trim() || query.length < 2) {
     postalCodeSuggestions.value = []
@@ -1860,15 +1844,10 @@ const searchPostalCodes = (query: string) => {
     
     const matches = postalCodeStr.includes(query) || 
            cityStr.toLowerCase().includes(query.toLowerCase())
-    
-    if (matches) {
-      console.log('✅ Match trouvé:', { postalCodeStr, cityStr, postalCode })
-    }
+  
     
     return matches
-  }).slice(0, 10) // Limiter à 10 résultats
-
-  console.log('🎯 Résultats trouvés:', results.length)
+  }).slice(0, 10) 
   postalCodeSuggestions.value = results
   showPostalCodeSuggestions.value = results.length > 0
 }

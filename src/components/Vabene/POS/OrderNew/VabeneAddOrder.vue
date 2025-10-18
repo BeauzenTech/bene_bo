@@ -1198,7 +1198,6 @@ export default defineComponent({
         "timeOrder": this.getWhenOrderType() === 'ulterieur' ? formatDateForPayloadUtil(this.extraireDate(this.dateRecuperation), this.orderHourRecuperation) : '',
         "typeCustomer": this.organisationTypeSelected === 'Société' ? 'organisation' : 'customer',
       }
-      console.log("payload", payload);
       try {
         const response = await createNewOrder(payload);
         if (response.code === 201) {

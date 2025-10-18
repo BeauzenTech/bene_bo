@@ -57,10 +57,6 @@ Les cartes affichaient toujours 0 CHF alors que les données étaient disponible
 getCardTotal(index: number): number {
   if (this.reportVente && this.reportVente[index]) {
     const total = this.calculateDataTotal(this.reportVente[index].data);
-    console.log(`📊 Carte ${index} (${this.reportVente[index].name}):`, {
-      data: this.reportVente[index].data,
-      total: total
-    });
     return total;
   }
   return 0;

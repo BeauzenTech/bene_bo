@@ -390,13 +390,10 @@ const loadIngredients = async () => {
     
     if (response.code === 200 && response.data?.data) {
       allIngredients.value = response.data.data;
-      console.log('✅ Ingrédients chargés depuis le backend:', allIngredients.value);
     } else {
-      console.warn('⚠️ Aucun ingrédient trouvé dans la réponse');
       allIngredients.value = [];
     }
   } catch (error) {
-    console.error('❌ Erreur lors du chargement des ingrédients:', error);
     allIngredients.value = [];
   } finally {
     isLoadingIngredients.value = false;

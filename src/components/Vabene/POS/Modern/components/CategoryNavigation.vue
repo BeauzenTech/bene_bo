@@ -32,9 +32,7 @@ defineEmits<{
 }>()
 
 const sortedCategories = computed(() => {
-  console.log('📋 CategoryNavigation - Catégories reçues:', props.categories);
   const sorted = [...(props.categories || [])].sort((a, b) => Number(a.ordered) - Number(b.ordered));
-  console.log('📋 CategoryNavigation - Catégories triées:', sorted);
   return sorted;
 })
 

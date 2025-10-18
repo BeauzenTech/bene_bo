@@ -542,7 +542,6 @@ export default defineComponent({
     },
     paginationInfo(): string {
       const paginationData = this.pagination;
-      console.log('Pagination data:', paginationData);
       const { current_page, items_per_page, total_items } = paginationData;
       const start = (current_page - 1) * items_per_page + 1;
       const end = Math.min(current_page * items_per_page, total_items);
@@ -550,7 +549,6 @@ export default defineComponent({
     },
     totalPages(): number {
       const totalPages = this.pagination.total_pages;
-      console.log('Total pages:', totalPages);
       return totalPages || 1;
     }
   },
@@ -728,9 +726,7 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeRestaurantCategorie(page, "1", this.searchQuery) as CategoriesApiFullResponse;
-        console.log('API Response:', response);
         if (response.code === 200) {
-          // Vérifier que response.data existe et est un tableau
           const categoriesData = Array.isArray(response.data) ? response.data : [];
           
           this.categorieRestaurantResponse = {

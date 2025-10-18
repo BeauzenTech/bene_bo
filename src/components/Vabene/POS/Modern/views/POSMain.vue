@@ -153,7 +153,6 @@ const parsePhpSerializedArray = (serialized: string): string[] => {
     
     return items;
   } catch (error) {
-    console.warn('⚠️ Erreur parsing PHP sérialisé:', error);
     return [];
   }
 };
@@ -359,19 +358,13 @@ const closeProductModal = () => {
 
 // Fonctions API
 const fetchCategories = async () => {
-  console.log('🔄 Début du chargement des catégories...')
   isLoading.value = true
   try {
     let transformedCategories: Category[] = []
-
-    // Essayer d'abord la nouvelle API getAllCategories
     try {
-      console.log('📡 Tentative avec getAllCategories...')
       const response = await getAllCategories(1, 50)
-      console.log('📡 Réponse getAllCategories:', response)
 
       if (response.code === 200 && response.data?.data) {
-        console.log('✅ Données reçues via getAllCategories:', response.data.data)
         transformedCategories = response.data.data.map((category: CategorieModel) => ({
           id: category.id,
           name: category.name,
@@ -380,17 +373,11 @@ const fetchCategories = async () => {
           isActive: category.isActive !== false,
           ordered: category.ordered
         }))
-        console.log('🔄 Catégories transformées:', transformedCategories)
       } else {
         throw new Error(`API getAllCategories échouée: ${response.message}`)
       }
     } catch (newApiError) {
-      console.warn('⚠️ Nouvelle API échouée, fallback vers l\'ancienne API:', newApiError)
-      
-      // Fallback vers l'ancienne API
-      console.log('🔄 Fallback vers l\'ancienne API pour les catégories...')
       if (userRole.value === UserRole.FRANCHISE) {
-        console.log('📡 Utilisation de listeCategorieActive pour franchise')
         const response = await listeCategorieActive(1, "0") as ApiResponse<PaginatedCategorie>
         if (response.code === 200 && response.data?.items) {
           transformedCategories = response.data.items.map((category: CategorieModel) => ({
@@ -403,7 +390,6 @@ const fetchCategories = async () => {
           }))
         }
       } else {
-        console.log('📡 Utilisation de listeRestaurantCategorie pour restaurant')
         const response = await listeRestaurantCategorie(1, "0")
         if (response.code === 200 && response.data?.items) {
           transformedCategories = response.data.items.map((item: any) => {
@@ -422,70 +408,53 @@ const fetchCategories = async () => {
     }
 
     if (transformedCategories.length === 0) {
-      console.error('❌ Aucune catégorie trouvée avec aucune API')
       toast.error("Aucune catégorie trouvée")
       return
     }
 
     categories.value = transformedCategories.sort((a, b) => Number(a.ordered) - Number(b.ordered));
-    console.log('📋 Catégories finales:', categories.value)
+
 
     // Sélectionner la première catégorie par défaut
     if (transformedCategories.length > 0) {
       selectedCategory.value = transformedCategories[0].id
-      console.log('🎯 Catégorie sélectionnée:', selectedCategory.value)
       await fetchProducts(transformedCategories[0].id)
-    } else {
-      console.warn('⚠️ Aucune catégorie trouvée')
-    }
+    } 
   } catch (error) {
-    console.error('❌ Erreur lors du chargement des catégories:', error)
     toast.error("Erreur lors du chargement des catégories")
   } finally {
     isLoading.value = false
-    console.log('✅ Chargement des catégories terminé')
   }
 }
 
 const fetchProducts = async (categoryId: string) => {
   if (!categoryId) return
 
-  console.log('🔄 Début du chargement des produits pour la catégorie:', categoryId)
   isLoadingProducts.value = true
   try {
     let extractedProducts: ProductModel[] = []
 
     // Essayer d'abord la nouvelle API getProductsByCategory
     try {
-      console.log('📡 Tentative avec getProductsByCategory...')
       const response = await getProductsByCategory(categoryId, 1, 50)
-      console.log('📡 Réponse getProductsByCategory:', response)
 
       if (response.code === 200 && response.data?.data) {
-        console.log('✅ Produits reçus via getProductsByCategory:', response.data.data)
-        // Transformer la structure des données pour correspondre au format attendu
         extractedProducts = response.data.data.map((product: any) => {
           // Gestion sécurisée du parsing JSON pour les images
           let imageUrl = '/images/default-product.jpg'
           try {
             if (product.image_urls) {
-              console.log('🖼️ Image URLs brute:', product.image_urls)
               const parsedImages = JSON.parse(product.image_urls)
-              console.log('🖼️ Images parsées:', parsedImages)
               if (Array.isArray(parsedImages) && parsedImages.length > 0) {
                 imageUrl = parsedImages[0]
-                console.log('🖼️ Image sélectionnée:', imageUrl)
               }
             }
           } catch (error) {
-            console.warn('⚠️ Erreur parsing image_urls:', error)
-            // Essayer de parser manuellement si le JSON est malformé
             if (product.image_urls && typeof product.image_urls === 'string') {
               // Chercher les URLs Cloudinary dans la chaîne
               const cloudinaryMatch = product.image_urls.match(/https:\/\/res\.cloudinary\.com\/[^"]+/)
               if (cloudinaryMatch) {
                 imageUrl = cloudinaryMatch[0]
-                console.log('🖼️ Image trouvée via regex:', imageUrl)
               }
             }
           }
@@ -494,14 +463,10 @@ const fetchProducts = async (categoryId: string) => {
           let additionnalOptions = []
           try {
             if (product.additionnal) {
-              console.log('🔧 Parsing additionnal:', product.additionnal)
               // Parser le format PHP sérialisé : a:2:{i:0;s:18:"Pointrine de Dinde";i:1;s:6:"Jambon";}
               additionnalOptions = parsePhpSerializedArray(product.additionnal)
-              console.log('✅ Options additionnelles parsées:', additionnalOptions)
             }
           } catch (error) {
-            console.warn('⚠️ Erreur parsing additionnal:', error)
-            // Fallback : essayer de parser comme JSON
             try {
               additionnalOptions = JSON.parse(product.additionnal)
             } catch (jsonError) {
@@ -532,19 +497,16 @@ const fetchProducts = async (categoryId: string) => {
             }
           }
         })
-        console.log('🔄 Produits transformés:', extractedProducts)
       } else {
         throw new Error(`API getProductsByCategory échouée: ${response.message}`)
       }
     } catch (newApiError) {
-      console.warn('⚠️ Nouvelle API échouée, fallback vers l\'ancienne API:', newApiError)
       
       // Fallback vers l'ancienne API
       const response = await listeRestaurantProduct(1, "0", categoryId) as ApiResponse<PaginatedRestaurantProduct>
-      console.log('📡 Réponse listeRestaurantProduct:', response)
+     
 
       if (response.code === 200 && response.data?.items) {
-        console.log('✅ Produits reçus via listeRestaurantProduct:', response.data.items)
         extractedProducts = response.data.items.map((item: any) => item.product)
       } else {
         throw new Error(`API listeRestaurantProduct échouée: ${response.message}`)
@@ -552,11 +514,8 @@ const fetchProducts = async (categoryId: string) => {
     }
 
     if (extractedProducts.length === 0) {
-      console.warn('⚠️ Aucun produit trouvé pour cette catégorie')
       toast.warning("Aucun produit trouvé pour cette catégorie")
-    } else {
-      console.log('📋 Produits finaux:', extractedProducts)
-    }
+    } 
 
     products.value = extractedProducts
   } catch (error) {
@@ -565,7 +524,6 @@ const fetchProducts = async (categoryId: string) => {
     products.value = []
   } finally {
     isLoadingProducts.value = false
-    console.log('✅ Chargement des produits terminé')
   }
 }
 

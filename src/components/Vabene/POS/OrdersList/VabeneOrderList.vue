@@ -267,7 +267,6 @@ export default defineComponent({
 
     pagination(): any {
       if (!this.orderResponse) {
-        console.log('📋 No orderResponse yet');
         return {
           page: 1,
           total: 0,
@@ -276,10 +275,7 @@ export default defineComponent({
         };
       }
       
-      console.log('📋 Pagination orderResponse:', this.originalOrder);
       const responsePagination = (this.orderResponse as any)?.pagination;
-      console.log('📋 Response pagination:', responsePagination);
-      console.log('📋 Full response:', this.orderResponse);
       
       // Si la pagination n'est pas trouvée au niveau racine, essayer dans data
       const dataPagination = (this.orderResponse?.data as any)?.pagination;
@@ -297,9 +293,6 @@ export default defineComponent({
       const start = (page - 1) * limit + 1;
       const end = Math.min(page * limit, total);
       
-      // Debug: afficher les valeurs de pagination
-      console.log('🔍 Pagination info:', { page, limit, total, start, end });
-      console.log('🔍 OrderResponse:', this.orderResponse);
       
       // Si total est 0, essayer de récupérer le nombre d'éléments depuis allOrder
       const actualTotal = total || this.allOrder.length;
