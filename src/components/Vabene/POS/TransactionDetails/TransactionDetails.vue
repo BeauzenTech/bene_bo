@@ -10,7 +10,7 @@
     class="card mb-25 border-0 rounded-0 bg-white letter-spacing invoice-details-box"
   >
     <div class="card-body p-15 p-sm-20 p-md-25 p-lg-30">
-      <div class="d-lg-flex justify-content-between" v-if="paiementResponse && paiementResponse.orderSelf">
+      <div class="d-lg-flex justify-content-between" v-if="transformedData ">
         <div class="text-start">
           <img
             src="@/assets/images/logo_update.svg"
@@ -29,11 +29,13 @@
           >
             Restaurant
           </span>
-          <p v-if="paiementResponse.orderSelf.restaurantID"  class="mb-5 text-muted fs-md-15 fs-md-16 lh-base">
-            {{paiementResponse.orderSelf.restaurantID.name ?? ''}} <br /> {{paiementResponse.orderSelf.restaurantID.numeroRue ?? ''}}{{paiementResponse.orderSelf.restaurantID.address ?? ''}}
+          <p v-if="transformedData.restaurantId"  class="mb-5 text-muted fs-md-15 fs-md-16 lh-base">
+            {{transformedData.restaurant.name ?? ''}} <br />
+            {{ transformedData.restaurant.codePostal ?? '' }}
+            {{transformedData.restaurant.numeroRue ?? ''}}{{transformedData.restaurant.address ?? ''}}
           </p>
-          <span v-if="paiementResponse.orderSelf.restaurantID" class="d-block text-muted fs-md-15 fs-md-16">
-            Tel :  {{paiementResponse.orderSelf.restaurantID.phoneNumber ?? ''}}
+          <span v-if="transformedData.restaurantId" class="d-block text-muted fs-md-15 fs-md-16">
+            Tel :  {{transformedData.restaurant.phoneNumber ?? ''}}
           </span>
         </div>
         <div class="text-lg-center mt-15 mt-md-20 mt-lg-0">
@@ -42,34 +44,34 @@
           >
             Référence
           </h2>
-          <span v-if="paiementResponse.orderSelf" class="d-block fs-md-15 fs-md-16 text-muted">
+          <span class="d-block fs-md-15 fs-md-16 text-muted">
             <span class="me-md-5 d-block d-md-inline-block">
               ref.commande :
-              <span class="text-paragraph">#{{paiementResponse.orderSelf.restaurantID.id === RestaurantEnum.RESTO_PENTHAZ ? 'VBP'+ paiementResponse.orderSelf.nif : 'VBM'+ paiementResponse.orderSelf.nif}}</span>
+              <span class="text-paragraph">{{transformedData.paymentReference}}</span>
             </span>
             <span class="ms-md-5 d-block d-md-inline-block">
               Date :
-              <span class="text-paragraph">{{convertDateCreate(paiementResponse.created_at)}}</span>
+              <span class="text-paragraph">{{convertDateCreate(transformedData.created_at)}}</span>
             </span>
           </span>
         </div>
-        <div v-if="paiementResponse.orderSelf && qrcode" class="text-lg-end mt-15 mt-md-20 mt-lg-0">
+        <div v-if="qrcode" class="text-lg-end mt-15 mt-md-20 mt-lg-0">
           <img :src="qrcode" alt="qr-code" />
         </div>
       </div>
       <div class="invoice-info d-lg-flex justify-content-between">
-        <div class="d-flex"  v-if="paiementResponse">
-          <div v-if="paiementResponse.orderSelf">
+        <div class="d-flex"  v-if="transformedData">
+          <div >
             <span class="d-block text-black fs-md-15 fw-bold mb-12">
              Opération effectuée par:
             </span>
             <span
               class="d-block fs-md-15 fs-lg-16 fw-medium text-paragraph mb-8"
             >
-              {{paiementResponse.orderSelf.guest_first_name}} {{paiementResponse.orderSelf.guest_last_name}}
+              {{transformedData.clientName}} 
             </span>
             <p  class="mb-5 text-muted fs-md-15 fs-md-16 lh-base">
-              Tel :  {{paiementResponse.orderSelf.guest_phone_number}}
+              Tel :  {{transformedData.clientPhone}}
             </p>
 
           </div>
@@ -77,10 +79,10 @@
             <span class="d-block text-black fs-md-15 fw-bold mb-12">
               Paiement:
             </span>
-            <span v-if="paiementResponse &&  paiementResponse.paymentMethod"
+            <span v-if="transformedData &&  transformedData.paymentMethod"
               class="d-block fs-md-15 fs-lg-16 fw-medium text-paragraph mb-8"
             >
-              {{getMethodePaiementParType(listeMethode,  paiementResponse.paymentMethod)?.libelle ?? '-' }}
+              {{getMethodePaiementParType(transformedData.paymentMethod) }}
             </span>
 
 
@@ -98,7 +100,7 @@
       <span class="d-block text-black fs-md-15 fw-bold mb-15 mb-md-20 mb-lg-25">
         Récapitulatif de commande
       </span>
-      <div class="table-responsive" v-if="paiementResponse">
+      <div class="table-responsive" v-if="transformedData">
         <table class="table text-nowrap align-middle mb-0">
           <thead>
             <tr>
@@ -134,9 +136,9 @@
               </th>
             </tr>
           </thead>
-          <tbody v-if="paiementResponse.orderSelf">
+          <!-- <tbody v-if="transformedData.orderSelf">
             <tr
-                v-for="(orderItem, index) in paiementResponse?.orderSelf.orderItems" :key="orderItem.id"
+                v-for="(orderItem, index) in transformedData?.orderSelf.orderItems" :key="orderItem.id"
             >
               <td class="shadow-none lh-1 fw-semibold text-black ps-0">{{index + 1}}.</td>
               <td v-if="orderItem.productID" class="shadow-none text-paragraph product-title">
@@ -156,14 +158,14 @@
               </td>
             </tr>
 
-          </tbody>
+          </tbody> -->
         </table>
       </div>
-      <ul class="order-summary-list ps-0 mb-0 list-unstyled" v-if="paiementResponse">
-        <li v-if="paiementResponse && paiementResponse.orderSelf" class="d-flex align-items-center justify-content-between">
+      <ul class="order-summary-list ps-0 mb-0 list-unstyled" v-if="transformedData">
+        <li v-if="transformedData" class="d-flex align-items-center justify-content-between">
           <span class="d-block text-paragraph fw-medium"> SOUS-TOTAL </span>
           <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-            {{(paiementResponse.orderSelf.total_price - (paiementResponse.orderSelf.total_price * 2.60/100)).toFixed(2)}} CHF
+            {{(transformedData.amount - (transformedData.amount * 2.60/100)).toFixed(2)}} CHF
           </span>
         </li>
         <li class="d-flex align-items-center justify-content-between">
@@ -171,7 +173,7 @@
           2.60% TVA
           </span>
           <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
-              {{ (paiementResponse.orderSelf.total_price * 2.60 / 100).toFixed(2) }} CHF
+              {{ (transformedData.amount * 2.60 / 100).toFixed(2) }} CHF
           </span>
         </li>
         <li class="d-flex align-items-center justify-content-between">
@@ -181,10 +183,10 @@
           </span>
         </li>
 
-        <li v-if="paiementResponse && paiementResponse.amount" class="d-flex align-items-center justify-content-between">
+        <li v-if="transformedData && transformedData.amount" class="d-flex align-items-center justify-content-between">
           <span class="d-block text-paragraph fw-medium"> TOTAL BRUT </span>
           <span class="d-block text-primary fs-md-15 fs-lg-16 fw-bold">
-            {{ paiementResponse.amount }} CHF
+            {{ transformedData.amount }} CHF
           </span>
         </li>
       </ul>
@@ -197,9 +199,9 @@
     </div>
     <div class="modal fade" id="contentModalScrollable_facture" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-scrollable modal-lg">
-        <div class="modal-content" v-if="paiementResponse">
-          <div class="modal-header" v-if="paiementResponse.orderSelf">
-            <h1 class="modal-title fs-5">Facture de la commande #{{getShortUuid(paiementResponse.orderSelf.id)}}</h1>
+        <div class="modal-content" v-if="transformedData">
+          <div class="modal-header" v-if="transformedData.orderSelf">
+            <h1 class="modal-title fs-5">Facture de la commande #{{getShortUuid(transformedData.orderSelf.id)}}</h1>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body  align-items-center justify-content-center" >
@@ -207,42 +209,42 @@
               <main class="ticket-system" >
                 <div class="receipts-wrapper" >
                   <div class="receipts"  id="recu-pdf">
-                    <div class="receipt" v-if="paiementResponse.orderSelf">
+                    <div class="receipt" v-if="transformedData.orderSelf">
                       <img src="@/assets/images/logo_update.svg" class="airliner-logo"/>
-                      <div class="route" v-if="paiementResponse.orderSelf.restaurantID">
-                        <h2><strong>Livraison de pizzas {{paiementResponse.orderSelf.restaurantID.name}}</strong></h2>
-                        <h2><strong>{{paiementResponse.orderSelf.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'Va Bene pizza sàrl Morges' : 'Pizzeria Va Bene SA '}}</strong></h2>
-                        <h2><strong>{{paiementResponse.orderSelf.restaurantID.address}}</strong></h2>
-                        <h2><strong>{{paiementResponse.orderSelf.restaurantID.codePostalID.numeroPostal}} {{paiementResponse.orderSelf.restaurantID.name}}</strong> </h2>
-                        <h2><strong>+4121 {{paiementResponse.orderSelf.restaurantID.phoneNumber}}</strong></h2>
-                        <h2><strong>{{paiementResponse.orderSelf.restaurantID.taxe}}</strong></h2>
+                      <div class="route" v-if="transformedData.orderSelf.restaurantID">
+                        <h2><strong>Livraison de pizzas {{transformedData.orderSelf.restaurantID.name}}</strong></h2>
+                        <h2><strong>{{transformedData.orderSelf.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'Va Bene pizza sàrl Morges' : 'Pizzeria Va Bene SA '}}</strong></h2>
+                        <h2><strong>{{transformedData.orderSelf.restaurantID.address}}</strong></h2>
+                        <h2><strong>{{transformedData.orderSelf.restaurantID.codePostalID?.numeroPostal || ''}} {{transformedData.orderSelf.restaurantID.name}}</strong> </h2>
+                        <h2><strong>+4121 {{transformedData.orderSelf.restaurantID.phoneNumber}}</strong></h2>
+                        <h2><strong>{{transformedData.orderSelf.restaurantID.taxe}}</strong></h2>
                       </div>
                       <hr class="dashed-line" />
 
-                      <div class="route" v-if="paiementResponse.orderSelf">
-                        <h2><strong>{{paiementResponse.orderSelf.guest_first_name}} {{paiementResponse.orderSelf.guest_last_name}}</strong></h2>
-                        <h2><strong>{{paiementResponse.orderSelf.address}} - {{paiementResponse.orderSelf.numberRue}}</strong></h2>
-                        <h2><strong>{{paiementResponse.orderSelf.npa ?? ''}} {{paiementResponse.orderSelf.localite ?? ''}}</strong></h2>
-                        <h2><strong>{{paiementResponse.orderSelf.guest_phone_number}}</strong></h2>
-                        <h2><strong>{{paiementResponse.orderSelf.guest_email}}</strong></h2>
+                      <div class="route" v-if="transformedData.orderSelf">
+                        <h2><strong>{{transformedData.orderSelf.guest_first_name}} {{transformedData.orderSelf.guest_last_name}}</strong></h2>
+                        <h2><strong>{{transformedData.orderSelf.address}} - {{transformedData.orderSelf.numberRue}}</strong></h2>
+                        <h2><strong>{{transformedData.orderSelf.npa ?? ''}} {{transformedData.orderSelf.localite ?? ''}}</strong></h2>
+                        <h2><strong>{{transformedData.orderSelf.guest_phone_number}}</strong></h2>
+                        <h2><strong>{{transformedData.orderSelf.guest_email}}</strong></h2>
                       </div>
 
 <!--                      okkkk-->
 
                       <hr class="dashed-line" />
 
-                      <div class="route" v-if="paiementResponse.orderSelf">
-                        <h2><strong>{{orderTypeSelected[0].libelle}}</strong></h2>
-                        <h2><strong>{{convertDateCreate(paiementResponse.orderSelf.created_at)}}</strong></h2>
-                        <h2><strong>{{paiementResponse.orderSelf.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'TOUT DE SUITE'}}</strong></h2>
-                        <h2><strong>{{convertDateCreate(paiementResponse.orderSelf.timeOrder) ?? ''}} </strong></h2>
-                        <h2><strong>{{paiementResponse.orderSelf.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ paiementResponse.orderSelf.nif : 'VBP'+ paiementResponse.orderSelf.nif}}</strong></h2>
-                        <h2><strong>{{getLast6Digits(paiementResponse.orderSelf.customer.id)}}</strong></h2>
+                      <div class="route" v-if="transformedData.orderSelf">
+                        <h2><strong>{{orderTypeSelected[0]?.libelle || ''}}</strong></h2>
+                        <h2><strong>{{convertDateCreate(transformedData.orderSelf.created_at)}}</strong></h2>
+                        <h2><strong>{{transformedData.orderSelf.DeliveryPreference != 'immediat' ? 'PRÉCOMMANDE' : 'TOUT DE SUITE'}}</strong></h2>
+                        <h2><strong>{{convertDateCreate(transformedData.orderSelf.timeOrder) ?? ''}} </strong></h2>
+                        <h2><strong>{{transformedData.orderSelf.restaurantID.id === RestaurantEnum.RESTO_MORGES ? 'VBM'+ transformedData.orderSelf.nif : 'VBP'+ transformedData.orderSelf.nif}}</strong></h2>
+                        <h2><strong>{{getLast6Digits(transformedData.orderSelf.customer.id)}}</strong></h2>
 
                       </div>
                       <hr class="dashed-line" />
 
-                      <div class="product-ticket" v-if="paiementResponse.orderSelf">
+                      <div class="product-ticket" v-if="transformedData.orderSelf">
                         <div
                             v-for="(items, categoryName) in groupedByCategory"
                             :key="categoryName"
@@ -262,7 +264,7 @@
                           >
                             <div style="display: flex; justify-content: space-between; font-size: 11px;">
                               <span><strong>{{ item.quantity }}x {{ item.productID.name }}</strong></span>
-                              <span><strong>{{ item.total_price }} CHF</strong></span>
+                              <span><strong>0 CHF</strong></span>
                             </div>
 
                             <!-- 🧂 Ingrédients -->
@@ -282,14 +284,14 @@
 
 
                       <hr class="dashed-line" />
-                      <div class="product-list" v-if="paiementResponse.orderSelf">
+                      <div class="product-list" v-if="transformedData.orderSelf">
                         <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                           <span><strong>SOUS-TOTAL: </strong></span>
-                          <span><strong>{{(paiementResponse.orderSelf.total_price - (paiementResponse.orderSelf.total_price * 2.60/100)).toFixed(2) }} CHF</strong></span>
+                          <span><strong>{{(transformedData.orderSelf.total_price - (transformedData.orderSelf.total_price * 2.60/100)).toFixed(2) }} CHF</strong></span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                           <span><strong>2.60% TVA </strong></span>
-                          <span><strong>{{(paiementResponse.orderSelf.total_price * 2.60/100).toFixed(2)}} CHF</strong></span>
+                          <span><strong>{{(transformedData.orderSelf.total_price * 2.60/100).toFixed(2)}} CHF</strong></span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                           <span><strong>RABAIS: </strong></span>
@@ -297,7 +299,7 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                           <span><strong>TOTAL BRUT:  </strong></span>
-                          <span><strong>{{ paiementResponse.orderSelf.total_price }} CHF</strong></span>
+                          <span><strong>{{ transformedData.orderSelf.total_price }} CHF</strong></span>
                         </div>
                         <div style="display: flex; justify-content: space-between; margin: 5px 0;">
                           <span>Méthode de paiements :  </span>
@@ -305,10 +307,10 @@
                         </div>
                       </div>
                       <hr class="dashed-line" />
-                      <div class="route" v-if="paiementResponse.orderSelf">
-                        <h2 v-if="paiementResponse.orderSelf.feature"><strong>{{paiementResponse.orderSelf.feature[0]}}</strong></h2>
-                        <h2><strong>Trancher: {{paiementResponse.orderSelf.intructionOrder.isTrancher ? 'OUI': 'NON'}}</strong></h2>
-                        <h2><strong>Couverts: {{paiementResponse.orderSelf.intructionOrder.quantityCouverts}}</strong></h2>
+                      <div class="route" v-if="transformedData.orderSelf">
+                        <h2 v-if="transformedData.orderSelf.feature"><strong>{{transformedData.orderSelf.feature[0]}}</strong></h2>
+                        <h2><strong>Trancher: {{transformedData.orderSelf.intructionOrder?.isTrancher ? 'OUI': 'NON'}}</strong></h2>
+                        <h2><strong>Couverts: {{transformedData.orderSelf.intructionOrder?.quantityCouverts || 0}}</strong></h2>
 
                       </div>
 
@@ -373,16 +375,16 @@ export default defineComponent({
     groupedByCategory() {
       const grouped: Record<string, any[]> = {};
 
-      if(this.paiementResponse){
-        // for (const item of this.paiementResponse.orderSelf.orderItems) {
-        //   const categoryName = item.productID?.categorieID?.name || "Sans catégorie";
+      if(this.transformedData && this.transformedData.orderSelf){
+        for (const item of this.transformedData.orderSelf.orderItems || []) {
+          const categoryName = item.productID?.categorieID?.name || "Sans catégorie";
 
-        //   if (!grouped[categoryName]) {
-        //     grouped[categoryName] = [];
-        //   }
+          if (!grouped[categoryName]) {
+            grouped[categoryName] = [];
+          }
 
-        //   grouped[categoryName].push(item);
-        // }
+          grouped[categoryName].push(item);
+        }
       }
       return grouped;
     },
@@ -394,6 +396,7 @@ export default defineComponent({
   data(){
     return{
       paiementResponse: null as PaymentModel | null,
+      transformedData: null as any | null,
       isLoading: false,
       listeMethode: [] as MethodePaiementModel[],
       listeOrderType: [] as OrderTypeModel[],
@@ -407,6 +410,47 @@ export default defineComponent({
   },
 
   methods: {
+    transformPaymentData(paymentData: PaymentModel) {
+      // Créer une structure compatible avec le template existant
+      try {
+        return {
+          ...paymentData,
+          orderSelf: paymentData.order ? {
+            ...paymentData.order,
+            // Ajouter les propriétés manquantes pour la compatibilité
+            total_price: parseFloat(paymentData.amount) || 0,
+            restaurantID: paymentData.restaurant,
+            guest_first_name: paymentData.user?.first_name || '',
+            guest_last_name: paymentData.user?.last_name || '',
+            guest_phone_number: paymentData.user?.phone_number || '',
+            guest_email: paymentData.user?.email || '',
+            // Ajouter d'autres propriétés nécessaires selon la structure de l'API
+            orderItems: paymentData.order?.orderItems || [],
+            intructionOrder: paymentData.order?.intructionOrder || {},
+            feature: paymentData.order?.feature || [],
+            address: paymentData.order?.address || '',
+            numberRue: paymentData.order?.numberRue || '',
+            npa: paymentData.order?.npa || '',
+            localite: paymentData.order?.localite || '',
+            DeliveryPreference: paymentData.order?.DeliveryPreference || 'immediat',
+            timeOrder: paymentData.order?.timeOrder || paymentData.created_at,
+            customer: paymentData.order?.customer || {
+              id: paymentData.userId,
+              first_name: paymentData.user?.first_name || '',
+              last_name: paymentData.user?.last_name || '',
+              email: paymentData.user?.email || '',
+              phone: paymentData.user?.phone_number || ''
+            }
+          } : null
+        };
+      } catch (error) {
+        console.error('Erreur lors de la transformation des données de paiement:', error);
+        return {
+          ...paymentData,
+          orderSelf: null
+        };
+      }
+    },
     getLast6Digits(uuid: string): string {
       const parts = uuid.split('-');
       const lastPart = parts[parts.length - 1];
@@ -426,7 +470,7 @@ export default defineComponent({
     previewPDF() {
       const element = document.getElementById('recu-pdf');
 
-      if (this.paiementResponse && element) {
+      if (this.transformedData && element) {
         const style = document.createElement('style');
         // Appliquer largeur ticket
         element.style.width = '102mm';
@@ -655,7 +699,7 @@ export default defineComponent({
         setTimeout(() => {
           const opt = {
             margin: 1,
-            filename: `Facture_${this.getShortUuid(this.paiementResponse!.orderSelf!.id)}.pdf`,
+            filename: `Facture_${this.getShortUuid(this.transformedData!.orderSelf!.id)}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: {
               scale: 2,
@@ -690,8 +734,8 @@ export default defineComponent({
     },
 
     displayInvoire(){
-      if(this.paiementResponse){
-        this.qrcode = `https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${this.paiementResponse.orderSelf.id}}`
+      if(this.transformedData && this.transformedData.orderSelf){
+        this.qrcode = `https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${this.transformedData.orderSelf.id}}`
       }
     },
     convertDateCreate(date: string): string {
@@ -704,8 +748,8 @@ export default defineComponent({
         if (response.code === 200) {
           if (response.data) {
             this.paiementResponse = response.data;
-            await this.fetchListeMethodePaiement()
-            await this.fetchOrderType()
+            // Transformer les données pour la compatibilité avec le template
+            this.transformedData = this.transformPaymentData(response.data);
             this.displayInvoire()
           }
         } else {
@@ -718,125 +762,36 @@ export default defineComponent({
         this.isLoading = false;
       }
     },
-    async fetchListeMethodePaiement(page = 1) {
-      // this.isLoading = true;
-      try {
-        const response = await listeMethodePaiement(page) as ApiResponse<PaginatedMethodePaiement>;
-        if (response.code === 200) {
-          if (response.data?.items && this.paiementResponse) {
-            this.listeMethode = response.data.items;
-          }
-        } else {
-          this.toast.error(response.message);
-        }
-      } catch (error) {
-        this.toast.error("Erreur lors du chargement des methodes de paiement");
-        console.error(error);
-      } finally {
-        // this.isLoading = false;
-      }
-    },
-    async fetchOrderType(page = 1) {
-      // this.isLoading = true;
-      try {
-        const response = await listeOrderType(page) as ApiResponse<PaginatedOrderType>;
-        if (response.code === 200) {
-          if (response.data?.items && this.paiementResponse) {
-            this.listeOrderType = response.data.items;
-
-            this.orderTypeSelected = this.getOrderTypeParType(response.data.items, this.paiementResponse.orderSelf.order_type)
-          }
-        } else {
-          this.toast.error(response.message);
-        }
-      } catch (error) {
-        this.toast.error("Erreur lors du chargement des types de commandes");
-        console.error(error);
-      } finally {
-        // this.isLoading = false;
-      }
-    },
-
-    async fetchAllStatusOrder() {
-
-      try {
-        const response = await allStatusOrder() as ApiResponse<string[]>;
-        if (response.code === 200) {
-          if (response.data) {
-
-            this.allOrderStatus = response.data
-          }
-        } else {
-          this.toast.error(response.message);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    },
-    async fetchAllPaiementStatusOrder() {
-
-      try {
-        const response = await allStatusPaiementOrder() as ApiResponse<string[]>;
-        if (response.code === 200) {
-          if (response.data) {
-            this.allPaiementOrderStatus = response.data
-          }
-        } else {
-          this.toast.error(response.message);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    },
 
 
-    getMethodePaiementParType(
-        liste: MethodePaiementModel[],
-        type: string
-    ): MethodePaiementModel | undefined {
-      return liste.find(methode => methode.type === type);
-    },
-    getOrderTypeParType(
-        liste: OrderTypeModel[],
-        type: string
-    ): OrderTypeModel[] {
-      return liste.filter(orderType =>
-          orderType.type === type
-      );
-    },
-    fetchStatusOrderFr(status: string){
-      switch (status) {
-        case OrderStatus.PENDING:
-          return 'En attente';
-        case OrderStatus.PROCESSING:
-          return 'En cours de traitement';
-        case OrderStatus.READY_FOR_DELIVERY:
-          return 'Près pour livraison';
-        case OrderStatus.OUT_FOR_DELIVERY:
-          return 'En cours de livraison';
-        case OrderStatus.DELIVERED:
-          return 'Livré';
+    getMethodePaiementParType(method: string): string {
+      switch (method) {
+        case 'pay_click_collect_cash':
+          return 'Paiement en espèces';
+        case 'pay_click_collect_carte':
+          return 'Paiement par carte';
+        case 'pay_delivery_cash':
+          return 'Paiement en espèces à la livraison';
+        case 'pay_delivery_carte':
+          return 'Paiement par carte à la livraison';
+        case 'on_line':
+          return 'Paiement en ligne';
         default:
-          return 'Annulé';
+          return '-';
       }
     },
-    fetchStatusOrderPaiementFr(status: string){
-      switch (status) {
-        case PaymentStatus.PENDING:
-          return 'En attente de paiement';
-        case PaymentStatus.PAID:
-          return 'Payé';
-        case PaymentStatus.REFUNDED:
-          return 'A rembourser';
+    getOrderTypeParType(type: string): string {
+      switch (type) {
+        case 'delivery':
+          return 'A Livrer';
+        case 'click_collect':
+          return 'A emporter';
+        case 'dine_in':
+          return 'Sur place';
         default:
-          return 'Annulé';
+          return '-';
       }
     },
-    fetStatusPiamentFr(status: string){
-      return this.allPaiementOrderStatus.find(orderStatus =>
-          orderStatus === status
-      );
-    }
   },
   setup() {
     const toast = useToast();
@@ -844,8 +799,6 @@ export default defineComponent({
   },
   mounted() {
     this.fetchPaiement((this as any).$route.params.transactionID)
-    this.fetchAllStatusOrder()
-    this.fetchAllPaiementStatusOrder()
   },
 
 })

@@ -127,13 +127,16 @@
               </label>
 
               <ul class="list-unstyled" v-if="categorieResponse">
-                <li v-if="categorieResponse.eligibleUsers.length === 0">
+                <li v-if="categorieResponse.eligibleUsers && categorieResponse.eligibleUsers.length === 0">
                   <span class="text-muted fst-italic">Aucun utilisateur trouvé</span>
                 </li>
-                <li  v-else v-for="(user, index) in categorieResponse?.eligibleUsers" :key="user">
+                <li v-else-if="categorieResponse.eligibleUsers && categorieResponse.eligibleUsers.length > 0" v-for="(user, index) in categorieResponse.eligibleUsers" :key="user">
                   <span class="badge bg-light text-black fw-semibold fs-14">
                    {{index + 1}} - {{ user }}
                   </span>
+                </li>
+                <li v-else>
+                  <span class="text-muted fst-italic">Aucun utilisateur trouvé</span>
                 </li>
 
               </ul>
@@ -216,6 +219,52 @@ export default defineComponent({
     }
   },
   methods: {
+    parseEligibleUsers(eligibleUsersString: string | null): string[] {
+      if (!eligibleUsersString) return [];
+      
+      try {
+        // Parser la chaîne sérialisée PHP "a:1:{i:0;s:27:\"gabriel.kamel1020@gmail.com\";}"
+        // Format: a:count:{i:index;s:length:"value";}
+        const match = eligibleUsersString.match(/a:(\d+):\{([^}]+)\}/);
+        if (!match) return [];
+        
+        const count = parseInt(match[1]);
+        const content = match[2];
+        const users: string[] = [];
+        
+        // Extraire les emails des chaînes sérialisées
+        const emailMatches = content.match(/s:\d+:"([^"]+)"/g);
+        if (emailMatches) {
+          emailMatches.forEach(match => {
+            const emailMatch = match.match(/s:\d+:"([^"]+)"/);
+            if (emailMatch) {
+              users.push(emailMatch[1]);
+            }
+          });
+        }
+        
+        console.log('Utilisateurs éligibles parsés:', users);
+        return users;
+      } catch (error) {
+        console.error('Erreur lors du parsing des utilisateurs éligibles:', error);
+        // Si le parsing échoue, essayer de traiter comme un tableau JSON
+        try {
+          const parsed = JSON.parse(eligibleUsersString);
+          if (Array.isArray(parsed)) {
+            return parsed;
+          }
+        } catch (jsonError) {
+          console.error('Erreur lors du parsing JSON:', jsonError);
+        }
+        return [];
+      }
+    },
+    transformCouponData(couponData: any): CouponModel {
+      return {
+        ...couponData,
+        eligibleUsers: this.parseEligibleUsers(couponData.eligible_users)
+      };
+    },
     async toggleCategorieActivation(categorie, status){
       const payload = {
         'status': status
@@ -268,6 +317,7 @@ export default defineComponent({
           if (response.code === 200 || response.code === 201) {
             this.toast.success(response.message)
             this.clearData()
+            this.$router.push('/list-coupon')
           }
         } catch (error) {
           const axiosError = error as AxiosError;
@@ -323,6 +373,7 @@ export default defineComponent({
         if (response.code === 200 || response.code === 201) {
           this.toast.success(response.message)
           this.clearData()
+          this.$router.push('/list-coupon')
         } else {
           this.toast.error(response.message)
         }
@@ -341,10 +392,12 @@ export default defineComponent({
     async fetchDetailCategorie(categorieID) {
       this.isLoading = true;
       try {
-        const response = await detailCoupon(categorieID) as ApiResponse<CouponModel>;
+        const response = await detailCoupon(categorieID) as ApiResponse<any>;
         if (response.code === 200) {
           if(response.data){
-            this.categorieResponse = response.data;
+            // Transformer les données pour la compatibilité
+            this.categorieResponse = this.transformCouponData(response.data);
+            
             this.categorieData.couponCode = this.categorieResponse.code;
             this.categorieData.value = this.categorieResponse.discount_value
             this.categorieData.type = this.categorieResponse.discount_type === 'percent' ? 'Pourcentage' : 'Fixe';

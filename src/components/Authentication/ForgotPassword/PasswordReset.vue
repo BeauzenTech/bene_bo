@@ -167,9 +167,11 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await resetPasswordStepOne(payload);
-        if (response.code === 201) {
+        if (response.code === 200) {
           this.toast.success(response.message)
           this.step = '2'
+        } else {
+          this.toast.error(response.message)
         }
 
       } catch (error) {

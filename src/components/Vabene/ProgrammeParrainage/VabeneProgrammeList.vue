@@ -101,8 +101,8 @@
               <LoaderComponent/>
             </td>
           </tr>
-          <tr v-else-if="!isLoading && allCategorie.length > 0"
-              v-for="(categorie, index) in allCategorie" :key="categorie.id"
+          <tr v-else-if="!isLoading && programmesWithIsActive.length > 0"
+              v-for="(categorie, index) in programmesWithIsActive" :key="categorie.id"
           >
             <th
                 class="shadow-none lh-1 fw-medium text-black-emphasis title ps-0 text-capitalize"
@@ -301,6 +301,7 @@ export default defineComponent({
   data(){
     return{
       categorieResponse: null as ApiResponse<PaginatedProgramme> | null,
+      rawApiResponse: null as any | null,
       isLoading: false,
       currentPage: 1 ,
       searchQuery: '', // Ajout du champ de recherche
@@ -333,7 +334,27 @@ export default defineComponent({
       });
     },
 
+    // Computed property pour convertir is_active (1/0) en isActive (true/false)
+    programmesWithIsActive(): any[] {
+      return this.allCategorie.map(programme => {
+        const programmeData = programme as any;
+        return {
+          ...programme,
+          isActive: programmeData.is_active === 1
+        };
+      });
+    },
+
     pagination(): any {
+      if (this.rawApiResponse && this.rawApiResponse.pagination) {
+        return {
+          current_page: this.rawApiResponse.pagination.page,
+          total_items: this.rawApiResponse.pagination.total,
+          total_pages: this.rawApiResponse.pagination.totalPages,
+          items_per_page: this.rawApiResponse.pagination.limit
+        };
+      }
+      
       return this.categorieResponse?.data?.pagination || {
         current_page: 1,
         total_items: 0,
@@ -342,37 +363,95 @@ export default defineComponent({
       };
     },
     paginationInfo(): string {
+      if (this.rawApiResponse && this.rawApiResponse.pagination) {
+        const { total, page, limit } = this.rawApiResponse.pagination;
+        const start = (page - 1) * limit + 1;
+        const end = Math.min(page * limit, total);
+        return `Affichage de ${start} à ${end} sur ${total} résultats`;
+      }
+      
       const { current_page, items_per_page, total_items } = this.pagination;
       const start = (current_page - 1) * items_per_page + 1;
       const end = Math.min(current_page * items_per_page, total_items);
       return `Affichage de ${start} à ${end} sur ${total_items} résultats`;
     },
     totalPages(): number {
+      if (this.rawApiResponse && this.rawApiResponse.pagination) {
+        return this.rawApiResponse.pagination.totalPages;
+      }
+      
       return this.pagination.total_pages;
     }
   },
   methods: {
-    async toggleProgrammeActivation(programme, status){
-      //this.isLoading = true;
+    transformProgrammeData(apiResponse: any): ApiResponse<PaginatedProgramme> {
+      try {
+        // Transformer la réponse de l'API pour correspondre à la structure attendue
+        const transformedData: PaginatedProgramme = {
+          items: apiResponse.data || [],
+          pagination: {
+            current_page: apiResponse.pagination?.page || 1,
+            total_items: apiResponse.pagination?.total || 0,
+            total_pages: apiResponse.pagination?.totalPages || 1,
+            items_per_page: apiResponse.pagination?.limit || 10
+          }
+        };
+        return {
+          code: apiResponse.code,
+          message: apiResponse.message,
+          data: transformedData
+        };
+      } catch (error) {
+        console.error('Erreur lors de la transformation des données de programmes:', error);
+        return {
+          code: 500,
+          message: 'Erreur lors de la transformation des données',
+          data: {
+            items: [],
+            pagination: {
+              current_page: 1,
+              total_items: 0,
+              total_pages: 1,
+              items_per_page: 10
+            }
+          }
+        };
+      }
+    },
+    async toggleProgrammeActivation(programme, isActive){
+      console.log('Toggle programme activation:', programme.name, 'isActive:', isActive);
+      
+      // Convertir le booléen en nombre (true -> 1, false -> 0)
+      const status = isActive ? 1 : 0;
+      
       const payload = {
         'IDProgramme': programme.id,
         'status': status
-      }
+      };
+      
+      console.log('Payload envoyé:', payload);
+      
       try {
         const response = await toggleActivationProgramme(payload) as ApiResponse<any>;
         if (response.code === 201 || response.code === 200) {
           this.toast.success(response.message);
-
+          // Mettre à jour localement le statut
+          programme.is_active = status;
         } else {
           this.toast.error(response.message);
+          // Revenir à l'état précédent en cas d'erreur
+          programme.isActive = !isActive;
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des donnees");
+        this.toast.error("Erreur lors de la modification du statut");
         console.error(error);
+        // Revenir à l'état précédent en cas d'erreur
+        programme.isActive = !isActive;
       } finally {
-        setTimeout(() =>  {
-          this.fetchCategories(1);
-        }, 2000);
+        // Recharger les données après un délai
+        setTimeout(() => {
+          this.fetchCategories(this.currentPage);
+        }, 1000);
       }
     },
     truncateDescription(description: string, maxCharsPerLine = 50): string {
@@ -481,22 +560,30 @@ export default defineComponent({
     async fetchCategories(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeProgramme(page) as ApiResponse<PaginatedProgramme>;
+        const response = await listeProgramme(page) as any;
+        console.log('Réponse API programmes:', response);
+        
         if (response.code === 200) {
-          this.categorieResponse = response;
-          if (response.data?.items) {
-            const programmes = response.data.items
+          // Stocker la réponse brute pour les informations de pagination
+          this.rawApiResponse = response;
+          
+          // Transformer les données pour la compatibilité
+          this.categorieResponse = this.transformProgrammeData(response);
+          
+          if (response.data) {
+            const programmes = response.data;
+            console.log('Programmes:', programmes);
             for (const program of programmes) {
-              this.parrainages = response.data?.items
+              this.parrainages = response.data;
               if (program.type !== 'INVITATION') {
-                this.selectedOption = 'Parrainage'
+                this.selectedOption = 'Parrainage';
                 this.originalCategories.push(program);
               }
             }
-
           }
-          if (response.data && response.data.pagination) {
-            this.currentPage = response.data.pagination.current_page;
+          
+          if (response.pagination) {
+            this.currentPage = response.pagination.page;
           }
         } else {
           this.toast.error(response.message);

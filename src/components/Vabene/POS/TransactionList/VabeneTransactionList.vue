@@ -11,7 +11,7 @@
             type="text"
             class="form-control shadow-none text-black rounded-0 border-0"
             placeholder="Rechercher une transaction"
-            @input="currentPage = 1"
+            @input="handleSearchInput"
           />
           <button
             type="submit"
@@ -110,50 +110,44 @@
               </th>
               <td class="shadow-none lh-1 fw-medium text-black-emphasis">
                 <div
-                  v-if="paiement.orderSelf"
                   class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
                 >
                   <a href="#">
-                    #{{
-                      paiement.orderSelf.restaurantID.id === RestaurantEnum.RESTO_PENTHAZ
-                        ? "VBP" + paiement.orderSelf.nif
-                        : "VBM" + paiement.orderSelf.nif
+                    {{
+                      paiement.paymentReference ?? "-"
                     }}
                   </a>
                 </div>
               </td>
 
               <td
-                v-if="paiement.orderSelf"
                 class="shadow-none lh-1 fw-medium text-black-emphasis"
               >
-                {{ paiement.orderSelf.guest_first_name ?? "-" }}
-                {{ paiement.orderSelf.guest_last_name ?? "-" }}
+                {{ paiement.clientName ?? "-" }}
               </td>
 
-              <td v-else class="shadow-none lh-1 fw-medium text-black-emphasis">-</td>
 
               <td class="shadow-none lh-1 fw-medium text-black-emphasis">
                 {{ paiement.amount || "-" }} CHF
               </td>
 
-              <td class="shadow-none lh-1 fw-medium text-muted" v-if="paiement.orderSelf">
+              <td class="shadow-none lh-1 fw-medium text-muted">
                 <span
-                  v-if="paiement.orderSelf.status === 'delivered'"
+                  v-if="paiement.status === 'completed'"
                   class="badge text-bg-success"
-                  >{{ fetchStatusOrderFr(paiement.orderSelf.status) ?? "-" }}</span
+                  >{{ fetchStatusOrderFr(paiement.status) ?? "-" }}</span
                 >
                 <span v-else class="badge text-bg-warning">{{
-                  fetchStatusOrderFr(paiement.orderSelf.status) ?? "-"
+                  fetchStatusOrderFr(paiement.status) ?? "-"
                 }}</span>
               </td>
-              <td v-if="paiement.orderSelf">
+              <td >
                 <span
                   v-if="paiement.status === 'pending'"
                   class="badge text-outline-danger"
                   >En attente de paiement</span
                 >
-                <span v-if="paiement.status === 'paid'" class="badge text-outline-primary"
+                <span v-if="paiement.status === 'completed'" class="badge text-outline-primary"
                   >Payé</span
                 >
                 <span
@@ -189,15 +183,6 @@
                         @click="selectionPaiement(paiement)"
                         ><i class="flaticon-view lh-1 me-8 position-relative top-1"></i>
                         Voir</a
-                      >
-                    </li>
-                    <li>
-                      <a
-                        class="dropdown-item d-flex align-items-center"
-                        href="javascript:void(0);"
-                        @click="selectionPaiement(paiement)"
-                        ><i class="flaticon-pen lh-1 me-8 position-relative top-1"></i>
-                        Editer</a
                       >
                     </li>
                     <li>
@@ -353,6 +338,7 @@ export default defineComponent({
       paymentSelected: null,
       listeMethode: [] as MethodePaiementModel[],
       methodePaiementSelected: null as MethodePaiementModel | null,
+      searchTimeout: null as NodeJS.Timeout | null,
     };
   },
   computed: {
@@ -360,17 +346,7 @@ export default defineComponent({
       return RestaurantEnum;
     },
     allPayments(): PaymentModel[] {
-      const payments = this.paiementResponse?.data?.items || this.originalPayment;
-      if (!this.searchQuery) return payments;
-      const query = this.searchQuery.toLowerCase();
-      return payments.filter((payment) => {
-        return (
-          payment.id?.toLowerCase().includes(query) ||
-          payment.status?.toLowerCase().includes(query) ||
-          payment.transaction_id?.toLowerCase().includes(query) ||
-          payment.paymentMethod?.includes(query)
-        );
-      });
+      return this.paiementResponse?.data?.items || this.originalPayment;
     },
 
     pagination(): any {
@@ -415,26 +391,6 @@ export default defineComponent({
       type: string
     ): MethodePaiementModel | undefined {
       return liste.find((methode) => methode.type === type);
-    },
-    async fetchListeMethodePaiement(page = 1) {
-      // this.isLoading = true;
-      try {
-        const response = (await listeMethodePaiement(
-          page
-        )) as ApiResponse<PaginatedMethodePaiement>;
-        if (response.code === 200) {
-          if (response.data?.items && this.paiementResponse) {
-            this.listeMethode = response.data.items;
-          }
-        } else {
-          this.toast.error(response.message);
-        }
-      } catch (error) {
-        this.toast.error("Erreur lors du chargement des methodes de paiement");
-        console.error(error);
-      } finally {
-        // this.isLoading = false;
-      }
     },
     getShortUuid(uuid: string): string {
       if (uuid) {
@@ -507,17 +463,16 @@ export default defineComponent({
     async fetchPaiement(page = 1) {
       this.isLoading = true;
       try {
-        const response = (await listePayment(page, '20')) as ApiResponse<PaginatedPayment>;
+        const response = (await listePayment(page, '20', this.searchQuery)) as ApiResponse<PaginatedPayment>;
         if (response.code === 200) {
+          this.toast.success(response.message);
           this.paiementResponse = response;
-          if (response.data?.items) {
-            this.originalPayment = response.data.items;
+          if (response.data) {
+            this.originalPayment = response.data as any;
           }
           if (response.data && response.data.pagination) {
             this.currentPage = response.data.pagination.current_page;
           }
-        } else {
-          this.toast.error(response.message);
         }
       } catch (error) {
         this.toast.error("Erreur lors du chargement des operations");
@@ -549,6 +504,19 @@ export default defineComponent({
 
       return pages;
     },
+    handleSearchInput() {
+      this.currentPage = 1;
+      
+      // Clear existing timeout
+      if (this.searchTimeout) {
+        clearTimeout(this.searchTimeout);
+      }
+      
+      // Set new timeout for debounced search
+      this.searchTimeout = setTimeout(() => {
+        this.fetchPaiement(1);
+      }, 500); // 500ms delay
+    },
   },
   setup() {
     const toast = useToast();
@@ -556,7 +524,6 @@ export default defineComponent({
   },
   mounted() {
     this.fetchPaiement();
-    this.fetchListeMethodePaiement();
   },
 });
 </script>

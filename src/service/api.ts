@@ -533,8 +533,7 @@ export const listeOrder = async (
         const userID = localStorage.getItem(UserGeneralKey.USER_ID);
         const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
         const role = localStorage.getItem(UserGeneralKey.USER_ROLE)
-        const id = role === UserRole.FRANCHISE ? userID : restaurantID
-        const owner = role === UserRole.FRANCHISE ? 'admin' : 'restaurant'
+        const id = role === UserRole.FRANCHISE ? 'all' : restaurantID
         
         // Construire les paramètres de requête
         const params = new URLSearchParams({
@@ -550,7 +549,7 @@ export const listeOrder = async (
             params.append('status', status);
         }
         
-        const response = await apiClient.get(`/v1/restaurants/${restaurantID}/orders?${params.toString()}`);
+        const response = await apiClient.get(`/v1/restaurants/${id}/orders?${params.toString()}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
@@ -633,11 +632,26 @@ export const updateOrder = async (orderID, orderData): Promise<ApiResponse<Order
     }
 };
 
-export const listePayment = async (page = 1, limit = '20'): Promise<ApiResponse<PaginatedPayment>> => {
+export const listePayment = async (
+    page = 1, 
+    limit = '20', 
+    search?: string, 
+    status?: string, 
+    paymentMethod?: string, 
+    isArchived?: boolean
+): Promise<ApiResponse<PaginatedPayment>> => {
     // eslint-disable-next-line no-useless-catch
     try {
+        const params = new URLSearchParams();
+        params.append('page', page.toString());
+        params.append('limit', limit);
+        
+        if (search) params.append('search', search);
+        if (status) params.append('status', status);
+        if (paymentMethod) params.append('paymentMethod', paymentMethod);
+        if (isArchived !== undefined) params.append('isArchived', isArchived.toString());
 
-        const response = await apiClient.get(`/initial/order/payment/all?page=${page}&limit=${limit}`);
+        const response = await apiClient.get(`/v1/transactions?${params.toString()}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
@@ -651,7 +665,7 @@ export const listePayment = async (page = 1, limit = '20'): Promise<ApiResponse<
 export const detailPaiement = async (paymentID): Promise<ApiResponse<PaymentModel>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/initial/order/paymennt/detail/${paymentID}`);
+        const response = await apiClient.get(`/v1/transactions/${paymentID}`);
         return response.data;
     } catch (error) {
         throw error;
@@ -1241,7 +1255,7 @@ export const listeNotification = async (page = 1): Promise<ApiResponse<Paginated
 
 export const createCoupon = async (couponData): Promise<ApiResponse<any>> =>{
     try {
-        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/v1/coupon/order', couponData);
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/coupons', couponData);
         return response.data;
     } catch (error) {
         console.error("Erreur lors de la creation du coupon", error);
@@ -1262,7 +1276,7 @@ export const disableCoupon = async (code, couponData): Promise<ApiResponse<any>>
 export const detailCoupon = async (couponID): Promise<ApiResponse<CouponModel>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/v1/coupon/detail/${couponID}`);
+        const response = await apiClient.get(`/coupons/details/${couponID}`);
         return response.data;
     } catch (error) {
         throw error;
@@ -1271,7 +1285,7 @@ export const detailCoupon = async (couponID): Promise<ApiResponse<CouponModel>> 
 
 export const updateCoupon = async (couponId, couponData): Promise<ApiResponse<any>> =>{
     try {
-        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/coupon/order/update/${couponId}`, couponData);
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.patch(`/coupons/update/${couponId}`, couponData);
         return response.data;
     } catch (error) {
         console.error("Erreur lors de la creation de la categorie", error);
@@ -1283,7 +1297,7 @@ export const updateCoupon = async (couponId, couponData): Promise<ApiResponse<an
 export const listeCoupon = async (page = 1): Promise<ApiResponse<PaginatedCoupon>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/v1/coupon/order/all?page=${page}`);
+        const response = await apiClient.get(`/coupons?page=${page}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
@@ -1296,7 +1310,7 @@ export const listeCoupon = async (page = 1): Promise<ApiResponse<PaginatedCoupon
 
 export const deleteCoupon = async (couponID: string): Promise<ApiResponse<void>> => {
     try {
-        const response: AxiosResponse<ApiResponse<void>> = await apiClient.delete(`/v1/coupon/order/remove/${couponID}`);
+        const response: AxiosResponse<ApiResponse<void>> = await apiClient.delete(`/coupons/${couponID}`);
         return response.data;
     } catch (error) {
         console.error('Erreur lors de la suppression du coupon', error);
@@ -1321,7 +1335,7 @@ export const listeProgramme = async (page = 1): Promise<ApiResponse<PaginatedPro
 export const detailProgramme = async (programmeID): Promise<ApiResponse<ProgrammeModel>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/v1/programme/detail/${programmeID}`);
+        const response = await apiClient.get(`/v1/programme/${programmeID}`);
         return response.data;
     } catch (error) {
         throw error;
@@ -1329,7 +1343,7 @@ export const detailProgramme = async (programmeID): Promise<ApiResponse<Programm
 };
 export const updateProgramme = async (programmeID, programmeData): Promise<ApiResponse<any>> =>{
     try {
-        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/programme/update/${programmeID}`, programmeData);
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.put(`/v1/programme/${programmeID}`, programmeData);
         return response.data;
     } catch (error) {
         console.error("Erreur lors de la creation de la categorie", error);
@@ -1588,13 +1602,15 @@ export const calculateMinimumAmount = async (codePostal: string,localite: string
 /* eslint-disable */
 export const listeIngredientBase = async (
     page: number = 1,
+    limit: number = 10,
     search?: string
 ): Promise<ApiResponse<IngredientBaseModel[]>> => {
     try {
-        let url = `/v1/ingredients-base?page=${page}`;
-        if (search) {
-            url += `&search=${encodeURIComponent(search)}`;
-        }
+        const params = new URLSearchParams();
+        if (page) params.append('page', page.toString());
+        if (limit) params.append('limit', limit.toString());
+        if (search) params.append('search', search);
+        const url = `/v1/ingredient-base/all?${params.toString()}`;
         const response = await apiClient.get(url);
 
         return new ApiResponse(
@@ -1611,7 +1627,7 @@ export const detailIngredientBase = async (
     ingredientBaseID: string
 ): Promise<ApiResponse<IngredientBaseModel>> => {
     try {
-        const url = `/v1/ingredients-base/${ingredientBaseID}`;
+        const url = `/v1/ingredient-base/${ingredientBaseID}`;
         const response = await apiClient.get(url);
 
         return new ApiResponse(
@@ -1628,7 +1644,7 @@ export const createIngredientBase = async (
     payload: CreateIngredientBaseRequest
 ): Promise<ApiResponse<IngredientBaseModel>> => {
     try {
-        const url = `/v1/ingredients-base`;
+        const url = `/v1/ingredient-base`;
         const response = await apiClient.post(url, payload);
 
         return new ApiResponse(
@@ -1646,7 +1662,7 @@ export const updateIngredientBase = async (
     payload: UpdateIngredientBaseRequest
 ): Promise<ApiResponse<IngredientBaseModel>> => {
     try {
-        const url = `/v1/ingredients-base/${ingredientBaseID}`;
+        const url = `/v1/ingredient-base/${ingredientBaseID}`;
         const response = await apiClient.put(url, payload);
 
         return new ApiResponse(
@@ -1663,7 +1679,7 @@ export const deleteIngredientBase = async (
     ingredientBaseID: string
 ): Promise<ApiResponse<void>> => {
     try {
-        const url = `/v1/ingredients-base/${ingredientBaseID}`;
+        const url = `/v1/ingredient-base/${ingredientBaseID}`;
         const response = await apiClient.delete(url);
 
         return new ApiResponse(

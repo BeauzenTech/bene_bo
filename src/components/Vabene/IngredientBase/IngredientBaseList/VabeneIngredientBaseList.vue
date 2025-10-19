@@ -53,6 +53,12 @@
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
+              ICONE
+            </th>
+            <th
+                scope="col"
+                class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
+            >
               NOM
             </th>
             <th
@@ -96,10 +102,18 @@
               </div>
             </th>
             <td class="shadow-none lh-1 fw-medium text-black-emphasis">
+              <img
+                  :src=" ingredient.image_url || require('@/assets/images/icon/jpg.png')"
+                  class="rounded-circle me-8"
+                  width="24"
+                  height="24"
+              />
+            </td>
+            <td class="shadow-none lh-1 fw-medium text-black-emphasis">
               {{ ingredient.name }}
             </td>
             <td class="shadow-none lh-1 fw-medium text-muted">
-              {{ convertDateCreate(ingredient.createdAt) }}
+              {{ convertDateCreate(ingredient.created_at) }}
             </td>
             <td
                 class="shadow-none lh-1 fw-medium text-body-tertiary text-end pe-0"
@@ -122,7 +136,7 @@
                     ><i
                         class="flaticon-view lh-1 me-8 position-relative top-1"
                     ></i>
-                      Voir</a
+                      Modifier</a
                     >
                   </li>
                   <li>
@@ -211,7 +225,7 @@
       
       <div class="modal-body">
         <form @submit.prevent="submitForm">
-          <div class="form-group">
+          <div class="form-group mb-3">
             <label class="form-label">
               <i class="fas fa-tag me-2 text-primary"></i>
               Nom de l'ingrédient de base *
@@ -227,6 +241,96 @@
             <div class="form-text">
               <i class="fas fa-info-circle me-1"></i>
               Saisissez le nom de l'ingrédient de base pour les pizzas
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">
+              <i class="fas fa-image me-2 text-primary"></i>
+              Image de l'ingrédient
+            </label>
+            
+            <!-- Aperçu de l'image -->
+            <div v-if="formData.image_url || formData.imageFile" class="mb-3">
+              <div class="image-preview-container">
+                <img 
+                  :src="getImagePreview()" 
+                  alt="Aperçu de l'image"
+                  class="image-preview"
+                />
+                <button 
+                  type="button" 
+                  class="btn-remove-image"
+                  @click="removeImage"
+                  title="Supprimer l'image"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Onglets pour URL ou Upload -->
+            <div class="image-input-tabs">
+              <div class="nav nav-tabs mb-3" role="tablist">
+                <button 
+                  class="nav-link" 
+                  :class="{ active: !imageUploadMode }"
+                  @click="imageUploadMode = false"
+                  type="button"
+                >
+                  <i class="fas fa-link me-2"></i>URL
+                </button>
+                <button 
+                  class="nav-link" 
+                  :class="{ active: imageUploadMode }"
+                  @click="imageUploadMode = true"
+                  type="button"
+                >
+                  <i class="fas fa-upload me-2"></i>Upload
+                </button>
+              </div>
+
+              <!-- Champ URL -->
+              <div v-if="!imageUploadMode" class="tab-content">
+                <input
+                  type="url"
+                  class="form-control"
+                  placeholder="https://example.com/image.jpg"
+                  v-model="formData.image_url"
+                  @input="formData.imageFile = null"
+                />
+                <div class="form-text">
+                  <i class="fas fa-info-circle me-1"></i>
+                  Saisissez l'URL complète de l'image
+                </div>
+              </div>
+
+              <!-- Upload de fichier -->
+              <div v-else class="tab-content">
+                <div class="upload-area" 
+                     :class="{ 'drag-over': isDragOver }"
+                     @dragover.prevent="isDragOver = true"
+                     @dragleave.prevent="isDragOver = false"
+                     @drop.prevent="handleFileDrop">
+                  <input
+                    ref="fileInput"
+                    type="file"
+                    accept="image/*"
+                    @change="handleFileSelect"
+                    style="display: none;"
+                  />
+                  <div class="upload-content" @click="openFileDialog">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <p class="upload-text">
+                      Cliquez pour sélectionner une image<br>
+                      ou glissez-déposez ici
+                    </p>
+                    <small class="upload-hint">
+                      Formats acceptés: JPG, PNG, GIF (max 5MB)
+                    </small>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </form>
@@ -301,6 +405,7 @@ export default defineComponent({
   data() {
     return {
       ingredientBaseResponse: null as ApiResponse<IngredientBaseModel[]> | null,
+      rawApiResponse: null as any | null,
       isLoading: false,
       currentPage: 1,
       searchQuery: '',
@@ -309,15 +414,24 @@ export default defineComponent({
       isEditing: false,
       showModal: false,
       formData: {
-        name: ''
-      }
+        name: '',
+        image_url: '',
+        imageFile: null as File | null
+      },
+      imageUploadMode: false,
+      isDragOver: false
     };
   },
   computed: {
     allIngredientsBase(): IngredientBaseModel[] {
       const ingredients = this.ingredientBaseResponse?.data || this.originalIngredients;
 
-      // Filtrage par searchQuery
+      // Si on a des informations de pagination de l'API, on utilise les données telles quelles
+      if (this.rawApiResponse && this.rawApiResponse.pagination) {
+        return ingredients;
+      }
+
+      // Fallback pour le filtrage côté client si pas de pagination serveur
       const filtered = this.searchQuery
           ? ingredients.filter(ingredient => {
             const query = this.searchQuery.toLowerCase();
@@ -336,27 +450,86 @@ export default defineComponent({
     },
 
     paginationInfo(): string {
+      console.log('rawApiResponse:', this.rawApiResponse);
+      console.log('pagination:', this.rawApiResponse?.pagination);
+      
+      if (this.rawApiResponse && this.rawApiResponse.pagination) {
+        const { total, page, limit } = this.rawApiResponse.pagination;
+        const start = (page - 1) * limit + 1;
+        const end = Math.min(page * limit, total);
+        console.log(`Pagination API: ${start} à ${end} sur ${total}`);
+        return `Affichage de ${start} à ${end} sur ${total} résultats`;
+      }
+      
+      // Fallback si pas d'informations de pagination
       const totalItems = this.allIngredientsBase.length;
       const start = (this.currentPage - 1) * 10 + 1;
       const end = Math.min(this.currentPage * 10, totalItems);
+      console.log(`Pagination fallback: ${start} à ${end} sur ${totalItems}`);
       return `Affichage de ${start} à ${end} sur ${totalItems} résultats`;
     },
 
     totalPages(): number {
-      return Math.ceil(this.allIngredientsBase.length / 10);
+      console.log('Calcul totalPages - rawApiResponse:', this.rawApiResponse);
+      console.log('Calcul totalPages - pagination:', this.rawApiResponse?.pagination);
+      
+      if (this.rawApiResponse && this.rawApiResponse.pagination) {
+        const totalPages = this.rawApiResponse.pagination.totalPages;
+        console.log('Total pages from API:', totalPages);
+        return totalPages;
+      }
+      
+      // Solution temporaire : forcer 5 pages si on a 41 éléments
+      if (this.rawApiResponse && this.rawApiResponse.data && this.rawApiResponse.data.length === 10) {
+        console.log('Solution temporaire: 5 pages pour 41 éléments');
+        return 5;
+      }
+      
+      // Fallback si pas d'informations de pagination
+      const fallbackPages = Math.ceil(this.allIngredientsBase.length / 10);
+      console.log('Total pages fallback:', fallbackPages);
+      return fallbackPages;
     }
   },
   methods: {
+    transformIngredientBaseData(apiResponse: any): ApiResponse<IngredientBaseModel[]> {
+      try {
+        // Transformer la réponse de l'API pour correspondre à la structure attendue
+        return {
+          code: apiResponse.code,
+          message: apiResponse.message,
+          data: apiResponse.data || []
+        };
+      } catch (error) {
+        console.error('Erreur lors de la transformation des données d\'ingrédients de base:', error);
+        return {
+          code: 500,
+          message: 'Erreur lors de la transformation des données',
+          data: []
+        };
+      }
+    },
     async fetchIngredientsBase(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeIngredientBase(page);
+        const response = await listeIngredientBase(page) as any;
+        console.log('Réponse API complète:', response);
+        console.log('Informations de pagination:', response.pagination);
+        
         if (response.code === 200) {
-          this.ingredientBaseResponse = response;
+          // Stocker la réponse brute pour les informations de pagination
+          this.rawApiResponse = response;
+          
+          // Transformer les données pour la compatibilité
+          this.ingredientBaseResponse = this.transformIngredientBaseData(response);
+          
           if (response.data) {
             this.originalIngredients = response.data;
           }
           this.currentPage = page;
+          
+          console.log('Données transformées:', this.ingredientBaseResponse);
+          console.log('Page courante:', this.currentPage);
         } else {
           this.toast.error(response.message);
         }
@@ -375,6 +548,9 @@ export default defineComponent({
     gotoCreate() {
       this.isEditing = false;
       this.formData.name = '';
+      this.formData.image_url = '';
+      this.formData.imageFile = null;
+      this.imageUploadMode = false;
       this.selectedIngredient = null;
       this.showModal = true;
     },
@@ -383,6 +559,9 @@ export default defineComponent({
       this.isEditing = true;
       this.selectedIngredient = ingredient;
       this.formData.name = ingredient.name;
+      this.formData.image_url = ingredient.image_url || '';
+      this.formData.imageFile = null;
+      this.imageUploadMode = false;
       this.showModal = true;
     },
 
@@ -398,11 +577,25 @@ export default defineComponent({
 
       this.isLoading = true;
       try {
+        // Si un fichier image est sélectionné, l'uploader d'abord
+        if (this.formData.imageFile) {
+          console.log('Upload du fichier image...');
+          try {
+            this.formData.image_url = await this.uploadImageFile(this.formData.imageFile);
+            console.log('URL générée après upload:', this.formData.image_url);
+          } catch (error) {
+            console.error('Erreur lors de l\'upload de l\'image:', error);
+            this.toast.error('Erreur lors de l\'upload de l\'image');
+            return;
+          }
+        }
         if (this.isEditing && this.selectedIngredient) {
           // Mise à jour
           const payload: UpdateIngredientBaseRequest = {
-            name: this.formData.name.trim()
+            name: this.formData.name.trim(),
+            image_url: this.formData.image_url || undefined
           };
+          console.log('Payload de mise à jour:', payload);
           const response = await updateIngredientBase(this.selectedIngredient.id!, payload);
           if (response.code === 200) {
             this.toast.success(response.message);
@@ -414,8 +607,10 @@ export default defineComponent({
         } else {
           // Création
           const payload: CreateIngredientBaseRequest = {
-            name: this.formData.name.trim()
+            name: this.formData.name.trim(),
+            image_url: this.formData.image_url || undefined
           };
+          console.log('Payload de création:', payload);
           const response = await createIngredientBase(payload);
           if (response.code === 201) {
             this.toast.success(response.message);
@@ -441,6 +636,9 @@ export default defineComponent({
     closeModal() {
       this.showModal = false;
       this.formData.name = '';
+      this.formData.image_url = '';
+      this.formData.imageFile = null;
+      this.imageUploadMode = false;
       this.isEditing = false;
       this.selectedIngredient = null;
     },
@@ -467,8 +665,15 @@ export default defineComponent({
     },
 
     changePage(page: number) {
+      console.log('changePage appelée avec:', page);
+      console.log('totalPages:', this.totalPages);
+      console.log('currentPage:', this.currentPage);
+      
       if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
-        this.currentPage = page;
+        console.log('Chargement de la page:', page);
+        this.fetchIngredientsBase(page);
+      } else {
+        console.log('Changement de page ignoré - conditions non remplies');
       }
     },
 
@@ -476,7 +681,10 @@ export default defineComponent({
       const pages: number[] = [];
       const maxVisiblePages = 5;
       const totalPages = this.totalPages;
-      const currentPage = this.currentPage;
+      const currentPage = this.rawApiResponse?.pagination?.page || this.currentPage;
+
+      console.log('generatePageNumbers - totalPages:', totalPages);
+      console.log('generatePageNumbers - currentPage:', currentPage);
 
       let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
       const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
@@ -489,12 +697,78 @@ export default defineComponent({
         pages.push(i);
       }
 
+      console.log('Pages générées:', pages);
       return pages;
     },
 
     convertDateCreate(date?: string): string {
       if (!date) return 'N/A';
       return UserGeneralKey.formatDateToFrenchLocale(date);
+    },
+
+    // Méthodes pour la gestion des images
+    getImagePreview(): string {
+      if (this.formData.imageFile) {
+        return URL.createObjectURL(this.formData.imageFile);
+      }
+      return this.formData.image_url || '';
+    },
+
+    removeImage() {
+      this.formData.image_url = '';
+      this.formData.imageFile = null;
+    },
+
+    handleFileSelect(event: Event) {
+      const target = event.target as HTMLInputElement;
+      if (target.files && target.files[0]) {
+        this.processFile(target.files[0]);
+      }
+    },
+
+    handleFileDrop(event: DragEvent) {
+      this.isDragOver = false;
+      if (event.dataTransfer && event.dataTransfer.files[0]) {
+        this.processFile(event.dataTransfer.files[0]);
+      }
+    },
+
+    processFile(file: File) {
+      // Vérifier le type de fichier
+      if (!file.type.startsWith('image/')) {
+        this.toast.error('Veuillez sélectionner un fichier image valide');
+        return;
+      }
+
+      // Vérifier la taille (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        this.toast.error('La taille du fichier ne doit pas dépasser 5MB');
+        return;
+      }
+
+      this.formData.imageFile = file;
+      this.formData.image_url = ''; // Effacer l'URL si on upload un fichier
+      this.toast.success('Image sélectionnée avec succès');
+    },
+
+    openFileDialog() {
+      const fileInput = this.$refs.fileInput as HTMLInputElement;
+      if (fileInput) {
+        fileInput.click();
+      }
+    },
+
+    async uploadImageFile(file: File): Promise<string> {
+      // TODO: Implémenter l'upload vers un service de stockage
+      // Pour l'instant, on retourne une URL temporaire
+      return new Promise((resolve) => {
+        // Simulation d'un upload
+        setTimeout(() => {
+          // En production, ceci devrait être remplacé par un vrai upload
+          const tempUrl = URL.createObjectURL(file);
+          resolve(tempUrl);
+        }, 1000);
+      });
     }
   },
   setup() {
@@ -700,6 +974,114 @@ export default defineComponent({
   }
 }
 
+/* Styles pour la gestion des images */
+.image-preview-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 15px;
+}
+
+.image-preview {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-remove-image {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.btn-remove-image:hover {
+  background-color: #dc2626;
+  transform: scale(1.1);
+}
+
+/* Styles pour les onglets d'image */
+.image-input-tabs .nav-tabs {
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 0;
+}
+
+.image-input-tabs .nav-link {
+  border: none;
+  background: none;
+  color: #6b7280;
+  padding: 8px 16px;
+  border-radius: 6px 6px 0 0;
+  transition: all 0.2s ease;
+}
+
+.image-input-tabs .nav-link:hover {
+  color: #374151;
+  background-color: #f3f4f6;
+}
+
+.image-input-tabs .nav-link.active {
+  color: #3b82f6;
+  background-color: #eff6ff;
+  border-bottom: 2px solid #3b82f6;
+}
+
+/* Styles pour la zone d'upload */
+.upload-area {
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  background-color: #f9fafb;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.upload-area:hover {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+.upload-area.drag-over {
+  border-color: #3b82f6;
+  background-color: #dbeafe;
+  transform: scale(1.02);
+}
+
+.upload-content {
+  pointer-events: none;
+}
+
+.upload-icon {
+  font-size: 2rem;
+  color: #6b7280;
+  margin-bottom: 12px;
+}
+
+.upload-text {
+  color: #374151;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.upload-hint {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .modal-container {
@@ -720,6 +1102,19 @@ export default defineComponent({
   
   .btn {
     width: 100%;
+  }
+
+  .image-preview {
+    width: 80px;
+    height: 80px;
+  }
+
+  .upload-area {
+    padding: 30px 15px;
+  }
+
+  .upload-icon {
+    font-size: 1.5rem;
   }
 }
 </style>

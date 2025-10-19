@@ -628,7 +628,7 @@ export default defineComponent({
         priceLivraison: ""
       },
       // Propriétés pour les ingrédients de pizza
-      allPizzaIngredients: [] as IngredientBaseModel[],
+      allPizzaIngredients: [] as any[],
       selectedIngredient: null as IngredientBaseModel | null,
       availableIngredients: [] as IngredientBaseModel[],
       searchIngredientQuery: '',
@@ -1170,7 +1170,7 @@ export default defineComponent({
     async loadAvailableIngredients() {
       try {
         // Charger les ingrédients de base depuis l'API
-        const response = await listeIngredientBase(1) as ApiResponse<IngredientBaseModel[]>;
+        const response = await listeIngredientBase(1) as ApiResponse<any[]>;
         if (response.code === 200 && response.data) {
           this.availableIngredients = response.data;
         }
@@ -1193,7 +1193,7 @@ export default defineComponent({
 
         this.isSearching = true;
         try {
-          const response = await listeIngredientBase(1, this.searchIngredientQuery.trim()) as ApiResponse<IngredientBaseModel[]>;
+          const response = await listeIngredientBase(1, 10, this.searchIngredientQuery.trim()) as ApiResponse<IngredientBaseModel[]>;
           if (response.code === 200 && response.data) {
             this.searchResults = response.data;
           } else {

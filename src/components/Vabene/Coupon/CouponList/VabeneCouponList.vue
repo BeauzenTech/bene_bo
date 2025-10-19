@@ -160,15 +160,15 @@
               {{  categorie.usage_limit }}
             </td>
 
-            <td v-if="categorie.isUsed" class="shadow-none badge text-bg-danger fs-13 fs-13 lh-1 fw-medium text-white">
+            <td v-if="categorie.is_used" class="shadow-none badge text-bg-danger fs-13 fs-13 lh-1 fw-medium text-white">
                Utilisé
             </td>
             <td v-else class="shadow-none badge text-bg-success fs-13 lh-1 fw-medium text-white">
               Valide
             </td>
 
-            <td v-if="categorie.eligibleUsers" class="shadow-none lh-1 fw-medium text-muted">
-              {{  categorie.eligibleUsers.length }} utilisateurs
+            <td v-if="categorie.eligible_users" class="shadow-none lh-1 fw-medium text-muted">
+              {{  categorie.eligible_users.length }} utilisateurs
             </td>
             <td v-else class="shadow-none lh-1 fw-medium text-muted">
               -
@@ -345,6 +345,7 @@ export default defineComponent({
   data(){
     return{
       categorieResponse: null as ApiResponse<PaginatedCoupon> | null,
+      rawApiResponse: null as any | null,
       isLoading: false,
       currentPage: 1 ,
       searchQuery: '', // Ajout du champ de recherche
@@ -367,10 +368,10 @@ export default defineComponent({
           })
           : categories;
 
-      // Tri alphabétique par name
+      // Tri alphabétique par code
       return filtered.sort((a, b) => {
         const nameA = a.code?.toLowerCase() || '';
-        const nameB = b.discount_type?.toLowerCase() || '';
+        const nameB = b.code?.toLowerCase() || '';
         return nameA.localeCompare(nameB);
       });
     },
@@ -394,6 +395,41 @@ export default defineComponent({
     }
   },
   methods: {
+    transformCouponData(apiResponse: any): ApiResponse<PaginatedCoupon> {
+      try {
+        // Transformer la réponse de l'API pour correspondre à la structure attendue
+        const transformedData: PaginatedCoupon = {
+          items: apiResponse.data || [],
+          pagination: {
+            current_page: apiResponse.pagination?.page || 1,
+            total_items: apiResponse.pagination?.total || 0,
+            total_pages: apiResponse.pagination?.totalPages || 1,
+            items_per_page: apiResponse.pagination?.limit || 10
+          }
+        };
+
+        return {
+          code: apiResponse.code,
+          message: apiResponse.message,
+          data: transformedData
+        };
+      } catch (error) {
+        console.error('Erreur lors de la transformation des données de coupons:', error);
+        return {
+          code: 500,
+          message: 'Erreur lors de la transformation des données',
+          data: {
+            items: [],
+            pagination: {
+              current_page: 1,
+              total_items: 0,
+              total_pages: 1,
+              items_per_page: 10
+            }
+          }
+        };
+      }
+    },
     prepareDelete(categorie) {
       this.categorieSelected = categorie;
       // The modal will open via data-bs-toggle="modal" in the template.
@@ -510,14 +546,19 @@ export default defineComponent({
     async fetchCategories(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeCoupon(page) as ApiResponse<PaginatedCoupon>;
+        const response = await listeCoupon(page) as any;
         if (response.code === 200) {
-          this.categorieResponse = response;
-          if (response.data?.items) {
-            this.originalCategories = response.data.items;
+          // Stocker la réponse brute pour référence
+          this.rawApiResponse = response;
+          
+          // Transformer les données pour la compatibilité
+          this.categorieResponse = this.transformCouponData(response);
+          
+          if (this.categorieResponse.data?.items) {
+            this.originalCategories = this.categorieResponse.data.items;
           }
-          if (response.data && response.data.pagination) {
-            this.currentPage = response.data.pagination.current_page;
+          if (this.categorieResponse.data && this.categorieResponse.data.pagination) {
+            this.currentPage = this.categorieResponse.data.pagination.current_page;
           }
         } else {
           this.toast.error(response.message);
