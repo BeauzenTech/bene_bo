@@ -96,7 +96,25 @@
               </button>
             </div>
 
-          </div  >
+          </div>
+
+          <div class="col-md-12" v-if="actionDetected == ActionCrud.ADD">
+            <div class="form-group mb-15 mb-sm-20 mb-md-25">
+              <label class="d-block text-black fw-semibold mb-10">
+                Planifier l'envoi (optionnel)
+              </label>
+              <input
+                type="datetime-local"
+                class="form-control shadow-none rounded-0 text-black"
+                v-model="scheduledAt"
+                placeholder="Sélectionner une date et heure"
+              />
+              <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                Laissez vide pour envoyer immédiatement
+              </small>
+            </div>
+          </div>
 
 
           <div class="col-md-12" v-if="actionDetected == ActionCrud.ADD">
@@ -181,6 +199,10 @@ export default defineComponent({
         message: '',
         destination: [] as string[]
       },
+      // Champs requis par le backend
+      campaignType: 'group' as string, // 'group' ou 'individual'
+      campaignTarget: 'all_restaurants' as string, // 'all_restaurants', 'specific_restaurant', 'specific_user'
+      scheduledAt: null as string | null,
       isLoading: false,
       logoUpload: null,
       categorieResponse: null as CampagneModel | null,
@@ -263,11 +285,21 @@ export default defineComponent({
     async createNewCategorie() {
         this.isLoading = true;
         const message = this.stripHtmlTags(this.categorieData.message)
+        
+        // Construire le payload selon les champs requis par le backend
         const payload = {
           "title": this.categorieData.title,
           "message": message,
-          "destination": this.categorieData.destination
+          "destination": this.categorieData.destination,
+          "type": this.campaignType,
+          "target": this.campaignTarget,
+          "restaurantId": this.restaurantSelected !== "Tous les restaurants" ? this.restaurantSelected : null,
+          "userId": this.sendingType === 'Individuel' ? this.userSelected : null,
+          "scheduledAt": this.scheduledAt
         }
+        
+        console.log('Payload envoyé au backend:', payload);
+        
         try {
           const response = await createCampagne(payload);
           if(response.code == 200 || response.code == 201){
@@ -497,10 +529,14 @@ export default defineComponent({
     restaurantSelected(this: any, newVal){
       if (!newVal) return
       this.restaurantSelected = newVal as string;
+      
+      // Mettre à jour le target selon le restaurant sélectionné
       if(newVal !== "Tous les restaurants"){
+        this.campaignTarget = 'specific_restaurant';
         this.getCustomerByOption(this.restaurantSelected)
       }
       else{
+        this.campaignTarget = 'all_restaurants';
         this.getCustomerByOption();
       }
     },
@@ -513,11 +549,21 @@ export default defineComponent({
     sendingType(this: any, newVal){
       if (!newVal) return
       const newValue = newVal as string
-      if(newValue == 'Groupé'){
+      
+      // Mettre à jour le type de campagne
+      if(newValue === 'Individuel'){
+        this.campaignType = 'individual';
+        this.campaignTarget = 'specific_user';
+      } else if(newValue === 'Groupé'){
+        this.campaignType = 'group';
+        this.campaignTarget = this.restaurantSelected !== "Tous les restaurants" ? 'specific_restaurant' : 'all_restaurants';
+        
+        // Ajouter tous les utilisateurs à la destination pour le type groupé
         for(let i=0; i<this.originalUsers.length; i++){
           this.categorieData.destination.push(this.originalUsers[i].email);
         }
       }
+      
       this.userSelected = null;
     },
   }

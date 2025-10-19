@@ -286,6 +286,27 @@ const routes = [
     })
   },
 
+  {
+    path: '/delivery-zones',
+    name: 'VabeneDeliveryZoneListPage',
+    component: () => import('@/pages/Vabene/DeliveryZone/VabeneDeliveryZoneListPage.vue')
+  },
+  {
+    path: '/delivery-zones/add',
+    name: 'VabeneAddDeliveryZonePage',
+    component: () => import('@/pages/Vabene/DeliveryZone/VabeneAddDeliveryZonePage.vue')
+  },
+  {
+    path: '/delivery-zones/edit/:zoneID',
+    name: 'VabeneEditDeliveryZonePage',
+    component: () => import('@/pages/Vabene/DeliveryZone/VabeneAddDeliveryZonePage.vue')
+  },
+      {
+        path: '/delivery-zones/:zoneId/postal-codes',
+        name: 'VabenePostalCodesPage',
+        component: () => import('@/pages/Vabene/DeliveryZone/VabenePostalCodesPage.vue')
+      },
+
   // CRUD ORDER
   {
     path: "/order-list",

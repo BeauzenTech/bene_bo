@@ -1198,11 +1198,15 @@ export const createCampagne = async (campagneData): Promise<ApiResponse<any>> =>
     }
 };
 
-export const listeCampagne = async (page = 1): Promise<ApiResponse<PaginatedCampagne>> => {
+export const listeCampagne = async (page = 1, limit = 10, search = ''): Promise<ApiResponse<PaginatedCampagne>> => {
     // eslint-disable-next-line no-useless-catch
     try {
+        const params = new URLSearchParams();
+        if (page) params.append('page', page.toString());
+        if (limit) params.append('limit', limit.toString());
+        if (search) params.append('search', search);
 
-        const response = await apiClient.get(`/v1/campagne/all?page=${page}`);
+        const response = await apiClient.get(`/v1/campaigns?${params.toString()}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
@@ -1407,7 +1411,7 @@ export const getAllCustomers = async (
 export const detailCustomer = async (customerID): Promise<ApiResponse<CustomerModel>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/v1/customer/${customerID}`);
+        const response = await apiClient.get(`/v1/user/detail/${customerID}`);
         return response.data;
     } catch (error) {
         throw error;
@@ -1723,6 +1727,198 @@ export const getAllIngredients = async (
         return result;
     } catch (error) {
         console.error("❌ Erreur lors de la récupération des ingrédients", error);
+        throw error;
+    }
+};
+
+// ==================== ZONES DE LIVRAISON ====================
+
+// Récupérer les zones de livraison d'un restaurant
+export const getDeliveryZonesByRestaurant = async (
+    restaurantId: string
+): Promise<ApiResponse<any[]>> => {
+    try {
+        const response = await apiClient.get(`/v1/delivery/restaurant/${restaurantId}/zones`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de la récupération des zones de livraison", error);
+        throw error;
+    }
+};
+
+// Récupérer une zone de livraison par ID
+export const getDeliveryZoneById = async (
+    zoneId: string
+): Promise<ApiResponse<any>> => {
+    try {
+        const response = await apiClient.get(`/v1/delivery/zone/${zoneId}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de la récupération de la zone de livraison", error);
+        throw error;
+    }
+};
+
+// Créer une zone de livraison
+export const createDeliveryZone = async (
+    restaurantId: string,
+    zoneData: {
+        name: string;
+        minimumOrderAmount: number;
+        deliveryFee?: number;
+        description?: string;
+    }
+): Promise<ApiResponse<any>> => {
+    try {
+        const response = await apiClient.post(`/v1/delivery/zone/${restaurantId}`, zoneData);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de la création de la zone de livraison", error);
+        throw error;
+    }
+};
+
+// Mettre à jour une zone de livraison
+export const updateDeliveryZone = async (
+    zoneId: string,
+    updateData: {
+        name?: string;
+        minimumOrderAmount?: number;
+        deliveryFee?: number;
+        description?: string;
+        isActive?: boolean;
+    }
+): Promise<ApiResponse<any>> => {
+    try {
+        const response = await apiClient.put(`/v1/delivery/zone/${zoneId}`, updateData);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de la mise à jour de la zone de livraison", error);
+        throw error;
+    }
+};
+
+// Supprimer une zone de livraison
+export const deleteDeliveryZone = async (
+    zoneId: string
+): Promise<ApiResponse<void>> => {
+    try {
+        const response = await apiClient.delete(`/v1/delivery/zone/${zoneId}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de la suppression de la zone de livraison", error);
+        throw error;
+    }
+};
+
+// Ajouter des codes postaux à une zone
+export const addPostalCodesToZone = async (
+    zoneId: string,
+    postalCodes: { code: number; locality: string }[]
+): Promise<ApiResponse<any>> => {
+    try {
+        const response = await apiClient.post(`/v1/delivery/zone/${zoneId}/postal-codes`, postalCodes);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de l'ajout des codes postaux", error);
+        throw error;
+    }
+};
+
+// Récupérer les codes postaux d'une zone
+export const getPostalCodesByZone = async (
+    zoneId: string
+): Promise<ApiResponse<any[]>> => {
+    try {
+        const response = await apiClient.get(`/v1/delivery/zone/${zoneId}/postal-codes`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de la récupération des codes postaux", error);
+        throw error;
+    }
+};
+
+// Supprimer un code postal d'une zone
+export const deletePostalCodeFromZone = async (
+    zoneId: string,
+    postalCode: string
+): Promise<ApiResponse<void>> => {
+    try {
+        const response = await apiClient.delete(`/v1/delivery/zone/${zoneId}/postal-codes/${postalCode}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de la suppression du code postal", error);
+        throw error;
+    }
+};
+
+// Modifier un code postal d'une zone
+export const updatePostalCodeInZone = async (
+    zoneId: string,
+    postalCode: string,
+    updateData: {
+        locality?: string;
+        isActive?: boolean;
+    }
+): Promise<ApiResponse<any>> => {
+    try {
+        const response = await apiClient.put(`/v1/delivery/zone/${zoneId}/postal-codes/${postalCode}`, updateData);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de la modification du code postal", error);
+        throw error;
+    }
+};
+
+// Récupérer tous les codes postaux d'un restaurant
+export const getRestaurantPostalCodes = async (
+    restaurantId: string
+): Promise<ApiResponse<any[]>> => {
+    try {
+        const response = await apiClient.get(`/v1/delivery/restaurant/${restaurantId}/postal-codes`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de la récupération des codes postaux du restaurant", error);
         throw error;
     }
 };

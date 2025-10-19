@@ -415,24 +415,6 @@ export default defineComponent({
           methode.type === type
       );
     },
-    async fetchListeMethodePaiement(page = 1) {
-      // this.isLoading = true;
-      try {
-        const response = await listeMethodePaiement(page) as ApiResponse<PaginatedMethodePaiement>;
-        if (response.code === 200) {
-          if (response.data?.items) {
-            this.listeMethode = response.data.items;
-          }
-        } else {
-          this.toast.error(response.message);
-        }
-      } catch (error) {
-        this.toast.error("Erreur lors du chargement des methodes de paiement");
-        console.error(error);
-      } finally {
-        // this.isLoading = false;
-      }
-    },
     getOrderTypeParType(
         liste: OrderTypeModel[],
         type: string
@@ -440,24 +422,6 @@ export default defineComponent({
       return liste.filter(orderType =>
           orderType.type === type
       );
-    },
-    async fetchOrderType(page = 1) {
-      // this.isLoading = true;
-      try {
-        const response = await listeOrderType(page) as ApiResponse<PaginatedOrderType>;
-        if (response.code === 200) {
-          if (response.data?.items) {
-            this.listeOrderType = response.data.items;
-          }
-        } else {
-          this.toast.error(response.message);
-        }
-      } catch (error) {
-        this.toast.error("Erreur lors du chargement des types de commandes");
-        console.error(error);
-      } finally {
-        // this.isLoading = false;
-      }
     },
     convertDateCreate(date: string): string {
       return UserGeneralKey.formatDateToFrenchLocale(date);
@@ -868,8 +832,6 @@ export default defineComponent({
     this.actionDetected = (this as any).$route.params.action
     if ((this as any).$route.params.action == ActionCrud.EDIT) {
       this.fetchDetailCategorie((this as any).$route.params.customerID)
-      this.fetchOrderType(1)
-      this.fetchListeMethodePaiement(1)
       const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
       tooltipTriggerList.forEach(tooltipTriggerEl => {
         new Tooltip(tooltipTriggerEl)

@@ -114,8 +114,8 @@
               <LoaderComponent/>
             </td>
           </tr>
-          <tr v-else-if="!isLoading && allRestaurant.length > 0"
-              v-for="restaurant in allRestaurant" :key="restaurant.id"
+          <tr v-else-if="!isLoading && restaurantsWithIsActive.length > 0"
+              v-for="restaurant in restaurantsWithIsActive" :key="restaurant.id"
           >
             <th
                 class="shadow-none lh-1 fw-medium text-black-emphasis title ps-0 text-capitalize"
@@ -169,8 +169,8 @@
                 <input
                     class="form-check-input"
                     type="checkbox"
-                    v-model="restaurant.is_active"
-                    @change="toggleUserActivation(restaurant, restaurant.is_active)"
+                    v-model="restaurant.isActive"
+                    @change="toggleUserActivation(restaurant, restaurant.isActive)"
                 />
 
               </div>
@@ -329,6 +329,7 @@ export default defineComponent({
   data(){
     return{
       restaurantResponse: null as ApiResponse<PaginatedRestaurant> | null,
+      rawApiResponse: null as any | null,
       isLoading: false,
       currentPage: 1 ,
       searchQuery: '', // Ajout du champ de recherche
@@ -352,8 +353,26 @@ export default defineComponent({
             (restaurant.numeroRue?.includes(query)));
       });
     },
+    restaurantsWithIsActive(): any[] {
+      return this.allRestaurant.map(restaurant => {
+        const restaurantData = restaurant as any;
+        return {
+          ...restaurant,
+          isActive: restaurantData.is_active === 1  // Convertit 1/0 en true/false
+        };
+      });
+    },
 
     pagination(): any {
+      if (this.rawApiResponse && this.rawApiResponse.data) {
+        return {
+          current_page: 1,
+          total_items: this.rawApiResponse.data.length,
+          total_pages: 1,
+          items_per_page: this.rawApiResponse.data.length
+        };
+      }
+      
       return this.restaurantResponse?.data?.pagination || {
         current_page: 1,
         total_items: 0,
@@ -362,16 +381,59 @@ export default defineComponent({
       };
     },
     paginationInfo(): string {
+      if (this.rawApiResponse && this.rawApiResponse.data) {
+        const total = this.rawApiResponse.data.length;
+        return `Affichage de 1 à ${total} sur ${total} résultats`;
+      }
+      
       const { current_page, items_per_page, total_items } = this.pagination;
       const start = (current_page - 1) * items_per_page + 1;
       const end = Math.min(current_page * items_per_page, total_items);
       return `Affichage de ${start} à ${end} sur ${total_items} résultats`;
     },
     totalPages(): number {
+      if (this.rawApiResponse && this.rawApiResponse.data) {
+        return 1; // Pas de pagination côté serveur pour l'instant
+      }
+      
       return this.pagination.total_pages;
     }
   },
   methods: {
+    transformRestaurantData(apiResponse: any): ApiResponse<PaginatedRestaurant> {
+      try {
+        // Transformer la réponse de l'API pour correspondre à la structure attendue
+        const transformedData: PaginatedRestaurant = {
+          items: apiResponse.data || [],
+          pagination: {
+            current_page: 1,
+            total_items: apiResponse.data?.length || 0,
+            total_pages: 1,
+            items_per_page: apiResponse.data?.length || 10
+          }
+        };
+        return {
+          code: apiResponse.code,
+          message: apiResponse.message,
+          data: transformedData
+        };
+      } catch (error) {
+        console.error('Erreur lors de la transformation des données de restaurants:', error);
+        return {
+          code: 500,
+          message: 'Erreur lors de la transformation des données',
+          data: {
+            items: [],
+            pagination: {
+              current_page: 1,
+              total_items: 0,
+              total_pages: 1,
+              items_per_page: 10
+            }
+          }
+        };
+      }
+    },
     getShortUuid(uuid: string): string {
       return uuid.split('-')[0];
     },
@@ -411,11 +473,16 @@ export default defineComponent({
         }, 2000);
       }
     },
-    async toggleUserActivation(restaurant, status){
-      //this.isLoading = true;
+    async toggleUserActivation(restaurant, isActive){
+      // Convertir le booléen en nombre (true -> 1, false -> 0)
+      const status = isActive ? 1 : 0;
+      
       const payload = {
-        'status': status
+        'status': status  // Envoie 1 ou 0 à l'API
       }
+      
+      console.log('Toggle restaurant activation:', { restaurantId: restaurant.id, isActive, status, payload });
+      
       try {
         const response = await toggleRestaurant(restaurant.id, payload) as ApiResponse<any>;
         if (response.code === 201 || response.code === 200) {
@@ -425,10 +492,14 @@ export default defineComponent({
             this.toast.success(response.message);
           }
         } else {
+          // En cas d'erreur, revenir à l'état précédent
+          restaurant.isActive = !isActive;
           this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des utilisateurs");
+        // En cas d'erreur, revenir à l'état précédent
+        restaurant.isActive = !isActive;
+        this.toast.error("Erreur lors du chargement des restaurants");
         console.error(error);
       } finally {
         setTimeout(() =>  {
@@ -445,20 +516,26 @@ export default defineComponent({
     async fetchRestaurants(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeRestaurant(page) as ApiResponse<PaginatedRestaurant>;
+        const response = await listeRestaurant(page) as any;
+        console.log('Réponse API restaurants:', response);
+        
         if (response.code === 200) {
-          this.restaurantResponse = response;
-          if (response.data?.items) {
-            this.originalRestaurant = response.data.items;
+          // Stocker la réponse brute pour les informations de pagination
+          this.rawApiResponse = response;
+          
+          // Transformer les données pour la compatibilité
+          this.restaurantResponse = this.transformRestaurantData(response);
+          
+          if (response.data) {
+            this.originalRestaurant = response.data;
           }
-          if (response.data && response.data.pagination) {
-            this.currentPage = response.data.pagination.current_page;
-          }
+          
+          this.currentPage = 1; // Pas de pagination côté serveur pour l'instant
         } else {
           this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des restaurant");
+        this.toast.error("Erreur lors du chargement des restaurants");
         console.error(error);
       } finally {
         this.isLoading = false;

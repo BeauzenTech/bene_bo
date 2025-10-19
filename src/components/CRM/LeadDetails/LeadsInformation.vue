@@ -42,53 +42,44 @@
       </div>
       <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Pays</div>
-  <div v-if="lead.user" class="col-sm-8">{{ lead.user.country ?? '-' }}</div>
+  <div  class="col-sm-8">{{ lead.country ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">NPA</div>
-  <div v-if="lead.user" class="col-sm-8">{{ lead.user.postal_code ?? lead.code_postal ?? '-' }}</div>
-  <div v-else class="col-sm-8">{{ lead?.npa ?? '-' }}</div>
+  <div  class="col-sm-8">{{ lead.postal_code ?? lead.code_postal ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Localité</div>
-  <div v-if="lead.user" class="col-sm-8">{{ lead.user.city ?? '-' }}</div>
-  <div v-else class="col-sm-8">{{ lead?.localite ?? '-' }}</div>
+  <div  class="col-sm-8">{{ lead.city ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Rue</div>
-  <div v-if="lead.user" class="col-sm-8">{{ lead.user.address ?? '-' }}</div>
-  <div v-else class="col-sm-8">{{ lead?.rue ?? '-' }}</div>
+  <div class="col-sm-8">{{ lead.address ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">N° Rue</div>
-  <div v-if="lead.user" class="col-sm-8">{{ lead.user.numeroRue ?? '-' }}</div>
-  <div v-else class="col-sm-8">{{ lead?.numeroRue ?? '-' }}</div>
+  <div  class="col-sm-8">{{ lead.numeroRue ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Téléphone</div>
-  <div v-if="lead.user" class="col-sm-8">{{ lead.user.phone_number != null  ? '+41'+lead.user.phone_number : '-' }}</div>
-  <div v-else class="col-sm-8">{{ '+41'+lead?.phoneNumber ?? '-' }}</div>
+  <div  class="col-sm-8">{{ lead.phone_number != null  ? lead.phone_number : '-' }}</div>
+  
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Prénom</div>
-  <div  v-if="lead.user" class="col-sm-8">{{ lead.user.first_name ?? '-' }}</div>
-  <div  v-else class="col-sm-8">{{ lead?.firstName ?? '-' }}</div>
+  <div  class="col-sm-8">{{ lead.first_name ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Nom</div>
-  <div v-if="lead.user" class="col-sm-8">{{ lead.user.last_name ?? '-' }}</div>
-  <div  v-else class="col-sm-8">{{ lead?.lastName ?? '-' }}</div>
+  <div class="col-sm-8">{{ lead.last_name ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Date de naissance</div>
-  <div v-if="lead.user" class="col-sm-8">{{ lead.user.date_of_birth ?? '-' }}</div>
+  <div class="col-sm-8">{{ lead.date_of_birth ?? '-' }}</div>
 </div>
 <div class="row mb-2 mt-4" v-if="lead">
   <div class="col-sm-4 fw-bold">Email</div>
-  <div v-if="lead.user" class="col-sm-8">{{ lead.user.email ?? '-' }}</div>
-  <div v-else class="col-sm-8">{{ lead?.email?.includes('guest_') ? '-' : lead?.email }}</div>
-</div>
-
+  <div class="col-sm-8">{{ lead.email ?? '-' }}</div></div>
     
     </div>
   </div>

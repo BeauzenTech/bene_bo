@@ -292,6 +292,7 @@ export default defineComponent({
   data(){
     return{
       categorieResponse: null as ApiResponse<PaginatedCampagne> | null,
+      rawApiResponse: null as any | null,
       isLoading: false,
       currentPage: 1 ,
       searchQuery: '', // Ajout du champ de recherche
@@ -323,6 +324,15 @@ export default defineComponent({
     },
 
     pagination(): any {
+      if (this.rawApiResponse && this.rawApiResponse.pagination) {
+        return {
+          current_page: this.rawApiResponse.pagination.page,
+          total_items: this.rawApiResponse.pagination.total,
+          total_pages: this.rawApiResponse.pagination.totalPages,
+          items_per_page: this.rawApiResponse.pagination.limit
+        };
+      }
+      
       return this.categorieResponse?.data?.pagination || {
         current_page: 1,
         total_items: 0,
@@ -331,16 +341,61 @@ export default defineComponent({
       };
     },
     paginationInfo(): string {
+      if (this.rawApiResponse && this.rawApiResponse.pagination) {
+        const { total, page, limit } = this.rawApiResponse.pagination;
+        const start = (page - 1) * limit + 1;
+        const end = Math.min(page * limit, total);
+        return `Affichage de ${start} à ${end} sur ${total} résultats`;
+      }
+      
       const { current_page, items_per_page, total_items } = this.pagination;
       const start = (current_page - 1) * items_per_page + 1;
       const end = Math.min(current_page * items_per_page, total_items);
       return `Affichage de ${start} à ${end} sur ${total_items} résultats`;
     },
     totalPages(): number {
+      if (this.rawApiResponse && this.rawApiResponse.pagination) {
+        return this.rawApiResponse.pagination.totalPages;
+      }
+      
       return this.pagination.total_pages;
     }
   },
   methods: {
+    transformCampagneData(apiResponse: any): ApiResponse<PaginatedCampagne> {
+      try {
+        // Transformer la réponse de l'API pour correspondre à la structure attendue
+        const transformedData: PaginatedCampagne = {
+          items: apiResponse.data || [],
+          pagination: {
+            current_page: apiResponse.pagination?.page || 1,
+            total_items: apiResponse.pagination?.total || 0,
+            total_pages: apiResponse.pagination?.totalPages || 1,
+            items_per_page: apiResponse.pagination?.limit || 10
+          }
+        };
+        return {
+          code: apiResponse.code,
+          message: apiResponse.message,
+          data: transformedData
+        };
+      } catch (error) {
+        console.error('Erreur lors de la transformation des données de campagnes:', error);
+        return {
+          code: 500,
+          message: 'Erreur lors de la transformation des données',
+          data: {
+            items: [],
+            pagination: {
+              current_page: 1,
+              total_items: 0,
+              total_pages: 1,
+              items_per_page: 10
+            }
+          }
+        };
+      }
+    },
     truncateDescription(description: string, maxChars = 20): string {
       // Supprime toutes les balises HTML
       const plainText = description.replace(/<[^>]+>/g, '').trim();
@@ -452,20 +507,28 @@ export default defineComponent({
     async fetchCategories(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeCampagne(page) as ApiResponse<PaginatedCampagne>;
+        const response = await listeCampagne(page) as any;
+        console.log('Réponse API campagnes:', response);
+        
         if (response.code === 200) {
-          this.categorieResponse = response;
-          if (response.data?.items) {
-            this.originalCategories = response.data.items;
+          // Stocker la réponse brute pour les informations de pagination
+          this.rawApiResponse = response;
+          
+          // Transformer les données pour la compatibilité
+          this.categorieResponse = this.transformCampagneData(response);
+          
+          if (response.data) {
+            this.originalCategories = response.data;
           }
-          if (response.data && response.data.pagination) {
-            this.currentPage = response.data.pagination.current_page;
+          
+          if (response.pagination) {
+            this.currentPage = response.pagination.page;
           }
         } else {
           this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des categories");
+        this.toast.error("Erreur lors du chargement des campagnes");
         console.error(error);
       } finally {
         this.isLoading = false;

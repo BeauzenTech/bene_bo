@@ -307,10 +307,10 @@
                 </li>
                 <li class="sidebar-sub-menu-item">
                   <router-link
-                      :to="{ name: 'VabeneAddRestaurantPage', params: { action: 'add', restaurantID: '' } }"
+                      to="/delivery-zones"
                       class="sidebar-sub-menu-link"
                   >
-                    Ajouter
+                    Zones de livraison
                   </router-link>
                 </li>
 
