@@ -1,47 +1,18 @@
 <template>
-  <div class="main-content">
-    <div class="page-content">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-              <h4 class="mb-sm-0">
-                {{ action === 'add' ? 'Ajouter une zone de livraison' : 'Modifier la zone de livraison' }}
-              </h4>
-              <div class="page-title-right">
-                <ol class="breadcrumb m-0">
-                  <li class="breadcrumb-item">
-                    <a href="javascript: void(0);">Tableau de bord</a>
-                  </li>
-                  <li class="breadcrumb-item">
-                    <router-link to="/delivery-zones">Zones de livraison</router-link>
-                  </li>
-                  <li class="breadcrumb-item active">
-                    {{ action === 'add' ? 'Ajouter' : 'Modifier' }}
-                  </li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="col-12">
-            <VabeneAddDeliveryZone :action="action" :zoneID="zoneID" :restaurantId="restaurantId" />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <BreadCrumb v-if="action === 'add'" PageTitle="Ajouter une zone de livraison" />
+  <BreadCrumb v-else PageTitle="Modifier la zone de livraison" />
+  <VabeneAddDeliveryZone :action="action === 'add' ? 'Ajouter' : 'Modifier'" :zoneID="zoneID" :restaurantId="restaurantId" />
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import BreadCrumb from "@/components/Common/BreadCrumb.vue";
 import VabeneAddDeliveryZone from "@/components/Vabene/DeliveryZone/AddDeliveryZone/VabeneAddDeliveryZone.vue";
 
 export default defineComponent({
   name: "VabeneAddDeliveryZonePage",
   components: {
+    BreadCrumb,
     VabeneAddDeliveryZone
   },
   computed: {

@@ -334,9 +334,12 @@ export default defineComponent({
       }
     },
     async fetchZoneDetails(zoneID: string) {
+      console.log('fetchZoneDetails appelé avec zoneID:', zoneID);
       this.isLoading = true;
       try {
         const response = await getDeliveryZoneById(zoneID) as ApiResponse<DeliveryZoneModel>;
+        console.log('Réponse API zone:', response);
+        
         if (response.code === 200 && response.data) {
           this.zoneResponse = response.data;
           this.zoneData.name = this.zoneResponse.name;
@@ -344,20 +347,26 @@ export default defineComponent({
           this.zoneData.deliveryFee = this.zoneResponse.deliveryFee || 0;
           this.zoneData.description = this.zoneResponse.description || '';
           
+          console.log('Données de zone préremplies:', this.zoneData);
+          
           // Charger les codes postaux
           const postalCodesResponse = await getPostalCodesByZone(zoneID);
+          console.log('Réponse API codes postaux:', postalCodesResponse);
+          
           if (postalCodesResponse.code === 200 && postalCodesResponse.data) {
             this.zoneData.postalCodes = postalCodesResponse.data.map(pc => ({
               code: pc.code,
               locality: pc.locality
             }));
+            console.log('Codes postaux préremplis:', this.zoneData.postalCodes);
           }
         } else {
+          console.error('Erreur API zone:', response.message);
           this.toast.error(response.message);
         }
       } catch (error) {
+        console.error('Erreur lors du chargement de la zone:', error);
         this.toast.error("Erreur lors du chargement de la zone");
-        console.error(error);
       } finally {
         this.isLoading = false;
       }
@@ -374,15 +383,38 @@ export default defineComponent({
       );
     }
   },
+  watch: {
+    // Watcher pour réagir aux changements de zoneID
+    zoneID: {
+      handler(newZoneID) {
+        if (newZoneID && this.actionDetected === ActionCrud.EDIT) {
+          this.fetchZoneDetails(newZoneID);
+        }
+      },
+      immediate: true
+    },
+    // Watcher pour réagir aux changements d'action
+    action: {
+      handler(newAction) {
+        this.actionDetected = newAction === 'Modifier' ? ActionCrud.EDIT : ActionCrud.ADD;
+        if (this.actionDetected === ActionCrud.EDIT && this.zoneID) {
+          this.fetchZoneDetails(this.zoneID);
+        }
+      },
+      immediate: true
+    }
+  },
   setup: () => {
     const toast = useToast();
     return { toast };
   },
   mounted() {
-    this.actionDetected = (this as any).$route.params.action;
-    if ((this as any).$route.params.action === ActionCrud.EDIT) {
-      this.fetchZoneDetails((this as any).$route.params.zoneID);
-    }
+    // Les watchers s'occupent de la logique d'initialisation
+    console.log('VabeneAddDeliveryZone mounted:', {
+      action: this.action,
+      zoneID: this.zoneID,
+      restaurantId: this.restaurantId
+    });
   }
 });
 </script>

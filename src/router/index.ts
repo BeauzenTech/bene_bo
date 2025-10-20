@@ -307,6 +307,23 @@ const routes = [
         component: () => import('@/pages/Vabene/DeliveryZone/VabenePostalCodesPage.vue')
       },
 
+  // HORAIRES D'OUVERTURE
+  {
+    path: '/opening-hours',
+    name: 'VabeneOpeningHoursPage',
+    component: () => import('@/pages/Vabene/OpeningHours/VabeneOpeningHoursPage.vue')
+  },
+  {
+    path: '/opening-hours/add',
+    name: 'VabeneAddOpeningHoursPage',
+    component: () => import('@/pages/Vabene/OpeningHours/VabeneAddOpeningHoursPage.vue')
+  },
+  {
+    path: '/opening-hours/edit',
+    name: 'VabeneEditOpeningHoursPage',
+    component: () => import('@/pages/Vabene/OpeningHours/VabeneAddOpeningHoursPage.vue')
+  },
+
   // CRUD ORDER
   {
     path: "/order-list",

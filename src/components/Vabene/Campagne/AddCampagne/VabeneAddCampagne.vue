@@ -86,14 +86,38 @@
 
               <button
                   type="button"
-
+                  @click="addUserToDestination"
                   class="bg-transparent p-0 border-0 mt-2 text-warning lh-1 fw-medium"
+                  :disabled="!userSelected"
               >
                 <i
                     class="flaticon-users-group lh-1 me-1 position-relative top-2"
                 ></i>
-                <span class="position-relative">{{categorieData.destination.length}} ajouté(s)</span>
+                <span class="position-relative">Ajouter à la campagne</span>
               </button>
+              
+              <!-- Liste des destinataires -->
+              <div v-if="categorieData.destination.length > 0" class="mt-3">
+                <div class="alert alert-info">
+                  <i class="fas fa-info-circle me-2"></i>
+                  <strong>{{ categorieData.destination.length }}</strong> destinataire(s) sélectionné(s)
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <span
+                    v-for="(email, index) in categorieData.destination"
+                    :key="index"
+                    class="badge bg-primary d-flex align-items-center"
+                  >
+                    {{ email }}
+                    <button
+                      type="button"
+                      class="btn-close btn-close-white ms-2"
+                      @click="removeDestination(index)"
+                      title="Supprimer ce destinataire"
+                    ></button>
+                  </span>
+                </div>
+              </div>
             </div>
 
           </div>
@@ -208,7 +232,7 @@ export default defineComponent({
       categorieResponse: null as CampagneModel | null,
       actionDetected: null as string | null,
       originalUsers: [] as CustomerModel[], // Stockage des utilisateurs originaux
-      userSelected: null,
+      userSelected: null as string | null,
       sendingType: '' as string,
       typeSending: ["Individuel", "Groupé"] as string[],
 
@@ -230,10 +254,12 @@ export default defineComponent({
     async fetchRestaurants(page = 1) {
         this.isLoading = true;
         try {
+          console.log('fetchRestaurants');
           const response = await listeRestaurant(page) as ApiResponse<PaginatedRestaurant>;
+
           if (response.code === 200) {
-            if (response.data?.items) {
-              this.originalRestaurant = [(this.fakeAllOptionFranchise as RestaurantModel), ...response.data.items];
+            if (response.data) {
+              this.originalRestaurant = [(this.fakeAllOptionFranchise as RestaurantModel), ...response.data as any];
               this.restaurantSelected = "Tous les restaurants"
               await this.fetchUsers(1)
             }
@@ -282,6 +308,11 @@ export default defineComponent({
     //     this.clearData()
     //
     // },
+    getUserIdFromEmail(email: string | null): string | null {
+      if (!email) return null;
+      const user = this.originalUsers.find(u => u.email === email);
+      return user ? user.id : null;
+    },
     async createNewCategorie() {
         this.isLoading = true;
         const message = this.stripHtmlTags(this.categorieData.message)
@@ -292,10 +323,14 @@ export default defineComponent({
           "message": message,
           "destination": this.categorieData.destination,
           "type": this.campaignType,
-          "target": this.campaignTarget,
+          "target": this.campaignTarget === 'all_restaurants' ? 'all_restaurants' : 'restaurant',
           "restaurantId": this.restaurantSelected !== "Tous les restaurants" ? this.restaurantSelected : null,
-          "userId": this.sendingType === 'Individuel' ? this.userSelected : null,
+          "userId": this.sendingType === 'Individuel' ? this.getUserIdFromEmail(this.userSelected) : null,
           "scheduledAt": this.scheduledAt
+        }
+        
+        if (this.sendingType === 'Individuel' && this.userSelected && !this.categorieData.destination.includes(this.userSelected)) {
+          payload.destination.push(this.userSelected);
         }
         
         console.log('Payload envoyé au backend:', payload);
@@ -334,7 +369,7 @@ export default defineComponent({
         const response = await getAllCustomers(page, 500);
         if (response.code === 200) {
           if (response.data?.data) {
-            this.originalUsers = response.data.data.filter(item => item.promotions && item.newsletter);
+            this.originalUsers = response.data.data.filter(item => item.newsletter && item.promotions);
           }
 
         } else {
@@ -350,10 +385,31 @@ export default defineComponent({
     async getCustomerByOption(idResto?: string) {
       this.isLoading = true;
       try {
-        const response = await getAllCustomers(1, 500);
+        const response: any = await getAllCustomers(1, 500);
         if (response.code === 200) {
-          if (response.data?.data) {
-            this.originalUsers = response.data.data.filter(item => item.promotions && item.newsletter);
+          if (response.data) {
+           console.log('getCustomerByOption', response.data);
+           console.log('response.data.data (tableau des clients):', response.data.data);
+           // Log pour voir les valeurs newsletter et promotions
+           response.data.data.forEach((user, index) => {
+             if (index < 5) { // Afficher seulement les 5 premiers pour debug
+               console.log(`User ${index}:`, {
+                 email: user.email,
+                 newsletter: user.acceptNewsletter,
+                 promotions: user.acceptPromotions
+               });
+             }
+           });
+            let filteredUsers = response.data.data.filter(item => item.acceptNewsletter && item.acceptPromotions);
+            
+            if (idResto && idResto !== "Tous les restaurants") {
+              // Filtrer par restaurant si un restaurant spécifique est sélectionné
+              // Note: CustomerModel n'a pas de restaurantId, on garde tous les utilisateurs pour l'instant
+              // filteredUsers = filteredUsers.filter(user => user.restaurantId === idResto);
+            }
+            
+            this.originalUsers = filteredUsers;
+            console.log('Utilisateurs filtrés:', this.originalUsers);
           }
 
         } else {
@@ -365,6 +421,22 @@ export default defineComponent({
       } finally {
         this.isLoading = false;
       }
+    },
+    addUserToDestination() {
+      if (this.userSelected && !this.categorieData.destination.includes(this.userSelected)) {
+        this.categorieData.destination.push(this.userSelected);
+        this.toast.success("Utilisateur ajouté à la campagne");
+        this.userSelected = null; // Réinitialiser la sélection
+      } else if (this.userSelected && this.categorieData.destination.includes(this.userSelected)) {
+        this.toast.warning("Cet utilisateur est déjà dans la liste");
+      } else {
+        this.toast.warning("Veuillez sélectionner un utilisateur");
+      }
+    },
+    removeDestination(index: number) {
+      const removedEmail = this.categorieData.destination[index];
+      this.categorieData.destination.splice(index, 1);
+      this.toast.info(`Destinataire ${removedEmail} supprimé`);
     },
     async updateCategorie(categorieID) {
       this.isLoading = true;
@@ -541,10 +613,8 @@ export default defineComponent({
       }
     },
     userSelected(this: any, newVal){
-      if (!newVal) return
-      const newValue = newVal as string
-      this.categorieData.destination.push(newValue)
-      this.userSelected = null;
+      // Ne pas ajouter automatiquement, laisser l'utilisateur cliquer sur le bouton
+      console.log('Utilisateur sélectionné:', newVal);
     },
     sendingType(this: any, newVal){
       if (!newVal) return
@@ -554,17 +624,21 @@ export default defineComponent({
       if(newValue === 'Individuel'){
         this.campaignType = 'individual';
         this.campaignTarget = 'specific_user';
+        // Vider la liste des destinataires pour le mode individuel
+        this.categorieData.destination = [];
       } else if(newValue === 'Groupé'){
         this.campaignType = 'group';
         this.campaignTarget = this.restaurantSelected !== "Tous les restaurants" ? 'specific_restaurant' : 'all_restaurants';
         
-        // Ajouter tous les utilisateurs à la destination pour le type groupé
+        // Vider la liste et ajouter tous les utilisateurs pour le type groupé
+        this.categorieData.destination = [];
         for(let i=0; i<this.originalUsers.length; i++){
           this.categorieData.destination.push(this.originalUsers[i].email);
         }
+        this.toast.info(`${this.originalUsers.length} utilisateurs ajoutés automatiquement`);
       }
       
-      this.userSelected = null;
+      this.userSelected = null as string | null;
     },
   }
 

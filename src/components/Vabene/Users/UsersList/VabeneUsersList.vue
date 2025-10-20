@@ -265,9 +265,11 @@
                 :class="{ active: page === currentPage }"
             >
               <a
+                  v-if="page !== -1"
                   class="page-link" href="#"
                   @click.prevent="changePage(page)"
-              >  {{ page }}</a>
+              >{{ page }}</a>
+              <span v-else class="page-link">...</span>
             </li>
 
             <li
@@ -402,46 +404,33 @@ export default defineComponent({
       try {
         const response = await deleteUser(user.id) as ApiResponse<any>;
         if (response.code === 201) {
-          this.usersResponse = response;
           this.toast.success(response.message);
-
+          // Recharger les utilisateurs après suppression
+          await this.fetchUsers(this.currentPage);
         } else {
           this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des utilisateurs");
+        this.toast.error("Erreur lors de la suppression de l'utilisateur");
         console.error(error);
-      } finally {
-        setTimeout(() =>  {
-          this.fetchUsers(1);
-        }, 2000);
       }
     },
     async toggleUserActivation(user, status){
-      //this.isLoading = true;
       const payload = {
         'status': status
       }
       try {
         const response = await toggleActivationUser(user.id, payload) as ApiResponse<any>;
         if (response.code === 201) {
-          this.usersResponse = response;
-          if (response.data) {
-            const responseDecoded = response.data
-            this.toast.success(response.message);
-
-          }
-
+          this.toast.success(response.message);
+          // Recharger les utilisateurs après activation/désactivation
+          await this.fetchUsers(this.currentPage);
         } else {
           this.toast.error(response.message);
         }
       } catch (error) {
-        this.toast.error("Erreur lors du chargement des utilisateurs");
+        this.toast.error("Erreur lors de la modification du statut de l'utilisateur");
         console.error(error);
-      } finally {
-        setTimeout(() =>  {
-          this.fetchUsers(1);
-        }, 2000);
       }
     },
     fetchRole(role: string): string {
@@ -453,15 +442,24 @@ export default defineComponent({
     async fetchUsers(page = 1) {
       this.isLoading = true;
       try {
-        const response = await listeUser(page) as ApiResponse<PaginatedUsers>;
+        const response = await listeUser(page) as any;
         if (response.code === 200) {
-          this.usersResponse = response;
-          if (response.data?.items) {
-            this.originalUsers = response.data.items;
-          }
-          if (response.data && response.data.pagination) {
-            this.currentPage = response.data.pagination.current_page;
-          }
+          const adaptedResponse = {
+            ...response,
+            data: {
+              items: response.data,
+              pagination: {
+                current_page: page,
+                total_items: parseInt(response.pagination?.total || '0'), 
+                total_pages: parseInt(response.pagination?.totalPages || '0'),
+                items_per_page: parseInt(response.pagination?.limit || '10')
+              }
+            }
+          };
+          
+          this.usersResponse = adaptedResponse;
+          this.originalUsers = response.data || [];
+          this.currentPage = page;
         } else {
           this.toast.error(response.message);
         }
@@ -479,18 +477,46 @@ export default defineComponent({
     },
     generatePageNumbers(): number[] {
       const pages: number[] = [];
-      const maxVisiblePages = 100;
+      const maxVisiblePages = 5; // Limiter à 5 pages visibles
       const { current_page, total_pages } = this.pagination;
 
-      let startPage = Math.max(1, current_page - Math.floor(maxVisiblePages / 2));
-      const endPage = Math.min(total_pages, startPage + maxVisiblePages - 1);
+      if (total_pages <= maxVisiblePages) {
+        // Si le nombre total de pages est inférieur ou égal à maxVisiblePages, afficher toutes les pages
+        for (let i = 1; i <= total_pages; i++) {
+          pages.push(i);
+        }
+      } else {
+        // Calculer les pages à afficher autour de la page courante
+        let startPage = Math.max(1, current_page - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(total_pages, startPage + maxVisiblePages - 1);
 
-      if (endPage - startPage + 1 < maxVisiblePages) {
-        startPage = Math.max(1, endPage - maxVisiblePages + 1);
-      }
+        // Ajuster si on est proche de la fin
+        if (endPage - startPage + 1 < maxVisiblePages) {
+          startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
 
-      for (let i = startPage; i <= endPage; i++) {
-        pages.push(i);
+        // Toujours afficher la première page
+        if (startPage > 1) {
+          pages.push(1);
+          if (startPage > 2) {
+            pages.push(-1); // -1 représente "..."
+          }
+        }
+
+        // Pages du milieu
+        for (let i = startPage; i <= endPage; i++) {
+          if (i !== 1 && i !== total_pages) {
+            pages.push(i);
+          }
+        }
+
+        // Toujours afficher la dernière page
+        if (endPage < total_pages) {
+          if (endPage < total_pages - 1) {
+            pages.push(-1); // -1 représente "..."
+          }
+          pages.push(total_pages);
+        }
       }
 
       return pages;

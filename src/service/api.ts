@@ -1190,7 +1190,7 @@ export const reportPeriodiqueCardById = async (restaurantID: string): Promise<Ap
 
 export const createCampagne = async (campagneData): Promise<ApiResponse<any>> =>{
     try {
-        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/v1/campage', campagneData);
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/v1/campaigns', campagneData);
         return response.data;
     } catch (error) {
         console.error("Erreur lors de la creation de campagne", error);
@@ -1220,7 +1220,7 @@ export const listeCampagne = async (page = 1, limit = 10, search = ''): Promise<
 export const detailCampagne = async (campgneID): Promise<ApiResponse<CampagneModel>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/v1/campagne/${campgneID}`);
+        const response = await apiClient.get(`/v1/campaigns/${campgneID}`);
         return response.data;
     } catch (error) {
         throw error;
@@ -1232,7 +1232,7 @@ export const detailCampagne = async (campgneID): Promise<ApiResponse<CampagneMod
 
 export const createNotification = async (notificationData): Promise<ApiResponse<any>> =>{
     try {
-        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/v1/notification', notificationData);
+        const response: AxiosResponse<ApiResponse<any>> = await apiClient.post('/v1/push-notifications', notificationData);
         return response.data;
     } catch (error) {
         console.error("Erreur lors de la creation de notification", error);
@@ -1240,10 +1240,17 @@ export const createNotification = async (notificationData): Promise<ApiResponse<
     }
 };
 
-export const listeNotification = async (page = 1): Promise<ApiResponse<PaginatedNotification>> => {
+export const listeNotification = async (page = 1, limit = 10, search = '', status = ''): Promise<ApiResponse<PaginatedNotification>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/v1/notification/all?page=${page}`);
+
+        const params = new URLSearchParams();
+        if (page) params.append('page', page.toString());
+        if (limit) params.append('limit', limit.toString());
+        if (search) params.append('search', search);
+        if (status) params.append('status', status);
+
+        const response = await apiClient.get(`/v1/push-notifications?${params.toString()}`);
         return new ApiResponse(
             response.data.code,
             response.data.message,
@@ -1368,7 +1375,7 @@ export const toggleActivationProgramme = async (programmeData): Promise<ApiRespo
 export const detailNotification = async (notificationID): Promise<ApiResponse<NotificationModel>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const response = await apiClient.get(`/v1/notification/${notificationID}`);
+        const response = await apiClient.get(`/v1/push-notifications/${notificationID}`);
         return response.data;
     } catch (error) {
         throw error;
@@ -1919,6 +1926,145 @@ export const getRestaurantPostalCodes = async (
         );
     } catch (error) {
         console.error("❌ Erreur lors de la récupération des codes postaux du restaurant", error);
+        throw error;
+    }
+};
+
+// ==================== HORAIRES D'OUVERTURE ====================
+
+// Récupérer les jours d'ouverture d'un restaurant
+export const getOpeningDaysByRestaurant = async (
+    restaurantId: string
+): Promise<ApiResponse<any[]>> => {
+    try {
+        const response = await apiClient.get(`/v1/opening-days/restaurant/${restaurantId}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de la récupération des jours d'ouverture", error);
+        throw error;
+    }
+};
+
+// Créer ou mettre à jour les jours d'ouverture en masse
+export const createBulkOpeningDays = async (
+    restaurantId: string,
+    days: Array<{
+        dayOfWeek: string;
+        status: 'open' | 'closed' | 'partial';
+        description?: string;
+    }>
+): Promise<ApiResponse<any>> => {
+    try {
+        const response = await apiClient.post(`/v1/opening-days/bulk`, {
+            restaurantId,
+            days
+        });
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de la création des jours d'ouverture", error);
+        throw error;
+    }
+};
+
+// Supprimer un jour d'ouverture
+export const deleteOpeningDay = async (
+    dayId: string
+): Promise<ApiResponse<void>> => {
+    try {
+        const response = await apiClient.delete(`/v1/opening-days/${dayId}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de la suppression du jour d'ouverture", error);
+        throw error;
+    }
+};
+
+// Récupérer les horaires d'ouverture d'un restaurant (formaté)
+export const getOpeningHoursByRestaurant = async (
+    restaurantId: string
+): Promise<ApiResponse<any>> => {
+    try {
+        const response = await apiClient.get(`/v1/opening-hours/restaurant/${restaurantId}/formatted`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de la récupération des horaires d'ouverture", error);
+        throw error;
+    }
+};
+
+// Créer ou mettre à jour les horaires d'ouverture en masse
+export const createBulkOpeningHours = async (
+    restaurantId: string,
+    schedules: Array<{
+        dayOfWeek: string;
+        scheduleType: 'opening' | 'break';
+        startTime: string;
+        endTime: string;
+        description?: string;
+    }>
+): Promise<ApiResponse<any>> => {
+    try {
+        const response = await apiClient.post(`/v1/opening-hours/bulk`, {
+            restaurantId,
+            schedules
+        });
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de la création des horaires d'ouverture", error);
+        throw error;
+    }
+};
+
+// Récupérer les horaires d'ouverture d'un restaurant (détaillés)
+export const getDetailedOpeningHours = async (
+    restaurantId: string
+): Promise<ApiResponse<any[]>> => {
+    try {
+        const response = await apiClient.get(`/v1/opening-hours/restaurant/${restaurantId}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de la récupération des horaires détaillés", error);
+        throw error;
+    }
+};
+
+// Supprimer un horaire d'ouverture
+export const deleteOpeningHour = async (
+    hourId: string
+): Promise<ApiResponse<void>> => {
+    try {
+        const response = await apiClient.delete(`/v1/opening-hours/${hourId}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data.data
+        );
+    } catch (error) {
+        console.error("❌ Erreur lors de la suppression de l'horaire", error);
         throw error;
     }
 };

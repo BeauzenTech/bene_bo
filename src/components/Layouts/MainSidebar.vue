@@ -313,6 +313,14 @@
                     Zones de livraison
                   </router-link>
                 </li>
+                <li class="sidebar-sub-menu-item">
+                  <router-link
+                      to="/opening-hours"
+                      class="sidebar-sub-menu-link"
+                  >
+                    Horaires d'ouverture
+                  </router-link>
+                </li>
 
               </ul>
             </div>
@@ -342,11 +350,6 @@
                 <li class="sidebar-sub-menu-item">
                   <router-link to="/utilisateur-list" class="sidebar-sub-menu-link">
                     Liste des utilisateurs
-                  </router-link>
-                </li>
-                <li class="sidebar-sub-menu-item">
-                  <router-link to="/ajout-utilisateur/add" class="sidebar-sub-menu-link">
-                    Ajouter
                   </router-link>
                 </li>
               </ul>

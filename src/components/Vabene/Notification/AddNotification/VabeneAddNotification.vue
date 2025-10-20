@@ -80,7 +80,7 @@
                   v-model="userSelected"
                   :options="originalUsers"
                   label="email"
-                  :reduce="user => user.user.deviceToken"
+                  :reduce="user => user.deviceToken"
                   placeholder="Selectionner un utilisateur"
               />
 
@@ -145,7 +145,8 @@ import {
   updateCategorie,
   uploadFile,
   deleteFileUpload,
-  createCampagne, detailCampagne, listeUser, createNotification, getAllCustomers, listeRestaurant
+  createCampagne, detailCampagne, listeUser, createNotification, getAllCustomers, listeRestaurant,
+  detailNotification
 } from "@/service/api";
 
 import {useToast} from "vue-toastification";
@@ -196,9 +197,9 @@ export default defineComponent({
       },
       isLoading: false,
       logoUpload: null,
-      categorieResponse: null as CampagneModel | null,
+      categorieResponse: null as any | null,
       actionDetected: null as string | null,
-      originalUsers: [] as CustomerModel[], // Stockage des utilisateurs originaux
+      originalUsers: [] as any[], // Stockage des utilisateurs originaux
       userSelected: null,
       sendingType: '' as string,
       typeSending: ["Individuel", "Groupé"] as string[],
@@ -217,8 +218,8 @@ export default defineComponent({
       try {
         const response = await listeRestaurant(page) as ApiResponse<PaginatedRestaurant>;
         if (response.code === 200) {
-          if (response.data?.items) {
-            this.originalRestaurant = [(this.fakeAllOptionFranchise as RestaurantModel), ...response.data.items];
+          if (response.data) {
+            this.originalRestaurant = [(this.fakeAllOptionFranchise as RestaurantModel), ...response.data as any];
             this.restaurantSelected = "Tous les restaurants"
             await this.fetchUsers(1)
           }
@@ -266,13 +267,16 @@ export default defineComponent({
         "title": this.categorieData.title,
         "description": message,
         "destinationDevice": this.categorieData.destination,
-        "data": []
+        "data": [],
+        "type": this.sendingType === 'Individuel' ? 'individual' : (this.sendingType === 'Groupé' ? 'group' : 'individual'),
+        "target": this.restaurantSelected === 'Tous les restaurants' ? 'all_restaurants' : 'restaurant',
       }
       try {
         const response = await createNotification(payload);
         if (response.code === 200) {
           this.toast.success(response.message)
           this.clearData()
+          this.$router.push('/notifications-sending')
         } else {
           this.toast.error(response.message)
         }
@@ -299,9 +303,9 @@ export default defineComponent({
         }
         const response = await getAllCustomers(page, 500);
         if (response.code === 200) {
-          if (response.data?.data) {
-            const data = response.data.data;
-            this.originalUsers = data.filter(item => item.user !== null && item.user.enableNotification  && item.user.deviceToken != null );
+          if (response.data) {
+            const data = response?.data?.data as any;
+            this.originalUsers = data.filter((item: any) => item.enableNotification && item.deviceToken != null);
          
           }
 
@@ -322,8 +326,9 @@ export default defineComponent({
         if (response.code === 200) {
           if (response.data?.data) {
             const data = response.data.data;
-            this.originalUsers = data.filter(item => item.user !== null && item.user.enableNotification  && item.user.deviceToken != null );
-                     }
+            this.originalUsers = data.filter((item: any) => item.enableNotification && item.deviceToken != null);
+                  
+          }
 
         } else {
           this.toast.error(response.message);
@@ -365,13 +370,13 @@ export default defineComponent({
     async fetchDetailCategorie(categorieID) {
       this.isLoading = true;
       try {
-        const response = await detailCampagne(categorieID) as ApiResponse<CampagneModel>;
+        const response = await detailNotification(categorieID) as ApiResponse<any>;
         if (response.code === 200) {
           if(response.data){
-            this.categorieResponse = response.data;
-            this.categorieData.title = this.categorieResponse.title;
-            this.categorieData.message = this.categorieResponse.message;
-            this.categorieData.destination = this.categorieResponse.destination;
+            this.categorieResponse = response.data as any;
+            this.categorieData.title = this.categorieResponse?.title ?? '';
+            this.categorieData.message = this.categorieResponse?.description ?? '';
+            this.categorieData.destination = this.categorieResponse?.destination ?? [];
           }
         } else {
           this.toast.error(response.message);
@@ -515,7 +520,7 @@ export default defineComponent({
       const newValue = newVal as string
       if(newValue == 'Groupé'){
         for(let i=0; i<this.originalUsers.length; i++){
-          this.categorieData.destination.push(this.originalUsers[i].user.deviceToken);
+          this.categorieData.destination.push(this.originalUsers[i].deviceToken);
         }
       }
       this.userSelected = null;

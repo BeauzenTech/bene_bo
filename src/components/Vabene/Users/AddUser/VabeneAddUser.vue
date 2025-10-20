@@ -527,9 +527,8 @@ export default defineComponent({
     },
     async updateAccount(userID) {
       this.isLoading = true;
-      const oldEmail = this.userResponse?.email
       const payload = {
-        "email": this.userData.email !== oldEmail ? this.userData.email : '',
+        "email": this.userData.email,
         "roles": this.userData.roles,
         "firstName": this.userData.firstName,
         "lastName": this.userData.lastName,
@@ -542,9 +541,10 @@ export default defineComponent({
       }
       try {
         const response = await updateUser(userID ,payload);
-        if (response.code === 201) {
+        if (response.code === 201 || response.code === 200) {
           this.toast.success(response.message)
           this.clearData()
+          this.$router.back()
         } else {
           this.toast.error(response.message)
         }

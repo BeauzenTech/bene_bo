@@ -449,8 +449,8 @@ export default defineComponent({
         const response = await listeNotification(page) as ApiResponse<PaginatedNotification>;
         if (response.code === 200) {
           this.categorieResponse = response;
-          if (response.data?.items) {
-            this.originalCategories = response.data.items;
+          if (response.data) {
+            this.originalCategories = response.data as any;
           }
           if (response.data && response.data.pagination) {
             this.currentPage = response.data.pagination.current_page;
