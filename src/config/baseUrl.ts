@@ -1,4 +1,4 @@
 export const apiConfig = {
-    baseURL: "http://localhost:3000/api",
+    baseURL: "http://srv836044.hstgr.cloud:3001/api",
     localURL: "http://localhost:8080"
 }
