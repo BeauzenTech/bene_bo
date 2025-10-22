@@ -1,4 +1,4 @@
 export const apiConfig = {
-    baseURL: "http://srv836044.hstgr.cloud:3001/api",
+    baseURL: "https://vabene-api.fly.dev/api",
     localURL: "http://localhost:8080"
 }
