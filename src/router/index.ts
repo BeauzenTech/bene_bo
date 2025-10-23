@@ -194,13 +194,18 @@ import VaBeneCouponListPage from "@/pages/Vabene/Coupon/VaBeneCouponListPage.vue
 import VabeneIngredientBaseListPage from "@/pages/Vabene/IngredientBase/VabeneIngredientBaseListPage.vue";
 import VaBeneProgrammeAffiliationListPage from "@/pages/Vabene/Programme/VaBeneProgrammeAffiliationListPage.vue";
 import VabeneAddProgrammePage from "@/pages/Vabene/Programme/VabeneAddProgrammePage.vue";
+import VabeneAdminDashPage from "@/pages/Vabene/Dashboard/VabeneAdminDashPage.vue";
 
 const routes = [
-    // DASHBOARD HOME
   {
     path: "/home",
     name: "VabeneDashPage",
     component: VabeneDashPage,
+  },
+  {
+    path: "/admin-dashboard",
+    name: "VabeneAdminDashPage",
+    component: VabeneAdminDashPage,
   },
   {
     path: "/password-oublie",

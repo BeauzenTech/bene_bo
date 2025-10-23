@@ -152,8 +152,13 @@ export default {
     }
   },
   methods: {
-    gotoHome(){
-      this.$router.push({ name: 'VabeneDashPage' })
+    gotoHome(role){
+      const userRole = localStorage.getItem(UserGeneralKey.USER_ROLE);
+      if(role === userRole){
+        this.$router.push({ name: 'VabeneAdminDashPage' })
+      }  else {
+        this.$router.push({ name: 'VabeneDashPage' })
+      }
     },
     async authLogin() {
       this.isLoading = true;
@@ -168,10 +173,10 @@ export default {
           
           if (token) {
             localStorage.setItem(UserGeneralKey.USER_TOKEN, token);
-            debugToken(); // Déboguer le token après stockage
+            debugToken(); 
             this.toast.success(response.message);
             await this.getUserData();
-            this.gotoHome();
+            this.gotoHome(response.data.user.roles[0]);
           } else {
             console.error('🔐 Token non trouvé dans la réponse:', response);
             this.toast.error('Token d\'authentification manquant dans la réponse');

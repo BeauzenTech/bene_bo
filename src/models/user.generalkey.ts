@@ -47,9 +47,6 @@ export class UserGeneralKey {
         if (typeof user.profil_picture === "string") {
             localStorage.setItem(UserGeneralKey.USER_PROFIL_IMG, user.profil_picture)
         }
-        if(user.franchises.length > 0){
-            localStorage.setItem(UserGeneralKey.USER_FRANCHISE_ID, user.franchises[0].id);
-        }
         if(user.restaurant){
             localStorage.setItem(UserGeneralKey.USER_RESTAURANT_ID, user.restaurant.id);
         }
