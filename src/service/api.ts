@@ -530,7 +530,6 @@ export const listeOrder = async (
 ): Promise<ApiResponse<PaginatedOrder>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const userID = localStorage.getItem(UserGeneralKey.USER_ID);
         const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID);
         const role = localStorage.getItem(UserGeneralKey.USER_ROLE)
         const id = role === UserRole.FRANCHISE ? 'all' : restaurantID
@@ -559,6 +558,43 @@ export const listeOrder = async (
         throw error;
     }
 };
+
+
+export const listeOrderByAdmin = async (
+    page: number = 1, 
+    limit: number = 10, 
+    restaurantID: string,
+    search?: string, 
+    status?: string
+): Promise<ApiResponse<PaginatedOrder>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        
+        // Construire les paramètres de requête
+        const params = new URLSearchParams({
+            page: page.toString(),
+            limit: limit.toString()
+        });
+        
+        if (search) {
+            params.append('search', search);
+        }
+        
+        if (status) {
+            params.append('status', status);
+        }
+        
+        const response = await apiClient.get(`/v1/restaurants/${restaurantID}/orders?${params.toString()}`);
+        return new ApiResponse(
+            response.data.code,
+            response.data.message,
+            response.data
+        );
+    } catch (error) {
+        throw error;
+    }
+};
+
 
 export const detailOrder = async (orderID): Promise<ApiResponse<OrderModel>> => {
     // eslint-disable-next-line no-useless-catch

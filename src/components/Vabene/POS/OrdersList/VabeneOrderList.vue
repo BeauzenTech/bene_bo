@@ -20,6 +20,21 @@
         <!--          Export-->
         <!--          <i class="flaticon-file-1 position-relative ms-5 top-2 fs-15"></i>-->
         <!--        </button>-->
+        <div class="d-sm-flex align-items-center">
+        <div class="me-3">
+          <label class="form-label text-muted small mb-1">Restaurant</label>
+          <v-select
+              v-model="selectedRestaurant"
+              :options="restaurantOptions"
+              label="name"
+              :reduce="restaurant => restaurant.id"
+              placeholder="Sélectionner un restaurant"
+              class="restaurant-select"
+              @change="onRestaurantChange"
+              @input="onRestaurantChange"
+          />
+        </div>
+      </div>
       </div>
       <div class="d-flex align-items-center">
         <form class="search-box position-relative me-15" @submit.prevent>
@@ -227,8 +242,8 @@
 </template>
 <script lang="ts">
 import { defineComponent } from "vue";
-import { listeOrder, toggleActivationUser, deleteUser, listeRestaurant } from "@/service/api";
-import { UserGeneralKey } from "@/models/user.generalkey";
+import { listeOrder, toggleActivationUser, deleteUser, listeRestaurant, listeOrderByAdmin } from "@/service/api";
+import { UserGeneralKey, UserRole } from "@/models/user.generalkey";
 import { useToast } from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import EmptyTable from "@/components/Vabene/EmptyTable/EmptyTable.vue";
@@ -238,6 +253,7 @@ import { OrderModel } from "@/models/order.model";
 import VabeneOrderDetailsPage from "@/pages/Vabene/Order/VabeneOrderDetailsPage.vue";
 import { RestaurantEnum } from "../../../../enums/restaurant.enum";
 import { formatInTimeZone } from "date-fns-tz";
+import { RestaurantModel } from "@/models/restaurant.model";
 
 export default defineComponent({
   name: "VabeneOrderList",
@@ -253,7 +269,10 @@ export default defineComponent({
       orderSelected: null,
       refreshInterval: null as NodeJS.Timeout | null, // Intervalle de rafraîchissement
       lastRefreshTime: null as Date | null, // Dernier rafraîchissement
-      searchTimeout: null as ReturnType<typeof setTimeout> | null, // Timeout pour la recherche
+      searchTimeout: null as ReturnType<typeof setTimeout> | null, 
+      restaurantOptions: [] as RestaurantModel[],
+      selectedRestaurant: null as string | null,
+      userRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
     }
   },
   computed: {
@@ -372,14 +391,63 @@ export default defineComponent({
     convertDateCreate(date: string): string {
       return UserGeneralKey.formatDateToFrenchLocale(date);
     },
-    async fetchOrder(page = 1, search = '', status = '') {
-      // Ne pas afficher le loader pour les rafraîchissements automatiques
+    async fetchRestaurants() {
+      try {
+        const response = await listeRestaurant(1) as any;
+        console.log('Réponse API restaurants:', response);
+        
+        if (response.code === 200 && response.data) {
+          this.restaurantOptions = response.data;
+          if (this.restaurantOptions.length > 0) {
+            this.selectedRestaurant = this.restaurantOptions[0].id;
+            await this.onRestaurantChange(this.selectedRestaurant);
+          }
+        } else {
+          this.toast.error(response.message || "Erreur lors du chargement des restaurants");
+        }
+      } catch (error) {
+        this.toast.error("Erreur lors du chargement des restaurants");
+        console.error(error);
+      }
+    },
+    async onRestaurantChange(restaurantId: string) {
+        if (restaurantId) {
+        await this.fetchOrder(1, '', '', restaurantId);
+      } 
+    },
+    async fetchOrder(page = 1, search = '', status = '', restaurantID = '') {
       const isAutoRefresh = this.refreshInterval && !this.isLoading;
-      
       if (!isAutoRefresh) {
         this.isLoading = true;
       }
-      
+      if(this.userRole === UserRole.FRANCHISE){
+        try{
+          const response = await listeOrderByAdmin(page, 10, restaurantID, search, status) as ApiResponse<PaginatedOrder>;
+          if (response.code === 200) {
+          this.orderResponse = response;
+          
+          if ((response.data as any)?.data?.orders) {
+            this.originalOrder = (response.data as any)?.data?.orders as any;
+          }
+          
+          if ((response.data as any)?.data?.pagination) {
+            this.currentPage = (response.data as any)?.data?.pagination.page;
+          }
+          
+          
+        } else {
+          if (!isAutoRefresh) {
+            this.toast.error(response.message);
+          }
+        }
+        }catch (error) {
+        if (!isAutoRefresh) {
+          this.toast.error("Erreur lors du chargement des commandes");
+        } 
+      } finally {
+        this.isLoading = false;
+      }
+      } else {
       try {
         const response = await listeOrder(page, 10, search, status) as ApiResponse<PaginatedOrder>;
         
@@ -390,7 +458,6 @@ export default defineComponent({
             this.originalOrder = (response.data as any)?.data?.orders as any;
           }
           
-          // La pagination est au niveau racine de la réponse
           if ((response.data as any)?.data?.pagination) {
             this.currentPage = (response.data as any)?.data?.pagination.page;
           }
@@ -408,6 +475,8 @@ export default defineComponent({
       } finally {
         this.isLoading = false;
       }
+      }
+      
     },
     changePage(page: number) {
       if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
@@ -433,42 +502,38 @@ export default defineComponent({
       return pages;
     },
     
-    // Méthode pour démarrer le rafraîchissement automatique
     startAutoRefresh() {
-      // Nettoyer l'intervalle existant s'il y en a un
+      if(this.userRole === UserRole.FRANCHISE){
+        return;
+      }
+      else{
       if (this.refreshInterval) {
         clearInterval(this.refreshInterval);
       }
-      
-      // Démarrer un nouvel intervalle toutes les 2 minutes (120000 ms)
       this.refreshInterval = setInterval(() => {
         this.lastRefreshTime = new Date();
         this.fetchOrder(this.currentPage, this.searchQuery);
       }, 120000); // 2 minutes
-      
+    }
     },
     
-    // Méthode pour arrêter le rafraîchissement automatique
     stopAutoRefresh() {
       if (this.refreshInterval) {
         clearInterval(this.refreshInterval);
         this.refreshInterval = null;
       }
     },
-    
-    // Méthode pour forcer un rafraîchissement manuel
     forceRefresh() {
       this.lastRefreshTime = new Date();
-      this.fetchOrder(this.currentPage, this.searchQuery);
+      if(this.userRole !== UserRole.FRANCHISE){
+        this.fetchOrder(this.currentPage, this.searchQuery);
+      }
     },
     
-    // Méthode pour gérer la recherche
     handleSearch() {
       this.currentPage = 1;
       this.fetchOrder(1, this.searchQuery);
     },
-    
-    // Méthodes helper pour accéder aux nouvelles propriétés
     getOrderTransactionReference(order: any): string {
       return order.transactionReference || order.nif || '-';
     },
@@ -508,10 +573,14 @@ export default defineComponent({
     return { toast };
   },
   watch: {
-    // Watcher pour la recherche avec debounce
+    
+    selectedRestaurant(newVal, oldVal) {
+      if (newVal && newVal !== oldVal) {
+        this.onRestaurantChange(newVal);
+      }
+    },
     searchQuery: {
       handler(newQuery) {
-        // Debounce de 500ms pour éviter trop de requêtes
         if (this.searchTimeout) {
           clearTimeout(this.searchTimeout);
         }
@@ -522,6 +591,7 @@ export default defineComponent({
     }
   },
   mounted() {
+    this.fetchRestaurants();
     this.fetchOrder();
     this.startAutoRefresh(); // Démarrer le rafraîchissement automatique
   },

@@ -397,15 +397,7 @@ export default defineComponent({
     },
 
     pagination(): any {
-      if(this.userRole === UserRole.FRANCHISE){
-        return this.categorieResponse?.data?.pagination || {
-          current_page: 1,
-          total_items: 0,
-          total_pages: 1,
-          items_per_page: 8
-        };
-      }
-      else{
+     
         // Adapter la structure de pagination pour la nouvelle API
         const pagination = this.categorieRestaurantResponse?.data?.pagination;
         if (pagination) {
@@ -422,7 +414,6 @@ export default defineComponent({
           total_pages: 1,
           items_per_page: 10
         };
-      }
     },
     paginationInfo(): string {
       const paginationData = this.pagination;

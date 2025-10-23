@@ -306,7 +306,6 @@ export default defineComponent({
   },
   watch: {
     selectedRestaurant(newVal, oldVal) {
-      console.log('selectedRestaurant watcher - ancien:', oldVal, 'nouveau:', newVal);
       if (newVal && newVal !== oldVal) {
         this.onRestaurantChange(newVal);
       }
@@ -329,13 +328,8 @@ export default defineComponent({
         
         if (response.code === 200 && response.data) {
           this.restaurantOptions = response.data;
-          console.log('Restaurants chargés:', this.restaurantOptions.length);
-          console.log('Liste des restaurants:', this.restaurantOptions.map(r => ({ id: r.id, name: r.name })));
-          
-          // Sélectionner le premier restaurant par défaut
           if (this.restaurantOptions.length > 0) {
             this.selectedRestaurant = this.restaurantOptions[0].id;
-            console.log('Restaurant sélectionné par défaut:', this.selectedRestaurant);
             await this.onRestaurantChange(this.selectedRestaurant);
           }
         } else {
@@ -347,27 +341,19 @@ export default defineComponent({
       }
     },
     async onRestaurantChange(restaurantId: string) {
-      console.log('onRestaurantChange appelé avec:', restaurantId);
-      console.log('Type de restaurantId:', typeof restaurantId);
       
       if (restaurantId) {
-        console.log('Début du changement de restaurant...');
         
         // Réinitialiser les données avant de charger les nouvelles
         this.zonesResponse = null;
         this.originalZones = [];
         this.postalCodesData = [];
         
-        console.log('Données réinitialisées, chargement des nouvelles données...');
         
         // Charger les nouvelles données
         await this.fetchZones(restaurantId);
         await this.fetchPostalCodes(restaurantId);
-        
-        console.log('Changement de restaurant terminé');
-      } else {
-        console.log('restaurantId est vide ou null');
-      }
+      } 
     },
     async fetchPostalCodes(restaurantId: string) {
       try {

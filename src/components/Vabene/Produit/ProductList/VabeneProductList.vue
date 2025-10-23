@@ -99,7 +99,7 @@
               CRÉER LE
             </th>
 
-            <th v-if="userRole === UserRole.FRANCHISE"
+            <!-- <th v-if="userRole === UserRole.FRANCHISE"
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
@@ -110,7 +110,7 @@
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
             >
               VEDETTE
-            </th>
+            </th> -->
             <th
                 scope="col"
                 class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
@@ -137,7 +137,7 @@
             </td>
           </tr>
         
-          <tr v-else-if="!isLoading && allRestaurantProducts.length > 0 && userRole === UserRole.RESTAURANT"
+          <tr v-else-if="!isLoading && allRestaurantProducts.length > 0 && ( userRole === UserRole.RESTAURANT || userRole === UserRole.FRANCHISE)"
               v-for="(pr, index) in allRestaurantProducts" :key="pr.id"
           >
             <th
@@ -442,22 +442,13 @@ export default defineComponent({
     },
 
     pagination(): any {
-      if(this.userRole === UserRole.FRANCHISE){
-        return this.productResponse?.data?.pagination || {
-          current_page: 1,
-          total_items: 0,
-          total_pages: 1,
-          items_per_page: 8
-        };
-      }
-      else{
         return this.productRestaurantResponse?.data?.pagination || {
           current_page: 1,
           total_items: 0,
           total_pages: 1,
           items_per_page: 8
         };
-      }
+  
 
     },
     paginationInfo(): string {
@@ -686,12 +677,9 @@ export default defineComponent({
             this.categorieSelected = this.originalCategories[0];
           this.toast.success(response?.message);
           
-            if(this.userRole === UserRole.FRANCHISE){
-            await this.fetchProduct(1, "existing", this.categorieSelected.id);
-            }
-            else{
-              await this.fetchRestaurantProduct(1, this.categorieSelected.id)
-            }
+           
+          await this.fetchRestaurantProduct(1, this.categorieSelected.id)
+            
         }
       } catch (error) {
         this.toast.error("Erreur lors du chargement des categories");
@@ -783,16 +771,11 @@ export default defineComponent({
 
     changePage(page: number) {
       if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
-        if(this.userRole === UserRole.FRANCHISE){
-          if(this.categorieSelected){
-            this.fetchProduct(page, "existing", this.categorieSelected.id)
-          }
-        }
-        else{
+        
           if(this.categorieSelected){
             this.fetchRestaurantProduct(page, this.categorieSelected.id)
           }
-        }
+        
       }
     },
     generatePageNumbers(): number[] {
@@ -825,12 +808,9 @@ export default defineComponent({
     categorieSelected(newVal, oldVal) {
       if (typeof newVal === 'string' && newVal !== oldVal) {
         this.categorieSelected = this.originalCategories.find(c => c.id === newVal) ?? null;
-        if(this.userRole === UserRole.FRANCHISE){
-          this.fetchProduct(1, "existing", newVal); // ou newVal.id selon le besoin
-        }
-        else{
+       
          this.fetchRestaurantProduct(1,  newVal);
-        }
+        
 
       }
     }
