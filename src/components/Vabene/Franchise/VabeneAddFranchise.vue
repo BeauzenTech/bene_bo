@@ -731,8 +731,6 @@ export default defineComponent({
         const response = await fetchAllPostalCode();
         if (response.code === 200) {
           this.allPostalCode = response.data
-        } else {
-          this.toast.error(response.message)
         }
       } catch (error) {
         const axiosError = error as AxiosError;
