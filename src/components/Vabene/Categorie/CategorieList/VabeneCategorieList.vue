@@ -98,123 +98,7 @@
               <LoaderComponent/>
             </td>
           </tr>
-          <tr v-else-if="!isLoading && allCategorie.length > 0 && userRole === UserRole.FRANCHISE"
-              v-for="(categorie, index) in allCategorie" :key="categorie.id"
-          >
-            <th
-                class="shadow-none lh-1 fw-medium text-black-emphasis title ps-0 text-capitalize"
-            >
-              <div class="d-flex align-items-center text-capitalize">
-                <div class="form-check mb-0 text-capitalize">
-                  <input
-                      class="form-check-input shadow-none"
-                      type="checkbox"
-                  />
-                </div>
-                <div
-                    class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
-                >
-                  <a href="#" @click="selectForDetail(categorie)">
-                    {{ index + 1}} - {{ getShortUuid(categorie.id) }}
-                  </a>
-
-
-                </div>
-              </div>
-            </th>
-            <td class="shadow-none lh-1 fw-medium text-black-emphasis">
-              {{ categorie.name }}
-            </td>
-            <th
-                class="shadow-none lh-1 fw-medium text-black-emphasis title ps-0 text-capitalize"
-            >
-              <div class="d-flex align-items-center text-capitalize">
-
-                <div
-                    class="d-flex align-items-center ms-5 fs-md-15 fs-lg-16"
-                >
-                  <img
-                      :src=" categorie.icone || require('@/assets/images/icon/jpg.png')"
-                      class="rounded-circle me-8"
-                      width="24"
-                      height="24"
-                      alt="categorie"
-                  />
-                 
-                </div>
-              </div>
-            </th>
-
-
-
-            <td class="shadow-none lh-1 fw-medium text-muted">
-              {{ convertDateCreate(categorie.created_at)  }}
-            </td>
-
-            <td>
-              <!-- Toggle switch -->
-              <div class="form-check form-switch">
-                <input
-                    class="form-check-input"
-                    type="checkbox"
-                    v-model="categorie.isActive"
-                    @change="toggleCategorieActivation(categorie, categorie.isActive)"
-                />
-
-              </div>
-            </td>
-            <td
-                class="shadow-none lh-1 fw-medium text-body-tertiary text-end pe-0"
-            >
-              <div class="dropdown">
-                <button
-                    class="dropdown-toggle lh-1 bg-transparent border-0 shadow-none p-0 transition"
-                    type="button"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                >
-                  <i class="flaticon-dots"></i>
-                </button>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a
-                        class="dropdown-item d-flex align-items-center"
-                        href="javascript:void(0);"
-                        @click="selectForDetail(categorie)"
-                    ><i
-                        class="flaticon-view lh-1 me-8 position-relative top-1"
-                    ></i>
-                      Voir</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                        class="dropdown-item d-flex align-items-center"
-                        href="javascript:void(0);"
-                        @click="selectForDetail(categorie)"
-                    ><i
-                        class="flaticon-pen lh-1 me-8 position-relative top-1"
-                    ></i>
-                      Editer</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                        class="dropdown-item d-flex align-items-center"
-                        data-bs-toggle="modal" data-bs-target="#confirmModal"
-                        href="javascript:void(0);"
-                        @click="selectForDelete(categorie)"
-                    ><i
-                        class="flaticon-delete lh-1 me-8 position-relative top-1"
-                    ></i>
-                      Supprimer</a
-                    >
-                  </li>
-                </ul>
-              </div>
-            </td>
-          </tr>
-          <tr v-else-if="!isLoading && allRestaurantCategorie.length > 0 && userRole === UserRole.RESTAURANT"
+          <tr v-else-if="!isLoading && allRestaurantCategorie.length > 0 && (userRole === UserRole.RESTAURANT || userRole === UserRole.FRANCHISE)"
               v-for="(cat, index) in allRestaurantCategorie" :key="cat.id"
           >
             <th
@@ -273,8 +157,8 @@
                 <input
                     class="form-check-input"
                     type="checkbox"
-                    v-model="cat.isActive"
-                    @change="toggleCategorieActivation(cat, cat.isActive)"
+                    :checked="getIsActiveBoolean(cat.isActive)"
+                    @change="handleToggleChange(cat, $event)"
                 />
 
               </div>
@@ -556,6 +440,25 @@ export default defineComponent({
     getShortUuid(uuid: string): string {
       return uuid.split('-')[0];
     },
+    getIsActiveBoolean(isActive: any): boolean {
+      // Convertir 1/0 ou "1"/"0" en booléen
+      if (typeof isActive === 'boolean') {
+        return isActive;
+      }
+      if (typeof isActive === 'number') {
+        return isActive === 1;
+      }
+      if (typeof isActive === 'string') {
+        return isActive === '1' || isActive === 'true';
+      }
+      return false;
+    },
+    handleToggleChange(categorie: any, event: Event): void {
+      const target = event.target as HTMLInputElement;
+      if (target) {
+        this.toggleCategorieActivation(categorie, target.checked);
+      }
+    },
     gotoCreate(){
       this.$router.push({
         name: "VabeneAddCategoriePage",
@@ -600,27 +503,7 @@ export default defineComponent({
       }
     },
     async confirmationDeleteAction(categorie){
-      if(this.userRole === UserRole.FRANCHISE){
-        const publicID = Commons.extractPublicId(categorie.icone)
-        try {
-          const response = await deleteCategorie(categorie.id) as ApiResponse<any>;
-          await this.deleteFileUpload(publicID)
-          if (response.code === 201) {
-            this.categorieResponse = response;
-            this.toast.success(response.message);
-          } else {
-            this.toast.error(response.message);
-          }
-        } catch (error) {
-          this.toast.error("Erreur lors du chargement des categories");
-          console.error(error);
-        } finally {
-          setTimeout(() =>  {
-            this.fetchCategories(1);
-          }, 3000);
-        }
-      }
-      else{
+ 
         try {
           const response = await deleteRestaurantCategorie(categorie.id) as ApiResponse<any>;
           if (response.code === 201 || response.code === 200) {
@@ -630,53 +513,23 @@ export default defineComponent({
         } catch (error) {
           console.error(error);
         } finally {
-          if(this.userRole === UserRole.FRANCHISE){
-            setTimeout(() =>  {
-              this.fetchCategories(1);
-            }, 3000);
-          }
-          else{
+         
             setTimeout(() =>  {
               this.fetchCategoriesRestaurant(1);
             }, 3000);
-          }
+          
 
         }
-      }
+      
 
     },
-    async toggleCategorieActivation(categorie, status){
+    async toggleCategorieActivation(categorie, isChecked){
       //this.isLoading = true;
-      if(this.userRole === UserRole.FRANCHISE){
-        const payload = {
-          'status': status
-        }
-        try {
-          const response = await toggleActivationCategorie(categorie.id, payload) as ApiResponse<any>;
-          if (response.code === 200) {
-            this.categorieResponse = response;
-            if (response.data) {
-              const responseDecoded = response.data
-              this.toast.success(response.message);
-            }
-
-          } else {
-            this.toast.error(response.message);
-          }
-        } catch (error) {
-          this.toast.error("Erreur lors du chargement des categories");
-          console.error(error);
-        } finally {
-          setTimeout(() =>  {
-            this.fetchCategories(1);
-          }, 2000);
-        }
-      }
-      else{
-
         try {
           const response = await toggleActivationCategorieRestaurant(categorie.id) as ApiResponse<any>;
           if (response.code === 200) {
+            // Mettre à jour la valeur locale immédiatement
+            categorie.isActive = isChecked ? 1 : 0;
             this.toast.success(response.message);
             if (response.data) {
               const responseDecoded = response.data
@@ -685,16 +538,20 @@ export default defineComponent({
 
           } else {
             this.toast.error(response.message);
+            // Revenir à l'état précédent en cas d'erreur
+            categorie.isActive = categorie.isActive === 1 ? 0 : 1;
           }
         } catch (error) {
           this.toast.error("Erreur lors du chargement des categories");
           console.error(error);
+          // Revenir à l'état précédent en cas d'erreur
+          categorie.isActive = categorie.isActive === 1 ? 0 : 1;
         } finally {
           setTimeout(() =>  {
             this.fetchCategoriesRestaurant(1);
           }, 2000);
         }
-      }
+      
 
     },
     fetchRole(role: string): string {
@@ -760,12 +617,9 @@ export default defineComponent({
     },
     changePage(page: number) {
       if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
-        if(this.userRole === UserRole.FRANCHISE){
-          this.fetchCategories(page);
-        }
-        else{
+        
           this.fetchCategoriesRestaurant(page)
-        }
+        
       }
     },
     generatePageNumbers(): number[] {
@@ -796,22 +650,14 @@ export default defineComponent({
       // Déclencher la recherche avec un délai pour éviter trop d'appels
       clearTimeout(this.searchTimeout);
       this.searchTimeout = setTimeout(() => {
-        if(this.userRole === UserRole.FRANCHISE){
-          this.fetchCategories();
-        }
-        else{
           this.fetchCategoriesRestaurant(1);
-        }
+        
       }, 500);
     }
   },
   mounted() {
-    if(this.userRole === UserRole.FRANCHISE){
-      this.fetchCategories();
-    }
-    else{
       this.fetchCategoriesRestaurant()
-    }
+
 
   }
 });
