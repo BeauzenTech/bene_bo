@@ -95,7 +95,7 @@
             Restaurants
           </span>
           <span class="d-inline-block fs-md-15 fs-lg-16 text-muted">
-            {{allRestaurantByFranchise.length}} Restaurants
+            {{restaurantResponse.length}} Restaurants
           </span>
         </li>
       </ul>
@@ -106,14 +106,13 @@
 <script lang="ts">
 import {FranchiseModel} from "@/models/franchise.model";
 import {UserGeneralKey} from "@/models/user.generalkey";
-import {detailFranchise} from "@/service/api";
+import {detailFranchise, listeRestaurant} from "@/service/api";
 import {ApiResponse} from "@/models/Apiresponse";
 import {defineComponent} from "vue";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import {ActionCrud} from "@/enums/actionCrud.enum";
 import {RestaurantModel} from "@/models/restaurant.model";
 import {IngredientModel} from "@/models/ingredient.model";
-import {FranchiseEnum} from "@/enums/restaurant.enum";
 
 
 export default defineComponent({
@@ -122,6 +121,7 @@ export default defineComponent({
   data(){
     return{
       franchiseResponse: null as FranchiseModel | null,
+      restaurantResponse: [] as any[],
       isLoading: false,
       allRestaurantByFranchise: [] as RestaurantModel[]
     }
@@ -138,9 +138,9 @@ export default defineComponent({
     },
     async fetchFranchises() {
       this.isLoading = true;
-
       try {
-        const response = await detailFranchise(FranchiseEnum.id) as ApiResponse<FranchiseModel>;
+        const franchiseID = localStorage.getItem(UserGeneralKey.USER_FRANCHISE_ID);
+        const response = await detailFranchise(franchiseID as string) as ApiResponse<FranchiseModel>;
         if (response.code === 200) {
           this.franchiseResponse = response.data as FranchiseModel;
           for (let i = 0; i < this.franchiseResponse.restaurants.length; i++) {
@@ -148,9 +148,6 @@ export default defineComponent({
               this.allRestaurantByFranchise.push(this.franchiseResponse.restaurants[i] as RestaurantModel);
             }
           }
-
-
-
         } else {
           console.error(response.message)
         }
@@ -160,10 +157,20 @@ export default defineComponent({
         this.isLoading = false;
       }
     },
+    async fetchAllRestaurants() {
+      this.isLoading = true;
+      const response = await listeRestaurant(1) as any;
+        if (response.code === 200) {
+          this.restaurantResponse = response?.data || [];
+          
+          
+        }
+    }
   },
 
   mounted(){
     this.fetchFranchises();
+    this.fetchAllRestaurants();
   }
 })
 </script>

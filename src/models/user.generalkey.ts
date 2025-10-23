@@ -43,6 +43,7 @@ export class UserGeneralKey {
         localStorage.setItem(UserGeneralKey.USER_FIRST_NAME, user.first_name);
         localStorage.setItem(UserGeneralKey.USER_LAST_NAME, user.last_name);
         localStorage.setItem(UserGeneralKey.USER_RESTAURANT_ID, user.restaurant_id);
+        localStorage.setItem(UserGeneralKey.USER_FRANCHISE_ID, user.franchise);
         if (typeof user.profil_picture === "string") {
             localStorage.setItem(UserGeneralKey.USER_PROFIL_IMG, user.profil_picture)
         }

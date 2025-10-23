@@ -3,6 +3,3 @@ export enum RestaurantEnum {
     RESTO_MORGES = 'fd9d1677-f994-473a-9939-908cf3145bd4',
 }
 
-export enum FranchiseEnum{
-    id= 'a09aae00-0038-40ff-9d81-d3f5b5f497c5'
-}

@@ -14,7 +14,8 @@ export interface UserModel {
     postal_code: string;
     profil_picture: string | null;
     batiment: string | null
-    numeroRue: string | null
+    numeroRue: string | null;
+    franchise: string;
     is_verified: boolean;
     is_active: boolean;
     created_at: string;

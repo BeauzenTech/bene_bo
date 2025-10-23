@@ -517,7 +517,6 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await listeRestaurant(page) as any;
-        console.log('Réponse API restaurants:', response);
         
         if (response.code === 200) {
           // Stocker la réponse brute pour les informations de pagination
