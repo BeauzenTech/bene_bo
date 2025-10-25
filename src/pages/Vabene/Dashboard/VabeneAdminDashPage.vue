@@ -11,14 +11,6 @@
         <div class="col-xxl-7 col-xxxl-6">
           <HeadDash :orderAmount="String(getCardValue(0) || '0')" id="whatHappening" />
         </div>
-        <div class="col-xxl-5 col-xxxl-6">
-          <div class="row">
-            <div class="col-lg-12">
-              <!-- <VabeneNombreCommandeProductDate id="nombreCommandeProductDate" :restaurantId="restaurantId ?? 'all'" /> -->
-            </div>
-  
-          </div>
-        </div>
   
       </div>
       <!-- Section Ventes par Restaurant -->
@@ -54,15 +46,15 @@
         </div>
       </div>
 
-      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 bg-white mb-8">
-        <div class="col mb-6" v-if="periodiqueReportCard">
+      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 bg-white mb-8">
+        <div class="col mb-6" >
           <div class="card radius-10 border-start border-0 border-3 border-info">
             <div class="card-body">
               <div class="d-flex align-items-center">
                 <div>
                   <p class="mb-0 text-secondary">Ventes cette semaine</p>
                   <h4 class="my-1 text-info">{{getCardValue(0)}} CHF</h4>
-                  <p class="mb-0 font-13">{{getCardRatio(0)}}%</p>
+                  <!-- <p class="mb-0 font-13">{{getCardRatio(0)}}%</p> -->
                 </div>
                 <div class="widgets-icons-2 rounded-circle bg-gradient-scooter text-white ms-auto"><i class="fa fa-shopping-cart"></i>
                 </div>
@@ -70,7 +62,7 @@
             </div>
           </div>
         </div>
-        <div class="col" v-if="periodiqueReportCard">
+        <!-- <div class="col" >
           <div class="card radius-10 border-start border-0 border-3 border-danger">
             <div class="card-body">
               <div class="d-flex align-items-center">
@@ -84,15 +76,15 @@
               </div>
             </div>
           </div>
-        </div>
-        <div class="col" v-if="periodiqueReportCard">
+        </div> -->
+        <div class="col" >
           <div class="card radius-10 border-start border-0 border-3 border-success">
             <div class="card-body">
               <div class="d-flex align-items-center">
                 <div>
                   <p class="mb-0 text-secondary">Ce mois</p>
-                  <h4 class="my-1 text-primary">{{getCardValue(2)}}</h4>
-                  <p class="mb-0 font-13">{{getCardRatio(2)}}%</p>
+                  <h4 class="my-1 text-primary">{{getCardValue(1)}} CHF</h4>
+                  <!-- <p class="mb-0 font-13">{{getCardRatio(1)}}%</p> -->
   
                 </div>
                 <div class="widgets-icons-2 rounded-circle bg-gradient-ohhappiness text-white ms-auto"><i class="fa fa-bar-chart"></i>
@@ -101,14 +93,14 @@
             </div>
           </div>
         </div>
-        <div class="col" v-if="periodiqueReportCard">
+        <div class="col">
           <div class="card radius-10 border-start border-0 border-3 border-warning">
             <div class="card-body">
               <div class="d-flex align-items-center">
                 <div>
                   <p class="mb-0 text-warning">Cette année</p>
-                  <h4 class="my-1 text-warning">{{getCardValue(3)}} CHF</h4>
-                  <p class="mb-0 font-13">{{getCardRatio(3)}}%</p>
+                  <h4 class="my-1 text-warning">{{getCardValue(2)}} CHF</h4>
+                  <!-- <p class="mb-0 font-13">{{getCardRatio(2)}}%</p> -->
                 </div>
                 <div class="widgets-icons-2 rounded-circle bg-gradient-blooker text-white ms-auto"><i class="fa fa-users"></i>
                 </div>
@@ -138,7 +130,7 @@
               class="form-select shadow-none text-black border-0 ps-0 pt-0 pb-0 pe-20 fs-14 fw-medium"
               v-model="selectedPeriod"
           >
-            <option value="all" class="fw-medium">Toutes les périodes</option>
+            <option value="all" class="fw-medium">Tous</option>
             <option value="0" class="fw-medium">Cette semaine</option>
             <option value="1" class="fw-medium">Ce mois</option>
             <option value="2" class="fw-medium">Cette année</option>
@@ -171,17 +163,13 @@
   import VueApexCharts from "vue3-apexcharts";
   
   import HeadDash from "@/pages/Vabene/common/HeadDash.vue";
-  
-  import VabeneTopProduitReportSell from "@/components/Vabene/POS/OrderReportSells/VabeneTopProduitReportSell.vue";
   import {RepportModelData} from "@/models/report.model";
   import {PeriodiqueCardReport} from "@/models/periodiqueCardReport.model";
-  import {reportPeriodiqueCard, reportRestaurants, salesReportRestaurants} from "@/service/api";
+  import { reportRestaurants, salesReportRestaurants} from "@/service/api";
   import {ApiResponse} from "@/models/Apiresponse";
   import {SellModel} from "@/models/vente.model";
   import {RestaurantStatsModel} from "@/models/restaurantStats.model";
-  import {useToast} from "vue-toastification";
-  // import VabeneNombreCommandeProductDate  from "@/components/Vabene/POS/OrderReportSells/VabeneNombreCommandeProductDate.vue";
-  import LoaderComponent from "@/components/Loading/Loader.vue";
+  import {useToast} from "vue-toastification";import LoaderComponent from "@/components/Loading/Loader.vue";
   import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
   
   export default defineComponent({
@@ -190,7 +178,6 @@
       LoaderComponent,
       HeadDash,
       apexchart: VueApexCharts
-      // VabeneNombreCommandeProductDate
     },
     data(){
       return {

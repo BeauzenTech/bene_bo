@@ -135,7 +135,7 @@
 import { loginCheck, getUserData } from "@/service/api";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import { useToast } from "vue-toastification";
-import {UserGeneralKey} from "@/models/user.generalkey";
+import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 import { debugToken, clearInvalidToken } from "@/utils/debug-token";
 
 
@@ -153,11 +153,10 @@ export default {
   },
   methods: {
     gotoHome(role){
-      const userRole = localStorage.getItem(UserGeneralKey.USER_ROLE);
-      if(role === userRole){
-        this.$router.push({ name: 'VabeneAdminDashPage' })
-      }  else {
-        this.$router.push({ name: 'VabeneDashPage' })
+      if(role === UserRole.FRANCHISE){
+        this.$router.push("/admin-dashboard")
+      } else {
+        this.$router.push("/home")
       }
     },
     async authLogin() {
@@ -178,7 +177,6 @@ export default {
             await this.getUserData();
             this.gotoHome(response.data.user.roles[0]);
           } else {
-            console.error('🔐 Token non trouvé dans la réponse:', response);
             this.toast.error('Token d\'authentification manquant dans la réponse');
           }
         } else {
@@ -275,7 +273,7 @@ export default {
     }
     
     if(UserGeneralKey.isTokenValid()){
-      this.gotoHome()
+      this.gotoHome(null)
     }
   }
 };

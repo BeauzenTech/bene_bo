@@ -394,13 +394,12 @@ export default defineComponent({
     async fetchRestaurants() {
       try {
         const response = await listeRestaurant(1) as any;
-        console.log('Réponse API restaurants:', response);
         
-        if (response.code === 200 && response.data) {
+        if (response.code === 200 ) {
           this.restaurantOptions = response.data;
           if (this.restaurantOptions.length > 0) {
             this.selectedRestaurant = this.restaurantOptions[0].id;
-            await this.onRestaurantChange(this.selectedRestaurant);
+            await this.fetchOrder(1, '', '', this.restaurantOptions[0].id);
           }
         } else {
           this.toast.error(response.message || "Erreur lors du chargement des restaurants");
@@ -442,7 +441,7 @@ export default defineComponent({
         }
         }catch (error) {
         if (!isAutoRefresh) {
-          this.toast.error("Erreur lors du chargement des commandes");
+          this.toast.warning("Aucune commande trouvée");
         } 
       } finally {
         this.isLoading = false;
@@ -463,16 +462,11 @@ export default defineComponent({
           }
           
           
-        } else {
-          if (!isAutoRefresh) {
-            this.toast.error(response.message);
-          }
-        }
+        } 
       } catch (error) {
         if (!isAutoRefresh) {
-          this.toast.error("Erreur lors du chargement des commandes");
+          this.toast.warning("Aucune commande trouvée");
         } 
-      } finally {
         this.isLoading = false;
       }
       }
@@ -513,7 +507,7 @@ export default defineComponent({
       this.refreshInterval = setInterval(() => {
         this.lastRefreshTime = new Date();
         this.fetchOrder(this.currentPage, this.searchQuery);
-      }, 120000); // 2 minutes
+      }, 120000);
     }
     },
     

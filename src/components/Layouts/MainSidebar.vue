@@ -100,14 +100,14 @@
                   </router-link>
                 </li>
 
-                <li class="sidebar-sub-menu-item">
+                <!-- <li class="sidebar-sub-menu-item">
                   <router-link
                       to="/rapport-vente"
                       class="sidebar-sub-menu-link"
                   >
                     Rapport de vente
                   </router-link>
-                </li>
+                </li> -->
 
               </ul>
             </div>
