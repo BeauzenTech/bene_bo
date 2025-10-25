@@ -1190,12 +1190,7 @@ export const reportPeriodiqueCard = async (
 ): Promise<ApiResponse<PeriodiqueCardReport>> => {
     // eslint-disable-next-line no-useless-catch
     try {
-        const url = [
-            `/periodique_report`,
-            restaurantID,
-        ]
-            .filter(Boolean) // retire les undefined
-            .join('/');
+        const url = `/periodique_report`;
         
         // Utiliser des filtres par défaut si aucun filtre n'est fourni
         const defaultFilters = {
@@ -1209,6 +1204,9 @@ export const reportPeriodiqueCard = async (
         
         // Construire les paramètres de requête
         const queryParams = new URLSearchParams();
+        if (restaurantID) {
+            queryParams.append('restaurantId', restaurantID);
+        }
         if (finalFilters.paymentMethod && finalFilters.paymentMethod !== 'all') {
             queryParams.append('paymentMethod', finalFilters.paymentMethod);
         }

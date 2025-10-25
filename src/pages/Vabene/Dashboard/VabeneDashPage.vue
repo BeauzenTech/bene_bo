@@ -132,17 +132,16 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import VueApexCharts from "vue3-apexcharts";
 
 import WhatHappening from "@/components/Dashboard/Ecommerce/WhatHappening.vue";
 
-import VabeneTopProduitReportSell from "@/components/Vabene/POS/OrderReportSells/VabeneTopProduitReportSell.vue";
 import {RepportModelData} from "@/models/report.model";
 import {PeriodiqueCardReport} from "@/models/periodiqueCardReport.model";
 import {reportPeriodiqueCard, reportVenteAdmin, reportVenteRestaurant} from "@/service/api";
 import {ApiResponse} from "@/models/Apiresponse";
 import {SellModel} from "@/models/vente.model";
 import {useToast} from "vue-toastification";
-// import VabeneNombreCommandeProductDate  from "@/components/Vabene/POS/OrderReportSells/VabeneNombreCommandeProductDate.vue";
 import LoaderComponent from "@/components/Loading/Loader.vue";
 import {UserGeneralKey, UserRole} from "@/models/user.generalkey";
 
@@ -150,7 +149,8 @@ export default defineComponent({
   name: "VabeneDashPage",
   components: {
     LoaderComponent,
-    WhatHappening
+    WhatHappening,
+    apexchart: VueApexCharts
     // VabeneNombreCommandeProductDate
   },
   data(){
@@ -211,7 +211,7 @@ export default defineComponent({
           },
           y: {
             formatter: function (val) {
-              return  val + "K " + "CHF" ;
+              return  val + " " + "CHF" ;
             },
           },
         },
@@ -290,11 +290,12 @@ export default defineComponent({
     async getPeriodiqueReport(restaurantID?: string, filters?: any){
       this.isLoading = true
       try {
-        const response = await reportPeriodiqueCard(restaurantID, filters) as ApiResponse<PeriodiqueCardReport>;
-      
+        const response = await reportPeriodiqueCard(restaurantID, filters) as ApiResponse<any>;
+    
         if (response.code === 200) {
           if (response.data) {
             this.periodiqueReportCard = response.data;
+            this.reportVente = response.data.vente;
           }
         }
       } catch (error) {
@@ -306,14 +307,14 @@ export default defineComponent({
     updateChartCategories() {
       let categories: string[] = [];
       switch (this.selectedPeriod) {
-        case 0: // Cette semaine
-        case 1: // Semaine précédente
+        case 0:
+        case 1: 
           categories = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
           break;
-        case 2: // Ce mois
-          categories = ["Semaine 1", "Semaine 2", "Semaine 3", "Semaine 4", "Semaine 5"];
+        case 2:
+          categories = ["Semaine 1", "Semaine 2", "Semaine 3", "Semaine 4"];
           break;
-        case 3: // Cette année
+        case 3:
           categories = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
           break;
         default:
@@ -321,11 +322,10 @@ export default defineComponent({
       }
       this.weeklySalesChart.xaxis.categories = categories;
       
-      // Mettre à jour les couleurs pour n'afficher que la couleur de la période sélectionnée
       const colors = ["#3A8D35", "#F4D3AE", "#e31b23", "#2B2A3F"];
       this.weeklySalesChart.colors = [colors[this.selectedPeriod] || "#3A8D35"];
       
-      this.chartKey++; // Forcer la mise à jour du graphique
+      this.chartKey++; 
     },
     getCardValue(index: number): string {
       
@@ -333,19 +333,18 @@ export default defineComponent({
         return "0";
       }
       
-      // Utiliser les données de reportVente au lieu de periodiqueReportCard
       let value = 0;
       switch (index) {
-        case 0: // Cette semaine
+        case 0: 
           value = (this.reportVente[0] as any)?.total || 0;
           break;
-        case 1: // Semaine précédente
+        case 1: 
           value = (this.reportVente[1] as any)?.total || 0;
           break;
-        case 2: // Ce mois
+        case 2: 
           value = (this.reportVente[2] as any)?.total || 0;
           break;
-        case 3: // Cette année
+        case 3: 
           value = (this.reportVente[3] as any)?.total || 0;
           break;
       }
@@ -380,7 +379,6 @@ export default defineComponent({
         await this.getPeriodiqueReport(this.restaurantId as string, defaultFilters)
       }
       
-      // Initialiser les catégories du graphique
       this.updateChartCategories();
   },
   watch: {
@@ -409,13 +407,10 @@ export default defineComponent({
         return "0";
       }
       
-      // Calculer le total en additionnant toutes les valeurs
       let total = 0;
       if (Array.isArray(selectedReport.data)) {
-        // Si c'est un array, additionner toutes les valeurs
         total = selectedReport.data.reduce((sum, value) => sum + (Number(value) || 0), 0);
       } else if (typeof selectedReport.data === 'object') {
-        // Si c'est un objet, additionner toutes les valeurs
         total = Object.values(selectedReport.data).reduce((sum, value) => sum + (Number(value) || 0), 0);
       } else {
         total = Number(selectedReport.data) || 0;
@@ -428,25 +423,23 @@ export default defineComponent({
         return [];
       }
       
-      
-      // N'afficher que la série correspondant à la période sélectionnée
       const selectedItem = this.reportVente[this.selectedPeriod];
       if (!selectedItem) {
         return [];
       }
       
-      // Convertir les données en format compatible ApexCharts
       let data = selectedItem.data;
       if (typeof data === 'object' && !Array.isArray(data)) {
         data = Object.values(data);
       }
+      
       
       const formattedItem = {
         name: selectedItem.name,
         data: Array.isArray(data) ? data : [data]
       };
       
-      return [formattedItem]; // Retourner seulement la série sélectionnée
+      return [formattedItem]; 
     }
   }
 });
