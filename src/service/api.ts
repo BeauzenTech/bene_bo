@@ -1159,6 +1159,26 @@ export const reportVenteRestaurant = async (restaurantID?: string): Promise<ApiR
     }
 };
 
+export const reportRestaurants = async (restaurantID?: string): Promise<ApiResponse<SellModel>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/statistics/restaurants`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const salesReportRestaurants = async (): Promise<ApiResponse<SellModel>> => {
+    // eslint-disable-next-line no-useless-catch
+    try {
+        const response = await apiClient.get(`/statistics/sales-report`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
 export const reportPeriodiqueCard = async (
     restaurantID?: string,
     filters?: {

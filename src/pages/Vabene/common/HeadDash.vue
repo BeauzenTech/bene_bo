@@ -16,6 +16,7 @@
                 class="d-inline-block text-uppercase fw-medium fs-13 text-black-emphasis position-relative"
               >
                  VENTES CETTE SEMAINE
+
                 <span class="d-block fw-black lh-1 text-black mt-5 mt-md-10">
                   {{Math.floor(parseFloat(orderAmount)) }} CHF
                 </span>

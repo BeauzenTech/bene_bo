@@ -28,8 +28,17 @@
         id="sidebarNavAccordion"
       >
         <!--     TABLEAU DE BORD-->
-        <li class="sidebar-nav-item">
+        <li class="sidebar-nav-item" v-if="userRole === UserRole.RESTAURANT">
           <router-link to="/home" class="sidebar-nav-link d-block"
+
+          >
+            <i class="flaticon-more-1"></i>
+            <span class="title">Tableau de bord</span>
+          </router-link>
+        </li>
+
+        <li class="sidebar-nav-item" v-if="userRole === UserRole.FRANCHISE">
+          <router-link to="/admin-dashboard" class="sidebar-nav-link d-block"
 
           >
             <i class="flaticon-more-1"></i>
