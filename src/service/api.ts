@@ -50,19 +50,6 @@ const apiClientFormData = axios.create({
     }
 })
 
-
-const apiTicketLocalFormData = axios.create({
-    baseURL: apiConfig.localURL,
-    headers: {
-        'Content-Type': 'multipart/form-data',
-        'Accepts': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-    }
-})
-
-// okkkk
-
-// 🔐 Interceptor de requête : Ajoute le token d'authentification
 apiClient.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem(UserGeneralKey.USER_TOKEN);

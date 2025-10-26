@@ -447,7 +447,7 @@
         <div class="summary-lines">
           <div class="summary-row">
             <span class="label">Sous-total</span>
-            <span class="value">{{ formatPrice(storeCartTotal) }} CHF</span>
+            <span class="value">{{ formatPrice(orderSummaryWithDiscount.subtotal) }} CHF</span>
           </div>
 
           <div class="summary-row" v-if="discountAmount > 0">
@@ -481,7 +481,7 @@
 
           <div class="summary-row total">
             <span class="label">Total</span>
-            <span class="value">{{ formatPrice(finalTotalWithCoupon) }} CHF</span>
+            <span class="value">{{ formatPrice(orderSummaryWithDiscount.total) }} CHF</span>
           </div>
         </div>
       </div>
@@ -506,7 +506,7 @@
         <button @click="handlePlaceOrder" :disabled="!canPlaceOrder || isProcessingOrder" class="place-order-btn">
           <i :class="isProcessingOrder ? 'fas fa-spinner fa-spin' : 'fas fa-receipt'"></i>
           {{ isProcessingOrder ? 'Traitement...' : 'Valider la commande' }}
-          <span class="order-total">{{ formatPrice(finalTotalWithCoupon) }} CHF</span>
+          <span class="order-total">{{ formatPrice(orderSummaryWithDiscount.total) }} CHF</span>
         </button>
       </div>
     </div>
@@ -850,15 +850,20 @@ const finalTotalWithCoupon = computed(() => {
 
 // Computed pour le résumé avec rabais appliqué
 const orderSummaryWithDiscount = computed(() => {
-  const subtotalWithDiscount = storeCartTotal.value - discountAmount.value
-  const subtotalWithDivers = subtotalWithDiscount + diversAmount.value
-  const taxOnDiscountedSubtotal = (subtotalWithDivers * taxRate.value) / 100 // TVA incluant le montant divers
-  const totalWithDiscount = subtotalWithDiscount // Le total ne comprend pas la TVA
+  const subtotalAfterDiscount = storeCartTotal.value - discountAmount.value
+  const totalAfterCoupon = subtotalAfterDiscount - couponDiscountAmount.value
+  const totalWithSupplement = totalAfterCoupon + minOrderSupplement.value
+  const totalWithDivers = totalWithSupplement + diversAmount.value
+  
+  // Calculer la TVA sur le montant final (TVA incluse)
+  const totalWithTax = totalWithDivers
+  const taxAmount = (totalWithTax * taxRate.value) / (100 + taxRate.value) // TVA incluse
+  const subtotalWithoutTax = totalWithTax - taxAmount
   
   return {
-    subtotal: storeCartTotal.value,
-    tax: taxOnDiscountedSubtotal,
-    total: totalWithDiscount
+    subtotal: subtotalWithoutTax, // Sous-total sans TVA
+    tax: taxAmount, // Montant de la TVA
+    total: totalWithTax // Total avec TVA incluse
   }
 })
 
@@ -1621,8 +1626,8 @@ const handlePlaceOrder = async () => {
         : "",
       payment_method: selectedPaymentMethod.value,
       addressLivraison: storeOrderType.value === 'delivery' 
-        ? `${deliveryAddress.value.rue} ${deliveryAddress.value.numeroRue}, ${deliveryAddress.value.localite}`.trim()
-        : `${restaurantInfo.value.address} ${restaurantInfo.value.numeroRue}`.trim(),
+        ? `${deliveryAddress.value.rue} ${deliveryAddress.value.numeroRue}`.trim()
+        : `${restaurantInfo.value.address}`,
       batiment: restaurantInfo.value.batiment || "",
       rue: storeOrderType.value === 'delivery' ? deliveryAddress.value.rue : restaurantInfo.value.address || "",
       npa: storeOrderType.value === 'delivery' ? deliveryAddress.value.npa : restaurantInfo.value.codePostalID?.numeroPostal || "",
@@ -1656,8 +1661,8 @@ const handlePlaceOrder = async () => {
           amount: minOrderSupplement.value
         }
       ],
-      subtotal: storeCartTotal.value,
-      total: finalTotalWithCoupon.value,
+      subtotal: orderSummaryWithDiscount.value.subtotal,
+      total: orderSummaryWithDiscount.value.total,
     }
     
     const response = await createPOSOrder(orderData)

@@ -246,6 +246,7 @@ import { listeOrder, toggleActivationUser, deleteUser, listeRestaurant, listeOrd
 import { UserGeneralKey, UserRole } from "@/models/user.generalkey";
 import { useToast } from "vue-toastification";
 import LoaderComponent from "@/components/Loading/Loader.vue";
+import socketService from "@/utils/socketService";
 import EmptyTable from "@/components/Vabene/EmptyTable/EmptyTable.vue";
 import { ApiResponse } from "@/models/Apiresponse";
 import { PaginatedOrder } from "@/models/Apiresponse";
@@ -273,6 +274,10 @@ export default defineComponent({
       restaurantOptions: [] as RestaurantModel[],
       selectedRestaurant: null as string | null,
       userRole: localStorage.getItem(UserGeneralKey.USER_ROLE),
+      // Handlers pour Socket.IO
+      newOrderHandler: null as any,
+      orderStatusHandler: null as any,
+      globalOrderHandler: null as any,
     }
   },
   computed: {
@@ -517,6 +522,45 @@ export default defineComponent({
         this.refreshInterval = null;
       }
     },
+    
+    // Méthodes Socket.IO
+    setupSocketListeners() {
+      // Écouter les nouvelles commandes
+      this.newOrderHandler = (event: any) => {
+        console.log('🔄 Nouvelle commande reçue via Socket.IO, rafraîchissement...');
+        this.toast.success("Nouvelle commande reçue !");
+        this.fetchOrder(this.currentPage, this.searchQuery);
+      };
+      
+      // Écouter les changements de statut
+      this.orderStatusHandler = (event: any) => {
+        console.log('📝 Statut de commande changé via Socket.IO');
+        this.fetchOrder(this.currentPage, this.searchQuery);
+      };
+      
+      // Écouter les commandes globales (pour les franchisés)
+      this.globalOrderHandler = (event: any) => {
+        console.log('🌍 Nouvelle commande globale reçue via Socket.IO');
+        this.toast.info("Nouvelle commande dans un restaurant");
+        this.fetchOrder(this.currentPage, this.searchQuery);
+      };
+      
+      window.addEventListener('new-order-received', this.newOrderHandler);
+      window.addEventListener('order-status-changed', this.orderStatusHandler);
+      window.addEventListener('global-order-received', this.globalOrderHandler);
+    },
+    
+    removeSocketListeners() {
+      if (this.newOrderHandler) {
+        window.removeEventListener('new-order-received', this.newOrderHandler);
+      }
+      if (this.orderStatusHandler) {
+        window.removeEventListener('order-status-changed', this.orderStatusHandler);
+      }
+      if (this.globalOrderHandler) {
+        window.removeEventListener('global-order-received', this.globalOrderHandler);
+      }
+    },
     forceRefresh() {
       this.lastRefreshTime = new Date();
       if(this.userRole !== UserRole.FRANCHISE){
@@ -588,10 +632,12 @@ export default defineComponent({
     this.fetchRestaurants();
     this.fetchOrder();
     this.startAutoRefresh(); // Démarrer le rafraîchissement automatique
+    this.setupSocketListeners(); // Configurer les écouteurs Socket.IO
   },
   
   beforeUnmount() {
     this.stopAutoRefresh(); // Nettoyer l'intervalle lors de la destruction du composant
+    this.removeSocketListeners(); // Nettoyer les écouteurs Socket.IO
   }
 });
 </script>

@@ -7,6 +7,7 @@ import { QuillEditor } from "@vueup/vue-quill";
 import Vue3Prism from "vue3-prism/lib/Vue3Prism.common.js";
 import { AuthService } from "./service/auth.service";
 import { initializeTimezone } from "./utils/timezone";
+import socketService from "./utils/socketService";
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-vue-next/dist/bootstrap-vue-next.css";
@@ -39,5 +40,8 @@ AuthService.startTokenExpirationCheck();
 
 // 🇨🇭 Initialise le fuseau horaire suisse
 initializeTimezone();
+
+// 🔌 Initialise la connexion Socket.IO
+socketService.connect();
 
 app.mount("#app");
