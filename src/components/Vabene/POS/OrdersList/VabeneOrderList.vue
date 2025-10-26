@@ -20,7 +20,7 @@
         <!--          Export-->
         <!--          <i class="flaticon-file-1 position-relative ms-5 top-2 fs-15"></i>-->
         <!--        </button>-->
-        <div class="d-sm-flex align-items-center">
+        <div class="d-sm-flex align-items-center" v-if="userRole === 'ROLE_ADMIN'">
         <div class="me-3">
           <label class="form-label text-muted small mb-1">Restaurant</label>
           <v-select
@@ -424,7 +424,7 @@ export default defineComponent({
       if (!isAutoRefresh) {
         this.isLoading = true;
       }
-      if(this.userRole === UserRole.FRANCHISE){
+      if(this.userRole === 'ROLE_ADMIN'){
         try{
           const response = await listeOrderByAdmin(page, 10, restaurantID, search, status) as ApiResponse<PaginatedOrder>;
           if (response.code === 200) {
@@ -453,9 +453,11 @@ export default defineComponent({
       }
       } else {
       try {
+        console.log('fetchOrder =====================', this);
         const response = await listeOrder(page, 10, search, status) as ApiResponse<PaginatedOrder>;
         
         if (response.code === 200) {
+          this.isLoading = false;
           this.orderResponse = response;
           
           if ((response.data as any)?.data?.orders) {
@@ -468,6 +470,7 @@ export default defineComponent({
           
           
         } 
+        this.isLoading = false;
       } catch (error) {
         if (!isAutoRefresh) {
           this.toast.warning("Aucune commande trouvée");
@@ -504,8 +507,7 @@ export default defineComponent({
     startAutoRefresh() {
       if(this.userRole === UserRole.FRANCHISE){
         return;
-      }
-      else{
+      } else{
       if (this.refreshInterval) {
         clearInterval(this.refreshInterval);
       }
