@@ -59,7 +59,10 @@
             </li>
             <li
               class="d-flex align-items-center justify-content-between"
-              v-if="orderResponse.DeliveryPreference !== 'immediat' && orderResponse.timeOrder"
+              v-if="
+                orderResponse.DeliveryPreference !== 'immediat' &&
+                orderResponse.timeOrder
+              "
             >
               <div
                 class="title text-black fs-md-15 fs-lg-16 fw-semibold position-relative"
@@ -69,7 +72,8 @@
               </div>
               <span class="d-block text-paragraph fs-md-15 fs-lg-16">
                 {{
-                  orderResponse.timeOrder && isValidDate(orderResponse.timeOrder)
+                  orderResponse.timeOrder &&
+                  isValidDate(orderResponse.timeOrder)
                     ? formatInTimeZone(
                         orderResponse.timeOrder,
                         "UTC",
@@ -86,8 +90,8 @@
                 <i class="flaticon-atm"></i>
                 Méthode de paiement:
               </div>
-                <span
-                  v-if="orderResponse.payment?.method"
+              <span
+                v-if="orderResponse.payment?.method"
                 class="d-flex align-items-center text-paragraph fs-md-15 fs-lg-16"
               >
                 <!--                <img-->
@@ -169,9 +173,17 @@
                 Nom & Prénom:
               </div>
               <span class="d-block text-paragraph fs-md-15 fs-lg-16">
-                {{ orderResponse.civilite || '' }}
-                {{ orderResponse.customer?.first_name || orderResponse.guest_first_name || '' }}
-                {{ orderResponse.customer?.last_name || orderResponse.guest_last_name || '' }}
+                {{ orderResponse.civilite || "" }}
+                {{
+                  orderResponse.customer?.first_name ||
+                  orderResponse.guest_first_name ||
+                  ""
+                }}
+                {{
+                  orderResponse.customer?.last_name ||
+                  orderResponse.guest_last_name ||
+                  ""
+                }}
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
@@ -182,7 +194,10 @@
                 Email:
               </div>
               <span
-                v-if="!orderResponse?.customer?.email?.includes('guest_') && !orderResponse?.guest_email?.includes('guest_')"
+                v-if="
+                  !orderResponse?.customer?.email?.includes('guest_') &&
+                  !orderResponse?.guest_email?.includes('guest_')
+                "
                 class="d-block text-paragraph fs-md-15 fs-lg-16"
               >
                 {{ orderResponse.customer?.email || orderResponse.guest_email }}
@@ -197,8 +212,11 @@
               </div>
               <span class="d-block text-paragraph fs-md-15 fs-lg-16">
                 {{
-                  orderResponse.customer?.phone || orderResponse.guest_phone_number
-                    ? "+41" + (orderResponse.customer?.phone || orderResponse.guest_phone_number)
+                  orderResponse.customer?.phone ||
+                  orderResponse.guest_phone_number
+                    ? "+41" +
+                      (orderResponse.customer?.phone ||
+                        orderResponse.guest_phone_number)
                     : "-"
                 }}
               </span>
@@ -232,8 +250,7 @@
                 data-bs-toggle="modal"
                 data-bs-target="#contentModalScrollable_facture"
               >
-                {{
-                  orderResponse.transactionReference }}
+                {{ orderResponse.transactionReference }}
               </span>
             </li>
 
@@ -324,60 +341,84 @@
                     <LoaderComponent />
                   </td>
                 </tr>
-                <tr
-                  v-else-if="!isLoading && orderResponse.items?.length > 0"
-                  v-for="(orderItems, index) in orderResponse.items"
-                  :key="index"
+                <template
+                  v-else-if="
+                    !isLoading && orderItemsWithNewStructure.length > 0
+                  "
                 >
-                  <th
-                    v-if="orderItems"
-                    class="shadow-none fw-medium text-black product-title ps-0"
+                  <template
+                    v-for="(
+                      categoryItem, categoryIndex
+                    ) in orderItemsWithNewStructure"
+                    :key="categoryIndex"
                   >
-                    <span
-                      class="d-flex align-items-center text-decoration-none text-black fs-md-15 fs-lg-16"
+                    <tr>
+                      <td
+                        colspan="6"
+                        class="text-center fw-bold text-primary py-2"
+                      >
+                        {{ categoryItem?.category || "Sans catégorie" }}
+                      </td>
+                    </tr>
+                    <tr
+                      v-for="(
+                        product, productIndex
+                      ) in categoryItem?.products || []"
+                      :key="`${categoryIndex}-${productIndex}`"
                     >
-                        <img
-                         :src="getProductImage(orderItems.product_image)"
-                          class="me-15"
-                          width="44"
-                          alt="product"
-                        />
-                      {{ orderItems.product_name }} {{ orderItems.size || '' }}
-                    </span>
-                  </th>
-                  <td class="shadow-none lh-1 fw-medium text-paragraph">
-                    x{{ orderItems.quantity }}
-                  </td>
-                  <td class="shadow-none lh-1 fw-medium text-paragraph">
-                    {{ orderItems.product_price }} CHF
-                  </td>
+                      <th
+                        class="shadow-none fw-medium text-black product-title ps-0"
+                      >
+                        <span
+                          class="d-flex align-items-center text-decoration-none text-black fs-md-15 fs-lg-16"
+                        >
+                          <img
+                            :src="getProductImage('')"
+                            class="me-15"
+                            width="44"
+                            alt="product"
+                          />
+                          {{ product?.name || "Produit inconnu" }}
+                        </span>
+                      </th>
+                      <td class="shadow-none lh-1 fw-medium text-paragraph">
+                        x{{ product?.quantity || 0 }}
+                      </td>
+                      <td class="shadow-none lh-1 fw-medium text-paragraph">
+                        {{ product?.price || 0 }} CHF
+                      </td>
 
-                  <td class="shadow-none lh-1 fw-medium text-paragraph pe-0">
-                    {{ (orderItems.product_price * orderItems.quantity) }} CHF
-                  </td>
+                      <td
+                        class="shadow-none lh-1 fw-medium text-paragraph pe-0"
+                      >
+                        {{ (product?.price || 0) * (product?.quantity || 0) }}
+                        CHF
+                      </td>
 
-                  <td
-                    class="shadow-none lh-1 fw-medium text-paragraph pe-0"
-                  ></td>
+                      <td
+                        class="shadow-none lh-1 fw-medium text-paragraph pe-0"
+                      ></td>
 
-                  <td class="shadow-none lh-1 fw-medium text-paragraph">
-                    <button
-                      @click="selectedOrderItem(orderItems)"
-                      class="text-primary fw-medium text-decoration-underline btn btn-link"
-                      type="button"
-                      data-bs-toggle="modal"
-                      data-bs-target="#contentModalScrollable_ingredient"
-                      v-if="orderItems.ingredient?.length > 0"
-                    >
-                      ({{ orderItems.ingredient?.length }}) Ingredients
-                    </button>
-                    <span
-                      v-else
-                      class="text-primary fw-medium text-decoration-underline"
-                      >Aucun Ingrédient</span
-                    >
-                  </td>
-                </tr>
+                      <td class="shadow-none lh-1 fw-medium text-paragraph">
+                        <button
+                          @click="selectedOrderItem(product)"
+                          class="text-primary fw-medium text-decoration-underline btn btn-link"
+                          type="button"
+                          data-bs-toggle="modal"
+                          data-bs-target="#contentModalScrollable_ingredient"
+                          v-if="product?.ingredient?.length > 0"
+                        >
+                          ({{ product?.ingredient?.length || 0 }}) Ingredients
+                        </button>
+                        <span
+                          v-else
+                          class="text-primary fw-medium text-decoration-underline"
+                          >Aucun Ingrédient</span
+                        >
+                      </td>
+                    </tr>
+                  </template>
+                </template>
               </tbody>
             </table>
           </div>
@@ -445,7 +486,10 @@
             </li>
             <li
               class="d-flex align-items-center justify-content-between"
-              v-if="orderResponse.intructionOrder && orderResponse.intructionOrder.quantityCouverts"
+              v-if="
+                orderResponse.intructionOrder &&
+                orderResponse.intructionOrder.quantityCouverts
+              "
             >
               <span class="d-block text-paragraph fw-medium">
                 Quantité de couverts
@@ -457,7 +501,10 @@
 
             <li
               class="d-flex align-items-center justify-content-between"
-              v-if="orderResponse.intructionOrder && orderResponse.intructionOrder.quantityCouverts"
+              v-if="
+                orderResponse.intructionOrder &&
+                orderResponse.intructionOrder.quantityCouverts
+              "
             >
               <span class="d-block text-paragraph fw-medium">
                 Doit-on trancher
@@ -487,7 +534,9 @@
               </span>
               <span class="d-block text-black fs-md-15 fs-lg-16 fw-medium">
                 {{
-                  orderResponse.SpecialInstructions ?? (orderResponse.feature && orderResponse.feature[0]) ?? "-"
+                  orderResponse.SpecialInstructions ??
+                  (orderResponse.feature && orderResponse.feature[0]) ??
+                  "-"
                 }}
               </span>
             </li>
@@ -518,21 +567,39 @@
             </li>
 
             <!-- Liste des produits -->
-            <li
-              v-for="(item, index) in orderResponse.items"
-              :key="index"
-              class="d-flex align-items-center justify-content-between pt-2"
+            <template
+              v-for="(
+                categoryItem, categoryIndex
+              ) in orderItemsWithNewStructure"
+              :key="categoryIndex"
             >
-              <span>
-                <img
-                  :src="getProductImage(item.product_image)"
-                  class="me-15"
-                  width="44"
-                  alt="product"
-                />{{ item.quantity }}x {{ item.product_name || 'Produit' }}{{ item.size || '' }}</span
+              <li
+                class="d-flex align-items-center justify-content-between pt-2 fw-bold text-primary"
               >
-              <span>{{ (item.product_price * item.quantity) }} CHF</span>
-            </li>
+                <span>{{ categoryItem?.category || "Sans catégorie" }}</span>
+              </li>
+              <li
+                v-for="(product, productIndex) in categoryItem?.products || []"
+                :key="`${categoryIndex}-${productIndex}`"
+                class="d-flex align-items-center justify-content-between pt-2"
+              >
+                <span>
+                  <img
+                    :src="getProductImage('')"
+                    class="me-15"
+                    width="44"
+                    alt="product"
+                  />{{ product?.quantity || 0 }}x
+                  {{ product?.name || "Produit inconnu" }}
+                </span>
+                <span
+                  >{{
+                    (product?.price || 0) * (product?.quantity || 0)
+                  }}
+                  CHF</span
+                >
+              </li>
+            </template>
 
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-black fw-bolder fw-medium">
@@ -600,7 +667,9 @@
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> NPA: </span>
               <span class="d-block text-paragraph fw-medium">
-                <strong>{{ orderResponse.delivery?.postal_code || "-" }}</strong>
+                <strong>{{
+                  orderResponse.delivery?.postal_code || "-"
+                }}</strong>
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
@@ -612,7 +681,11 @@
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> Téléphone: </span>
               <span class="d-block text-paragraph fw-medium">
-                <strong>{{ orderResponse.customer?.phone || orderResponse.guest_phone_number || "-" }}</strong>
+                <strong>{{
+                  orderResponse.customer?.phone ||
+                  orderResponse.guest_phone_number ||
+                  "-"
+                }}</strong>
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
@@ -621,7 +694,11 @@
                 v-if="!orderResponse?.guest_email?.includes('guest_')"
                 class="d-block text-paragraph fw-medium"
               >
-                <strong>{{ orderResponse.customer?.email || orderResponse.guest_email || "-" }}</strong>
+                <strong>{{
+                  orderResponse.customer?.email ||
+                  orderResponse.guest_email ||
+                  "-"
+                }}</strong>
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
@@ -654,7 +731,9 @@
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> NPA: </span>
               <span class="d-block text-paragraph fw-medium">
-                <strong>{{ orderResponse?.delivery?.postal_code || "-" }}</strong>
+                <strong>{{
+                  orderResponse?.delivery?.postal_code || "-"
+                }}</strong>
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
@@ -666,7 +745,11 @@
             <li class="d-flex align-items-center justify-content-between">
               <span class="d-block text-paragraph fw-medium"> Téléphone: </span>
               <span class="d-block text-paragraph fw-medium">
-                <strong>{{ orderResponse.customer?.phone || orderResponse.guest_phone_number || "-" }}</strong>
+                <strong>{{
+                  orderResponse.customer?.phone ||
+                  orderResponse.guest_phone_number ||
+                  "-"
+                }}</strong>
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
@@ -675,7 +758,11 @@
                 v-if="!orderResponse?.guest_email?.includes('guest_')"
                 class="d-block text-paragraph fw-medium"
               >
-                <strong>{{ orderResponse.customer?.email || orderResponse.guest_email || "-" }}</strong>
+                <strong>{{
+                  orderResponse.customer?.email ||
+                  orderResponse.guest_email ||
+                  "-"
+                }}</strong>
               </span>
             </li>
             <li class="d-flex align-items-center justify-content-between">
@@ -853,399 +940,487 @@
           >
             <h5 class="mb-0 fw-bold text-black">Méthode de paiement</h5>
 
-          
-              <button
-                class="btn  btn-sm " :class="backgroundColorPaymentMethod(orderResponse.payment?.method)"
-                type="button"
-                aria-expanded="false"
-              >
-                {{
-                  translatePaymentMethod(orderResponse.payment?.method)
-                }}
-              </button>
+            <button
+              class="btn btn-sm"
+              :class="
+                backgroundColorPaymentMethod(orderResponse.payment?.method)
+              "
+              type="button"
+              aria-expanded="false"
+            >
+              {{ translatePaymentMethod(orderResponse.payment?.method) }}
+            </button>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Modal -->
-    <div
-      class="modal fade"
-      id="contentModalScrollable_ingredient"
-      tabindex="-1"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog modal-dialog-scrollable modal-lg">
-        <div class="modal-content flex-column justify-content-center">
-          <div class="modal-header">
-            <h1 class="modal-title fs-5">Liste des ingredients</h1>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div
-            class="modal-body flex-row align-items-center justify-content-center"
-          >
-            <div class="table-responsive">
-              <table class="table text-nowrap align-middle mb-0">
-                <thead class="bg-success text-white">
-                  <tr>
-                    <th
-                      scope="col"
-                      class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0 ps-0"
-                    >
-                      NOM DE L'INGREDIENT
-                    </th>
-                    <th
-                      scope="col"
-                      class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-                    >
-                      TYPE
-                    </th>
-                    <th
-                      scope="col"
-                      class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-                    >
-                      QUANTITÉ
-                    </th>
-                    <th
-                      scope="col"
-                      class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
-                    >
-                      PRIX
-                    </th>
-                  </tr>
-                </thead>
-                <tbody
-                  v-if="
-                    orderItemSelected &&
-                    (orderItemSelected.ingredients?.length > 0 || orderItemSelected.ingredient?.length > 0)
-                  "
-                >
-                  <tr
-                    v-for="ingredient in (orderItemSelected.ingredients || orderItemSelected.ingredient)"
-                    :key="ingredient.name"
+  <!-- Modal -->
+  <div
+    class="modal fade"
+    id="contentModalScrollable_ingredient"
+    tabindex="-1"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+      <div class="modal-content flex-column justify-content-center">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5">Liste des ingredients</h1>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div
+          class="modal-body flex-row align-items-center justify-content-center"
+        >
+          <div class="table-responsive">
+            <table class="table text-nowrap align-middle mb-0">
+              <thead class="bg-success text-white">
+                <tr>
+                  <th
+                    scope="col"
+                    class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0 ps-0"
                   >
-                    <th class="shadow-none lh-1 fw-bold ps-0">
-                      <router-link
-                        to="/product-details"
-                        class="text-decoration-none text-black-emphasis"
-                      >
-                        {{ ingredient.name }} - {{ ingredient.size }}
-                      </router-link>
-                    </th>
-                    <td class="shadow-none lh-1 fw-medium">
-                      <span
-                        v-if="ingredient.isDefault"
-                        class="badge text-outline-primary"
-                        >Gratuit</span
-                      >
-                      <span v-else class="badge text-outline-danger"
-                        >Payant</span
-                      >
-                    </td>
-                    <td class="shadow-none lh-1 fw-medium text-black-emphasis">
-                      <div class="d-flex align-items-center">
-                        {{ ingredient.quantite }}
-                      </div>
-                    </td>
-                    <td class="shadow-none lh-1 fw-medium text-body-tertiary">
-                      {{ ingredient.extra_cost_price }} CHF
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                    NOM DE L'INGREDIENT
+                  </th>
+                  <th
+                    scope="col"
+                    class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
+                  >
+                    TYPE
+                  </th>
+                  <th
+                    scope="col"
+                    class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
+                  >
+                    QUANTITÉ
+                  </th>
+                  <th
+                    scope="col"
+                    class="text-uppercase fw-medium shadow-none text-body-tertiary fs-13 pt-0"
+                  >
+                    PRIX
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                v-if="
+                  orderItemSelected &&
+                  (orderItemSelected.ingredients?.length > 0 ||
+                    orderItemSelected.ingredient?.length > 0)
+                "
+              >
+                <tr
+                  v-for="ingredient in orderItemSelected.ingredients ||
+                  orderItemSelected.ingredient"
+                  :key="ingredient.name"
+                >
+                  <th class="shadow-none lh-1 fw-bold ps-0">
+                    <router-link
+                      to="/product-details"
+                      class="text-decoration-none text-black-emphasis"
+                    >
+                      {{ ingredient.name }} - {{ ingredient.size }}
+                    </router-link>
+                  </th>
+                  <td class="shadow-none lh-1 fw-medium">
+                    <span
+                      v-if="ingredient.isDefault"
+                      class="badge text-outline-primary"
+                      >Gratuit</span
+                    >
+                    <span v-else class="badge text-outline-danger">Payant</span>
+                  </td>
+                  <td class="shadow-none lh-1 fw-medium text-black-emphasis">
+                    <div class="d-flex align-items-center">
+                      {{ ingredient.quantite }}
+                    </div>
+                  </td>
+                  <td class="shadow-none lh-1 fw-medium text-body-tertiary">
+                    {{ ingredient.extra_cost_price }} CHF
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <div
-      class="modal fade"
-      id="contentModalScrollable_facture"
-      tabindex="-1"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog modal-dialog-scrollable modal-lg">
-        <div class="modal-content" v-if="orderResponse">
-          <div class="modal-header">
-            <h1 class="modal-title fs-5">
-              Facture de la commande #{{ getShortUuid(orderResponse.id) }}
-            </h1>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
+  <div
+    class="modal fade"
+    id="contentModalScrollable_facture"
+    tabindex="-1"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+      <div class="modal-content" v-if="orderResponse">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5">
+            Facture de la commande #{{ getShortUuid(orderResponse.id) }}
+          </h1>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div
+          class="modal-body flex-row align-items-center justify-content-center"
+        >
+          <!-- Affichage du PDF depuis l'URL -->
+          <div v-if="pdfUrl" class="w-100 h-100">
+            <iframe
+              :src="pdfUrl"
+              width="100%"
+              height="600px"
+              style="border: none"
+              title="Facture PDF"
+            ></iframe>
           </div>
-          <div
-            class="modal-body flex-row align-items-center justify-content-center"
-          >
-            <div class="flex-column items-center justify-content-center">
-              <main class="ticket-system">
-                <div class="receipts-wrapper">
-                  <div class="receipts" id="recu-pdf">
-                    <div class="receipt">
-                      <div class="logo-container">
-                        <img
-                          src="@/assets/images/logo_black.png"
-                          class="airliner-logo"
-                        />
-                      </div>
-                      <div class="order-date">
-                        Effectuée le
+
+          <!-- Affichage du PDF généré localement -->
+          <div v-else class="flex-column items-center justify-content-center">
+            <main class="ticket-system">
+              <div class="receipts-wrapper">
+                <div class="receipts" id="recu-pdf">
+                  <div class="receipt">
+                    <div class="logo-container">
+                      <img
+                        src="@/assets/images/logo_black.png"
+                        class="airliner-logo"
+                      />
+                    </div>
+                    <div class="order-date">
+                      Effectuée le
+                      {{
+                        formatInTimeZone(
+                          orderResponse.created_at,
+                          "UTC",
+                          "dd/MM/yyyy - HH:mm"
+                        )
+                      }}
+                      <template
+                        v-if="
+                          orderResponse.order_type === 'delivery' &&
+                          orderResponse.timeOrder &&
+                          isValidDate(orderResponse.timeOrder)
+                        "
+                      >
+                        <br />Livraison avant le
                         {{
                           formatInTimeZone(
-                            orderResponse.created_at,
+                            orderResponse.timeOrder,
                             "UTC",
                             "dd/MM/yyyy - HH:mm"
                           )
                         }}
-                        <template
-                          v-if="orderResponse.order_type === 'delivery' && orderResponse.timeOrder && isValidDate(orderResponse.timeOrder)"
+                      </template>
+                      <template
+                        v-else-if="
+                          orderResponse.order_type === 'click_collect' &&
+                          orderResponse.timeOrder &&
+                          isValidDate(orderResponse.timeOrder)
+                        "
+                      >
+                        <br />À emporter avant le
+                        {{
+                          formatInTimeZone(
+                            orderResponse.timeOrder,
+                            "UTC",
+                            "dd/MM/yyyy - HH:mm"
+                          )
+                        }}
+                      </template>
+                    </div>
+                    <div class="command-type-bar">
+                      <table class="command-type-table">
+                        <tr>
+                          <td class="left-cell">
+                            <span class="order-reference">
+                              {{
+                                orderResponse.restaurantID?.id ===
+                                RestaurantEnum.RESTO_MORGES
+                                  ? "VBM" + orderResponse.nif
+                                  : "VBP" + orderResponse.nif
+                              }}
+                            </span>
+                          </td>
+                          <td class="right-cell">
+                            <span class="command-type">
+                              {{
+                                orderResponse.order_type === "delivery"
+                                  ? "LIVRAISON"
+                                  : orderResponse.order_type === "click_collect"
+                                  ? "À EMPORTER"
+                                  : "SUR PLACE"
+                              }}
+                            </span>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+                    <div class="client-section">
+                      <div class="client-info">
+                        <span class="client-name"
+                          ><strong
+                            >{{
+                              orderResponse.customer?.first_name ||
+                              orderResponse.guest_first_name
+                            }}
+                            {{
+                              orderResponse.customer?.last_name ||
+                              orderResponse.guest_last_name
+                            }}</strong
+                          ></span
                         >
-                          <br />Livraison avant le
-                          {{
-                            formatInTimeZone(
-                              orderResponse.timeOrder,
-                              "UTC",
-                              "dd/MM/yyyy - HH:mm"
-                            )
-                          }}
-                        </template>
-                        <template
-                          v-else-if="
-                            orderResponse.order_type === 'click_collect' && orderResponse.timeOrder && isValidDate(orderResponse.timeOrder)
+                        <span class="client-phone"
+                          ><strong>{{
+                            orderResponse.customer?.phone ||
+                            orderResponse.guest_phone_number
+                          }}</strong></span
+                        >
+                        <span
+                          v-if="
+                            !orderResponse?.customer?.email?.includes(
+                              'guest_'
+                            ) && !orderResponse?.guest_email?.includes('guest_')
+                          "
+                          class="client-email"
+                          ><strong>{{
+                            orderResponse?.customer?.email ||
+                            orderResponse?.guest_email
+                          }}</strong></span
+                        >
+                      </div>
+                    </div>
+
+                    <hr class="dashed-line" />
+
+                    <div class="product-ticket" v-if="orderResponse">
+                      <div
+                        v-for="(items, categoryName) in groupedByCategory"
+                        :key="categoryName"
+                        class="category-section"
+                        style="margin-bottom: 10px"
+                      >
+                        <!-- 🏷️ Nom unique de la catégorie -->
+                        <div
+                          style="
+                            font-weight: 600;
+                            font-size: 18px;
+                            margin-bottom: 8px;
+                            text-decoration: underline;
+                            justify-self: center;
                           "
                         >
-                          <br />À emporter avant le
-                          {{
-                            formatInTimeZone(
-                              orderResponse.timeOrder,
-                              "UTC",
-                              "dd/MM/yyyy - HH:mm"
-                            )
-                          }}
-                        </template>
-                      </div>
-                       <div class="command-type-bar">
-                         <table class="command-type-table">
-                           <tr>
-                             <td class="left-cell">
-                               <span class="order-reference">
-                                 {{
-                                   orderResponse.restaurantID?.id ===
-                                   RestaurantEnum.RESTO_MORGES
-                                     ? "VBM" + orderResponse.nif
-                                     : "VBP" + orderResponse.nif
-                                 }}
-                               </span>
-                             </td>
-                             <td class="right-cell">
-                               <span class="command-type">
-                                 {{
-                                   orderResponse.order_type === "delivery"
-                                     ? "LIVRAISON"
-                                     : orderResponse.order_type === "click_collect"
-                                     ? "À EMPORTER"
-                                     : "SUR PLACE"
-                                 }}
-                               </span>
-                             </td>
-                           </tr>
-                         </table>
-                       </div>
-                       <div class="client-section">
-                         <div class="client-info">
-                           <span class="client-name"
-                             ><strong
-                               >{{ orderResponse.customer?.first_name || orderResponse.guest_first_name }}
-                               {{ orderResponse.customer?.last_name || orderResponse.guest_last_name }}</strong
-                             ></span
-                           >
-                           <span class="client-phone"
-                             ><strong>{{
-                               orderResponse.customer?.phone || orderResponse.guest_phone_number
-                             }}</strong></span
-                           >
-                           <span
-                             v-if="
-                               !orderResponse?.customer?.email?.includes('guest_') && !orderResponse?.guest_email?.includes('guest_')
-                             "
-                             class="client-email"
-                             ><strong>{{
-                               orderResponse?.customer?.email || orderResponse?.guest_email
-                             }}</strong></span
-                           >
-                         </div>
-                       </div>
+                          {{ categoryName }}
+                        </div>
 
-                      
-                      <hr class="dashed-line" />
-
-                      <div class="product-ticket" v-if="orderResponse">
+                        <!-- 🍕 Tous les produits de cette catégorie -->
                         <div
-                          v-for="(items, categoryName) in groupedByCategory"
-                          :key="categoryName"
-                          class="category-section"
-                          style="margin-bottom: 10px"
+                          v-for="item in items"
+                          :key="item.id"
+                          class="product-item"
                         >
-                          <!-- 🏷️ Nom unique de la catégorie -->
-                          <div
-                            style="
-                              font-weight: 600;
-                              font-size: 18px;
-                              margin-bottom: 8px;
-                              text-decoration: underline;
-                              justify-self: center;
+                          <div class="product-details">
+                            <div class="product-name">
+                              {{ item.quantity }}x
+                              {{ item.product?.name || "Produit" }}
+                              {{ item.size || "" }}
+                              <span v-if="item.optionSpecific">{{
+                                item.optionSpecific
+                              }}</span>
+                            </div>
+                            <div class="product-price">
+                              {{ item.total_price }} CHF
+                            </div>
+                          </div>
+
+                          <!-- 🧂 Ingrédients -->
+                          <ul
+                            v-if="
+                              (item.ingredients &&
+                                item?.ingredients?.length > 0) ||
+                              (item.ingredient && item?.ingredient?.length > 0)
                             "
+                            class="ingredients-list"
                           >
-                            {{ categoryName }}
-                          </div>
-
-                           <!-- 🍕 Tous les produits de cette catégorie -->
-                           <div
-                             v-for="item in items"
-                             :key="item.id"
-                             class="product-item"
-                           >
-                             <div class="product-details">
-                               <div class="product-name">
-                                 {{ item.quantity }}x {{ item.product?.name || 'Produit' }} {{ item.size || '' }}
-                                 <span v-if="item.optionSpecific">{{ item.optionSpecific }}</span>
-                               </div>
-                               <div class="product-price">
-                                 {{ item.total_price }} CHF
-                               </div>
-                             </div>
-
-                             <!-- 🧂 Ingrédients -->
-                             <ul
-                               v-if="
-                                 (item.ingredients && item?.ingredients?.length > 0) ||
-                                 (item.ingredient && item?.ingredient?.length > 0)
-                               "
-                               class="ingredients-list"
-                             >
-                               <li
-                                 v-for="ingredient in (item.ingredients || item.ingredient)"
-                                 :key="ingredient.id"
-                               >
-                                 x{{ ingredient.quantite || ingredient.quantity }} {{ ingredient.name }} (+{{ ((ingredient.extra_cost_price || 0) * (ingredient.quantite || ingredient.quantity || 1)).toFixed(2) }} CHF)
-                               </li>
-                             </ul>
-                           </div>
+                            <li
+                              v-for="ingredient in item.ingredients ||
+                              item.ingredient"
+                              :key="ingredient.id"
+                            >
+                              x{{ ingredient.quantite || ingredient.quantity }}
+                              {{ ingredient.name }} (+{{
+                                (
+                                  (ingredient.extra_cost_price || 0) *
+                                  (ingredient.quantite ||
+                                    ingredient.quantity ||
+                                    1)
+                                ).toFixed(2)
+                              }}
+                              CHF)
+                            </li>
+                          </ul>
                         </div>
                       </div>
+                    </div>
 
-                      <hr class="dashed-line" />
-                      <div class="price-summary">
-                        <div class="price-row">
-                          <span><strong>Sous-Total</strong></span>
-                          <span class="price-value">{{ getSubtotalPrice(orderResponse) }} CHF</span>
-                        </div>
-                        <div
-                          class="price-row"
-                          v-if="orderResponse.discountValue != '0'"
+                    <hr class="dashed-line" />
+                    <div class="price-summary">
+                      <div class="price-row">
+                        <span><strong>Sous-Total</strong></span>
+                        <span class="price-value"
+                          >{{ getSubtotalPrice(orderResponse) }} CHF</span
                         >
-                          <span><strong>(Rabais)</strong></span>
-                          <span class="price-value">-{{ getDiscountValue(orderResponse) }} CHF</span>
-                        </div>
-                        <div
-                          class="price-row"
-                          v-if="orderResponse.divers != '0' || orderResponse.divers != null"
+                      </div>
+                      <div
+                        class="price-row"
+                        v-if="orderResponse.discountValue != '0'"
+                      >
+                        <span><strong>(Rabais)</strong></span>
+                        <span class="price-value"
+                          >-{{ getDiscountValue(orderResponse) }} CHF</span
                         >
-                          <span><strong>(Frais supplémentaire)</strong></span>
-                          <span class="price-value">{{ orderResponse.divers }} CHF</span>
-                        </div>
-                        <div class="price-row">
-                          <span><strong>y compris T.V.A (2.6%)</strong></span>
-                          <span class="price-value">{{ (parseFloat(orderResponse.total) * 0.026).toFixed(2) }} CHF</span>
-                        </div>
-                        <div class="price-row total-row">
-                          <span><strong>Total</strong></span>
-                          <span class="price-value">{{ orderResponse.total }} CHF</span>
-                        </div>
                       </div>
+                      <div
+                        class="price-row"
+                        v-if="
+                          orderResponse.divers != '0' ||
+                          orderResponse.divers != null
+                        "
+                      >
+                        <span><strong>(Frais supplémentaire)</strong></span>
+                        <span class="price-value"
+                          >{{ orderResponse.divers }} CHF</span
+                        >
+                      </div>
+                      <div class="price-row">
+                        <span><strong>y compris T.V.A (2.6%)</strong></span>
+                        <span class="price-value"
+                          >{{
+                            (parseFloat(orderResponse.total) * 0.026).toFixed(2)
+                          }}
+                          CHF</span
+                        >
+                      </div>
+                      <div class="price-row total-row">
+                        <span><strong>Total</strong></span>
+                        <span class="price-value"
+                          >{{ orderResponse.total }} CHF</span
+                        >
+                      </div>
+                    </div>
 
-                      <hr class="dashed-line" />
-                      <div class="payment-method" v-if="methodePaiementSelected.length > 0">
-                        <div class="price-row">
-                          <strong>Méthode de paiement :</strong>
-                            <span>{{ (orderResponse.payment?.method || methodePaiementSelected[0]?.libelle) ?? "" }}</span>
-                        </div>
-                      </div>
-                      <div class="route">
-                        <div>
-                          <strong
-                            >Trancher:
-                            {{
-                              orderResponse.intructionOrder?.isTrancher
-                                ? "OUI"
-                                : "NON"
-                            }}</strong
-                          >
-                          </div>
-                        <div>
-                          <strong
-                            >Couverts:
-                            {{
-                              orderResponse.intructionOrder?.quantityCouverts || "-"
-                            }}</strong
-                          >
-                          </div>
-                        <div class="instruction-row" v-if="orderResponse.SpecialInstructions || orderResponse.feature">
-                          <div><strong>(Commentaire :)</strong></div>
-                          <div>
-                            <strong>{{
-                              orderResponse.SpecialInstructions || orderResponse.feature?.[0] || "-"
-                            }}</strong>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="ticket-footer">
+                    <hr class="dashed-line" />
+                    <div
+                      class="payment-method"
+                      v-if="methodePaiementSelected.length > 0"
+                    >
+                      <div class="price-row">
+                        <strong>Méthode de paiement :</strong>
                         <span>{{
+                          (orderResponse.payment?.method ||
+                            methodePaiementSelected[0]?.libelle) ??
+                          ""
+                        }}</span>
+                      </div>
+                    </div>
+                    <div class="route">
+                      <div>
+                        <strong
+                          >Trancher:
+                          {{
+                            orderResponse.intructionOrder?.isTrancher
+                              ? "OUI"
+                              : "NON"
+                          }}</strong
+                        >
+                      </div>
+                      <div>
+                        <strong
+                          >Couverts:
+                          {{
+                            orderResponse.intructionOrder?.quantityCouverts ||
+                            "-"
+                          }}</strong
+                        >
+                      </div>
+                      <div
+                        class="instruction-row"
+                        v-if="
+                          orderResponse.SpecialInstructions ||
+                          orderResponse.feature
+                        "
+                      >
+                        <div><strong>(Commentaire :)</strong></div>
+                        <div>
+                          <strong>{{
+                            orderResponse.SpecialInstructions ||
+                            orderResponse.feature?.[0] ||
+                            "-"
+                          }}</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="ticket-footer">
+                      <span
+                        >{{
                           orderResponse.restaurantID?.id ===
                           RestaurantEnum.RESTO_MORGES
                             ? "Va Bene pizza sàrl Morges"
                             : "Pizzeria Va Bene SA "
                         }}
-                        </span>
-                        <span>{{
-                          orderResponse.restaurantID?.address || "-"
+                      </span>
+                      <span
+                        >{{ orderResponse.restaurantID?.address || "-" }}
+                      </span>
+                      <span
+                        >{{
+                          orderResponse.restaurantID?.codePostalID
+                            ?.numeroPostal || "-"
                         }}
-                        </span>
-                        <span>{{
-                              orderResponse.restaurantID?.codePostalID?.numeroPostal || "-"
-                            }}
-                            {{ orderResponse.restaurantID?.name || "-" }}
-                        </span>
-                        <span>{{
-                              orderResponse.restaurantID?.phoneNumber || "-"
-                            }}
-                        </span>
-                        <span>
+                        {{ orderResponse.restaurantID?.name || "-" }}
+                      </span>
+                      <span
+                        >{{ orderResponse.restaurantID?.phoneNumber || "-" }}
+                      </span>
+                      <span>
                         {{ orderResponse.restaurantID?.taxe || "-" }}
-                        </span>
-                        <span>www.vabenepizza.ch</span>
-                      </div>
+                      </span>
+                      <span>www.vabenepizza.ch</span>
                     </div>
                   </div>
                 </div>
-              </main>
-            </div>
+              </div>
+            </main>
           </div>
-          <div class="modal-footer">
-            <button @click="previewPDF" type="button" class="btn btn-primary">
-              Imprimer maintenant
-            </button>
-          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            v-if="pdfUrl"
+            @click="printPDFFromUrl"
+            type="button"
+            class="btn btn-primary"
+          >
+            Imprimer maintenant
+          </button>
+          <button
+            v-else
+            @click="previewPDF"
+            type="button"
+            class="btn btn-primary"
+          >
+            Imprimer maintenant
+          </button>
         </div>
       </div>
     </div>
@@ -1290,21 +1465,34 @@ export default defineComponent({
       const grouped: Record<string, any[]> = {};
 
       if (this.orderResponse) {
-        for (const item of this.orderResponse.items) {
+        for (const categoryItem of this.orderResponse.items as any) {
           const categoryName =
-            item.product?.categorieID?.name || "Sans catégorie";
+            (categoryItem as any).category || "Sans catégorie";
 
           if (!grouped[categoryName]) {
             grouped[categoryName] = [];
           }
 
-          grouped[categoryName].push(item);
+          // Ajouter tous les produits de cette catégorie
+          grouped[categoryName].push(...(categoryItem as any).products);
         }
       }
       return grouped;
     },
     RestaurantEnum() {
       return RestaurantEnum;
+    },
+    // Propriété calculée pour les items avec la nouvelle structure
+    orderItemsWithNewStructure() {
+      const items = ((this as any).orderResponse?.items as any) || [];
+      // S'assurer que chaque item a une structure valide
+      return items.filter(
+        (item: any) => item && typeof item === "object" && item.products
+      );
+    },
+    // Propriété calculée pour obtenir l'URL du PDF
+    pdfUrl() {
+      return ((this as any).orderResponse as any)?.pdfUrl || null;
     },
   },
   props: {
@@ -1337,8 +1525,15 @@ export default defineComponent({
       return !isNaN(date.getTime());
     },
     getSubtotalPrice(order: OrderModel): number {
-      const prices = order.items.reduce(
-        (total, item) => total + (item.product_price * item.quantity),
+      const prices = (order.items as any).reduce(
+        (total: number, categoryItem: any) => {
+          const categoryTotal = (categoryItem as any).products.reduce(
+            (categorySum: number, product: any) =>
+              categorySum + (product as any).price * (product as any).quantity,
+            0
+          );
+          return total + categoryTotal;
+        },
         0
       );
       return prices;
@@ -1351,8 +1546,7 @@ export default defineComponent({
         order.discountValue !== "" &&
         order.discountType == "percentage"
       ) {
-        discountValue =
-          Number(order.total) - Number(order.total) * (26 / 100);
+        discountValue = Number(order.total) - Number(order.total) * (26 / 100);
       }
       return discountValue;
     },
@@ -1385,6 +1579,12 @@ export default defineComponent({
       // On garde uniquement les chiffres
       const digitsOnly = lastPart.replace(/\D/g, "");
       return digitsOnly.slice(-6);
+    },
+    printPDFFromUrl() {
+      if (this.orderResponse && (this.orderResponse as any).pdfUrl) {
+        // Ouvrir le PDF dans un nouvel onglet pour l'impression
+        window.open((this.orderResponse as any).pdfUrl, "_blank");
+      }
     },
     previewPDF() {
       const element = document.getElementById("recu-pdf");
@@ -1651,9 +1851,9 @@ export default defineComponent({
     getProductImage(productImage: string): string {
       try {
         const images = JSON.parse(productImage);
-        return images[0] || '';
+        return images[0] || "";
       } catch (error) {
-        return '';
+        return "";
       }
     },
     selectedOrderItem(orderItem: any) {
@@ -1661,6 +1861,21 @@ export default defineComponent({
     },
     displayInvoire() {
       if (this.orderResponse) {
+        // Si un PDF URL est disponible, l'afficher dans la modale
+        const pdfUrl = (this.orderResponse as any).pdfUrl;
+        if (pdfUrl) {
+          // Afficher la modale avec le PDF
+          const modalEl = document.getElementById(
+            "contentModalScrollable_facture"
+          );
+          if (modalEl) {
+            const modal = new Modal(modalEl);
+            modal.show();
+          }
+          return;
+        }
+
+        // Sinon, afficher la modale avec le PDF généré localement
         this.qrcode = `https://barcode.orcascan.com/?type=code128&data=${this.orderResponse.reference}}`;
         const modalEl = document.getElementById(
           "contentModalScrollable_facture"
@@ -1698,8 +1913,8 @@ export default defineComponent({
         if (response.code === 200) {
           if (response.data) {
             this.orderResponse = response.data;
-           // await this.fetchListeMethodePaiement();
-           // await this.fetchOrderType();
+            // await this.fetchListeMethodePaiement();
+            // await this.fetchOrderType();
             this.displayInvoire();
           }
         } else {
@@ -1846,37 +2061,37 @@ export default defineComponent({
       }
     },
 
-   translatePaymentMethod(paymentMethod: string): string {
-    const translations = {
-      'pay_click_collect_cash': 'Paiement en espèces',
-      'pay_click_collect_carte': 'Paiement par carte',
-      'pay_delivery_cash': 'Paiement en espèces à la livraison',
-      'pay_delivery_carte': 'Paiement par carte à la livraison',
-      'on_line': 'Paiement en ligne'
-    };
+    translatePaymentMethod(paymentMethod: string): string {
+      const translations = {
+        pay_click_collect_cash: "Paiement en espèces",
+        pay_click_collect_carte: "Paiement par carte",
+        pay_delivery_cash: "Paiement en espèces à la livraison",
+        pay_delivery_carte: "Paiement par carte à la livraison",
+        on_line: "Paiement en ligne",
+      };
 
-    return translations[paymentMethod] ?? '';
-  },
+      return translations[paymentMethod] ?? "";
+    },
 
-  backgroundColorPaymentMethod(paymentMethod: string): string {
-    const translations = {
-      'pay_click_collect_cash': 'bg-danger',
-      'pay_click_collect_carte': 'bg-warning',
-      'pay_delivery_cash': 'bg-success',
-      'pay_delivery_carte': 'bg-secondary',
-      'on_line': 'bg-info'
-    };
-    return translations[paymentMethod] ?? 'bg-secondary';
-  },
+    backgroundColorPaymentMethod(paymentMethod: string): string {
+      const translations = {
+        pay_click_collect_cash: "bg-danger",
+        pay_click_collect_carte: "bg-warning",
+        pay_delivery_cash: "bg-success",
+        pay_delivery_carte: "bg-secondary",
+        on_line: "bg-info",
+      };
+      return translations[paymentMethod] ?? "bg-secondary";
+    },
 
-  translateOrderType(orderType: string): string {
-    const translations = {
-      'delivery': 'A Livrer',
-      'click_collect': 'A emporter',
-      'dine_in': 'Sur place'
-    };
-    return translations[orderType] || 'Non spécifié';
-  },  
+    translateOrderType(orderType: string): string {
+      const translations = {
+        delivery: "A Livrer",
+        click_collect: "A emporter",
+        dine_in: "Sur place",
+      };
+      return translations[orderType] || "Non spécifié";
+    },
     fetchStatusOrderPaiementFr(status: string) {
       switch (status) {
         case PaymentStatus.PENDING:
@@ -1904,12 +2119,12 @@ export default defineComponent({
     // this.fetchAllStatusOrder();
     // this.fetchAllPaiementStatusOrder();
     this.displayInvoire();
-    
+
     // Nettoyer les modals existants au montage
     document.body.classList.remove("modal-open");
     const backdrops = document.querySelectorAll(".modal-backdrop");
     backdrops.forEach((el) => el.remove());
-    
+
     // Ajouter l'event listener pour nettoyer les modals
     const modalCleanupHandler = (event: Event) => {
       document.body.classList.remove("modal-open");
@@ -1917,14 +2132,17 @@ export default defineComponent({
       backdrops.forEach((el) => el.remove());
     };
     document.addEventListener("hidden.bs.modal", modalCleanupHandler);
-    
+
     // Stocker la référence pour pouvoir la supprimer plus tard
     (this as any).modalCleanupHandler = modalCleanupHandler;
   },
   beforeUnmount() {
     // Supprimer l'event listener pour éviter les fuites mémoire
     if ((this as any).modalCleanupHandler) {
-      document.removeEventListener("hidden.bs.modal", (this as any).modalCleanupHandler);
+      document.removeEventListener(
+        "hidden.bs.modal",
+        (this as any).modalCleanupHandler
+      );
     }
     // Nettoyer les modals avant de quitter
     document.body.classList.remove("modal-open");
@@ -2204,7 +2422,7 @@ body {
 #recu-pdf .command-type-table {
   width: 100%;
   border-collapse: collapse;
-  background: #E5E5E5;
+  background: #e5e5e5;
 }
 
 #recu-pdf .command-type-table td {

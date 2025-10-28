@@ -1,8 +1,7 @@
 <template>
   <div class="order-invoice">
     <!-- En-tête avec informations client -->
-    <div class="invoice-header">
-    </div>
+    <div class="invoice-header"></div>
 
     <!-- Informations client -->
     <div class="customer-section">
@@ -13,7 +12,12 @@
           <span class="banner-icon">👤</span>
           <div class="banner-text">
             <span class="banner-title">Client enregistré sélectionné</span>
-            <span class="banner-subtitle">{{ selectedCustomer.first_name || selectedCustomer.firstName }} {{ selectedCustomer.last_name || selectedCustomer.lastName }}</span>
+            <span class="banner-subtitle"
+              >{{ selectedCustomer.first_name || selectedCustomer.firstName }}
+              {{
+                selectedCustomer.last_name || selectedCustomer.lastName
+              }}</span
+            >
           </div>
         </div>
         <button @click="clearSelectedCustomer" class="banner-clear-btn">
@@ -24,18 +28,33 @@
       <div class="customer-form">
         <div class="form-group">
           <label>Prénom</label>
-          <input v-model="customerInfo.firstName" type="text" placeholder="Prénom du client"
-            :class="['form-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
-
-
+          <input
+            v-model="customerInfo.firstName"
+            type="text"
+            placeholder="Prénom du client"
+            :class="['form-input', { 'client-selected': selectedCustomer }]"
+            @input="handleCustomerSearch"
+          />
 
           <!-- Suggestions de clients -->
-          <div v-if="customerSuggestions.length > 0" class="customer-suggestions">
-            <div v-for="customer in customerSuggestions" :key="customer.id" class="customer-suggestion"
-              @click="selectCustomer(customer)">
+          <div
+            v-if="customerSuggestions.length > 0"
+            class="customer-suggestions"
+          >
+            <div
+              v-for="customer in customerSuggestions"
+              :key="customer.id"
+              class="customer-suggestion"
+              @click="selectCustomer(customer)"
+            >
               <div class="suggestion-main">
-                <span class="suggestion-name">{{ customer.first_name || customer.firstName }} {{ customer.last_name || customer.lastName }}</span>
-                <span class="suggestion-phone">{{ customer.phone_number || customer.phoneNumber }}</span>
+                <span class="suggestion-name"
+                  >{{ customer.first_name || customer.firstName }}
+                  {{ customer.last_name || customer.lastName }}</span
+                >
+                <span class="suggestion-phone">{{
+                  customer.phone_number || customer.phoneNumber
+                }}</span>
               </div>
               <div class="suggestion-address">{{ customer.email }}</div>
             </div>
@@ -43,29 +62,53 @@
         </div>
         <div class="form-group">
           <label>Nom</label>
-          <input v-model="customerInfo.lastName" type="text" placeholder="Nom du client"
-            :class="['form-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
+          <input
+            v-model="customerInfo.lastName"
+            type="text"
+            placeholder="Nom du client"
+            :class="['form-input', { 'client-selected': selectedCustomer }]"
+            @input="handleCustomerSearch"
+          />
         </div>
         <div class="form-group">
           <label>Téléphone</label>
           <div class="phone-input-container">
             <span class="country-prefix">+41</span>
-            <input v-model="customerInfo.phone" type="tel" placeholder="Numéro de téléphone"
-              :class="['form-input', 'phone-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
+            <input
+              v-model="customerInfo.phone"
+              type="tel"
+              placeholder="Numéro de téléphone"
+              :class="[
+                'form-input',
+                'phone-input',
+                { 'client-selected': selectedCustomer },
+              ]"
+              @input="handleCustomerSearch"
+            />
           </div>
         </div>
         <div class="form-group">
           <label>Email</label>
-          <input 
-            v-model="customerInfo.email" 
-            type="email" 
-            placeholder="Email du client" 
+          <input
+            v-model="customerInfo.email"
+            type="email"
+            placeholder="Email du client"
             required
-            :class="['form-input', { 'client-selected': selectedCustomer, 'invalid-email': customerInfo.email && !isValidEmail(customerInfo.email) }]" 
+            :class="[
+              'form-input',
+              {
+                'client-selected': selectedCustomer,
+                'invalid-email':
+                  customerInfo.email && !isValidEmail(customerInfo.email),
+              },
+            ]"
             @input="handleCustomerSearch"
             @blur="validateEmail"
           />
-          <div v-if="customerInfo.email && !isValidEmail(customerInfo.email)" class="email-error">
+          <div
+            v-if="customerInfo.email && !isValidEmail(customerInfo.email)"
+            class="email-error"
+          >
             Veuillez saisir une adresse email valide
           </div>
         </div>
@@ -79,15 +122,36 @@
         </div>
 
         <!-- Type client -->
-        <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px;">
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 10px;
+          "
+        >
           <label>Type client</label>
-          <div style="display: flex; align-items: center; gap: 5px;">
-            <input type="radio" name="customer" id="customer" value="customer" v-model="clientType">
-            <label for="customer" style="font-size: 14px;">Client</label>
+          <div style="display: flex; align-items: center; gap: 5px">
+            <input
+              type="radio"
+              name="customer"
+              id="customer"
+              value="customer"
+              v-model="clientType"
+            />
+            <label for="customer" style="font-size: 14px">Client</label>
           </div>
-          <div style="display: flex; align-items: center; gap: 5px;">
-            <input type="radio" name="organisation" id="organisation" value="organisation" v-model="clientType">
-            <label for="organisation" style="font-size: 14px;">Organisation</label>
+          <div style="display: flex; align-items: center; gap: 5px">
+            <input
+              type="radio"
+              name="organisation"
+              id="organisation"
+              value="organisation"
+              v-model="clientType"
+            />
+            <label for="organisation" style="font-size: 14px"
+              >Organisation</label
+            >
           </div>
         </div>
 
@@ -95,24 +159,44 @@
         <div v-if="clientType === 'organisation'">
           <div class="form-group">
             <label>Société</label>
-            <input v-model="organisationInfo.societe" type="text" placeholder="Nom de la société"
-              :class="['form-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
+            <input
+              v-model="organisationInfo.societe"
+              type="text"
+              placeholder="Nom de la société"
+              :class="['form-input', { 'client-selected': selectedCustomer }]"
+              @input="handleCustomerSearch"
+            />
           </div>
           <div class="form-group">
             <label>Département</label>
-            <input v-model="organisationInfo.departement" type="text" placeholder="Département"
-              :class="['form-input', { 'client-selected': selectedCustomer }]" @input="handleCustomerSearch" />
+            <input
+              v-model="organisationInfo.departement"
+              type="text"
+              placeholder="Département"
+              :class="['form-input', { 'client-selected': selectedCustomer }]"
+              @input="handleCustomerSearch"
+            />
           </div>
         </div>
 
         <!-- Options de récupération pour click_collect -->
-        <div v-if="storeOrderType === 'click_collect' || storeOrderType === 'delivery'"
-          class="delivery-preference-section">
+        <div
+          v-if="
+            storeOrderType === 'click_collect' || storeOrderType === 'delivery'
+          "
+          class="delivery-preference-section"
+        >
           <label>Moment de récupération</label>
           <div class="delivery-options">
             <div class="delivery-option">
-              <input type="radio" id="immediat" name="deliveryPreference" value="immediat" v-model="deliveryPreference"
-                :disabled="!isRestaurantOpen">
+              <input
+                type="radio"
+                id="immediat"
+                name="deliveryPreference"
+                value="immediat"
+                v-model="deliveryPreference"
+                :disabled="!isRestaurantOpen"
+              />
               <label for="immediat" class="delivery-option-label">
                 <span class="delivery-option-title">Dès que possible</span>
                 <span v-if="!isRestaurantOpen" class="delivery-option-subtitle">
@@ -123,12 +207,19 @@
                 </span>
               </label>
             </div>
-            
+
             <div class="delivery-option">
-              <input type="radio" id="ulterieur" name="deliveryPreference" value="ulterieur"
-                v-model="deliveryPreference">
+              <input
+                type="radio"
+                id="ulterieur"
+                name="deliveryPreference"
+                value="ulterieur"
+                v-model="deliveryPreference"
+              />
               <label for="ulterieur" class="delivery-option-label">
-                <span class="delivery-option-title">Date et heure souhaitées</span>
+                <span class="delivery-option-title"
+                  >Date et heure souhaitées</span
+                >
                 <span class="delivery-option-subtitle">
                   Programmer pour plus tard
                 </span>
@@ -137,44 +228,83 @@
           </div>
 
           <!-- Sélecteurs de date et heure pour livraison programmée -->
-          <div v-if="deliveryPreference === 'ulterieur'" class="scheduled-delivery">
+          <div
+            v-if="deliveryPreference === 'ulterieur'"
+            class="scheduled-delivery"
+          >
             <div class="form-group">
               <label>Date de récupération</label>
-              <select v-model="selectedDate" class="form-select" @change="handleDateChange">
+              <select
+                v-model="selectedDate"
+                class="form-select"
+                @change="handleDateChange"
+              >
                 <option value="">Sélectionner une date</option>
-                <option v-for="date in getAvailableDates" :key="date.value" :value="date.value">
+                <option
+                  v-for="date in getAvailableDates"
+                  :key="date.value"
+                  :value="date.value"
+                >
                   {{ date.label }}
                 </option>
               </select>
             </div>
-            
+
             <div class="form-group" v-if="selectedDate">
               <label>Heure de récupération</label>
               <select v-model="selectedTime" class="form-select">
                 <option value="">Sélectionner une heure</option>
-                <option v-for="time in getAvailableTimes" :key="time" :value="time">
+                <option
+                  v-for="time in getAvailableTimes"
+                  :key="time"
+                  :value="time"
+                >
                   {{ time }}
                 </option>
               </select>
-              <div v-if="selectedDate === getSwissDate().toISOString().split('T')[0] && getAvailableTimes.length === 0"
-                class="time-info">
-                <span class="time-info-text">Aucune heure disponible aujourd'hui. Veuillez sélectionner demain.</span>
+              <div
+                v-if="
+                  selectedDate === getSwissDate().toISOString().split('T')[0] &&
+                  getAvailableTimes.length === 0
+                "
+                class="time-info"
+              >
+                <span class="time-info-text"
+                  >Aucune heure disponible aujourd'hui. Veuillez sélectionner
+                  demain.</span
+                >
               </div>
             </div>
           </div>
         </div>
 
         <!-- Champs d'adresse pour la livraison -->
-        <div v-if="storeOrderType === 'delivery'" class="delivery-address-section">
+        <div
+          v-if="storeOrderType === 'delivery'"
+          class="delivery-address-section"
+        >
           <h4 class="delivery-address-title">Adresse de livraison</h4>
 
           <!-- Sélection d'adresse utilisateur si client sélectionné -->
-          <div v-if="selectedCustomer && userAddresses.length > 0" class="form-group">
+          <div
+            v-if="selectedCustomer && userAddresses.length > 0"
+            class="form-group"
+          >
             <label>Adresses enregistrées</label>
-            <select v-model="selectedAddressId" class="form-select" @change="handleAddressSelection">
+            <select
+              v-model="selectedAddressId"
+              class="form-select"
+              @change="handleAddressSelection"
+            >
               <option value="">Nouvelle adresse</option>
-              <option v-for="address in userAddresses" :key="address.id" :value="address.id">
-                {{ address.rue || address.address }} {{ address.numeroLocalite || address.numeroRue }}, {{ address.localite || address.city }}
+              <option
+                v-for="address in userAddresses"
+                :key="address.id"
+                :value="address.id"
+              >
+                {{ address.rue || address.address }}
+                {{ address.numeroLocalite || address.numeroRue }},
+                {{ address.localite || address.city }}
               </option>
             </select>
           </div>
@@ -182,37 +312,42 @@
           <div class="form-group">
             <label>NPA (Code postal)</label>
             <div class="postal-code-input-container">
-            <input 
-                v-model="deliveryAddress.npa" 
-              type="text" 
+              <input
+                v-model="deliveryAddress.npa"
+                type="text"
                 placeholder="Code postal"
-              class="form-input"
+                class="form-input"
                 :disabled="selectedAddressId !== '' && userAddresses.length > 0"
                 @input="handlePostalCodeChange"
                 @focus="handlePostalCodeChange"
               />
-              
+
               <!-- Dropdown des suggestions de codes postaux -->
-              <div v-if="showPostalCodeSuggestions" class="postal-code-suggestions">
-                <div 
-                  v-for="postalCode in postalCodeSuggestions" 
-                  :key="postalCode.code" 
+              <div
+                v-if="showPostalCodeSuggestions"
+                class="postal-code-suggestions"
+              >
+                <div
+                  v-for="postalCode in postalCodeSuggestions"
+                  :key="postalCode.code"
                   class="postal-code-suggestion"
                   @click="selectPostalCode(postalCode)"
                 >
                   <span class="postal-code-number">{{ postalCode.code }}</span>
-                  <span class="postal-code-city">{{ postalCode.locality }}</span>
-          </div>
+                  <span class="postal-code-city">{{
+                    postalCode.locality
+                  }}</span>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="form-group">
             <label>Localité</label>
-            <input 
-              v-model="deliveryAddress.localite" 
-              type="text" 
-              placeholder="Localité" 
+            <input
+              v-model="deliveryAddress.localite"
+              type="text"
+              placeholder="Localité"
               class="form-input"
               :disabled="selectedAddressId !== '' && userAddresses.length > 0"
             />
@@ -220,14 +355,24 @@
 
           <div class="form-group">
             <label>Rue</label>
-            <input v-model="deliveryAddress.rue" type="text" placeholder="Nom de la rue" class="form-input"
-              :disabled="selectedAddressId !== '' && userAddresses.length > 0" />
+            <input
+              v-model="deliveryAddress.rue"
+              type="text"
+              placeholder="Nom de la rue"
+              class="form-input"
+              :disabled="selectedAddressId !== '' && userAddresses.length > 0"
+            />
           </div>
 
           <div class="form-group">
             <label>N° Rue</label>
-            <input v-model="deliveryAddress.numeroRue" type="text" placeholder="Numéro de rue" class="form-input"
-              :disabled="selectedAddressId !== '' && userAddresses.length > 0" />
+            <input
+              v-model="deliveryAddress.numeroRue"
+              type="text"
+              placeholder="Numéro de rue"
+              class="form-input"
+              :disabled="selectedAddressId !== '' && userAddresses.length > 0"
+            />
           </div>
         </div>
       </div>
@@ -236,11 +381,17 @@
       <div class="cart-section">
         <div class="section-header">
           <h3 class="section-title">Commande</h3>
-          <span class="item-count">{{ cartItemsWithCorrectPrices?.length || 0 }} article(s)</span>
+          <span class="item-count"
+            >{{ cartItemsWithCorrectPrices?.length || 0 }} article(s)</span
+          >
         </div>
 
         <div class="cart-items">
-          <div v-for="item in validCartItems" :key="item?.localProductId || item?.id" class="cart-item">
+          <div
+            v-for="item in validCartItems"
+            :key="item?.localProductId || item?.id"
+            class="cart-item"
+          >
             <div class="item-image">
               <img :src="item.image" :alt="item.name" />
             </div>
@@ -253,38 +404,66 @@
               <div v-if="hasCustomIngredients(item)" class="item-customization">
                 <span class="customization-label">Personnalisé:</span>
                 <div class="ingredients-list">
-                  <span v-for="ingredient in getCustomIngredients(item)" :key="ingredient.id" class="ingredient-tag">
+                  <span
+                    v-for="ingredient in getCustomIngredients(item)"
+                    :key="ingredient.id"
+                    class="ingredient-tag"
+                  >
                     {{ ingredient.name }} ({{ ingredient.quantity }})
                   </span>
                 </div>
               </div>
 
               <!-- Ingrédients retirés -->
-              <div v-if="hasRemovedIngredients(item)" class="item-customization">
+              <div
+                v-if="hasRemovedIngredients(item)"
+                class="item-customization"
+              >
                 <span class="customization-label">Retiré:</span>
                 <div class="ingredients-list">
-                  <span v-for="ingredient in getRemovedIngredients(item)" :key="ingredient.id" class="ingredient-tag removed-ingredient">
+                  <span
+                    v-for="ingredient in getRemovedIngredients(item)"
+                    :key="ingredient.id"
+                    class="ingredient-tag removed-ingredient"
+                  >
                     {{ ingredient.name }} ({{ ingredient.quantity }})
                   </span>
                 </div>
               </div>
 
               <!-- Options additionnelles -->
-              <div v-if="item.additionnal && item.additionnal.length" class="item-customization">
+              <div
+                v-if="item.additionnal && item.additionnal.length"
+                class="item-customization"
+              >
                 <span class="customization-label">Options :</span>
                 <div class="ingredients-list">
-                  <span v-for="option in item.additionnal" :key="option" class="ingredient-tag">
+                  <span
+                    v-for="option in item.additionnal"
+                    :key="option"
+                    class="ingredient-tag"
+                  >
                     {{ option }}
                   </span>
                 </div>
               </div>
 
               <!-- Suppléments -->
-              <div v-if="item.supplements && item.supplements.length" class="item-customization">
+              <div
+                v-if="item.supplements && item.supplements.length"
+                class="item-customization"
+              >
                 <span class="customization-label">Suppléments :</span>
                 <div class="ingredients-list">
-                  <span v-for="supp in item.supplements" :key="supp.id" class="ingredient-tag">
-                    {{ supp.name }}<template v-if="supp.quantity > 1"> ({{ supp.quantity }})</template>
+                  <span
+                    v-for="supp in item.supplements"
+                    :key="supp.id"
+                    class="ingredient-tag"
+                  >
+                    {{ supp.name
+                    }}<template v-if="supp.quantity > 1">
+                      ({{ supp.quantity }})</template
+                    >
                   </span>
                 </div>
               </div>
@@ -295,30 +474,45 @@
 
             <div class="item-controls">
               <div class="quantity-controls">
-                <button class="qty-btn decrease" @click="decreaseQuantity(item.localProductId)">
+                <button
+                  class="qty-btn decrease"
+                  @click="decreaseQuantity(item.localProductId)"
+                >
                   ➖
                 </button>
                 <span class="quantity">{{ item.quantity }}</span>
-                <button class="qty-btn increase" @click="increaseQuantity(item.localProductId)">
+                <button
+                  class="qty-btn increase"
+                  @click="increaseQuantity(item.localProductId)"
+                >
                   ➕
                 </button>
               </div>
 
               <div class="item-price">
-                <span class="price">{{ formatPrice(item.calculatedTotalPrice || item.totalPrice) }} CHF</span> 
+                <span class="price"
+                  >{{
+                    formatPrice(item.calculatedTotalPrice || item.totalPrice)
+                  }}
+                  CHF</span
+                >
               </div>
 
-              <button class="remove-btn" @click="removeItem(item.localProductId)">
+              <button
+                class="remove-btn"
+                @click="removeItem(item.localProductId)"
+              >
                 🗑️
               </button>
             </div>
           </div>
 
           <!-- Message panier vide -->
-          <div v-if="!validCartItems || validCartItems.length === 0" class="empty-cart">
-            <div class="empty-icon">
-              
-            </div>
+          <div
+            v-if="!validCartItems || validCartItems.length === 0"
+            class="empty-cart"
+          >
+            <div class="empty-icon"></div>
             <p>Panier vide</p>
             <span>Ajoutez des articles pour commencer</span>
           </div>
@@ -333,7 +527,11 @@
         <div v-if="selectedFeatures.length > 0" class="features-section">
           <h4 class="features-title">Options sélectionnées</h4>
           <div class="features-list">
-            <span v-for="feature in selectedFeatures" :key="feature" class="feature-tag">
+            <span
+              v-for="feature in selectedFeatures"
+              :key="feature"
+              class="feature-tag"
+            >
               {{ feature }}
             </span>
           </div>
@@ -342,25 +540,33 @@
         <!-- Section coupon -->
         <div class="coupon-section">
           <h4 class="coupon-title">Code promo</h4>
-          
+
           <!-- Message montant minimum pour livraison -->
-          <div v-if="storeOrderType === 'delivery' && restaurantMinOrder > 0" class="min-order-info">
+          <div
+            v-if="storeOrderType === 'delivery' && restaurantMinOrder > 0"
+            class="min-order-info"
+          >
             <div class="min-order-message">
               <span class="min-order-icon">ℹ️</span>
               <span class="min-order-text">
-                Montant minimum de commande :<strong>{{ formatPrice(restaurantMinOrder) }} CHF</strong>
+                Montant minimum de commande :<strong
+                  >{{ formatPrice(restaurantMinOrder) }} CHF</strong
+                >
                 <span v-if="minOrderSupplement > 0" class="min-order-warning">
-                  (supplément de {{ formatPrice(minOrderSupplement) }} CHF appliqué)
+                  (supplément de {{ formatPrice(minOrderSupplement) }} CHF
+                  appliqué)
                 </span>
               </span>
             </div>
           </div>
-          
+
           <!-- Coupon appliqué -->
           <div v-if="appliedCoupon" class="applied-coupon">
             <div class="coupon-info">
               <span class="coupon-code">{{ appliedCoupon.code }}</span>
-              <span class="coupon-discount">-{{ formatPrice(appliedCoupon.discountAmount || 0) }} CHF</span>
+              <span class="coupon-discount"
+                >-{{ formatPrice(appliedCoupon.discountAmount || 0) }} CHF</span
+              >
             </div>
             <button @click="removeCoupon" class="remove-coupon-btn">
               <i class="fas fa-times"></i>
@@ -370,16 +576,16 @@
           <!-- Formulaire d'application de coupon -->
           <div v-else class="coupon-form">
             <div class="coupon-input-group">
-              <input 
-                v-model="couponCode" 
-                type="text" 
+              <input
+                v-model="couponCode"
+                type="text"
                 placeholder="Entrez votre code promo"
                 class="coupon-input"
                 :disabled="isApplyingCoupon"
                 @keyup.enter="applyCouponCode"
               />
-              <button 
-                @click="applyCouponCode" 
+              <button
+                @click="applyCouponCode"
                 :disabled="!couponCode.trim() || isApplyingCoupon"
                 class="apply-coupon-btn"
               >
@@ -392,11 +598,21 @@
 
         <!-- Bouton pour désactiver/réactiver le montant minimum -->
         <div v-if="storeOrderType === 'delivery'" class="min-order-controls">
-          <button v-if="restaurantMinOrder > 0" type="button" class="btn-disable-min-order" @click="disableMinOrder">
+          <button
+            v-if="restaurantMinOrder > 0"
+            type="button"
+            class="btn-disable-min-order"
+            @click="disableMinOrder"
+          >
             <span class="btn-icon">🚫</span>
             <span class="btn-text">Désactiver le montant minimum</span>
           </button>
-          <button v-else type="button" class="btn-enable-min-order" @click="enableMinOrder">
+          <button
+            v-else
+            type="button"
+            class="btn-enable-min-order"
+            @click="enableMinOrder"
+          >
             <span class="btn-icon">✅</span>
             <span class="btn-text">Réactiver le montant minimum</span>
           </button>
@@ -408,11 +624,21 @@
             <label>Type de rabais</label>
             <div class="discount-type-selector">
               <label class="discount-type-option">
-                <input type="radio" v-model="discountType" value="percentage" @change="handleDiscountTypeChange" />
+                <input
+                  type="radio"
+                  v-model="discountType"
+                  value="percentage"
+                  @change="handleDiscountTypeChange"
+                />
                 <span>Pourcentage (%)</span>
               </label>
               <label class="discount-type-option">
-                <input type="radio" v-model="discountType" value="fixed" @change="handleDiscountTypeChange" />
+                <input
+                  type="radio"
+                  v-model="discountType"
+                  value="fixed"
+                  @change="handleDiscountTypeChange"
+                />
                 <span>Montant fixe (CHF)</span>
               </label>
             </div>
@@ -422,11 +648,30 @@
             <label v-if="discountType === 'percentage'">Rabais (%)</label>
             <label v-else>Rabais (CHF)</label>
             <div class="discount-input-group">
-              <input v-if="discountType === 'percentage'" v-model="discountPercentage" type="number" min="0" max="100"
-                step="0.1" placeholder="0" class="discount-input" @input="handleDiscountChange" />
-              <input v-else v-model="discountFixed" type="number" min="0" step="0.01" placeholder="0.00"
-                class="discount-input" @input="handleFixedDiscountChange" />
-              <span class="discount-symbol">{{ discountType === 'percentage' ? '%' : 'CHF' }}</span>
+              <input
+                v-if="discountType === 'percentage'"
+                v-model="discountPercentage"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                placeholder="0"
+                class="discount-input"
+                @input="handleDiscountChange"
+              />
+              <input
+                v-else
+                v-model="discountFixed"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                class="discount-input"
+                @input="handleFixedDiscountChange"
+              />
+              <span class="discount-symbol">{{
+                discountType === "percentage" ? "%" : "CHF"
+              }}</span>
             </div>
           </div>
         </div>
@@ -436,13 +681,19 @@
           <div class="form-group">
             <label>Divers (CHF)</label>
             <div class="discount-input-group">
-              <input v-model="diversAmount" type="number" min="0" step="0.01" placeholder="0.00"
-                class="discount-input" @input="handleDiversChange" />
+              <input
+                v-model="diversAmount"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                class="discount-input"
+                @input="handleDiversChange"
+              />
               <span class="discount-symbol">CHF</span>
             </div>
           </div>
         </div>
-
 
         <div class="summary-lines">
           <div class="summary-row">
@@ -452,36 +703,50 @@
 
           <div class="summary-row" v-if="discountAmount > 0">
             <span class="label">
-              Rabais 
-              <span v-if="discountType === 'percentage'">({{ discountPercentage }}%)</span>
+              Rabais
+              <span v-if="discountType === 'percentage'"
+                >({{ discountPercentage }}%)</span
+              >
               <span v-else>({{ formatPrice(discountFixed) }} CHF)</span>
             </span>
-            <span class="value discount-value">-{{ formatPrice(discountAmount) }} CHF</span>
+            <span class="value discount-value"
+              >-{{ formatPrice(discountAmount) }} CHF</span
+            >
           </div>
 
           <div class="summary-row" v-if="couponDiscountAmount > 0">
             <span class="label">Coupon ({{ appliedCoupon?.code }})</span>
-            <span class="value discount-value">-{{ formatPrice(couponDiscountAmount) }} CHF</span>
+            <span class="value discount-value"
+              >-{{ formatPrice(couponDiscountAmount) }} CHF</span
+            >
           </div>
 
           <div class="summary-row" v-if="minOrderSupplement > 0">
             <span class="label">Supplément minimum de commande</span>
-            <span class="value supplement-value">+{{ formatPrice(minOrderSupplement) }} CHF</span>
+            <span class="value supplement-value"
+              >+{{ formatPrice(minOrderSupplement) }} CHF</span
+            >
           </div>
 
           <div class="summary-row" v-if="diversAmount > 0">
             <span class="label">Divers</span>
-            <span class="value divers-value">+{{ formatPrice(diversAmount) }} CHF</span>
+            <span class="value divers-value"
+              >+{{ formatPrice(diversAmount) }} CHF</span
+            >
           </div>
 
           <div class="summary-row">
             <span class="label">TVA ({{ taxRate }}%)</span>
-            <span class="value">{{ formatPrice(storeCartTotal * taxRate / 100) }} CHF</span>
+            <span class="value"
+              >{{ formatPrice((storeCartTotal * taxRate) / 100) }} CHF</span
+            >
           </div>
 
           <div class="summary-row total">
             <span class="label">Total</span>
-            <span class="value">{{ formatPrice(finalTotalWithCoupon) }} CHF</span>
+            <span class="value"
+              >{{ formatPrice(finalTotalWithCoupon) }} CHF</span
+            >
           </div>
         </div>
       </div>
@@ -491,9 +756,15 @@
         <h3 class="section-title">Mode de paiement</h3>
 
         <div class="payment-methods">
-          <button v-for="method in paymentMethods" :key="method.id"
-            :class="['payment-btn', { active: selectedPaymentMethod === method.id }]"
-            @click="selectPaymentMethod(method.id)">
+          <button
+            v-for="method in paymentMethods"
+            :key="method.id"
+            :class="[
+              'payment-btn',
+              { active: selectedPaymentMethod === method.id },
+            ]"
+            @click="selectPaymentMethod(method.id)"
+          >
             <span class="payment-icon">{{ getPaymentIcon(method.icon) }}</span>
             <span>{{ method.name }}</span>
           </button>
@@ -502,11 +773,20 @@
 
       <!-- Bouton de validation -->
       <div v-if="storeCart.length > 0" class="action-section">
-
-        <button @click="handlePlaceOrder" :disabled="!canPlaceOrder || isProcessingOrder" class="place-order-btn">
-          <i :class="isProcessingOrder ? 'fas fa-spinner fa-spin' : 'fas fa-receipt'"></i>
-          {{ isProcessingOrder ? 'Traitement...' : 'Valider la commande' }}
-          <span class="order-total">{{ formatPrice(finalTotalWithCoupon) }} CHF</span>
+        <button
+          @click="handlePlaceOrder"
+          :disabled="!canPlaceOrder || isProcessingOrder"
+          class="place-order-btn"
+        >
+          <i
+            :class="
+              isProcessingOrder ? 'fas fa-spinner fa-spin' : 'fas fa-receipt'
+            "
+          ></i>
+          {{ isProcessingOrder ? "Traitement..." : "Valider la commande" }}
+          <span class="order-total"
+            >{{ formatPrice(finalTotalWithCoupon) }} CHF</span
+          >
         </button>
       </div>
     </div>
@@ -514,165 +794,181 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import type { CartItem, OrderSummary, PaymentMethod } from '../types'
-import { createPOSOrder, detailRestaurant, getUserAddresses, applyCoupon, getRestaurantDetails, getAllPostalCodes, calculateMinimumAmount } from '@/service/api'
-import { getAllCustomers } from '@/service/api'
-import type { ApiResponse } from '@/models/Apiresponse'
-import type { RestaurantModel } from '@/models/restaurant.model'
-import type { CustomerModel } from '@/models/customer.model'
-import { UserGeneralKey } from '@/models/user.generalkey'
-import { useToast } from 'vue-toastification'
-import { useStore } from 'vuex'
+import { ref, computed, onMounted, watch } from "vue";
+import type { CartItem, OrderSummary, PaymentMethod, Category } from "../types";
+import {
+  createPOSOrder,
+  detailRestaurant,
+  getUserAddresses,
+  applyCoupon,
+  getRestaurantDetails,
+  getAllPostalCodes,
+  calculateMinimumAmount,
+} from "@/service/api";
+import { getAllCustomers } from "@/service/api";
+import type { ApiResponse } from "@/models/Apiresponse";
+import type { RestaurantModel } from "@/models/restaurant.model";
+import type { CustomerModel } from "@/models/customer.model";
+import { UserGeneralKey } from "@/models/user.generalkey";
+import { useToast } from "vue-toastification";
+import { useStore } from "vuex";
 
 interface Props {
-  cart: CartItem[]
-  orderSummary: OrderSummary
+  cart: CartItem[];
+  orderSummary: OrderSummary;
+  categories?: Category[];
 }
 
-const props = defineProps<Props>()
+const props = defineProps<Props>();
 
-// Utiliser les getters du store pour avoir les données réactives
-const storeCart = computed(() => store.getters['cart/cart'] || [])
-const storeCartTotal = computed(() => store.getters['cart/cartTotal'] || 0)
+const storeCart = computed(() => store.getters["cart/cart"] || []);
+const storeCartTotal = computed(() => store.getters["cart/cartTotal"] || 0);
 
 const emit = defineEmits<{
-  'update-quantity': [itemId: string, quantity: number]
-  'remove-item': [itemId: string]
-  'place-order': [orderData: any]
-}>()
+  "update-quantity": [itemId: string, quantity: number];
+  "remove-item": [itemId: string];
+  "place-order": [orderData: any];
+}>();
 
 // État local
 const customerInfo = ref({
-  id: '',
-  firstName: '',
-  lastName: '',
-  phone: '',
-  email: ''
-})
+  id: "",
+  firstName: "",
+  lastName: "",
+  phone: "",
+  email: "",
+});
 
 // État pour la recherche de clients
-const customerSuggestions = ref<CustomerModel[]>([])
-const allCustomers = ref<CustomerModel[]>([])
-const searchTimeout = ref<NodeJS.Timeout | null>(null)
-const selectedCustomer = ref<CustomerModel | null>(null)
+const customerSuggestions = ref<CustomerModel[]>([]);
+const allCustomers = ref<CustomerModel[]>([]);
+const searchTimeout = ref<NodeJS.Timeout | null>(null);
+const selectedCustomer = ref<CustomerModel | null>(null);
 
 // Synchroniser avec le store
 const storeOrderType = computed({
-  get: () => store.getters['orderType/selectedOrderType'] || 'dine_in',
-  set: (value) => store.dispatch('orderType/setOrderType', value)
-})
+  get: () => store.getters["orderType/selectedOrderType"] || "dine_in",
+  set: (value) => store.dispatch("orderType/setOrderType", value),
+});
 
 // Variable locale pour le select
-const selectedOrderType = ref('dine_in')
+const selectedOrderType = ref("dine_in");
 
 // Synchroniser avec le store au montage
 onMounted(() => {
-  store.dispatch('cart/clearCart')
-  selectedOrderType.value = store.getters['orderType/selectedOrderType'] || 'dine_in'
-  
-  loadRestaurantInfo()
-  loadRestaurantDetails()
-  loadAllPostalCodes()
+  store.dispatch("cart/clearCart");
+  selectedOrderType.value =
+    store.getters["orderType/selectedOrderType"] || "dine_in";
+
+  loadRestaurantInfo();
+  loadRestaurantDetails();
+  loadAllPostalCodes();
   // Ne pas charger tous les clients au démarrage, seulement quand l'utilisateur recherche
   // loadCustomers()
   //store.dispatch('orderType/loadFromStorage')
 
-
-  document.addEventListener('click', (event) => {
-    const target = event.target as HTMLElement
-    if (!target.closest('.customer-form')) {
-      closeSuggestions()
+  document.addEventListener("click", (event) => {
+    const target = event.target as HTMLElement;
+    if (!target.closest(".customer-form")) {
+      closeSuggestions();
     }
-    if (!target.closest('.postal-code-input-container')) {
-      showPostalCodeSuggestions.value = false
+    if (!target.closest(".postal-code-input-container")) {
+      showPostalCodeSuggestions.value = false;
     }
-  })
-})
+  });
+});
 
-const selectedPaymentMethod = ref<string>('pay_click_collect_cash')
-const taxRate = ref(2.6) // Taux de TVA suisse
+const selectedPaymentMethod = ref<string>("pay_click_collect_cash");
+const taxRate = ref(2.6); // Taux de TVA suisse
 
 // Type de client
-const clientType = ref<'customer' | 'organisation'>('customer');
+const clientType = ref<"customer" | "organisation">("customer");
 const organisationInfo = ref({
-  societe: '',
-  departement: '',
-})
+  societe: "",
+  departement: "",
+});
 
 // État pour la préférence de livraison
-const deliveryPreference = ref<'immediat' | 'ulterieur'>('immediat')
-const selectedDate = ref<string>('')
-const selectedTime = ref<string>('')
+const deliveryPreference = ref<"immediat" | "ulterieur">("immediat");
+const selectedDate = ref<string>("");
+const selectedTime = ref<string>("");
 
 // État pour la commande
-const isProcessingOrder = ref(false)
-const restaurantInfo = ref<RestaurantModel | null>(null)
+const isProcessingOrder = ref(false);
+const restaurantInfo = ref<RestaurantModel | null>(null);
 
 // État pour le rabais
-const discountType = ref<'percentage' | 'fixed'>('percentage')
-const discountPercentage = ref<number>(0)
-const discountFixed = ref<number>(0)
+const discountType = ref<"percentage" | "fixed">("percentage");
+const discountPercentage = ref<number>(0);
+const discountFixed = ref<number>(0);
 
 // État pour le champ divers
-const diversAmount = ref<number>(0)
+const diversAmount = ref<number>(0);
 
 // État pour les coupons
-const couponCode = ref<string>('')
-const appliedCoupon = ref<any>(null)
-const isApplyingCoupon = ref<boolean>(false)
+const couponCode = ref<string>("");
+const appliedCoupon = ref<any>(null);
+const isApplyingCoupon = ref<boolean>(false);
 
 // État pour le montant minimum de commande
-const restaurantDetails = ref<any>(null)
-const restaurantMinOrder = ref<number>(0)
+const restaurantDetails = ref<any>(null);
+const restaurantMinOrder = ref<number>(0);
 
 // État pour les codes postaux
-const allPostalCodes = ref<any[]>([])
-const postalCodeSuggestions = ref<any[]>([])
-const showPostalCodeSuggestions = ref<boolean>(false)
-const selectedPostalCode = ref<any>(null)
+const allPostalCodes = ref<any[]>([]);
+const postalCodeSuggestions = ref<any[]>([]);
+const showPostalCodeSuggestions = ref<boolean>(false);
+const selectedPostalCode = ref<any>(null);
 
 // État pour l'adresse de livraison
 const deliveryAddress = ref({
-  rue: '',
-  numeroRue: '',
-  npa: '',
-  localite: ''
-})
+  rue: "",
+  numeroRue: "",
+  npa: "",
+  localite: "",
+});
 
 // État pour les adresses utilisateur
-const userAddresses = ref<any[]>([])
-const selectedAddressId = ref<string>('')
-const isLoadingAddresses = ref(false)
+const userAddresses = ref<any[]>([]);
+const selectedAddressId = ref<string>("");
+const isLoadingAddresses = ref(false);
 
 // Utilitaires
-const toast = useToast()
-const store = useStore()
+const toast = useToast();
+const store = useStore();
 
 // Fonction pour valider si un email est valide
 const isValidEmail = (email: string): boolean => {
-  if (!email || email.trim() === '') return false
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(email.trim())
-}
+  if (!email || email.trim() === "") return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email.trim());
+};
 
-const getRestaurantMinOrder = async (codePostal: string, localite: string, restaurantID: string) : Promise<number> => {
+const getRestaurantMinOrder = async (
+  codePostal: string,
+  localite: string,
+  restaurantID: string
+): Promise<number> => {
   try {
-    const response = await calculateMinimumAmount(codePostal, localite, restaurantID)
-   
+    const response = await calculateMinimumAmount(
+      codePostal,
+      localite,
+      restaurantID
+    );
+
     const minOrder = response?.data?.zone?.minimumOrderAmount || 0;
-    return minOrder
+    return minOrder;
   } catch (error) {
-    return 0
+    return 0;
   }
-}
+};
 
 const validateEmail = () => {
   if (customerInfo.value.email && !isValidEmail(customerInfo.value.email)) {
     // Optionnel: afficher un toast d'avertissement
     // toast.warning('Email invalide. Un email unique sera généré pour cette commande.')
   }
-}
+};
 
 // Fonctions utilitaires pour la gestion des dates et horaires
 const getSwissDate = (date?: Date) => {
@@ -707,20 +1003,21 @@ const getAvailableTimes = computed(() => {
   const times: string[] = [];
   const currentTime = getCurrentTime(); // Minutes depuis minuit
   const selectedDateValue = selectedDate.value;
-  
+
   // Générer des créneaux de 15 minutes de 11h à 22h (horaires standards)
   for (let hour = 11; hour < 22; hour++) {
     for (let minute = 0; minute < 60; minute += 15) {
       const timeString = `${hour.toString().padStart(2, "0")}:${minute
         .toString()
         .padStart(2, "0")}`;
-      
+
       // Vérifier si cette heure n'est pas déjà passée
       const timeInMinutes = hour * 60 + minute;
-      
+
       // Si c'est aujourd'hui, vérifier que l'heure n'est pas passée
       if (selectedDateValue === getSwissDate().toISOString().split("T")[0]) {
-        if (timeInMinutes > currentTime + 30) { // +30 minutes de marge
+        if (timeInMinutes > currentTime + 30) {
+          // +30 minutes de marge
           times.push(timeString);
         }
       } else {
@@ -772,404 +1069,453 @@ const getAvailableDates = computed(() => {
 // Fonction pour formater la date pour le payload
 const formatDateForPayload = (date: string, time: string): string => {
   const dateObj = new Date(date);
-  return `${dateObj.getDate().toString().padStart(2, '0')}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getFullYear()} ${time}`;
+  return `${dateObj.getDate().toString().padStart(2, "0")}-${(
+    dateObj.getMonth() + 1
+  )
+    .toString()
+    .padStart(2, "0")}-${dateObj.getFullYear()} ${time}`;
 };
 
 // Computed pour les features sélectionnées
 const selectedFeatures = computed(() => {
-  return store?.getters?.['features/selectedFeatures'] || []
-})
+  return store?.getters?.["features/selectedFeatures"] || [];
+});
 
 // Computed pour le rabais
 const discountAmount = computed(() => {
-  if (discountType.value === 'percentage') {
-    if (discountPercentage.value <= 0) return 0
+  if (discountType.value === "percentage") {
+    if (discountPercentage.value <= 0) return 0;
     // Limiter le rabais en pourcentage à 100%
-    const maxDiscount = Math.min(discountPercentage.value, 100)
-    return (storeCartTotal.value * maxDiscount) / 100
+    const maxDiscount = Math.min(discountPercentage.value, 100);
+    return (storeCartTotal.value * maxDiscount) / 100;
   } else {
-    if (discountFixed.value <= 0) return 0
+    if (discountFixed.value <= 0) return 0;
     // Le rabais fixe ne peut pas dépasser le sous-total
-    return Math.min(discountFixed.value, storeCartTotal.value)
+    return Math.min(discountFixed.value, storeCartTotal.value);
   }
-})
+});
 
 // Computed pour le total avec coupon
 const couponDiscountAmount = computed(() => {
-  if (!appliedCoupon.value) return 0
-  const amount = appliedCoupon.value.discountAmount || 0
-  return amount
-})
+  if (!appliedCoupon.value) return 0;
+  const amount = appliedCoupon.value.discountAmount || 0;
+  return amount;
+});
 
 // Fonction pour charger le montant minimum de commande
 const loadRestaurantMinOrder = async () => {
-  
-  if (storeOrderType.value === 'delivery' && deliveryAddress.value.npa) {
-    const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
-    
+  if (storeOrderType.value === "delivery" && deliveryAddress.value.npa) {
+    const restaurantID = localStorage.getItem(
+      UserGeneralKey.USER_RESTAURANT_ID
+    );
+
     if (restaurantID) {
       try {
-        const minOrder = await getRestaurantMinOrder(deliveryAddress.value.npa, deliveryAddress.value.localite, restaurantID)
-        restaurantMinOrder.value = minOrder
+        const minOrder = await getRestaurantMinOrder(
+          deliveryAddress.value.npa,
+          deliveryAddress.value.localite,
+          restaurantID
+        );
+        restaurantMinOrder.value = minOrder;
       } catch (error) {
-        restaurantMinOrder.value = 0
+        restaurantMinOrder.value = 0;
       }
     }
-  } 
-}
+  }
+};
 
 const disableMinOrder = () => {
-  restaurantMinOrder.value = 0
-}
+  restaurantMinOrder.value = 0;
+};
 
 const enableMinOrder = async () => {
-  await loadRestaurantMinOrder()
-}
+  await loadRestaurantMinOrder();
+};
 
 // Computed pour le supplément de montant minimum (livraison uniquement)
 const minOrderSupplement = computed(() => {
-  if (storeOrderType.value !== 'delivery') return 0
-  
-  const subtotalAfterDiscount = storeCartTotal.value - discountAmount.value
-  const totalAfterCoupon = subtotalAfterDiscount - couponDiscountAmount.value
-  const remainingAmount = Math.max(0, restaurantMinOrder.value - totalAfterCoupon)
-  
-  return remainingAmount
-})
+  if (storeOrderType.value !== "delivery") return 0;
+
+  const subtotalAfterDiscount = storeCartTotal.value - discountAmount.value;
+  const totalAfterCoupon = subtotalAfterDiscount - couponDiscountAmount.value;
+  const remainingAmount = Math.max(
+    0,
+    restaurantMinOrder.value - totalAfterCoupon
+  );
+
+  return remainingAmount;
+});
 
 // Computed pour le total final avec rabais, coupon, supplément minimum et divers
 const finalTotalWithCoupon = computed(() => {
-  const subtotalAfterDiscount = storeCartTotal.value - discountAmount.value
-  const totalAfterCoupon = subtotalAfterDiscount - couponDiscountAmount.value
-  const totalWithSupplement = totalAfterCoupon + minOrderSupplement.value
-  const totalWithDivers = totalWithSupplement + diversAmount.value
-  const finalTotal = Math.max(0, totalWithDivers) // Ne peut pas être négatif
-  
-  return finalTotal
-})
+  const subtotalAfterDiscount = storeCartTotal.value - discountAmount.value;
+  const totalAfterCoupon = subtotalAfterDiscount - couponDiscountAmount.value;
+  const totalWithSupplement = totalAfterCoupon + minOrderSupplement.value;
+  const totalWithDivers = totalWithSupplement + diversAmount.value;
+  const finalTotal = Math.max(0, totalWithDivers); // Ne peut pas être négatif
+
+  return finalTotal;
+});
 
 // Computed pour le résumé avec rabais appliqué
 const orderSummaryWithDiscount = computed(() => {
-  const subtotalWithDiscount = storeCartTotal.value - discountAmount.value
-  const subtotalWithDivers = subtotalWithDiscount + diversAmount.value
-  const taxOnDiscountedSubtotal = (subtotalWithDivers * taxRate.value) / 100 // TVA incluant le montant divers
-  const totalWithDiscount = subtotalWithDiscount // Le total ne comprend pas la TVA
-  
+  const subtotalWithDiscount = storeCartTotal.value - discountAmount.value;
+  const subtotalWithDivers = subtotalWithDiscount + diversAmount.value;
+  const taxOnDiscountedSubtotal = (subtotalWithDivers * taxRate.value) / 100; // TVA incluant le montant divers
+  const totalWithDiscount = subtotalWithDiscount; // Le total ne comprend pas la TVA
+
   return {
     subtotal: storeCartTotal.value,
     tax: taxOnDiscountedSubtotal,
-    total: totalWithDiscount
-  }
-})
+    total: totalWithDiscount,
+  };
+});
 
 // Computed pour le total final avec rabais
 const finalTotal = computed(() => {
-  return orderSummaryWithDiscount.value.total
-})
+  return orderSummaryWithDiscount.value.total;
+});
 
 // Méthodes de paiement pour click_collect
 const paymentMethods: PaymentMethod[] = [
-  { id: 'pay_click_collect_cash', name: 'Paiement en espèces', icon: 'money-bill', isSelected: true },
-  { id: 'pay_click_collect_carte', name: 'Paiement par carte', icon: 'credit-card', isSelected: false }
-]
+  {
+    id: "pay_click_collect_cash",
+    name: "Paiement en espèces",
+    icon: "money-bill",
+    isSelected: true,
+  },
+  {
+    id: "pay_click_collect_carte",
+    name: "Paiement par carte",
+    icon: "credit-card",
+    isSelected: false,
+  },
+];
 
 // Fonctions utilitaires
 const formatPrice = (price: number | string | undefined): string => {
-  const numPrice = typeof price === 'string' ? parseFloat(price) : price
+  const numPrice = typeof price === "string" ? parseFloat(price) : price;
   if (numPrice === undefined || numPrice === null || isNaN(numPrice)) {
-    return '0.00'
+    return "0.00";
   }
-  return numPrice.toFixed(2)
-}
+  return numPrice.toFixed(2);
+};
 
 // Fonction pour masquer les emails
 const maskEmail = (email: string): string => {
-  if (!email || email.trim() === '') return ''
-  
-  const [localPart, domain] = email.split('@')
-  if (!domain) return email
-  
+  if (!email || email.trim() === "") return "";
+
+  const [localPart, domain] = email.split("@");
+  if (!domain) return email;
+
   // Masquer la partie locale (garder le premier et dernier caractère)
-  let maskedLocal = localPart
+  let maskedLocal = localPart;
   if (localPart.length > 2) {
-    maskedLocal = localPart.charAt(0) + '*'.repeat(localPart.length - 2) + localPart.charAt(localPart.length - 1)
+    maskedLocal =
+      localPart.charAt(0) +
+      "*".repeat(localPart.length - 2) +
+      localPart.charAt(localPart.length - 1);
   }
-  
+
   // Masquer partiellement le domaine
-  const [domainName, extension] = domain.split('.')
-  let maskedDomain = domainName
+  const [domainName, extension] = domain.split(".");
+  let maskedDomain = domainName;
   if (domainName && domainName.length > 2) {
-    maskedDomain = domainName.charAt(0) + '*'.repeat(domainName.length - 2) + domainName.charAt(domainName.length - 1)
+    maskedDomain =
+      domainName.charAt(0) +
+      "*".repeat(domainName.length - 2) +
+      domainName.charAt(domainName.length - 1);
   }
-  
-  return `${maskedLocal}@${maskedDomain}.${extension}`
-}
+
+  return `${maskedLocal}@${maskedDomain}.${extension}`;
+};
 
 const getCurrentShift = (): string => {
-  const hour = new Date().getHours()
-  if (hour >= 6 && hour < 14) return 'Matin'
-  if (hour >= 14 && hour < 22) return 'Après-midi'
-  return 'Soir'
-}
+  const hour = new Date().getHours();
+  if (hour >= 6 && hour < 14) return "Matin";
+  if (hour >= 14 && hour < 22) return "Après-midi";
+  return "Soir";
+};
 
 const getInvoiceNumber = (): string => {
-  const now = new Date()
-  const timestamp = now.getTime().toString().slice(-6)
-  return `${now.getDate().toString().padStart(2, '0')}${(now.getMonth() + 1).toString().padStart(2, '0')}${timestamp}`
-}
+  const now = new Date();
+  const timestamp = now.getTime().toString().slice(-6);
+  return `${now.getDate().toString().padStart(2, "0")}${(now.getMonth() + 1)
+    .toString()
+    .padStart(2, "0")}${timestamp}`;
+};
 
 const hasCustomIngredients = (item: CartItem): boolean => {
-  return item.ingredients.some(ing => ing.quantity > 0)
-}
+  return item.ingredients.some((ing) => ing.quantity > 0);
+};
 
 const getCustomIngredients = (item: CartItem) => {
-  return item.ingredients.filter(ing => ing.quantity > 0)
-}
+  return item.ingredients.filter((ing) => ing.quantity > 0);
+};
 
 const hasRemovedIngredients = (item: CartItem): boolean => {
-  return Boolean(item.removedIngredients && item.removedIngredients.length > 0)
-}
+  return Boolean(item.removedIngredients && item.removedIngredients.length > 0);
+};
 
 const getRemovedIngredients = (item: CartItem) => {
-  return item.removedIngredients || []
-}
+  return item.removedIngredients || [];
+};
 
 const getPaymentIcon = (iconName: string): string => {
   const iconMap: Record<string, string> = {
-    'money-bill': '💵',
-    'credit-card': '💳',
-    'mobile-alt': '📱'
-  }
-  return iconMap[iconName] || '💵'
-}
+    "money-bill": "💵",
+    "credit-card": "💳",
+    "mobile-alt": "📱",
+  };
+  return iconMap[iconName] || "💵";
+};
 
 // Validation pour passer commande
 const canPlaceOrder = computed(() => {
-  const basicValidation = storeCart.value.length > 0 &&
-    customerInfo.value.firstName.trim() !== '' &&
-    customerInfo.value.lastName.trim() !== '' &&
-    customerInfo.value.phone.trim() !== '' 
-  
-  // Validation supplémentaire pour la livraison programmée
-  if (storeOrderType.value === 'click_collect' && deliveryPreference.value === 'ulterieur') {
-    return basicValidation && 
-           selectedDate.value !== '' && 
-           selectedTime.value !== ''
-  }
-  
-  // Validation supplémentaire pour la livraison à domicile
-  if (storeOrderType.value === 'delivery') {
-    const deliveryValidation = deliveryAddress.value.rue.trim() !== '' && 
-      deliveryAddress.value.npa.trim() !== '' &&
-      deliveryAddress.value.localite.trim() !== ''
-    
+  const basicValidation =
+    storeCart.value.length > 0 &&
+    customerInfo.value.firstName.trim() !== "" &&
+    customerInfo.value.lastName.trim() !== "" &&
+    customerInfo.value.phone.trim() !== "";
 
-    
-    // Si c'est une livraison programmée, vérifier aussi la date et l'heure
-    if (deliveryPreference.value === 'ulterieur') {
-      return basicValidation && 
-             deliveryValidation &&
-             selectedDate.value !== '' && 
-             selectedTime.value !== ''
-    }
-    
-    return basicValidation && deliveryValidation
+  // Validation supplémentaire pour la livraison programmée
+  if (
+    storeOrderType.value === "click_collect" &&
+    deliveryPreference.value === "ulterieur"
+  ) {
+    return (
+      basicValidation && selectedDate.value !== "" && selectedTime.value !== ""
+    );
   }
-  
-  return basicValidation
-})
+
+  // Validation supplémentaire pour la livraison à domicile
+  if (storeOrderType.value === "delivery") {
+    const deliveryValidation =
+      deliveryAddress.value.rue.trim() !== "" &&
+      deliveryAddress.value.npa.trim() !== "" &&
+      deliveryAddress.value.localite.trim() !== "";
+
+    // Si c'est une livraison programmée, vérifier aussi la date et l'heure
+    if (deliveryPreference.value === "ulterieur") {
+      return (
+        basicValidation &&
+        deliveryValidation &&
+        selectedDate.value !== "" &&
+        selectedTime.value !== ""
+      );
+    }
+
+    return basicValidation && deliveryValidation;
+  }
+
+  return basicValidation;
+});
 
 // Charger les clients avec recherche
 const loadCustomers = async (searchParams?: {
-  searchFirstname?: string,
-  searchLastname?: string,
-  searchEmail?: string,
-  searchTel?: string
+  searchFirstname?: string;
+  searchLastname?: string;
+  searchEmail?: string;
+  searchTel?: string;
 }) => {
   try {
-    const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
-    
+    const restaurantID = localStorage.getItem(
+      UserGeneralKey.USER_RESTAURANT_ID
+    );
+
     if (restaurantID) {
       // Construire le paramètre de recherche selon les critères disponibles
-      let searchQuery = ''
+      let searchQuery = "";
       if (searchParams?.searchFirstname) {
-        searchQuery = searchParams.searchFirstname
+        searchQuery = searchParams.searchFirstname;
       } else if (searchParams?.searchLastname) {
-        searchQuery = searchParams.searchLastname
+        searchQuery = searchParams.searchLastname;
       } else if (searchParams?.searchEmail) {
-        searchQuery = searchParams.searchEmail
+        searchQuery = searchParams.searchEmail;
       } else if (searchParams?.searchTel) {
-        searchQuery = searchParams.searchTel
+        searchQuery = searchParams.searchTel;
       }
 
-      const response = await getAllCustomers(
-        1, 
-        50, 
-        searchQuery || undefined
-      )
-  
+      const response = await getAllCustomers(1, 50, searchQuery || undefined);
+
       if (response.code === 200 && response.data && response.data.data) {
-        allCustomers.value = response.data.data
+        allCustomers.value = response.data.data;
       } else {
-        allCustomers.value = []
+        allCustomers.value = [];
       }
     } else {
-      console.error('❌ RestaurantID non trouvé dans localStorage')
+      console.error("❌ RestaurantID non trouvé dans localStorage");
     }
   } catch (error) {
-    allCustomers.value = []
+    allCustomers.value = [];
   }
-}
+};
 
 // Charger les adresses d'un utilisateur
 const loadUserAddresses = async (userID: string) => {
   if (!userID) {
-    userAddresses.value = []
-    return
+    userAddresses.value = [];
+    return;
   }
 
-  isLoadingAddresses.value = true
+  isLoadingAddresses.value = true;
   try {
-    const response = await getUserAddresses(userID)
+    const response = await getUserAddresses(userID);
     if (response.code === 200 && response?.data?.items) {
-      userAddresses.value = response.data.items
+      userAddresses.value = response.data.items;
     } else {
-      userAddresses.value = []
+      userAddresses.value = [];
     }
   } catch (error) {
-    console.error('Erreur lors du chargement des adresses utilisateur:', error)
-    userAddresses.value = []
+    console.error("Erreur lors du chargement des adresses utilisateur:", error);
+    userAddresses.value = [];
   } finally {
-    isLoadingAddresses.value = false
+    isLoadingAddresses.value = false;
   }
-}
+};
 
 // Gérer la sélection d'une adresse
 const handleAddressSelection = (event: Event) => {
-  const target = event.target as HTMLSelectElement
-  const addressId = target.value
+  const target = event.target as HTMLSelectElement;
+  const addressId = target.value;
 
   if (!addressId) {
     // Réinitialiser les champs pour une nouvelle adresse
     deliveryAddress.value = {
-      rue: '',
-      numeroRue: '',
-      npa: '',
-      localite: ''
-    }
-    selectedAddressId.value = ''
-    selectedPostalCode.value = null
-    return
+      rue: "",
+      numeroRue: "",
+      npa: "",
+      localite: "",
+    };
+    selectedAddressId.value = "";
+    selectedPostalCode.value = null;
+    return;
   }
 
-  const address = userAddresses.value.find(addr => addr.id === addressId)
-  if (!address) return
+  const address = userAddresses.value.find((addr) => addr.id === addressId);
+  if (!address) return;
 
   // Remplir les champs avec l'adresse sélectionnée
   deliveryAddress.value = {
-    rue: address.rue || address.address || '',
-    numeroRue: (address.numeroLocalite === '0' || address.numeroLocalite === null) ? '' : (address.numeroLocalite || address.numeroRue || ''),
-    npa: address.codePostal || address.postal_code || '',
-    localite: address.localite || address.city || ''
-  }
-  
-  selectedAddressId.value = addressId
-  selectedPostalCode.value = null
-}
+    rue: address.rue || address.address || "",
+    numeroRue:
+      address.numeroLocalite === "0" || address.numeroLocalite === null
+        ? ""
+        : address.numeroLocalite || address.numeroRue || "",
+    npa: address.codePostal || address.postal_code || "",
+    localite: address.localite || address.city || "",
+  };
+
+  selectedAddressId.value = addressId;
+  selectedPostalCode.value = null;
+};
 
 // Recherche de clients avec debounce
 const handleCustomerSearch = () => {
   if (searchTimeout.value) {
-    clearTimeout(searchTimeout.value)
+    clearTimeout(searchTimeout.value);
   }
 
   searchTimeout.value = setTimeout(() => {
-    searchCustomers()
-  }, 300)
-}
+    searchCustomers();
+  }, 300);
+};
 
 // Rechercher les clients via l'API
 const searchCustomers = async () => {
-  const firstName = customerInfo.value.firstName.trim()
-  const lastName = customerInfo.value.lastName.trim()
-  const phone = customerInfo.value.phone.trim()
-  const email = customerInfo.value.email.trim()
+  const firstName = customerInfo.value.firstName.trim();
+  const lastName = customerInfo.value.lastName.trim();
+  const phone = customerInfo.value.phone.trim();
+  const email = customerInfo.value.email.trim();
 
   if (selectedCustomer.value) {
-    customerSuggestions.value = []
-    return
+    customerSuggestions.value = [];
+    return;
   }
 
   // Vérifier si on a au moins un critère de recherche valide
-  const hasValidSearch = (firstName.length >= 2 || lastName.length >= 2 || phone.length >= 3 || email.length >= 3)
-  
+  const hasValidSearch =
+    firstName.length >= 2 ||
+    lastName.length >= 2 ||
+    phone.length >= 3 ||
+    email.length >= 3;
+
   if (!hasValidSearch) {
-    customerSuggestions.value = []
-    return
+    customerSuggestions.value = [];
+    return;
   }
 
   try {
     // Préparer les paramètres de recherche - priorité au prénom, puis nom, puis email, puis téléphone
-    const searchParams: any = {}
-    
+    const searchParams: any = {};
+
     if (firstName.length >= 2) {
-      searchParams.searchFirstname = firstName
+      searchParams.searchFirstname = firstName;
     } else if (lastName.length >= 2) {
-      searchParams.searchLastname = lastName
+      searchParams.searchLastname = lastName;
     } else if (email.length >= 3) {
-      searchParams.searchEmail = email
+      searchParams.searchEmail = email;
     } else if (phone.length >= 3) {
-      searchParams.searchTel = phone.replace(/\D/g, '') // Garder seulement les chiffres
+      searchParams.searchTel = phone.replace(/\D/g, ""); // Garder seulement les chiffres
     }
 
     // Appeler l'API avec les paramètres de recherche
-    await loadCustomers(searchParams)
-    
+    await loadCustomers(searchParams);
+
     // Limiter les résultats à 5 suggestions
-    customerSuggestions.value = allCustomers.value
+    customerSuggestions.value = allCustomers.value;
   } catch (error) {
-    console.error('Erreur lors de la recherche de clients:', error)
-    customerSuggestions.value = []
+    console.error("Erreur lors de la recherche de clients:", error);
+    customerSuggestions.value = [];
   }
-}
+};
 
 // Sélectionner un client depuis les suggestions
 const selectCustomer = (customer: any) => {
-  selectedCustomer.value = customer
-  customerInfo.value.id = customer.id
-  customerInfo.value.firstName = customer.first_name || customer.firstName || ''
-  customerInfo.value.lastName = customer.last_name || customer.lastName || ''
-  customerInfo.value.phone = customer.phone_number || customer.phoneNumber || ''
-  customerInfo.value.email = customer.email || ''
-  customerSuggestions.value = []
+  selectedCustomer.value = customer;
+  customerInfo.value.id = customer.id;
+  customerInfo.value.firstName =
+    customer.first_name || customer.firstName || "";
+  customerInfo.value.lastName = customer.last_name || customer.lastName || "";
+  customerInfo.value.phone =
+    customer.phone_number || customer.phoneNumber || "";
+  customerInfo.value.email = customer.email || "";
+  customerSuggestions.value = [];
 
   // Utiliser les adresses du client sélectionné (nouveau format: listeAdresses)
   if (customer.listeAdresses && customer.listeAdresses.length > 0) {
-    userAddresses.value = customer.listeAdresses
+    userAddresses.value = customer.listeAdresses;
   } else if (customer.user_addresses && customer.user_addresses.length > 0) {
-    userAddresses.value = customer.user_addresses
+    userAddresses.value = customer.user_addresses;
   } else {
-    userAddresses.value = []
+    userAddresses.value = [];
   }
-}
+};
 
 // Supprimer la sélection du client
 const clearSelectedCustomer = () => {
-  selectedCustomer.value = null
-  customerInfo.value = { id: '', firstName: '', lastName: '', phone: '', email: '' }
-  customerSuggestions.value = []
+  selectedCustomer.value = null;
+  customerInfo.value = {
+    id: "",
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: "",
+  };
+  customerSuggestions.value = [];
 
-        // Vider les adresses et la sélection
-      userAddresses.value = []
-      selectedAddressId.value = ''
-      selectedPostalCode.value = null
-      deliveryAddress.value = { rue: '', numeroRue: '', npa: '', localite: '' }
-}
+  // Vider les adresses et la sélection
+  userAddresses.value = [];
+  selectedAddressId.value = "";
+  selectedPostalCode.value = null;
+  deliveryAddress.value = { rue: "", numeroRue: "", npa: "", localite: "" };
+};
 
 // Sélectionner le client par défaut selon le restaurant
 const selectDefaultClient = (restaurantID: string) => {
-  const defaultClient = DEFAULT_CLIENTS[restaurantID as keyof typeof DEFAULT_CLIENTS]
-  
+  const defaultClient =
+    DEFAULT_CLIENTS[restaurantID as keyof typeof DEFAULT_CLIENTS];
+
   if (defaultClient) {
     // Créer un objet CustomerModel compatible
     const customerModel: CustomerModel = {
@@ -1178,406 +1524,523 @@ const selectDefaultClient = (restaurantID: string) => {
       firstName: defaultClient.firstName,
       lastName: defaultClient.lastName,
       phoneNumber: defaultClient.phoneNumber,
-      address: defaultClient.address || '',
-      city: defaultClient.city || '',
-      codePostal: defaultClient.codePostal || '',
-      batiment: defaultClient.batiment || '',
-      rue: defaultClient.rue || '',
+      address: defaultClient.address || "",
+      city: defaultClient.city || "",
+      codePostal: defaultClient.codePostal || "",
+      batiment: defaultClient.batiment || "",
+      rue: defaultClient.rue || "",
       user: null as any,
       civilite: defaultClient.civilite,
       npa: defaultClient.npa,
       localite: defaultClient.localite,
       numeroRue: defaultClient.numeroRue,
-      remarqueCommande: [null, ''],
+      remarqueCommande: [null, ""],
       promotions: false,
       newsletter: false,
-      created_at: new Date().toISOString()
-    }
-    
+      created_at: new Date().toISOString(),
+    };
+
     // Sélectionner le client
-    selectCustomer(customerModel)
+    selectCustomer(customerModel);
   }
-}
-
-
+};
 
 // Fermer les suggestions
 const closeSuggestions = () => {
-  customerSuggestions.value = []
-}
+  customerSuggestions.value = [];
+};
 
 // Fermer les suggestions quand on clique ailleurs
 // Watcher pour mettre à jour deliveryPreference quand le restaurant info change
-watch(isRestaurantOpen, (newValue) => {
-  deliveryPreference.value = newValue ? 'immediat' : 'ulterieur'
-}, { immediate: false })
+watch(
+  isRestaurantOpen,
+  (newValue) => {
+    deliveryPreference.value = newValue ? "immediat" : "ulterieur";
+  },
+  { immediate: false }
+);
 
 // Watcher pour sélectionner le client par défaut quand on passe en mode "sur place"
-watch(storeOrderType, (newOrderType) => {
-  if (newOrderType === 'dine_in' && restaurantInfo.value) {
-    const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
-    if (restaurantID && !selectedCustomer.value) {
-      selectDefaultClient(restaurantID);
-    }
-  } else if (newOrderType !== 'dine_in' && selectedCustomer.value) {
-    // Vérifier si le client sélectionné est un client par défaut
-    const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
-    if (restaurantID) {
-      const defaultClient = DEFAULT_CLIENTS[restaurantID as keyof typeof DEFAULT_CLIENTS]
-      if (defaultClient && selectedCustomer.value.id === defaultClient.id) {
-        // Désélectionner le client par défaut si on change de type de commande
-        clearSelectedCustomer()
+watch(
+  storeOrderType,
+  (newOrderType) => {
+    if (newOrderType === "dine_in" && restaurantInfo.value) {
+      const restaurantID = localStorage.getItem(
+        UserGeneralKey.USER_RESTAURANT_ID
+      );
+      if (restaurantID && !selectedCustomer.value) {
+        selectDefaultClient(restaurantID);
+      }
+    } else if (newOrderType !== "dine_in" && selectedCustomer.value) {
+      // Vérifier si le client sélectionné est un client par défaut
+      const restaurantID = localStorage.getItem(
+        UserGeneralKey.USER_RESTAURANT_ID
+      );
+      if (restaurantID) {
+        const defaultClient =
+          DEFAULT_CLIENTS[restaurantID as keyof typeof DEFAULT_CLIENTS];
+        if (defaultClient && selectedCustomer.value.id === defaultClient.id) {
+          // Désélectionner le client par défaut si on change de type de commande
+          clearSelectedCustomer();
+        }
       }
     }
-  }
-}, { immediate: false })
+  },
+  { immediate: false }
+);
 
 // Watcher pour s'assurer que le client par défaut est sélectionné après le chargement des données
-watch([restaurantInfo, () => store.getters['orderType/selectedOrderType']], ([restaurant, orderType]) => {
-  if (restaurant && orderType === 'dine_in' && !selectedCustomer.value) {
-    const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
-    if (restaurantID) {
-      selectDefaultClient(restaurantID)
+watch(
+  [restaurantInfo, () => store.getters["orderType/selectedOrderType"]],
+  ([restaurant, orderType]) => {
+    if (restaurant && orderType === "dine_in" && !selectedCustomer.value) {
+      const restaurantID = localStorage.getItem(
+        UserGeneralKey.USER_RESTAURANT_ID
+      );
+      if (restaurantID) {
+        selectDefaultClient(restaurantID);
+      }
     }
-  }
-}, { immediate: false })
+  },
+  { immediate: false }
+);
 
 // Watcher pour afficher un message quand les prix du panier changent
-watch(storeCart, (newCart, oldCart) => {
-  if (oldCart && oldCart.length > 0 && newCart.length > 0) {
-    const oldTotal = oldCart.reduce((sum, item) => sum + (item.totalPrice || 0), 0)
-    const newTotal = newCart.reduce((sum, item) => sum + (item.totalPrice || 0), 0)
-    
-    if (oldTotal !== newTotal) {
-      // toast.info(`Prix mis à jour selon le type de commande`)
-    }
-  }
-}, { deep: true })
+watch(
+  storeCart,
+  (newCart, oldCart) => {
+    if (oldCart && oldCart.length > 0 && newCart.length > 0) {
+      const oldTotal = oldCart.reduce(
+        (sum, item) => sum + (item.totalPrice || 0),
+        0
+      );
+      const newTotal = newCart.reduce(
+        (sum, item) => sum + (item.totalPrice || 0),
+        0
+      );
 
+      if (oldTotal !== newTotal) {
+        // toast.info(`Prix mis à jour selon le type de commande`)
+      }
+    }
+  },
+  { deep: true }
+);
 
 watch(storeCartTotal, (newSubtotal) => {
-  if (discountType.value === 'fixed' && discountFixed.value > newSubtotal) {
-    discountFixed.value = newSubtotal
+  if (discountType.value === "fixed" && discountFixed.value > newSubtotal) {
+    discountFixed.value = newSubtotal;
   }
-})
+});
 
 const updatePricesForOrderType = (newOrderType: string) => {
   if (storeCart.value.length > 0) {
-    
-    const updatedCart = storeCart.value.map(item => {
-      let basePrice = 0
-      if(newOrderType === 'delivery'){
-        basePrice = Number(item.selectedSize?.priceLivraison) || 0
+    const updatedCart = storeCart.value.map((item) => {
+      let basePrice = 0;
+      if (newOrderType === "delivery") {
+        basePrice = Number(item.selectedSize?.priceLivraison) || 0;
       } else {
-        basePrice = Number(item.selectedSize?.price) || 0
+        basePrice = Number(item.selectedSize?.price) || 0;
       }
-      
+
       // Recalculer le prix total
-      const ingredientsPrice = (item.ingredients || []).reduce((total: number, ingredient: any) => {
-        if (!ingredient.isDefault && ingredient.quantity > 0) {
-          return total + (Number(ingredient.extra_cost_price) || 0) * ingredient.quantity
-        }
-        return total
-      }, 0)
+      const ingredientsPrice = (item.ingredients || []).reduce(
+        (total: number, ingredient: any) => {
+          if (!ingredient.isDefault && ingredient.quantity > 0) {
+            return (
+              total +
+              (Number(ingredient.extra_cost_price) || 0) * ingredient.quantity
+            );
+          }
+          return total;
+        },
+        0
+      );
 
-      const supplementsPrice = (item.supplements || []).reduce((total, supplement) => {
-        const supQuantity = (supplement as any).quantity || 0
-        if (supQuantity > 0) {
-          return total + (Number(supplement.extra_cost_price) || 0)
-        }
-        return total
-      }, 0)
+      const supplementsPrice = (item.supplements || []).reduce(
+        (total, supplement) => {
+          const supQuantity = (supplement as any).quantity || 0;
+          if (supQuantity > 0) {
+            return total + (Number(supplement.extra_cost_price) || 0);
+          }
+          return total;
+        },
+        0
+      );
 
-      const totalPrice = basePrice + ingredientsPrice + supplementsPrice
-      
+      const totalPrice = basePrice + ingredientsPrice + supplementsPrice;
+
       return {
         ...item,
-        totalPrice: totalPrice
-      }
-    })
-    
-    store.commit('cart/SET_CART', updatedCart)
+        totalPrice: totalPrice,
+      };
+    });
+
+    store.commit("cart/SET_CART", updatedCart);
   }
-}
+};
 
 // Watcher simple pour le type de commande
-watch(selectedOrderType, (newOrderType, oldOrderType) => {
-  if (newOrderType !== oldOrderType) {
-    store.dispatch('orderType/setOrderType', newOrderType)
-    updatePricesForOrderType(newOrderType)
-  }
-}, { immediate: false })
+watch(
+  selectedOrderType,
+  (newOrderType, oldOrderType) => {
+    if (newOrderType !== oldOrderType) {
+      store.dispatch("orderType/setOrderType", newOrderType);
+      updatePricesForOrderType(newOrderType);
+    }
+  },
+  { immediate: false }
+);
 
 // Watcher pour logger les changements de rabais
-watch([discountAmount, couponDiscountAmount, finalTotalWithCoupon], ([newDiscount, newCoupon, newTotal]) => {
- 
-})
+watch(
+  [discountAmount, couponDiscountAmount, finalTotalWithCoupon],
+  ([newDiscount, newCoupon, newTotal]) => {}
+);
 
 // Watcher pour charger le montant minimum quand le code postal change
-watch(() => deliveryAddress.value.npa, (newNpa) => {
-  if (storeOrderType.value === 'delivery' && newNpa) {
-    loadRestaurantMinOrder()
-  }
-}, { immediate: false })
+watch(
+  () => deliveryAddress.value.npa,
+  (newNpa) => {
+    if (storeOrderType.value === "delivery" && newNpa) {
+      loadRestaurantMinOrder();
+    }
+  },
+  { immediate: false }
+);
 
 // Watcher pour charger le montant minimum quand le type de commande change
-watch(storeOrderType, (newOrderType) => {
-  if (newOrderType === 'delivery' && deliveryAddress.value.npa) {
-    loadRestaurantMinOrder()
-  } else if (newOrderType !== 'delivery') {
-    restaurantMinOrder.value = 0
-  }
-}, { immediate: false })
+watch(
+  storeOrderType,
+  (newOrderType) => {
+    if (newOrderType === "delivery" && deliveryAddress.value.npa) {
+      loadRestaurantMinOrder();
+    } else if (newOrderType !== "delivery") {
+      restaurantMinOrder.value = 0;
+    }
+  },
+  { immediate: false }
+);
 
 // Clients par défaut selon le restaurant
 const DEFAULT_CLIENTS = {
-  'fd9d1677-f994-473a-9939-908cf3145bd4': {
-    id: '',
-    email: 'client07morges@gmail.com',
-    firstName: 'Client',
-    lastName: 'Morges',
-    phoneNumber: '218882300',
-    address: 'Morges, 1110 - Place Saint-Louis 5',
-    city: 'Morges',
-    codePostal: '1110',
-    batiment: '5',
-    rue: 'Place Saint-Louis',
-    civilite: 'monsieur',
-    npa: '1110',
-    localite: 'Morges',
-    numeroRue: '5',
-    type: 'customer'
+  "fd9d1677-f994-473a-9939-908cf3145bd4": {
+    id: "",
+    email: "client07morges@gmail.com",
+    firstName: "Client",
+    lastName: "Morges",
+    phoneNumber: "218882300",
+    address: "Morges, 1110 - Place Saint-Louis 5",
+    city: "Morges",
+    codePostal: "1110",
+    batiment: "5",
+    rue: "Place Saint-Louis",
+    civilite: "monsieur",
+    npa: "1110",
+    localite: "Morges",
+    numeroRue: "5",
+    type: "customer",
   },
-  '515a4836-3e47-47c5-9b87-1cf4feefe247': {
-    id: '',
-    email: 'client07penthaz@gmail.com',
-    firstName: 'Client',
-    lastName: 'Penthaz',
-    phoneNumber: '218621313',
+  "515a4836-3e47-47c5-9b87-1cf4feefe247": {
+    id: "",
+    email: "client07penthaz@gmail.com",
+    firstName: "Client",
+    lastName: "Penthaz",
+    phoneNumber: "218621313",
     address: null,
-    city: 'Penthaz',
+    city: "Penthaz",
     codePostal: null,
     batiment: null,
-    rue: 'Test',
-    civilite: 'monsieur',
-    npa: '1303',
-    localite: 'Penthaz',
-    numeroRue: '12',
-    type: 'customer'
-  }
-}
+    rue: "Test",
+    civilite: "monsieur",
+    npa: "1303",
+    localite: "Penthaz",
+    numeroRue: "12",
+    type: "customer",
+  },
+};
 
 // Charger les informations du restaurant
 const loadRestaurantInfo = async () => {
   try {
-    const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
+    const restaurantID = localStorage.getItem(
+      UserGeneralKey.USER_RESTAURANT_ID
+    );
     if (restaurantID) {
-      const response = await detailRestaurant(restaurantID) as ApiResponse<RestaurantModel>
+      const response = (await detailRestaurant(
+        restaurantID
+      )) as ApiResponse<RestaurantModel>;
       if (response.code === 200 && response.data) {
-        restaurantInfo.value = response.data
-        
+        restaurantInfo.value = response.data;
+
         // Sélectionner le client par défaut si on est en mode "sur place"
-        if (storeOrderType.value === 'dine_in') {
-          selectDefaultClient(restaurantID)
+        if (storeOrderType.value === "dine_in") {
+          selectDefaultClient(restaurantID);
         }
       }
     }
   } catch (error) {
-    console.error('Erreur lors du chargement des informations du restaurant:', error)
+    console.error(
+      "Erreur lors du chargement des informations du restaurant:",
+      error
+    );
   }
-}
+};
 
 // Charger les détails du restaurant pour le montant minimum
 const loadRestaurantDetails = async () => {
   try {
-    const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
+    const restaurantID = localStorage.getItem(
+      UserGeneralKey.USER_RESTAURANT_ID
+    );
     if (restaurantID) {
-      const response = await getRestaurantDetails(restaurantID)
+      const response = await getRestaurantDetails(restaurantID);
       if (response.code === 200 && response.data) {
         restaurantDetails.value = response.data;
       }
     }
   } catch (error) {
-    console.error('Erreur lors du chargement des détails du restaurant:', error)
+    console.error(
+      "Erreur lors du chargement des détails du restaurant:",
+      error
+    );
   }
-}
-
+};
 
 // Charger tous les codes postaux
 const loadAllPostalCodes = async () => {
   try {
-    const response = await getAllPostalCodes()
-    
+    const response = await getAllPostalCodes();
+
     if (response.code === 200 && response.data) {
-      allPostalCodes.value = response.data
-      
-      
+      allPostalCodes.value = response.data;
     }
   } catch (error) {
-    console.error('Erreur lors du chargement des codes postaux:', error)
+    console.error("Erreur lors du chargement des codes postaux:", error);
   }
-}
+};
 
-// Transformer le panier pour l'API
-const transformCartForAPI = (cart: CartItem[]) => {
-  return cart.map(item => {
+// Transformer le panier pour l'API - Structure groupée par catégorie
+const transformCartForAPI = (
+  cart: CartItem[],
+  availableCategories: Category[] = []
+) => {
+  // Grouper les produits par catégorie
+  const categoriesMap = new Map<string, any[]>();
+
+  cart.forEach((item) => {
     // Collecter toutes les options pour ce produit
-    const options: string[] = []
+    const options: string[] = [];
 
     // Ajouter les options additionnelles
     if (item.additionnal && item.additionnal.length > 0) {
-      options.push(...item.additionnal)
+      options.push(...item.additionnal);
     }
 
     // Ajouter les suppléments comme options
     if (item.supplements && item.supplements.length > 0) {
-      item.supplements.forEach(supp => {
+      item.supplements.forEach((supp) => {
         if (supp.quantity > 0) {
-          options.push(supp.name)
+          options.push(supp.name);
         }
-      })
+      });
     }
 
     // Extraire les features pour ce produit spécifique
-    const productFeatures: string[] = []
-    
+    const productFeatures: string[] = [];
+
     // Ajouter les ingrédients personnalisés comme features
-    const customIngredients = item.ingredients.filter(ing => !ing.isDefault && ing.quantity > 0)
-    customIngredients.forEach(ing => {
-      productFeatures.push(`${ing.name} (${ing.quantity})`)
-    })
+    const customIngredients = item.ingredients.filter(
+      (ing) => !ing.isDefault && ing.quantity > 0
+    );
+    customIngredients.forEach((ing) => {
+      productFeatures.push(`${ing.name} (${ing.quantity})`);
+    });
 
     // Ajouter les suppléments comme features
     if (item.supplements && item.supplements.length > 0) {
-      item.supplements.forEach(supp => {
+      item.supplements.forEach((supp) => {
         if (supp.quantity > 0) {
-          productFeatures.push(`${supp.name}${supp.quantity > 1 ? ` (${supp.quantity})` : ''}`)
+          productFeatures.push(
+            `${supp.name}${supp.quantity > 1 ? ` (${supp.quantity})` : ""}`
+          );
         }
-      })
+      });
     }
 
     // Extraire les noms des ingrédients retirés
-    const removedIngredientNames: string[] = []
+    const removedIngredientNames: string[] = [];
     if (item.removedIngredients && item.removedIngredients.length > 0) {
-      item.removedIngredients.forEach(removedIng => {
-        removedIngredientNames.push(removedIng.name)
-      })
+      item.removedIngredients.forEach((removedIng) => {
+        removedIngredientNames.push(removedIng.name);
+      });
     }
 
     // Calculer le prix total du produit (prix de base + ingrédients + suppléments) * quantité
-    const basePrice = Number(item.selectedSize?.price || item.selectedSize?.priceLivraison || 0)
-    
+    const basePrice = Number(
+      item.selectedSize?.price || item.selectedSize?.priceLivraison || 0
+    );
+
     // Calculer le prix des ingrédients personnalisés
     const ingredientsPrice = item.ingredients.reduce((total, ing) => {
       if (!ing.isDefault && ing.quantity > 0) {
-        return total + (Number(ing.extra_cost_price) || 0) * ing.quantity
+        return total + (Number(ing.extra_cost_price) || 0) * ing.quantity;
       }
-      return total
-    }, 0)
-    
+      return total;
+    }, 0);
+
     // Calculer le prix des suppléments
     const supplementsPrice = item.supplements.reduce((total, supp) => {
-      const supQuantity = (supp as any).quantity || 0
+      const supQuantity = (supp as any).quantity || 0;
       if (supQuantity > 0) {
-        return total + (Number(supp.extra_cost_price) || 0) * supQuantity
+        return total + (Number(supp.extra_cost_price) || 0) * supQuantity;
       }
-      return total
-    }, 0)
-    
-    // Prix unitaire du produit (prix de base + ingrédients + suppléments)
-    const unitPrice = basePrice + ingredientsPrice + supplementsPrice
-    
-    // Prix total du produit (prix unitaire * quantité)
-    const productPrice = unitPrice * item.quantity
+      return total;
+    }, 0);
 
-    return {
-      product_id: item.productId,
-      specification_id: item.selectedSize.id,
+    // Prix unitaire du produit (prix de base + ingrédients + suppléments)
+    const unitPrice = basePrice + ingredientsPrice + supplementsPrice;
+
+    // Prix total du produit (prix unitaire * quantité)
+    const productPrice = unitPrice * item.quantity;
+
+    // Créer l'objet produit pour cette catégorie
+    const productData = {
+      id: item.productId,
+      name: item.name,
       quantity: item.quantity,
-      product_price: productPrice, // Prix total du produit (prix unitaire * quantité)
-      optionSpecific: options.join(', ') || "",
-      ingredient: [...item.ingredients.map(ing => ({
-        name: ing.name,
-        extra_cost_price: String(ing.extra_cost_price),
-        isDefault: ing.isDefault,
-        size: ing.size || "",
-        quantite: ing.quantity,
-      })), ...item.supplements.map(supp => ({
-        name: supp.name,
-        extra_cost_price: String(supp.extra_cost_price),
-        isDefault: false,
-        size: supp.size || "",
-        quantite: supp.quantity,
-      }))],
+      price: productPrice, // Prix total du produit (prix unitaire * quantité)
+      specification_id: item.selectedSize.id,
+      optionSpecific: options.join(", ") || "",
+      ingredient: [
+        ...item.ingredients.map((ing) => ({
+          name: ing.name,
+          extra_cost_price: String(ing.extra_cost_price),
+          isDefault: ing.isDefault,
+          size: ing.size || "",
+          quantite: ing.quantity,
+        })),
+        ...item.supplements.map((supp) => ({
+          name: supp.name,
+          extra_cost_price: String(supp.extra_cost_price),
+          isDefault: false,
+          size: supp.size || "",
+          quantite: supp.quantity,
+        })),
+      ],
       feature: productFeatures, // Tableau de strings pour ce produit
-      removedIngredients: removedIngredientNames // Tableau de strings pour ce produit
+      removedIngredients: removedIngredientNames, // Tableau de strings pour ce produit
+    };
+
+    // Obtenir le nom de la catégorie à partir de l'ID
+    let categoryName = "Autres";
+    console.log(
+      "🔍 Item du panier:",
+      item.name,
+      "Catégorie ID:",
+      item.category
+    );
+    if (item.category) {
+      console.log("🔍 Recherche de catégorie pour ID:", item.category);
+      console.log("📋 Catégories disponibles:", availableCategories);
+      const foundCategory = availableCategories.find(
+        (cat) => cat.id === item.category
+      );
+      console.log("✅ Catégorie trouvée:", foundCategory);
+      categoryName = foundCategory ? foundCategory.name : "Autres";
+    } else {
+      console.log("❌ Aucune catégorie trouvée pour l'item:", item.name);
     }
-  })
-}
+
+    // Ajouter le produit à la catégorie correspondante
+    if (!categoriesMap.has(categoryName)) {
+      categoriesMap.set(categoryName, []);
+    }
+    categoriesMap.get(categoryName)!.push(productData);
+  });
+
+  // Convertir la Map en tableau de catégories
+  const categoriesResult = Array.from(categoriesMap.entries()).map(
+    ([categoryName, products]) => ({
+      category: categoryName,
+      products: products,
+    })
+  );
+
+  return categoriesResult;
+};
 
 // Extraire toutes les features du panier
 const extractFeaturesFromCart = (cart: CartItem[]): string[] => {
-  const features: string[] = []
+  const features: string[] = [];
 
   // Ajouter les features du store Vuex (features globales)
-  const storeFeatures = store?.getters?.['features/selectedFeatures'] || []
-  features.push(...storeFeatures)
+  const storeFeatures = store?.getters?.["features/selectedFeatures"] || [];
+  features.push(...storeFeatures);
 
   // Ajouter les features additionnelles de chaque produit
-  cart.forEach(item => {
+  cart.forEach((item) => {
     if (item.additionnal && item.additionnal.length > 0) {
-      features.push(...item.additionnal)
+      features.push(...item.additionnal);
     }
-  })
+  });
 
   // Retourner les features uniques
-  return [...new Set(features)]
-}
+  return [...new Set(features)];
+};
 
 // Passer commande
 const handlePlaceOrder = async () => {
-  if (!canPlaceOrder.value || isProcessingOrder.value) return
+  if (!canPlaceOrder.value || isProcessingOrder.value) return;
 
-  isProcessingOrder.value = true
+  isProcessingOrder.value = true;
 
   try {
-    const restaurantID = localStorage.getItem(UserGeneralKey.USER_RESTAURANT_ID)
+    const restaurantID = localStorage.getItem(
+      UserGeneralKey.USER_RESTAURANT_ID
+    );
 
     if (!restaurantID || !restaurantInfo.value) {
-      toast.error('Informations du restaurant manquantes')
-      return
+      toast.error("Informations du restaurant manquantes");
+      return;
     }
 
     if (!customerInfo.value.phone) {
-      toast.error('Veuiller remplir tous les champs!')
-      return
+      toast.error("Veuiller remplir tous les champs!");
+      return;
     }
 
     // Extraire les features du panier
-    const cartFeatures = extractFeaturesFromCart(storeCart.value)
+    const cartFeatures = extractFeaturesFromCart(storeCart.value);
 
     // ID du client
     const customerID = selectedCustomer.value?.id || customerInfo.value.id;
 
     // Fonction pour générer un email unique pour les commandes sans email valide
     const generateUniqueEmail = (): string => {
-      const timestamp = Date.now()
-      const randomId = Math.random().toString(36).substring(2, 8)
-      const restaurantSuffix = restaurantID === 'fd9d1677-f994-473a-9939-908cf3145bd4' ? 'morges' : 'penthaz'
-      return `guest_${timestamp}_${randomId}@${restaurantSuffix}.dummy.com`
-    }
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substring(2, 8);
+      const restaurantSuffix =
+        restaurantID === "fd9d1677-f994-473a-9939-908cf3145bd4"
+          ? "morges"
+          : "penthaz";
+      return `guest_${timestamp}_${randomId}@${restaurantSuffix}.dummy.com`;
+    };
 
     const renderEmail = (): string => {
       // Priorité 1: Email saisi manuellement (si valide)
       if (customerInfo.value?.email && isValidEmail(customerInfo.value.email)) {
-        return customerInfo.value.email
+        return customerInfo.value.email;
       }
-      
+
       // Priorité 2: Email du client sélectionné (si valide)
-      if (selectedCustomer.value?.email && isValidEmail(selectedCustomer.value.email)) {
-        return selectedCustomer.value.email
+      if (
+        selectedCustomer.value?.email &&
+        isValidEmail(selectedCustomer.value.email)
+      ) {
+        return selectedCustomer.value.email;
       }
-      
+
       // Priorité 4: Email par défaut du restaurant (si valide)
       /* const defaultEmail = restaurantID === 'fd9d1677-f994-473a-9939-908cf3145bd4' 
         ? 'client07morges@gmail.com' 
@@ -1586,61 +2049,92 @@ const handlePlaceOrder = async () => {
       if (isValidEmail(defaultEmail)) {
         return defaultEmail
       } */
-      
+
       // Priorité 5: Générer un email unique pour éviter les conflits
-      const uniqueEmail = generateUniqueEmail()
-      return uniqueEmail
-    }
+      const uniqueEmail = generateUniqueEmail();
+      return uniqueEmail;
+    };
 
     // Préparer les données de commande selon le format de l'API
     const orderData = {
       coupon: appliedCoupon.value?.code || "",
       couponValue: appliedCoupon.value?.discountAmount?.toString() || "0",
       couponType: appliedCoupon.value?.type || "",
-      codePostal: storeOrderType.value === 'delivery' 
-        ? `${deliveryAddress.value.npa}`.trim()
-        : restaurantInfo.value.codePostalID?.numeroPostal,
-      deliveryLocality: storeOrderType.value === 'delivery' 
-        ? ` ${deliveryAddress.value.localite}`.trim()
-        : restaurantInfo.value.codePostalID?.ville,
+      codePostal:
+        storeOrderType.value === "delivery"
+          ? `${deliveryAddress.value.npa}`.trim()
+          : restaurantInfo.value.codePostalID?.numeroPostal,
+      deliveryLocality:
+        storeOrderType.value === "delivery"
+          ? ` ${deliveryAddress.value.localite}`.trim()
+          : restaurantInfo.value.codePostalID?.ville,
       restaurantID: restaurantID,
-      paniers: transformCartForAPI(storeCart.value), // Cette fonction inclut maintenant feature et removedIngredients pour chaque produit
-      userID: selectedCustomer.value?.user?.id || "", // ID utilisateur si client sélectionné
+      paniers: transformCartForAPI(storeCart.value, props.categories || []),
+      userID: selectedCustomer.value?.user?.id || "",
       civilite: selectedCustomer.value?.civilite || "monsieur",
       guest_first_name: customerInfo.value.firstName,
       guest_last_name: customerInfo.value.lastName,
       guest_email: renderEmail(),
-      guest_phone_number: selectedCustomer?.value?.phone_number || selectedCustomer?.value?.phoneNumber || customerInfo.value.phone,
+      guest_phone_number:
+        selectedCustomer?.value?.phone_number ||
+        selectedCustomer?.value?.phoneNumber ||
+        customerInfo.value.phone,
       order_type: storeOrderType.value, // Utiliser le type depuis le store
-      numberRue: storeOrderType.value === 'delivery' ? deliveryAddress.value.numeroRue : restaurantInfo.value.numeroRue || "",
+      numberRue:
+        storeOrderType.value === "delivery"
+          ? deliveryAddress.value.numeroRue
+          : restaurantInfo.value.numeroRue || "",
       deliveryPreference: deliveryPreference.value,
       typeCustomer: clientType.value,
       SpecialInstructions: "",
-      timeOrder: deliveryPreference.value === 'ulterieur' && selectedDate.value && selectedTime.value
-        ? formatDateForPayload(selectedDate.value, selectedTime.value)
-        : "",
+      timeOrder:
+        deliveryPreference.value === "ulterieur" &&
+        selectedDate.value &&
+        selectedTime.value
+          ? formatDateForPayload(selectedDate.value, selectedTime.value)
+          : "",
       payment_method: selectedPaymentMethod.value,
-      addressLivraison: storeOrderType.value === 'delivery' 
-        ? `${deliveryAddress.value.rue} ${deliveryAddress.value.numeroRue}`.trim()
-        : `${restaurantInfo.value.address}`,
+      addressLivraison:
+        storeOrderType.value === "delivery"
+          ? `${deliveryAddress.value.rue} ${deliveryAddress.value.numeroRue}`.trim()
+          : `${restaurantInfo.value.address}`,
       batiment: restaurantInfo.value.batiment || "",
-      rue: storeOrderType.value === 'delivery' ? deliveryAddress.value.rue : restaurantInfo.value.address || "",
-      npa: storeOrderType.value === 'delivery' ? deliveryAddress.value.npa : restaurantInfo.value.codePostalID?.numeroPostal || "",
-      localite: storeOrderType.value === 'delivery' ? deliveryAddress.value.localite : restaurantInfo.value.codePostalID?.ville || "",
+      rue:
+        storeOrderType.value === "delivery"
+          ? deliveryAddress.value.rue
+          : restaurantInfo.value.address || "",
+      npa:
+        storeOrderType.value === "delivery"
+          ? deliveryAddress.value.npa
+          : restaurantInfo.value.codePostalID?.numeroPostal || "",
+      localite:
+        storeOrderType.value === "delivery"
+          ? deliveryAddress.value.localite
+          : restaurantInfo.value.codePostalID?.ville || "",
       societe: organisationInfo.value.societe || "",
       departement: organisationInfo.value.departement || "",
       newsletter: "0",
-      discount: discountType.value === 'percentage'
-        ? (discountPercentage.value > 0 ? discountPercentage.value.toString() : "0")
-        : "0",
-      discountFixed: discountType.value === 'fixed'
-        ? (discountFixed.value > 0 ? discountFixed.value.toString() : "0")
-        : "0",
+      discount:
+        discountType.value === "percentage"
+          ? discountPercentage.value > 0
+            ? discountPercentage.value.toString()
+            : "0"
+          : "0",
+      discountFixed:
+        discountType.value === "fixed"
+          ? discountFixed.value > 0
+            ? discountFixed.value.toString()
+            : "0"
+          : "0",
       discountType: discountType.value,
-      discountValue: discountType.value === 'percentage' ? String(discountPercentage.value) : String(discountFixed.value),
-      discountAmount: discountAmount.value > 0 ? discountAmount.value.toString() : "0",
+      discountValue:
+        discountType.value === "percentage"
+          ? String(discountPercentage.value)
+          : String(discountFixed.value),
+      discountAmount:
+        discountAmount.value > 0 ? discountAmount.value.toString() : "0",
       divers: diversAmount.value > 0 ? diversAmount.value.toString() : "0",
-      tvaAmount: formatPrice(storeCartTotal.value * 2.6 / 100) || "0",
+      tvaAmount: formatPrice((storeCartTotal.value * 2.6) / 100) || "0",
       intructionOrder: [
         {
           demandeCouverts: false,
@@ -1653,238 +2147,273 @@ const handlePlaceOrder = async () => {
       additional_fees: [
         {
           type: storeOrderType.value,
-          amount: minOrderSupplement.value
-        }
+          amount: minOrderSupplement.value,
+        },
       ],
       subtotal: storeCartTotal.value,
       total: finalTotalWithCoupon.value,
-    }
-    
-    const response = await createPOSOrder(orderData)
+    };
+
+    const response = await createPOSOrder(orderData);
 
     if (response.code === 200 || response.code === 201) {
-      toast.success('Commande créée avec succès!')
+      toast.success("Commande créée avec succès!");
 
       // Vider le panier
       if (store) {
-        store.dispatch('cart/clearCart')
+        store.dispatch("cart/clearCart");
         // Vider les features sélectionnées
-        store.dispatch('features/clearFeatures')
+        store.dispatch("features/clearFeatures");
       }
 
       // Réinitialiser les informations client
-      customerInfo.value = { id: '', firstName: '', lastName: '', phone: '', email: '' }
+      customerInfo.value = {
+        id: "",
+        firstName: "",
+        lastName: "",
+        phone: "",
+        email: "",
+      };
 
       // Vider le client sélectionné
-      selectedCustomer.value = null
-      customerSuggestions.value = []
+      selectedCustomer.value = null;
+      customerSuggestions.value = [];
 
       // Réinitialiser les préférences de livraison
-      deliveryPreference.value = isRestaurantOpen.value ? 'immediat' : 'ulterieur'
-      selectedDate.value = ''
-      selectedTime.value = ''
+      deliveryPreference.value = isRestaurantOpen.value
+        ? "immediat"
+        : "ulterieur";
+      selectedDate.value = "";
+      selectedTime.value = "";
 
       // Réinitialiser le rabais
-      discountType.value = 'percentage'
-      discountPercentage.value = 0
-      discountFixed.value = 0
+      discountType.value = "percentage";
+      discountPercentage.value = 0;
+      discountFixed.value = 0;
 
       // Réinitialiser le champ divers
-      diversAmount.value = 0
+      diversAmount.value = 0;
 
       // Réinitialiser le coupon
-      appliedCoupon.value = null
-      couponCode.value = ''
+      appliedCoupon.value = null;
+      couponCode.value = "";
 
       // Réinitialiser l'adresse de livraison
-      deliveryAddress.value = { rue: '', numeroRue: '', npa: '', localite: '' }
+      deliveryAddress.value = { rue: "", numeroRue: "", npa: "", localite: "" };
 
       // Émettre l'événement de succès
-      emit('place-order', { success: true, orderData: response.data })
+      emit("place-order", { success: true, orderData: response.data });
     } else {
-      toast.error(response.message || 'Erreur lors de la création de la commande')
+      toast.error(
+        response.message || "Erreur lors de la création de la commande"
+      );
     }
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || 'Erreur lors de la création de la commande'
-    toast.error(errorMessage)
+    const errorMessage =
+      error?.response?.data?.message ||
+      "Erreur lors de la création de la commande";
+    toast.error(errorMessage);
   } finally {
-    isProcessingOrder.value = false
+    isProcessingOrder.value = false;
   }
-}
+};
 
 // Gestionnaires d'événements
 const decreaseQuantity = (itemId: string) => {
-  const item = storeCart.value.find(item => item.localProductId === itemId)
+  const item = storeCart.value.find((item) => item.localProductId === itemId);
   if (item) {
-    emit('update-quantity', itemId, item.quantity - 1)
+    emit("update-quantity", itemId, item.quantity - 1);
   }
-}
+};
 
 const increaseQuantity = (itemId: string) => {
-  const item = storeCart.value.find(item => item.localProductId === itemId)
+  const item = storeCart.value.find((item) => item.localProductId === itemId);
   if (item) {
-    emit('update-quantity', itemId, item.quantity + 1)
+    emit("update-quantity", itemId, item.quantity + 1);
   }
-}
+};
 
 const removeItem = (itemId: string) => {
-  emit('remove-item', itemId)
-}
+  emit("remove-item", itemId);
+};
 
 const selectPaymentMethod = (methodId: string) => {
-  selectedPaymentMethod.value = methodId
-}
+  selectedPaymentMethod.value = methodId;
+};
 
 // Gestionnaire pour le changement de type de rabais
 const handleDiscountTypeChange = () => {
   // Réinitialiser les valeurs lors du changement de type
-  if (discountType.value === 'percentage') {
-    discountFixed.value = 0
+  if (discountType.value === "percentage") {
+    discountFixed.value = 0;
   } else {
-    discountPercentage.value = 0
+    discountPercentage.value = 0;
   }
-}
+};
 
 // Gestionnaire pour le changement de rabais en pourcentage
 const handleDiscountChange = () => {
   // S'assurer que la valeur est dans les limites
   if (discountPercentage.value < 0) {
-    discountPercentage.value = 0
+    discountPercentage.value = 0;
   } else if (discountPercentage.value > 100) {
-    discountPercentage.value = 100
+    discountPercentage.value = 100;
   }
-  
-}
+};
 
 // Gestionnaire pour le changement de rabais fixe
 const handleFixedDiscountChange = () => {
   // S'assurer que la valeur n'est pas négative
   if (discountFixed.value < 0) {
-    discountFixed.value = 0
+    discountFixed.value = 0;
   }
-  
+
   // S'assurer que le rabais fixe ne dépasse pas le sous-total
   if (discountFixed.value > storeCartTotal.value) {
-    discountFixed.value = storeCartTotal.value
+    discountFixed.value = storeCartTotal.value;
   }
-  
-}
+};
 
 // Gestionnaire pour le changement de montant divers
 const handleDiversChange = () => {
   // S'assurer que la valeur n'est pas négative
   if (diversAmount.value < 0) {
-    diversAmount.value = 0
+    diversAmount.value = 0;
   }
-}
+};
 
 // Fonction pour appliquer un coupon
 const applyCouponCode = async () => {
   if (appliedCoupon.value) {
-    toast.info('Un coupon est déjà appliqué')
-    return
+    toast.info("Un coupon est déjà appliqué");
+    return;
   }
 
   if (!couponCode.value.trim()) {
-    toast.error('Veuillez entrer un code promo')
-    return
+    toast.error("Veuillez entrer un code promo");
+    return;
   }
 
-  isApplyingCoupon.value = true
+  isApplyingCoupon.value = true;
   try {
     const response = await applyCoupon({
       coupon: couponCode.value.trim(),
-      email: selectedCustomer.value?.email || customerInfo.value.email || '',
-      amount: String(storeCartTotal.value)
-    })
+      email: selectedCustomer.value?.email || customerInfo.value.email || "",
+      amount: String(storeCartTotal.value),
+    });
 
     if (response.code === 200) {
       const couponData = {
         ...response.data,
         code: couponCode.value.trim(),
-        discountAmount: parseFloat(response.data.value) || 0
-      }
-      appliedCoupon.value = couponData
-      couponCode.value = ''
-      toast.success(response.message || 'Coupon appliqué avec succès')
+        discountAmount: parseFloat(response.data.value) || 0,
+      };
+      appliedCoupon.value = couponData;
+      couponCode.value = "";
+      toast.success(response.message || "Coupon appliqué avec succès");
     } else {
-      toast.error(response.message || 'Code promo invalide')
+      toast.error(response.message || "Code promo invalide");
     }
   } catch (error) {
-    toast.error('Code promo invalide')
+    toast.error("Code promo invalide");
   } finally {
-    isApplyingCoupon.value = false
+    isApplyingCoupon.value = false;
   }
-}
+};
 
 // Fonction pour supprimer un coupon
 const removeCoupon = () => {
-  appliedCoupon.value = null
-  couponCode.value = ''
-  toast.info('Coupon supprimé')
-}
+  appliedCoupon.value = null;
+  couponCode.value = "";
+  toast.info("Coupon supprimé");
+};
 
 // Fonction pour rechercher des codes postaux
 const searchPostalCodes = (query: string) => {
-  
   if (!query.trim() || query.length < 2) {
-    postalCodeSuggestions.value = []
-    showPostalCodeSuggestions.value = false
-    return
+    postalCodeSuggestions.value = [];
+    showPostalCodeSuggestions.value = false;
+    return;
   }
 
-  const results = allPostalCodes.value.filter(postalCode => {
-    // Protection contre les propriétés undefined
-    if (!postalCode) return false
-    
-    // Adapter selon la structure des données du nouvel endpoint
-    // Convertir en chaîne de caractères pour éviter les erreurs
-    const postalCodeStr = String(postalCode.code || postalCode.numeroPostal || postalCode.postal_code || '')
-    const cityStr = String(postalCode.locality || postalCode.ville || postalCode.city || postalCode.localite || '')
-    
-    const matches = postalCodeStr.includes(query) || 
-           cityStr.toLowerCase().includes(query.toLowerCase())
-  
-    
-    return matches
-  }).slice(0, 10) 
-  postalCodeSuggestions.value = results
-  showPostalCodeSuggestions.value = results.length > 0
-}
+  const results = allPostalCodes.value
+    .filter((postalCode) => {
+      // Protection contre les propriétés undefined
+      if (!postalCode) return false;
+
+      // Adapter selon la structure des données du nouvel endpoint
+      // Convertir en chaîne de caractères pour éviter les erreurs
+      const postalCodeStr = String(
+        postalCode.code ||
+          postalCode.numeroPostal ||
+          postalCode.postal_code ||
+          ""
+      );
+      const cityStr = String(
+        postalCode.locality ||
+          postalCode.ville ||
+          postalCode.city ||
+          postalCode.localite ||
+          ""
+      );
+
+      const matches =
+        postalCodeStr.includes(query) ||
+        cityStr.toLowerCase().includes(query.toLowerCase());
+
+      return matches;
+    })
+    .slice(0, 10);
+  postalCodeSuggestions.value = results;
+  showPostalCodeSuggestions.value = results.length > 0;
+};
 
 // Fonction pour sélectionner un code postal
 const selectPostalCode = (postalCode: any) => {
-  selectedPostalCode.value = postalCode
-  
+  selectedPostalCode.value = postalCode;
+
   // Adapter selon la structure des données du nouvel endpoint
   // Convertir en chaîne de caractères pour éviter les erreurs
-  const postalCodeStr = String(postalCode.code || postalCode.numeroPostal || postalCode.postal_code || '')
-  const cityStr = String(postalCode.locality || postalCode.ville || postalCode.city || postalCode.localite || '')
-  
-  deliveryAddress.value.npa = postalCodeStr
-  deliveryAddress.value.localite = cityStr
-  showPostalCodeSuggestions.value = false
-  postalCodeSuggestions.value = []
-  
+  const postalCodeStr = String(
+    postalCode.code || postalCode.numeroPostal || postalCode.postal_code || ""
+  );
+  const cityStr = String(
+    postalCode.locality ||
+      postalCode.ville ||
+      postalCode.city ||
+      postalCode.localite ||
+      ""
+  );
+
+  deliveryAddress.value.npa = postalCodeStr;
+  deliveryAddress.value.localite = cityStr;
+  showPostalCodeSuggestions.value = false;
+  postalCodeSuggestions.value = [];
+
   // Charger le montant minimum de commande pour ce code postal
-  if (storeOrderType.value === 'delivery') {
-    loadRestaurantMinOrder()
+  if (storeOrderType.value === "delivery") {
+    loadRestaurantMinOrder();
   }
-}
+};
 
 // Fonction pour gérer le changement du code postal
 const handlePostalCodeChange = () => {
   // Réinitialiser la sélection si l'utilisateur modifie manuellement
   if (selectedPostalCode.value) {
-    const postalCodeStr = String(selectedPostalCode.value.code || selectedPostalCode.value.numeroPostal || selectedPostalCode.value.postal_code || '')
+    const postalCodeStr = String(
+      selectedPostalCode.value.code ||
+        selectedPostalCode.value.numeroPostal ||
+        selectedPostalCode.value.postal_code ||
+        ""
+    );
     if (deliveryAddress.value.npa !== postalCodeStr) {
-      selectedPostalCode.value = null
+      selectedPostalCode.value = null;
     }
   }
-  
+
   // Rechercher des suggestions
-  searchPostalCodes(deliveryAddress.value.npa)
-}
+  searchPostalCodes(deliveryAddress.value.npa);
+};
 
 // Gestionnaire pour le changement de date
 const handleDateChange = () => {
@@ -1893,84 +2422,92 @@ const handleDateChange = () => {
     const availableTimes = getAvailableTimes.value;
     if (!availableTimes.includes(selectedTime.value)) {
       // L'heure sélectionnée n'est plus disponible, la réinitialiser
-      selectedTime.value = '';
+      selectedTime.value = "";
     }
   }
-}
+};
 
-watch(storeOrderType, (newOrderType, oldOrderType) => {
-  if (newOrderType !== oldOrderType) {
-    storeCart.value.forEach((item, index) => {
-     // console.log("order Type refresh")
-    })
-    
-    // Forcer le recalcul de tous les prix du panier
-    store.dispatch('cart/recalculateAllPrices')
-  }
-}, { immediate: false })
+watch(
+  storeOrderType,
+  (newOrderType, oldOrderType) => {
+    if (newOrderType !== oldOrderType) {
+      storeCart.value.forEach((item, index) => {
+        // console.log("order Type refresh")
+      });
 
+      // Forcer le recalcul de tous les prix du panier
+      store.dispatch("cart/recalculateAllPrices");
+    }
+  },
+  { immediate: false }
+);
 
 const cartItemsWithCorrectPrices = computed(() => {
-  const orderType = storeOrderType.value  // Utiliser le computed réactif du store
-  const isDelivery = orderType === 'delivery'
+  const orderType = storeOrderType.value; // Utiliser le computed réactif du store
+  const isDelivery = orderType === "delivery";
   if (!storeCart.value || storeCart.value.length === 0) {
-    return []
+    return [];
   }
 
-  return storeCart.value.map(item => {
+  return storeCart.value.map((item) => {
     if (!item || !item.selectedSize) {
-      return item
+      return item;
     }
-    
-    let basePrice = 0
-    
-    const originalPrice = item.selectedSize?.price || 0
-    const originalPriceLivraison = item.selectedSize?.priceLivraison || 0
-    
+
+    let basePrice = 0;
+
+    const originalPrice = item.selectedSize?.price || 0;
+    const originalPriceLivraison = item.selectedSize?.priceLivraison || 0;
+
     if (isDelivery && originalPriceLivraison) {
-      basePrice = Number(originalPriceLivraison) || 0
+      basePrice = Number(originalPriceLivraison) || 0;
     } else {
-      basePrice = Number(originalPrice) || 0
+      basePrice = Number(originalPrice) || 0;
     }
-    
+
     // Calculer le prix total avec les ingrédients et suppléments
-    const ingredientsPrice = (item.ingredients || []).reduce((total: number, ingredient: any) => {
-      if (!ingredient.isDefault && ingredient.quantity > 0) {
-        return total + (Number(ingredient.extra_cost_price) || 0) * ingredient.quantity
-      }
-      return total
-    }, 0)
+    const ingredientsPrice = (item.ingredients || []).reduce(
+      (total: number, ingredient: any) => {
+        if (!ingredient.isDefault && ingredient.quantity > 0) {
+          return (
+            total +
+            (Number(ingredient.extra_cost_price) || 0) * ingredient.quantity
+          );
+        }
+        return total;
+      },
+      0
+    );
 
-    const supplementsPrice = (item.supplements || []).reduce((total, supplement) => {
-      const supQuantity = (supplement as any).quantity || 0
-      if (supQuantity > 0) {
-        return total + (Number(supplement.extra_cost_price) || 0)
-      }
-      return total
-    }, 0)
+    const supplementsPrice = (item.supplements || []).reduce(
+      (total, supplement) => {
+        const supQuantity = (supplement as any).quantity || 0;
+        if (supQuantity > 0) {
+          return total + (Number(supplement.extra_cost_price) || 0);
+        }
+        return total;
+      },
+      0
+    );
 
-    const totalPrice = basePrice + ingredientsPrice + supplementsPrice
-    const calculatedTotalPrice = totalPrice * item.quantity
+    const totalPrice = basePrice + ingredientsPrice + supplementsPrice;
+    const calculatedTotalPrice = totalPrice * item.quantity;
 
     // Retourner l'item avec les prix calculés
     return {
       ...item,
       totalPrice: totalPrice,
       calculatedPrice: totalPrice,
-      calculatedTotalPrice: calculatedTotalPrice
-    }
-  })
-})
-
-
+      calculatedTotalPrice: calculatedTotalPrice,
+    };
+  });
+});
 
 const validCartItems = computed(() => {
-  return cartItemsWithCorrectPrices.value.filter(item => item && item.localProductId)
-})
-
-
-
-
+  return cartItemsWithCorrectPrices.value.filter(
+    (item) => item && item.localProductId
+  );
+});
 </script>
 
 <style lang="scss" scoped>
@@ -1998,7 +2535,7 @@ const validCartItems = computed(() => {
       .cashier-avatar {
         width: 40px;
         height: 40px;
-        background: #388D35;
+        background: #388d35;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -2050,7 +2587,7 @@ const validCartItems = computed(() => {
     .restaurant-name {
       font-size: 16px;
       font-weight: 600;
-      color: #388D35;
+      color: #388d35;
       margin-bottom: 4px;
     }
 
@@ -2113,7 +2650,7 @@ const validCartItems = computed(() => {
 
       &:focus {
         outline: none;
-        border-color: #388D35;
+        border-color: #388d35;
         box-shadow: 0 0 0 2px rgba(56, 141, 53, 0.1);
       }
 
@@ -2186,7 +2723,7 @@ const validCartItems = computed(() => {
     }
 
     &.client-selected {
-      border: 1px solid #388D35;
+      border: 1px solid #388d35;
       box-shadow: 0 0 0 2px rgba(56, 141, 53, 0.1);
     }
 
@@ -2199,12 +2736,12 @@ const validCartItems = computed(() => {
       transition: border-color 0.2s ease;
 
       &:focus-within {
-        border-color: #388D35;
+        border-color: #388d35;
         box-shadow: 0 0 0 2px rgba(56, 141, 53, 0.1);
       }
 
       &:has(.client-selected) {
-        border-color: #388D35;
+        border-color: #388d35;
         box-shadow: 0 0 0 2px rgba(56, 141, 53, 0.1);
       }
 
@@ -2223,7 +2760,7 @@ const validCartItems = computed(() => {
         border: none;
         border-radius: 0 6px 6px 0;
         flex: 1;
-        
+
         &:focus {
           border: none;
           box-shadow: none;
@@ -2271,7 +2808,7 @@ const validCartItems = computed(() => {
           }
 
           .suggestion-phone {
-            color: #388D35;
+            color: #388d35;
             font-size: 12px;
             font-weight: 500;
           }
@@ -2296,7 +2833,7 @@ const validCartItems = computed(() => {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  color: #388D35;
+  color: #388d35;
   font-size: 14px;
   font-weight: 500;
 
@@ -2318,7 +2855,7 @@ const validCartItems = computed(() => {
 
   .banner-title {
     font-size: 12px;
-    color: #388D35;
+    color: #388d35;
     font-weight: 600;
   }
 
@@ -2327,21 +2864,21 @@ const validCartItems = computed(() => {
     font-weight: 600;
   }
 
-      .banner-clear-btn {
-      background: #dc2626;
-      border: none;
-      color: white;
-      cursor: pointer;
-      font-size: 12px;
-      padding: 6px 12px;
-      border-radius: 4px;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-weight: 500;
+  .banner-clear-btn {
+    background: #dc2626;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
 
-      &:hover {
+    &:hover {
       background: #b91c1c;
       transform: translateY(-1px);
     }
@@ -2418,7 +2955,7 @@ const validCartItems = computed(() => {
 
         .customization-label {
           font-size: 11px;
-          color: #388D35;
+          color: #388d35;
           font-weight: 500;
         }
 
@@ -2480,12 +3017,12 @@ const validCartItems = computed(() => {
           transition: all 0.2s ease;
 
           &:hover {
-            background: #388D35;
+            background: #388d35;
             color: white;
           }
 
           &.increase {
-            background: #388D35;
+            background: #388d35;
             color: white;
           }
         }
@@ -2503,7 +3040,7 @@ const validCartItems = computed(() => {
         .price {
           font-size: 14px;
           font-weight: 600;
-          color: #388D35;
+          color: #388d35;
         }
       }
 
@@ -2615,7 +3152,7 @@ const validCartItems = computed(() => {
     .feature-tag {
       display: inline-block;
       background: #f0fdf4;
-      color: #388D35;
+      color: #388d35;
       border-radius: 6px;
       padding: 0.25rem 0.5rem;
       font-size: 0.75rem;
@@ -2760,12 +3297,12 @@ const validCartItems = computed(() => {
       .coupon-code {
         font-size: 14px;
         font-weight: 600;
-        color: #388D35;
+        color: #388d35;
       }
 
       .coupon-discount {
         font-size: 12px;
-        color: #388D35;
+        color: #388d35;
         font-weight: 500;
       }
     }
@@ -2811,7 +3348,7 @@ const validCartItems = computed(() => {
 
       &:focus {
         outline: none;
-        border-color: #388D35;
+        border-color: #388d35;
         box-shadow: 0 0 0 2px rgba(56, 141, 53, 0.1);
       }
 
@@ -2824,7 +3361,7 @@ const validCartItems = computed(() => {
     }
 
     .apply-coupon-btn {
-      background: #388D35;
+      background: #388d35;
       border: none;
       color: white;
       cursor: pointer;
@@ -2865,7 +3402,7 @@ const validCartItems = computed(() => {
     margin-bottom: 1rem;
 
     &:last-child {
-    margin-bottom: 0;
+      margin-bottom: 0;
     }
   }
 
@@ -2892,7 +3429,7 @@ const validCartItems = computed(() => {
     color: #374151;
 
     input[type="radio"] {
-      accent-color: #388D35;
+      accent-color: #388d35;
       margin: 0;
     }
 
@@ -2901,7 +3438,7 @@ const validCartItems = computed(() => {
     }
 
     &:hover {
-      color: #388D35;
+      color: #388d35;
     }
   }
 
@@ -2921,7 +3458,7 @@ const validCartItems = computed(() => {
 
     &:focus {
       outline: none;
-      border-color: #388D35;
+      border-color: #388d35;
       box-shadow: 0 0 0 2px rgba(56, 141, 53, 0.1);
     }
   }
@@ -2967,7 +3504,7 @@ const validCartItems = computed(() => {
 
     &:focus {
       outline: none;
-      border-color: #388D35;
+      border-color: #388d35;
       box-shadow: 0 0 0 2px rgba(56, 141, 53, 0.1);
     }
   }
@@ -2998,12 +3535,12 @@ const validCartItems = computed(() => {
     transition: all 0.2s ease;
 
     &:hover {
-      border-color: #388D35;
+      border-color: #388d35;
     }
 
     &.active {
-      background: #388D35;
-      border-color: #388D35;
+      background: #388d35;
+      border-color: #388d35;
       color: white;
     }
 
@@ -3025,7 +3562,7 @@ const validCartItems = computed(() => {
   .place-order-btn {
     width: 100%;
     padding: 16px;
-    background: #388D35;
+    background: #388d35;
     border: none;
     border-radius: 8px;
     color: white;
@@ -3084,13 +3621,13 @@ const validCartItems = computed(() => {
     transition: all 0.2s ease;
 
     &:hover {
-      border-color: #388D35;
+      border-color: #388d35;
       background: #f8fafc;
     }
 
     input[type="radio"] {
       margin-top: 2px;
-      accent-color: #388D35;
+      accent-color: #388d35;
 
       &:disabled {
         opacity: 0.5;
@@ -3118,23 +3655,23 @@ const validCartItems = computed(() => {
     }
 
     &:has(input:checked) {
-      border-color: #388D35;
+      border-color: #388d35;
       background: #f0fdf4;
-      
+
       .delivery-option-title {
-        color: #388D35;
+        color: #388d35;
       }
     }
 
     &:has(input:disabled) {
       opacity: 0.6;
       cursor: not-allowed;
-      
+
       &:hover {
         border-color: #e2e8f0;
         background: white;
       }
-      
+
       .delivery-option-label {
         cursor: not-allowed;
       }
@@ -3181,7 +3718,7 @@ const validCartItems = computed(() => {
     .delivery-address-title {
       font-size: 14px;
       font-weight: 600;
-      color: #388D35;
+      color: #388d35;
       margin: 0 0 1rem 0;
     }
 

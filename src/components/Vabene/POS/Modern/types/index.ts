@@ -63,6 +63,7 @@ export interface CartItem {
   productId: string;
   name: string;
   image: string;
+  category?: string; // Ajouter la propriété category
   selectedSize: ProductSize;
   quantity: number;
   basePrice: number;
