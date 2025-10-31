@@ -1,0 +1,132 @@
+version: '3.8'
+
+services:
+  # Base de données MySQL
+  db:
+    image: mysql:8
+    container_name: vabene-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./mysql/conf.d:/etc/mysql/conf.d
+    networks:
+      - vabene-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend Symfony
+  backend:
+    build: 
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: vabene-backend
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=mysql://${DB_USER}:${DB_PASSWORD}@db:3306/${DB_NAME}
+      - APP_ENV=prod
+      - APP_SECRET=${APP_SECRET}
+      - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_PASSPHRASE=${JWT_PASSPHRASE}
+      - APP_URL=https://82.25.97.47
+    volumes:
+      - ./apps/backend:/var/www/html
+      - ./apps/backend/var:/var/www/html/var
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - vabene-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Site web principal (Next.js)
+  website:
+    build: 
+      context: ./apps/website
+      dockerfile: Dockerfile
+    container_name: vabene-website
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=https://82.25.97.47/api
+      - NEXT_PUBLIC_SITE_URL=http://82.25.97.47:3000
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - NEXT_TELEMETRY_DISABLED=1
+    restart: unless-stopped
+    networks:
+      - vabene-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - backend
+
+  # Dashboard Vue.js (CRM)
+  dashboard:
+    build: 
+      context: ./apps/dashboard
+      dockerfile: Dockerfile
+    container_name: vabene-dashboard
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    networks:
+      - vabene-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - backend
+
+  # Nginx pour le backend et frontend
+  nginx:
+    image: nginx:stable-alpine
+    container_name: vabene-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./ssl:/etc/ssl
+      - ./apps/backend:/var/www/html:ro
+    depends_on:
+      - backend
+      - website
+      - dashboard
+    networks:
+      - vabene-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  db_data:
+
+networks:
+  vabene-network:
+    driver: bridge

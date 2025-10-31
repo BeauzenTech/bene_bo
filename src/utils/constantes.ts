@@ -1,0 +1,2 @@
+export const PAGINATION_ITEMS_PER_PAGE_DEFAULT = 10;
+export const PAGE_NUMBER_DEFAULT = 1;
