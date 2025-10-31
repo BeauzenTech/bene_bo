@@ -1,4 +1,4 @@
 export const apiConfig = {
-  baseURL: "http://localhost:3002/api",
-  wssURL: "wss://localhost:3002",
+  baseURL: "https://vabene-api.fly.dev/api",
+  wssURL: "wss://vabene-api.fly.dev",
 };
