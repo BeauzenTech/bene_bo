@@ -552,7 +552,9 @@ export const detailRestaurant = async (
 ): Promise<ApiResponse<RestaurantModel>> => {
   // eslint-disable-next-line no-useless-catch
   try {
-    const response = await apiClient.get(`/restaurant/detail/${restaurantID}`);
+    const response = await apiClient.get(
+      `/v1/restaurant/detail/${restaurantID}`
+    );
     return new ApiResponse(
       response.data.code,
       response.data.message,

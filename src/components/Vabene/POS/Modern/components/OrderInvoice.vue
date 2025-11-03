@@ -1760,7 +1760,6 @@ const DEFAULT_CLIENTS = {
   },
 };
 
-// Charger les informations du restaurant
 const loadRestaurantInfo = async () => {
   try {
     const restaurantID = localStorage.getItem(
